@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { ADMIN_EMAIL } from '@/lib/admin'
+import { ADMIN_EMAILS } from '@/lib/admin'
 
 const navItems = [
   { href: '/admin/contactos', label: 'Contactos' },
@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user || user.email !== ADMIN_EMAIL) redirect('/')
+  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) redirect('/')
 
   return (
     <div className="min-h-screen bg-background">

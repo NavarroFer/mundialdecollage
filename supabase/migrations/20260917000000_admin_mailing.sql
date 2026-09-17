@@ -1,13 +1,14 @@
 -- Admin-only mailing system: contacts (the mailing list), templates (reusable
 -- email bodies), campaigns (a composed send), and campaign_sends (per-recipient
--- log, so we know who got what and can see failures). Single-admin site today —
--- is_admin() is the one place that decides who that is.
+-- log, so we know who got what and can see failures). is_admin() is the one
+-- place that decides who gets in — keep this list in sync with
+-- lib/admin.ts's ADMIN_EMAILS, that's the page-level gate for the same accounts.
 create or replace function public.is_admin()
 returns boolean
 language sql
 stable
 as $$
-  select auth.jwt() ->> 'email' = 'fernavarro2607@gmail.com'
+  select auth.jwt() ->> 'email' = any (array['mundialdecollage@gmail.com', 'fernando.navarro.mdp@gmail.com'])
 $$;
 
 create table if not exists public.contacts (
