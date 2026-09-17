@@ -5,6 +5,7 @@ import { HowToSection } from '@/components/how-to-section'
 import { AboutSection } from '@/components/about-section'
 import { WorkshopSection } from '@/components/workshop-section'
 import { ParticipantsSection } from '@/components/participants-section'
+import { MapSection } from '@/components/map-section'
 import { JurySection } from '@/components/jury-section'
 import { CtaSection } from '@/components/cta-section'
 import { Footer } from '@/components/footer'
@@ -20,6 +21,7 @@ export default function Home() {
         <AboutSection />
         <WorkshopSection />
         <ParticipantsSection />
+        <MapSection />
         <JurySection />
         <CtaSection />
       </main>
