@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CalendarDays, Scissors } from 'lucide-react'
+import { CalendarDays, MapPin, Scissors } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
@@ -68,6 +68,10 @@ export function WorkshopSection() {
             <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 bg-background px-4 py-2 font-semibold text-ink">
               <CalendarDays className="h-4 w-4 text-collage-blue" />
               {site.workshop.dateLabel}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 bg-background px-4 py-2 font-semibold text-ink">
+              <MapPin className="h-4 w-4 text-collage-red" />
+              {site.workshop.locationLabel}
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink/15 bg-background px-4 py-2 font-semibold text-ink">
               {site.workshop.priceLabel}

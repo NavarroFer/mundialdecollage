@@ -19,6 +19,7 @@ export const site = {
     slogan: 'Ponete a practicar para el mundial',
     // Exact dates still tentative — keeping it a range until confirmed.
     dateLabel: 'Primeros días de octubre',
+    locationLabel: 'Mar del Plata, Argentina',
     // TODO: set once a price is decided; checkout (Mercado Pago) plugs in here later.
     priceLabel: 'Precio a confirmar',
     // Real ARS amounts. Until both are set, the registration flow stays

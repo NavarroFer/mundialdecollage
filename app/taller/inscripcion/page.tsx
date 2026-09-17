@@ -83,7 +83,8 @@ export default async function InscripcionPage({
           Anotate al taller
         </h1>
         <p className="mx-auto mt-3 max-w-sm text-center text-muted-foreground">
-          {site.workshop.dateLabel} — 20 cupos, pagás la seña o el total y listo.
+          {site.workshop.dateLabel} en {site.workshop.locationLabel} — 20 cupos, pagás la seña o
+          el total y listo.
         </p>
 
         {registration ? (

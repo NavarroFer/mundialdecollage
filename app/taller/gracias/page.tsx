@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
+import { site } from '@/lib/site'
 
 // Mercado Pago's `back_urls.success` target after checkout.
 export default function TallerGraciasPage() {
@@ -23,6 +24,9 @@ export default function TallerGraciasPage() {
               Ya recibimos tu pago. La confirmación puede tardar un minuto en
               reflejarse mientras Mercado Pago nos avisa — si te llegó el
               comprobante, ya está todo en orden.
+            </p>
+            <p className="mx-auto mt-2 max-w-md text-lg text-muted-foreground">
+              Te esperamos en {site.workshop.locationLabel}.
             </p>
 
             <div className="mt-10 flex justify-center">
