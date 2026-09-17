@@ -12,6 +12,9 @@ export const site = {
   // Bases del concurso (PDF). Drop the file at public/docs/bases-mundial-de-collage.pdf
   // and this link starts working — nothing else to change.
   basesPdfUrl: '/docs/bases-mundial-de-collage.pdf',
+  // Requires mundialdecollage.com.ar verified as a sending domain in Resend —
+  // sends fail with a clear error until DNS propagates and verification completes.
+  mailFrom: 'Mundial de Collage <hola@mundialdecollage.com.ar>',
   workshop: {
     slogan: 'Ponete a practicar para el mundial',
     // Exact dates still tentative — keeping it a range until confirmed.
@@ -20,3 +23,12 @@ export const site = {
     priceLabel: 'Precio a confirmar',
   },
 } as const
+
+// Prefer an explicit override, then Vercel's own assigned domain for this
+// deployment, falling back to localhost for `next dev`.
+export function getSiteUrl() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL
+  if (vercelUrl) return `https://${vercelUrl}`
+  return 'http://localhost:3000'
+}

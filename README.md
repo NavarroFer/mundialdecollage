@@ -26,6 +26,15 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
+# Resend — https://resend.com/api-keys. Sin esto, /admin/campanas no puede
+# mandar mails (ver lib/resend.ts). Requiere mundialdecollage.com.ar
+# verificado como sending domain en Resend (ver mailFrom en lib/site.ts).
+RESEND_API_KEY=
+
+# Opcional: fuerza la URL usada en links de mail (ej. unsubscribe) en vez de
+# auto-detectar la URL de Vercel (ver getSiteUrl en lib/site.ts).
+# NEXT_PUBLIC_SITE_URL=
+
 # Mercado Pago — recién hace falta cuando el taller tenga precio real
 # (ver lib/pricing.ts).
 # MERCADOPAGO_ACCESS_TOKEN=
@@ -36,6 +45,22 @@ SUPABASE_SERVICE_ROLE_KEY=
 Una vez creado el proyecto de Supabase, corré la migración en
 `supabase/migrations/` (Supabase CLI o pegada directo en el SQL editor) para
 crear la tabla `profiles`.
+
+### Migraciones automáticas (CI)
+
+El workflow [.github/workflows/supabase-migrations.yml](.github/workflows/supabase-migrations.yml)
+aplica las migraciones pendientes de `supabase/migrations/` contra el
+proyecto de producción cada vez que se pushea a `main` (en paralelo al
+deploy automático de Vercel). Requiere estos secrets en GitHub (Settings →
+Secrets and variables → Actions):
+
+- `SUPABASE_ACCESS_TOKEN`: personal access token,
+  https://supabase.com/dashboard/account/tokens
+- `SUPABASE_DB_PASSWORD`: la contraseña de la base (Settings → Database del
+  proyecto)
+
+El project ref ya está hardcodeado en el workflow
+(`jgneduoejygbqtwarynr`) porque no es un dato sensible.
 
 ## Editar contenido
 
