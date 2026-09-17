@@ -21,8 +21,17 @@ export const site = {
     dateLabel: 'Primeros días de octubre',
     // TODO: set once a price is decided; checkout (Mercado Pago) plugs in here later.
     priceLabel: 'Precio a confirmar',
+    // Real ARS amounts. Until both are set, the registration flow stays
+    // disabled and the site keeps showing priceLabel above instead.
+    totalPrice: null as number | null,
+    minDeposit: null as number | null,
+    capacity: 20,
   },
 } as const
+
+export function isWorkshopPaymentConfigured() {
+  return site.workshop.totalPrice !== null && site.workshop.minDeposit !== null
+}
 
 // Prefer an explicit override, then Vercel's own assigned domain for this
 // deployment, falling back to localhost for `next dev`.
