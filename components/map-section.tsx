@@ -1,36 +1,6 @@
 import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
-import { countryCodeToFlag, participants } from '@/lib/participants'
-
-// Spanish display name for a handful of countries likely to show up in
-// lib/participants.ts. Not a full ISO-3166 database on purpose — codes
-// without an entry here just fall back to showing the raw code.
-const countryNames: Record<string, string> = {
-  AR: 'Argentina',
-  MX: 'México',
-  ES: 'España',
-  US: 'Estados Unidos',
-  CO: 'Colombia',
-  CL: 'Chile',
-  PE: 'Perú',
-  UY: 'Uruguay',
-  PY: 'Paraguay',
-  BO: 'Bolivia',
-  EC: 'Ecuador',
-  VE: 'Venezuela',
-  BR: 'Brasil',
-  CR: 'Costa Rica',
-  PA: 'Panamá',
-  GT: 'Guatemala',
-  DO: 'República Dominicana',
-  CU: 'Cuba',
-  IT: 'Italia',
-  FR: 'Francia',
-}
-
-function countryName(countryCode: string) {
-  return countryNames[countryCode] ?? countryCode
-}
+import { countryCodeToFlag, countryCodeToName, participants } from '@/lib/participants'
 
 type CountryCount = { countryCode: string; count: number }
 
@@ -88,7 +58,7 @@ export function MapSection() {
                     <span aria-hidden className="text-xl">
                       {countryCodeToFlag(countryCode)}
                     </span>
-                    {countryName(countryCode)}
+                    {countryCodeToName(countryCode)}
                   </span>
                   <span className="rounded-full bg-collage-blue px-3 py-1 text-sm font-bold text-primary-foreground">
                     {count}
