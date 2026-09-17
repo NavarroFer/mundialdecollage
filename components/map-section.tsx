@@ -1,5 +1,6 @@
 import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
+import { WorldMap } from '@/components/world-map'
 import { countryCodeToFlag, countryCodeToName, participants } from '@/lib/participants'
 
 type CountryCount = { countryCode: string; count: number }
@@ -42,8 +43,22 @@ export function MapSection() {
             </span>
           </p>
         </FadeIn>
+      </div>
 
+      {breakdown.length > 0 && (
         <FadeIn delay={200}>
+          <div className="relative mx-auto mt-12 max-w-4xl px-5 sm:px-8">
+            <WorldMap breakdown={breakdown} />
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Cada país se pinta más oscuro cuanto más collages recibió. Pasá el mouse
+              para ver el detalle.
+            </p>
+          </div>
+        </FadeIn>
+      )}
+
+      <div className="relative mx-auto max-w-2xl px-5 sm:px-8">
+        <FadeIn delay={300}>
           {breakdown.length > 0 ? (
             <ul className="mt-12 space-y-3">
               {breakdown.map(({ countryCode, count }, i) => (
