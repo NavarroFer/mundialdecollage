@@ -1,0 +1,203 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.96 0.015 75);
+  --foreground: oklch(0.19 0.02 50);
+  --card: oklch(0.985 0.008 75);
+  --card-foreground: oklch(0.19 0.02 50);
+  --popover: oklch(0.985 0.008 75);
+  --popover-foreground: oklch(0.19 0.02 50);
+  --primary: oklch(0.4 0.13 258);
+  --primary-foreground: oklch(0.98 0.01 90);
+  --secondary: oklch(0.75 0.16 75);
+  --secondary-foreground: oklch(0.22 0.03 50);
+  --muted: oklch(0.92 0.02 75);
+  --muted-foreground: oklch(0.42 0.03 55);
+  --accent: oklch(0.57 0.2 27);
+  --accent-foreground: oklch(0.98 0.01 90);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0.01 90);
+  --border: oklch(0.85 0.02 60);
+  --input: oklch(0.85 0.02 60);
+  --ring: oklch(0.4 0.13 258);
+  --radius: 0.75rem;
+
+  /* Brand palette pulled from the flyer set — paper cream, poster blue, poster red, poster mustard. */
+  --paper: oklch(0.96 0.015 75);
+  --ink: oklch(0.19 0.02 50);
+  --collage-blue: oklch(0.4 0.13 258);
+  --collage-red: oklch(0.57 0.2 27);
+  --collage-yellow: oklch(0.75 0.16 75);
+}
+
+.dark {
+  --background: oklch(0.16 0.015 50);
+  --foreground: oklch(0.95 0.015 75);
+  --card: oklch(0.2 0.02 50);
+  --card-foreground: oklch(0.95 0.015 75);
+  --popover: oklch(0.2 0.02 50);
+  --popover-foreground: oklch(0.95 0.015 75);
+  --primary: oklch(0.72 0.11 258);
+  --primary-foreground: oklch(0.16 0.02 50);
+  --secondary: oklch(0.75 0.16 75);
+  --secondary-foreground: oklch(0.19 0.02 50);
+  --muted: oklch(0.27 0.02 50);
+  --muted-foreground: oklch(0.72 0.02 60);
+  --accent: oklch(0.62 0.2 27);
+  --accent-foreground: oklch(0.98 0.01 90);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0.01 90);
+  --border: oklch(0.32 0.02 50);
+  --input: oklch(0.32 0.02 50);
+  --ring: oklch(0.72 0.11 258);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-anton), 'Arial Narrow Bold', sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-collage-blue: var(--collage-blue);
+  --color-collage-red: var(--collage-red);
+  --color-collage-yellow: var(--collage-yellow);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* Torn-paper edge, both sides — the flat/vector collage motif reused across sections. */
+  .torn-strip {
+    clip-path: polygon(
+      0% 4%,
+      6% 0%,
+      12% 5%,
+      18% 1%,
+      24% 6%,
+      30% 2%,
+      36% 7%,
+      42% 1%,
+      48% 5%,
+      54% 0%,
+      60% 6%,
+      66% 2%,
+      72% 7%,
+      78% 1%,
+      84% 5%,
+      90% 0%,
+      96% 6%,
+      100% 2%,
+      100% 96%,
+      94% 100%,
+      88% 95%,
+      82% 99%,
+      76% 94%,
+      70% 100%,
+      64% 95%,
+      58% 99%,
+      52% 94%,
+      46% 100%,
+      40% 95%,
+      34% 99%,
+      28% 94%,
+      22% 100%,
+      16% 95%,
+      10% 99%,
+      4% 94%,
+      0% 98%
+    );
+  }
+
+  /* Torn-paper edge, top only — flat bottom so it can sit flush against a section edge. */
+  .torn-top {
+    clip-path: polygon(
+      0% 6%,
+      5% 1%,
+      10% 6%,
+      15% 2%,
+      20% 7%,
+      25% 1%,
+      30% 5%,
+      35% 0%,
+      40% 6%,
+      45% 2%,
+      50% 7%,
+      55% 1%,
+      60% 5%,
+      65% 0%,
+      70% 6%,
+      75% 2%,
+      80% 7%,
+      85% 1%,
+      90% 5%,
+      95% 0%,
+      100% 5%,
+      100% 100%,
+      0% 100%
+    );
+  }
+
+  /* Subtle paper grain so the cream background reads as textured, not flat digital. */
+  .bg-grain {
+    position: relative;
+  }
+  .bg-grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rot, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(var(--rot, 0deg));
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
