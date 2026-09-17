@@ -4,15 +4,20 @@ import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { FadeIn } from '@/components/fade-in'
 import { countryCodeToFlag } from '@/lib/participants'
-import { countryCodeToName, finalists } from '@/lib/finalists'
-import { submissionsCount } from '@/lib/submissions'
+import { countryCodeToName, getFinalists } from '@/lib/finalists'
+import { getSubmissionsCount } from '@/lib/submissions'
 
 export const metadata = {
   title: 'Primera Edición 2026 | Mundial de Collage',
   description: 'Los finalistas y las obras recibidas en la primera edición del Mundial Internacional de Collage.',
 }
 
-export default function Edicion2026Page() {
+// Renders per request so a new submission shows up without a redeploy.
+export const dynamic = 'force-dynamic'
+
+export default async function Edicion2026Page() {
+  const [finalists, submissionsCount] = await Promise.all([getFinalists(), getSubmissionsCount()])
+
   return (
     <>
       <SiteHeader />

@@ -2,10 +2,11 @@ import Link from 'next/link'
 import { Images } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
-import { finalists } from '@/lib/finalists'
-import { submissionsCount } from '@/lib/submissions'
+import { getSubmissionsCount } from '@/lib/submissions'
 
-export function EditionSection() {
+export async function EditionSection() {
+  const submissionsCount = await getSubmissionsCount()
+
   return (
     <section id="primera-edicion" className="relative overflow-hidden border-t-2 border-ink/10 bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-3xl px-5 text-center sm:px-8">
@@ -32,7 +33,7 @@ export function EditionSection() {
 
         <FadeIn delay={300}>
           <p className="mx-auto mt-5 max-w-md text-muted-foreground">
-            {finalists.length > 0
+            {submissionsCount > 0
               ? 'Los finalistas y todas las obras de esta edición, en un solo lugar.'
               : 'Acá va a vivir el archivo completo del Mundial: los finalistas y sus obras, apenas cierre la convocatoria.'}
           </p>

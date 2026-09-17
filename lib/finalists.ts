@@ -1,122 +1,78 @@
-// Add one entry per confirmed finalist once the Mundial announces them. slug
-// feeds the individual work page route (/obras/[slug]) — keep it URL-safe
-// (lowercase, hyphens). countryCode is the 2-letter ISO code (AR, MX, ES,
-// US, ...) used to render the flag + country name. instagram/website are
-// optional and should only be filled in when the artist authorizes sharing
-// them (ver ROADMAP.md, sección "Primera Edición").
+import { createPublicClient } from '@/lib/supabase/public'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
+
+export { countryCodeToName } from '@/lib/participants'
+
+// slug feeds the individual work page route (/obras/[slug]). instagram/website
+// are optional and only set when the artist filled them in at submission.
+//
+// Every submission includes an artwork today (see app/onboarding/actions.ts),
+// so this is the same set as getParticipants() — there's no separate
+// "confirmed finalist" curation step yet. Once the Mundial wants to show a
+// curated subset instead of everyone who submitted, that's an admin flag to
+// add here, not a reason to keep two disconnected datasets.
 export type Finalist = {
   slug: string
   name: string
   countryCode: string
   artworkTitle: string
-  technique: string
+  technique?: string
   imageUrl: string
   instagram?: string
   website?: string
 }
 
-// DEMO mock data — for showing the design with sample data. Remove before
-// launch (revert to an empty array) so real numbers aren't faked.
-export const finalists: Finalist[] = [
-  {
-    slug: 'sofia-ramirez-collage-imposible',
-    name: 'Sofía Ramírez',
-    countryCode: 'AR',
-    artworkTitle: 'El collage imposible',
-    technique: 'Collage analógico',
-    imageUrl: 'https://picsum.photos/seed/mundial-1/800/1000',
-    instagram: '@sofiaramirez.art',
-  },
-  {
-    slug: 'mateo-alviani-frammenti',
-    name: 'Mateo Alviani',
-    countryCode: 'IT',
-    artworkTitle: 'Frammenti',
-    technique: 'Collage digital',
-    imageUrl: 'https://picsum.photos/seed/mundial-2/800/1000',
-    website: 'https://mateoalviani.example.com',
-  },
-  {
-    slug: 'camila-torres-retazos',
-    name: 'Camila Torres',
-    countryCode: 'CL',
-    artworkTitle: 'Retazos del sur',
-    technique: 'Collage analógico',
-    imageUrl: 'https://picsum.photos/seed/mundial-3/800/1000',
-    instagram: '@camitorres',
-  },
-  {
-    slug: 'lucia-fernandez-superposiciones',
-    name: 'Lucía Fernández',
-    countryCode: 'ES',
-    artworkTitle: 'Superposiciones',
-    technique: 'Fotomontaje',
-    imageUrl: 'https://picsum.photos/seed/mundial-4/800/1000',
-  },
-  {
-    slug: 'diego-herrera-memoria-de-papel',
-    name: 'Diego Herrera',
-    countryCode: 'MX',
-    artworkTitle: 'Memoria de papel',
-    technique: 'Collage analógico',
-    imageUrl: 'https://picsum.photos/seed/mundial-5/800/1000',
-    instagram: '@diegoherrera.mx',
-  },
-  {
-    slug: 'valentina-rojas-cuerpo-territorio',
-    name: 'Valentina Rojas',
-    countryCode: 'CO',
-    artworkTitle: 'Cuerpo territorio',
-    technique: 'Collage analógico',
-    imageUrl: 'https://picsum.photos/seed/mundial-6/800/1000',
-  },
-  {
-    slug: 'federico-gomez-recortes-urbanos',
-    name: 'Federico Gómez',
-    countryCode: 'AR',
-    artworkTitle: 'Recortes urbanos',
-    technique: 'Collage digital',
-    imageUrl: 'https://picsum.photos/seed/mundial-7/800/1000',
-    instagram: '@fede.gomez',
-    website: 'https://fedegomez.example.com',
-  },
-  {
-    slug: 'ana-belen-suarez-costuras',
-    name: 'Ana Belén Suárez',
-    countryCode: 'PE',
-    artworkTitle: 'Costuras invisibles',
-    technique: 'Collage mixto',
-    imageUrl: 'https://picsum.photos/seed/mundial-8/800/1000',
-  },
-  {
-    slug: 'julieta-medina-archivo-familiar',
-    name: 'Julieta Medina',
-    countryCode: 'UY',
-    artworkTitle: 'Archivo familiar',
-    technique: 'Collage analógico',
-    imageUrl: 'https://picsum.photos/seed/mundial-9/800/1000',
-    instagram: '@juliedina',
-  },
-  {
-    slug: 'pedro-silva-paisagem-cortada',
-    name: 'Pedro Silva',
-    countryCode: 'BR',
-    artworkTitle: 'Paisagem cortada',
-    technique: 'Fotomontaje',
-    imageUrl: 'https://picsum.photos/seed/mundial-10/800/1000',
-  },
-]
+const SELECT_COLUMNS =
+  'artwork_slug, name, country_code, artwork_title, technique, artwork_image_url, instagram, website'
 
-export function getFinalistBySlug(slug: string) {
-  return finalists.find((finalist) => finalist.slug === slug)
+type FinalistRow = {
+  artwork_slug: string | null
+  name: string | null
+  country_code: string | null
+  artwork_title: string | null
+  technique: string | null
+  artwork_image_url: string | null
+  instagram: string | null
+  website: string | null
 }
 
-// Converts an ISO 3166-1 alpha-2 code ("AR") into its Spanish country name
-// ("Argentina"). Falls back to the raw code if the runtime can't resolve it.
-export function countryCodeToName(countryCode: string) {
-  try {
-    return new Intl.DisplayNames(['es'], { type: 'region' }).of(countryCode.toUpperCase()) ?? countryCode
-  } catch {
-    return countryCode
+function rowToFinalist(row: FinalistRow): Finalist | undefined {
+  if (!row.artwork_slug || !row.name || !row.country_code || !row.artwork_title || !row.artwork_image_url) {
+    return undefined
   }
+  return {
+    slug: row.artwork_slug,
+    name: row.name,
+    countryCode: row.country_code,
+    artworkTitle: row.artwork_title,
+    technique: row.technique ?? undefined,
+    imageUrl: row.artwork_image_url,
+    instagram: row.instagram ?? undefined,
+    website: row.website ?? undefined,
+  }
+}
+
+// Every finalist with a completed submission, newest first.
+export async function getFinalists(): Promise<Finalist[]> {
+  if (!isSupabaseConfigured) return []
+
+  const { data } = await createPublicClient()
+    .from('profiles')
+    .select(SELECT_COLUMNS)
+    .not('artwork_slug', 'is', null)
+    .order('onboarded_at', { ascending: false })
+
+  return (data ?? []).map(rowToFinalist).filter((f): f is Finalist => f !== undefined)
+}
+
+export async function getFinalistBySlug(slug: string): Promise<Finalist | undefined> {
+  if (!isSupabaseConfigured) return undefined
+
+  const { data } = await createPublicClient()
+    .from('profiles')
+    .select(SELECT_COLUMNS)
+    .eq('artwork_slug', slug)
+    .maybeSingle()
+
+  return data ? rowToFinalist(data) : undefined
 }

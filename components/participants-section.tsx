@@ -1,8 +1,14 @@
 import Link from 'next/link'
 import { FadeIn } from '@/components/fade-in'
-import { countryCodeToFlag, participants } from '@/lib/participants'
+import { countryCodeToFlag, getParticipants } from '@/lib/participants'
 
-export function ParticipantsSection() {
+// Teaser only — capped so the homepage doesn't grow an unbounded pill wall
+// as submissions come in. /participantes has search/filter for the full list.
+const HOMEPAGE_LIMIT = 40
+
+export async function ParticipantsSection() {
+  const participants = await getParticipants({ limit: HOMEPAGE_LIMIT })
+
   return (
     <section id="participantes" className="border-t-2 border-ink/10 bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-4xl px-5 sm:px-8">

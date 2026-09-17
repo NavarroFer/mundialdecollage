@@ -11,6 +11,9 @@ import { JurySection } from '@/components/jury-section'
 import { CtaSection } from '@/components/cta-section'
 import { Footer } from '@/components/footer'
 
+// Renders per request so a new submission shows up without a redeploy.
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   return (
     <>

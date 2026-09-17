@@ -1,14 +1,13 @@
 import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { WorldMap } from '@/components/world-map'
-import { countryCodeToFlag, countryCodeToName, participants } from '@/lib/participants'
+import { countryCodeToFlag, countryCodeToName, getParticipants, type Participant } from '@/lib/participants'
 
 type CountryCount = { countryCode: string; count: number }
 
-// Groups the real participants array by country and sorts descending by
-// count. Everything here is derived from lib/participants.ts — nothing
-// fabricated.
-function getCountryBreakdown(): CountryCount[] {
+// Groups real participants by country and sorts descending by count.
+// Everything here is derived from real submissions — nothing fabricated.
+function getCountryBreakdown(participants: Participant[]): CountryCount[] {
   const counts = new Map<string, number>()
   for (const p of participants) {
     const code = p.countryCode.toUpperCase()
@@ -19,8 +18,9 @@ function getCountryBreakdown(): CountryCount[] {
     .sort((a, b) => b.count - a.count)
 }
 
-export function MapSection() {
-  const breakdown = getCountryBreakdown()
+export async function MapSection() {
+  const participants = await getParticipants()
+  const breakdown = getCountryBreakdown(participants)
 
   return (
     <section className="relative overflow-hidden border-t-2 border-ink/10 bg-card py-20 sm:py-28">

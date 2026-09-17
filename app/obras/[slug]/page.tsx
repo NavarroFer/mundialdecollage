@@ -4,17 +4,15 @@ import { ArrowLeft, Globe, Instagram } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { countryCodeToFlag } from '@/lib/participants'
-import { countryCodeToName, finalists, getFinalistBySlug } from '@/lib/finalists'
+import { countryCodeToName, getFinalistBySlug } from '@/lib/finalists'
 
-// Static params come straight from the finalists array — zero pages today,
-// and it fills in on its own once real finalists are added.
-export function generateStaticParams() {
-  return finalists.map((finalist) => ({ slug: finalist.slug }))
-}
+// Slugs come from live submissions, so pages render on demand per request
+// instead of at build time.
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const finalist = getFinalistBySlug(slug)
+  const finalist = await getFinalistBySlug(slug)
   if (!finalist) return {}
 
   return {
@@ -25,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ObraPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const finalist = getFinalistBySlug(slug)
+  const finalist = await getFinalistBySlug(slug)
 
   if (!finalist) notFound()
 

@@ -73,14 +73,21 @@ El project ref ya está hardcodeado en el workflow
 - **Colores de marca** (papel, tinta, azul/rojo/mostaza del collage): tokens
   `--paper`, `--ink`, `--collage-blue`, `--collage-red`, `--collage-yellow` en
   [app/globals.css](app/globals.css).
-- **Participantes** (nombre + bandera): array `participants` en
-  [lib/participants.ts](lib/participants.ts).
+- **Participantes, finalistas y conteo de obras**: ya no son arrays mockeados
+  — se leen en vivo de la tabla `profiles` en Supabase
+  ([lib/participants.ts](lib/participants.ts), [lib/finalists.ts](lib/finalists.ts),
+  [lib/submissions.ts](lib/submissions.ts)). El dato real es cada inscripción
+  hecha desde `/onboarding` (ver más abajo).
 
-## Login y onboarding
+## Login e inscripción
 
-Google login vía Supabase Auth (`lib/supabase/`), con onboarding post-login en
-`app/onboarding/` que pide nombre + ubicación y los guarda en la tabla
-`profiles`. Todo el flujo está gateado por `isSupabaseConfigured`
+Google login vía Supabase Auth (`lib/supabase/`). Después de loguearse, el
+onboarding en `app/onboarding/` funciona como el formulario de inscripción al
+Mundial: nombre, país, técnica (opcional), título de la obra, imagen (sube a
+Supabase Storage, bucket `artworks`) e instagram/web (opcional). Se guarda
+todo en `profiles` y queda visible al instante en el directorio de
+participantes, el mapa y `/edicion-2026` — no hay paso de aprobación manual
+hoy. Todo el flujo está gateado por `isSupabaseConfigured`
 ([lib/supabase/config.ts](lib/supabase/config.ts)) — sin credenciales reales,
 el sitio se comporta exactamente como la versión sin login.
 
@@ -91,7 +98,10 @@ el sitio se comporta exactamente como la versión sin login.
 - Sumar nombres/fotos del jurado en `components/jury-section.tsx` cuando se
   confirmen.
 - Anunciar los premios cuando estén definidos.
-- Crear el proyecto de Supabase y cargar las credenciales de arriba.
 - Precio del taller + credenciales de Mercado Pago para conectar el checkout
   real (la utilidad de "aumentar el precio según la comisión" ya está en
   `lib/pricing.ts`, falta el formulario/admin que la use).
+- Curaduría de finalistas: hoy toda inscripción con obra se muestra como
+  finalista (no hay distinción participante/finalista). Si el Mundial quiere
+  mostrar solo un subconjunto curado más adelante, hace falta un flag de
+  admin en `profiles` (ver comentario en `lib/finalists.ts`).

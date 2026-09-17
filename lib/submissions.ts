@@ -1,8 +1,16 @@
-import { finalists } from '@/lib/finalists'
+import { createPublicClient } from '@/lib/supabase/public'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 // Total count of collage works received for the Mundial, shown in the
-// "Primera Edición" banner. There's no separate submissions dataset yet, so
-// this mirrors the confirmed finalists — the only real data we have today.
-// Once a real submissions pipeline exists, wire it up here (never hardcode
-// a number in its place; ver ROADMAP.md, sección "Primera Edición").
-export const submissionsCount = finalists.length
+// "Primera Edición" banner — real count of completed submissions, never
+// hardcoded (ver ROADMAP.md, sección "Primera Edición").
+export async function getSubmissionsCount(): Promise<number> {
+  if (!isSupabaseConfigured) return 0
+
+  const { count } = await createPublicClient()
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .not('onboarded_at', 'is', null)
+
+  return count ?? 0
+}
