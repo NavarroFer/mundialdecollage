@@ -24,3 +24,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# claude code local overrides (personal, may hold secrets referenced by .mcp.json)
+.claude/settings.local.json
