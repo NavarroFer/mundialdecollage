@@ -103,9 +103,9 @@ export async function registerForWorkshop(formData: FormData) {
         },
         external_reference: registration.id,
         back_urls: {
-          success: `${siteUrl}/taller/inscripcion`,
-          pending: `${siteUrl}/taller/inscripcion`,
-          failure: `${siteUrl}/taller/inscripcion`,
+          success: `${siteUrl}/taller/gracias`,
+          pending: `${siteUrl}/taller/pendiente`,
+          failure: `${siteUrl}/taller/inscripcion?error=pago_fallido`,
         },
         auto_return: 'approved',
         notification_url: `${siteUrl}/api/mercadopago/webhook`,

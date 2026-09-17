@@ -10,6 +10,7 @@ const errorMessages: Record<string, string> = {
   missing_email: 'Tu cuenta de Google no tiene un email asociado — escribinos para resolverlo.',
   save_failed: 'Algo falló al guardar tu inscripción. Probá de nuevo.',
   mp_failed: 'No pudimos iniciar el pago. Probá de nuevo en un momento.',
+  pago_fallido: 'El pago no se completó — podés intentarlo de nuevo.',
 }
 
 function formatArs(amount: number) {
