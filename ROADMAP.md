@@ -11,7 +11,7 @@ prestigio alrededor del Mundial en sí mismo — el taller es secundario hasta
 que el evento tenga tracción propia. Mantener `WorkshopSection` donde está
 (después de `AboutSection`) o más abajo, nunca como protagonista de la home.
 
-## 1. Sección "Primera Edición" (galería + finalistas)
+## 1. Sección "Primera Edición" (galería + finalistas) — ✅ hecho
 
 Probablemente la sección más importante de la web una vez que haya obras
 confirmadas. Convierte al Mundial en archivo, no solo en concurso.
@@ -22,7 +22,7 @@ confirmadas. Convierte al Mundial en archivo, no solo en concurso.
 - Página propia por obra (`/obras/[slug]`): imagen, artista, país, título,
   técnica, Instagram/web (solo si el artista autoriza).
 
-## 2. Directorio "Todos los participantes"
+## 2. Directorio "Todos los participantes" — ✅ hecho
 
 Con 300+ obras recibidas hay una oportunidad grande: un directorio completo
 en `/participantes` (separado de la teaser-list que ya existe en la home).
@@ -35,18 +35,38 @@ en `/participantes` (separado de la teaser-list que ya existe en la home).
 - Motivo para que los propios participantes compartan la página ("Mirá,
   estoy en el Mundial de Collage") → tráfico orgánico.
 
-## 3. "Mapa del Mundial"
+## 3. "Mapa del Mundial" — ✅ hecho
 
-Visualización de dónde viene la comunidad. Arranca como un ranking/leyenda
-por país (bandera + país + cantidad, con los mismos datos reales de
-participantes) para no sumar una librería de mapas pesada sin necesidad.
-Un mapa ilustrado con pines es una mejora visual futura, una vez que haya
-un asset de diseño para eso.
+Mapa geográfico real (coloreado por país según cantidad de participantes),
+con ranking/leyenda al lado. Datos reales de `lib/participants.ts`, sin
+librería de mapas pesada de más.
 
-## Cómo se está construyendo
+## 4. Pagos con Mercado Pago (taller + "obra mensual") — pendiente
 
-Los ítems 1, 2 y 3 se scaffoldean en paralelo, cada uno en su propio
+- **Taller**: cupo de 20 personas. Falta: cuenta de Mercado Pago
+  (credenciales), tabla de inscripciones en Supabase (quién pagó, cupos
+  ocupados), Checkout Pro para la seña, webhook que confirme el pago server
+  to server, cortar el botón de pago al llenarse los 20 cupos.
+  **La seña queda en pausa por ahora** (2026-09-17) — se retoma más adelante.
+- **"Obra mensual"**: todavía sin definir si es suscripción recurrente
+  (Mercado Pago Preapproval, guarda medio de pago, cobro automático) o venta
+  puntual que se repite cada mes (mismo Checkout Pro del taller). Definir
+  esto antes de tocar código — cambia bastante la arquitectura.
+
+## Cómo se construyó
+
+Los ítems 1, 2 y 3 se scaffoldearon en paralelo, cada uno en su propio
 git worktree/branch, para poder revisarlos y mergearlos por separado. Todos
-arrancan con arrays de datos vacíos (mismo patrón que `lib/participants.ts`
-hoy) y un estado "todavía no hay X" — se completan solos a medida que entran
-datos reales.
+arrancaron con arrays de datos vacíos (mismo patrón que `lib/participants.ts`)
+y un estado "todavía no hay X" — se completan solos a medida que entran datos
+reales.
+
+## Además, fuera de este roadmap original
+
+- **Panel admin** (`/admin`, gateado a `mundialdecollage@gmail.com` y
+  `fernando.navarro.mdp@gmail.com`): contactos, plantillas y campañas de
+  mail vía Resend, con link de baja automático. Ver
+  `supabase/migrations/20260917000000_admin_mailing.sql`.
+- **Deploy**: repo privado en GitHub (`NavarroFer/mundialdecollage`), Vercel
+  conectado con deploy automático a `main`, dominio `mundialdecollage.com.ar`
+  en proceso de propagación de DNS.
