@@ -25,12 +25,15 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
-      - name: Mark pre-existing profiles migration as applied
-        # The `profiles` table was created by hand in the SQL editor before
-        # this workflow existed, so the CLI's migration history doesn't know
-        # about it. Without this, db push tries to recreate it and fails on
-        # "already exists". One-time fix — safe to remove once this has run.
-        run: supabase migration repair --status applied 20260916000000
+      - name: Mark pre-existing migrations as applied
+        # Both migrations were run by hand in the SQL editor before this
+        # workflow existed, so the CLI's migration history doesn't know
+        # about them. Without this, db push tries to recreate objects that
+        # already exist and fails. One-time fix — safe to remove once this
+        # has run successfully.
+        run: |
+          supabase migration repair --status applied 20260916000000
+          supabase migration repair --status applied 20260917000000
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
