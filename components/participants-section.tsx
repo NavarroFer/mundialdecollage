@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { FadeIn } from '@/components/fade-in'
 import { countryCodeToFlag, participants } from '@/lib/participants'
 
@@ -32,6 +33,17 @@ export function ParticipantsSection() {
               Todavía no hay obras confirmadas — la tuya puede ser la primera acá.
             </p>
           )}
+        </FadeIn>
+
+        <FadeIn delay={250}>
+          <div className="mt-8 text-center">
+            <Link
+              href="/participantes"
+              className="text-sm font-semibold text-collage-blue underline underline-offset-4 hover:text-collage-blue/80"
+            >
+              Ver todos los participantes →
+            </Link>
+          </div>
         </FadeIn>
       </div>
     </section>

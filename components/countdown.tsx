@@ -26,8 +26,9 @@ export function Countdown() {
   const [time, setTime] = useState<ReturnType<typeof getTimeLeft> | null>(null)
 
   useEffect(() => {
-    setTime(getTimeLeft())
-    const id = setInterval(() => setTime(getTimeLeft()), 30_000)
+    const tick = () => setTime(getTimeLeft())
+    const id = setInterval(tick, 30_000)
+    tick()
     return () => clearInterval(id)
   }, [])
 
