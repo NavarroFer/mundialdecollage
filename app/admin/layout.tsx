@@ -8,6 +8,7 @@ const navItems = [
   { href: '/admin/contactos', label: 'Contactos' },
   { href: '/admin/plantillas', label: 'Plantillas' },
   { href: '/admin/campanas', label: 'Campañas' },
+  { href: '/admin/inscripciones', label: 'Inscripciones' },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
