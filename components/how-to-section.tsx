@@ -32,7 +32,7 @@ const steps = [
 
 export function HowToSection() {
   return (
-    <section className="border-t-2 border-ink/10 bg-card py-20 sm:py-28">
+    <section id="como-participar" className="border-t-2 border-ink/10 bg-card py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
         <FadeIn>
           <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-red uppercase">

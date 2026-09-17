@@ -17,6 +17,18 @@ export function SiteHeader() {
           </span>
         </a>
 
+        <nav className="hidden items-center gap-6 text-sm font-semibold text-ink/70 md:flex">
+          <a href="#como-participar" className="hover:text-ink">
+            Cómo participar
+          </a>
+          <a href="#taller" className="hover:text-ink">
+            Taller
+          </a>
+          <a href="#participantes" className="hover:text-ink">
+            Participantes
+          </a>
+        </nav>
+
         <a href={`mailto:${site.email}`}>
           <Button size="sm" className="hidden sm:inline-flex">
             Participar
