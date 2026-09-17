@@ -1,15 +1,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
-
-const navItems = [
-  { href: '/admin/contactos', label: 'Contactos' },
-  { href: '/admin/plantillas', label: 'Plantillas' },
-  { href: '/admin/campanas', label: 'Campañas' },
-  { href: '/admin/inscripciones', label: 'Inscripciones' },
-]
+import { AdminNav } from '@/components/admin/admin-nav'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!isSupabaseConfigured) redirect('/')
@@ -24,23 +19,33 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b-2 border-ink/10 bg-card">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-6 px-5 py-4 sm:px-8">
-          <Link href="/admin" className="font-display text-lg tracking-tight text-ink uppercase">
-            Admin
-          </Link>
-          <nav className="flex flex-wrap gap-4 text-sm font-semibold text-muted-foreground">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="hover:text-ink">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <Link href="/" className="ml-auto text-sm text-muted-foreground hover:text-ink">
-            Volver al sitio
-          </Link>
+        <div className="mx-auto max-w-6xl px-5 py-6 sm:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Link href="/admin" className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 rotate-[-6deg] items-center justify-center rounded-md bg-collage-blue text-sm font-black text-primary-foreground">
+                M
+              </span>
+              <span className="font-display text-lg leading-none tracking-wide text-ink">
+                PANEL
+                <span className="block text-[0.6rem] font-sans font-semibold tracking-[0.25em] text-muted-foreground">
+                  ADMINISTRACIÓN
+                </span>
+              </span>
+            </Link>
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al sitio
+            </Link>
+          </div>
+          <div className="mt-5">
+            <AdminNav />
+          </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-5 py-10 sm:px-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">{children}</main>
     </div>
   )
 }

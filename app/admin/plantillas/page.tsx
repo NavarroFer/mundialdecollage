@@ -1,5 +1,8 @@
 import Link from 'next/link'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { Button } from '@/components/ui/button'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import { deleteTemplate } from './actions'
 
 export default async function PlantillasPage() {
@@ -13,15 +16,18 @@ export default async function PlantillasPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl tracking-tight text-ink uppercase">Plantillas</h1>
-        <Link
-          href="/admin/plantillas/nueva"
-          className="rounded-full bg-collage-blue px-5 py-2 text-sm font-semibold text-primary-foreground"
-        >
-          Nueva plantilla
-        </Link>
-      </div>
+      <AdminPageHeader
+        eyebrow="Newsletter"
+        title="Plantillas"
+        action={
+          <Link href="/admin/plantillas/nueva">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nueva plantilla
+            </Button>
+          </Link>
+        }
+      />
 
       <div className="mt-8 space-y-3">
         {list.length === 0 && (
@@ -36,15 +42,24 @@ export default async function PlantillasPage() {
               <p className="font-semibold text-ink">{t.name}</p>
               <p className="text-sm text-muted-foreground">{t.subject}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <Link href={`/admin/plantillas/${t.id}`} className="text-sm font-semibold text-collage-blue hover:underline">
-                Editar
+            <div className="flex items-center gap-2">
+              <Link href={`/admin/plantillas/${t.id}`}>
+                <Button size="sm" variant="outline" className="gap-1.5">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Editar
+                </Button>
               </Link>
               <form action={deleteTemplate}>
                 <input type="hidden" name="id" value={t.id} />
-                <button type="submit" className="text-sm font-semibold text-collage-red hover:underline">
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
                   Borrar
-                </button>
+                </Button>
               </form>
             </div>
           </div>

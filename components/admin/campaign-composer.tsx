@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { Send } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 type Template = { id: string; name: string; subject: string; body_html: string }
 
@@ -92,13 +94,15 @@ export function CampaignComposer({
           </p>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={recipientCount === 0}
-          className="rounded-full bg-collage-red px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          size="lg"
+          className="gap-2 bg-collage-red text-primary-foreground hover:bg-collage-red/90"
         >
+          <Send className="h-4 w-4" />
           Enviar a {recipientCount} contactos
-        </button>
+        </Button>
       </div>
 
       <div>

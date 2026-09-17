@@ -1,4 +1,7 @@
+import { UserMinus, UserPlus, Trash2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { Button } from '@/components/ui/button'
+import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { importContacts, toggleSubscribed, deleteContact } from './actions'
 
 export default async function ContactosPage({
@@ -18,10 +21,12 @@ export default async function ContactosPage({
 
   return (
     <div>
-      <h1 className="font-display text-3xl tracking-tight text-ink uppercase">Contactos</h1>
-      <p className="mt-2 text-muted-foreground">
-        {list.length} contactos en total · {subscribedCount} suscriptos
-      </p>
+      <AdminPageHeader eyebrow="Newsletter" title="Contactos" />
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <StatPill label="Contactos totales" value={list.length} />
+        <StatPill label="Suscriptos" value={subscribedCount} />
+      </div>
 
       {imported && (
         <p className="mt-4 rounded-xl border-2 border-collage-blue/30 bg-collage-blue/10 px-4 py-3 text-sm text-ink">
@@ -61,12 +66,10 @@ export default async function ContactosPage({
             className="rounded-lg border-2 border-ink/15 bg-background px-3 py-1.5 text-sm text-ink"
           />
         </div>
-        <button
-          type="submit"
-          className="mt-4 rounded-full bg-collage-blue px-5 py-2 text-sm font-semibold text-primary-foreground"
-        >
+        <Button type="submit" className="mt-4 gap-2">
+          <Upload className="h-4 w-4" />
           Importar
-        </button>
+        </Button>
       </form>
 
       <div className="mt-10 overflow-hidden rounded-2xl border-2 border-ink/10">
@@ -105,19 +108,37 @@ export default async function ContactosPage({
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <form action={toggleSubscribed} className="inline">
-                    <input type="hidden" name="id" value={c.id} />
-                    <input type="hidden" name="subscribed" value={String(c.subscribed)} />
-                    <button type="submit" className="text-xs font-semibold text-collage-blue hover:underline">
-                      {c.subscribed ? 'Dar de baja' : 'Resuscribir'}
-                    </button>
-                  </form>
-                  <form action={deleteContact} className="ml-3 inline">
-                    <input type="hidden" name="id" value={c.id} />
-                    <button type="submit" className="text-xs font-semibold text-collage-red hover:underline">
-                      Borrar
-                    </button>
-                  </form>
+                  <div className="flex justify-end gap-2">
+                    <form action={toggleSubscribed}>
+                      <input type="hidden" name="id" value={c.id} />
+                      <input type="hidden" name="subscribed" value={String(c.subscribed)} />
+                      <Button type="submit" size="sm" variant="outline" className="gap-1.5">
+                        {c.subscribed ? (
+                          <>
+                            <UserMinus className="h-3.5 w-3.5" />
+                            Dar de baja
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="h-3.5 w-3.5" />
+                            Resuscribir
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                    <form action={deleteContact}>
+                      <input type="hidden" name="id" value={c.id} />
+                      <Button
+                        type="submit"
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Borrar
+                      </Button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             ))}

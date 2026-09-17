@@ -1,6 +1,9 @@
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { isResendConfigured } from '@/lib/resend'
 import { CampaignComposer } from '@/components/admin/campaign-composer'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import { sendCampaign } from '../actions'
 
 const errorMessages: Record<string, string> = {
@@ -24,7 +27,14 @@ export default async function NuevaCampanaPage({
 
   return (
     <div>
-      <h1 className="font-display text-3xl tracking-tight text-ink uppercase">Nueva campaña</h1>
+      <Link
+        href="/admin/campanas"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver a campañas
+      </Link>
+      <AdminPageHeader eyebrow="Newsletter" title="Nueva campaña" />
 
       {!isResendConfigured && (
         <p className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-4 py-3 text-sm text-ink">

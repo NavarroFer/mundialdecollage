@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { Save } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function TemplateForm({
   action,
@@ -63,12 +65,10 @@ export function TemplateForm({
           </p>
         </div>
 
-        <button
-          type="submit"
-          className="rounded-full bg-collage-blue px-5 py-2 text-sm font-semibold text-primary-foreground"
-        >
+        <Button type="submit" className="gap-2">
+          <Save className="h-4 w-4" />
           Guardar plantilla
-        </button>
+        </Button>
       </div>
 
       <div>

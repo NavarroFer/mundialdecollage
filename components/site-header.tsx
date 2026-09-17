@@ -1,9 +1,12 @@
+import Link from 'next/link'
+import { ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
+import { ADMIN_EMAILS } from '@/lib/admin'
 
 async function AuthSlot() {
   if (!isSupabaseConfigured) return null
@@ -16,11 +19,21 @@ async function AuthSlot() {
   if (!user) return <GoogleSignInButton />
 
   const firstName = (user.user_metadata?.full_name as string | undefined)?.split(' ')[0]
+  const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
+
   return (
     <div className="hidden items-center gap-3 sm:flex">
       <span className="text-sm font-medium text-ink/70">
         Hola{firstName ? `, ${firstName}` : ''}
       </span>
+      {isAdmin && (
+        <Link href="/admin">
+          <Button size="sm" variant="outline" className="gap-1.5">
+            <ShieldCheck className="h-4 w-4" />
+            Panel admin
+          </Button>
+        </Link>
+      )}
       <SignOutButton />
     </div>
   )

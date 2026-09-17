@@ -1,5 +1,8 @@
 import Link from 'next/link'
+import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { Button } from '@/components/ui/button'
+import { AdminPageHeader } from '@/components/admin/page-header'
 
 const statusLabel: Record<string, string> = {
   draft: 'Borrador',
@@ -24,15 +27,18 @@ export default async function CampanasPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl tracking-tight text-ink uppercase">Campañas</h1>
-        <Link
-          href="/admin/campanas/nueva"
-          className="rounded-full bg-collage-blue px-5 py-2 text-sm font-semibold text-primary-foreground"
-        >
-          Nueva campaña
-        </Link>
-      </div>
+      <AdminPageHeader
+        eyebrow="Newsletter"
+        title="Campañas"
+        action={
+          <Link href="/admin/campanas/nueva">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nueva campaña
+            </Button>
+          </Link>
+        }
+      />
 
       {sent && (
         <p className="mt-4 rounded-xl border-2 border-collage-blue/30 bg-collage-blue/10 px-4 py-3 text-sm text-ink">
