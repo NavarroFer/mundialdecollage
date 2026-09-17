@@ -5,6 +5,11 @@
 create table if not exists public.workshop_registrations (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references auth.users (id) on delete cascade,
+  -- Denormalized from auth.users/profiles at registration time so the admin
+  -- view can list registrations without joining auth.users (not queryable
+  -- via the Data API).
+  email text not null,
+  name text,
   payment_type text not null check (payment_type in ('sena', 'completo')),
   amount_total numeric not null,
   amount_paid numeric not null default 0,
