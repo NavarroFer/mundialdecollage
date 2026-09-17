@@ -1,7 +1,39 @@
+import Link from 'next/link'
 import { CalendarDays, Scissors } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { site } from '@/lib/site'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { createClient } from '@/lib/supabase/server'
+
+// Async so it can check the session server-side before deciding whether the
+// CTA can go straight to the registration flow or has to sign the visitor
+// in first — same pattern as AuthSlot in components/site-header.tsx.
+async function WorkshopCta() {
+  let isLoggedIn = false
+  if (isSupabaseConfigured) {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    isLoggedIn = Boolean(user)
+  }
+
+  if (isLoggedIn) {
+    return (
+      <Link href="/taller/inscripcion" className="mt-9 inline-block">
+        <Button size="lg">Quiero anotarme</Button>
+      </Link>
+    )
+  }
+
+  return (
+    <div className="mt-9 inline-block">
+      <GoogleSignInButton next="/taller/inscripcion" />
+    </div>
+  )
+}
 
 export function WorkshopSection() {
   return (
@@ -44,11 +76,9 @@ export function WorkshopSection() {
         </FadeIn>
 
         <FadeIn delay={400}>
-          <a href={`mailto:${site.email}?subject=Quiero anotarme al taller`} className="mt-9 inline-block">
-            <Button size="lg">Quiero anotarme</Button>
-          </a>
+          <WorkshopCta />
           <p className="mt-4 text-xs text-muted-foreground">
-            Cupos e inscripción con pago online, muy pronto.
+            Cupos limitados — inscripción con pago online (seña o total).
           </p>
         </FadeIn>
       </div>
