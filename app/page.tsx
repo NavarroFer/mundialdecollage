@@ -1,6 +1,7 @@
 import { SiteHeader } from '@/components/site-header'
 import { HeroSection } from '@/components/hero-section'
 import { BasesBanner } from '@/components/bases-banner'
+import { EditionSection } from '@/components/edition-section'
 import { HowToSection } from '@/components/how-to-section'
 import { AboutSection } from '@/components/about-section'
 import { WorkshopSection } from '@/components/workshop-section'
@@ -16,6 +17,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <BasesBanner />
+        <EditionSection />
         <HowToSection />
         <AboutSection />
         <WorkshopSection />
