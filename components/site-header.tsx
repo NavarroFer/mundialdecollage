@@ -1,5 +1,30 @@
 import { Button } from '@/components/ui/button'
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
+import { SignOutButton } from '@/components/auth/sign-out-button'
 import { site } from '@/lib/site'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { createClient } from '@/lib/supabase/server'
+
+async function AuthSlot() {
+  if (!isSupabaseConfigured) return null
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return <GoogleSignInButton />
+
+  const firstName = (user.user_metadata?.full_name as string | undefined)?.split(' ')[0]
+  return (
+    <div className="hidden items-center gap-3 sm:flex">
+      <span className="text-sm font-medium text-ink/70">
+        Hola{firstName ? `, ${firstName}` : ''}
+      </span>
+      <SignOutButton />
+    </div>
+  )
+}
 
 export function SiteHeader() {
   return (
@@ -29,11 +54,14 @@ export function SiteHeader() {
           </a>
         </nav>
 
-        <a href={`mailto:${site.email}`}>
-          <Button size="sm" className="hidden sm:inline-flex">
-            Participar
-          </Button>
-        </a>
+        <div className="flex items-center gap-3">
+          <AuthSlot />
+          <a href={`mailto:${site.email}`}>
+            <Button size="sm" className="hidden sm:inline-flex">
+              Participar
+            </Button>
+          </a>
+        </div>
       </div>
     </header>
   )
