@@ -2,6 +2,7 @@ import { ArrowRight, Scissors } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Countdown } from '@/components/countdown'
 import { FadeIn } from '@/components/fade-in'
+import { HeroHeaderMedia } from '@/components/hero-header-media'
 import { site } from '@/lib/site'
 
 export function HeroSection() {
@@ -30,18 +31,7 @@ export function HeroSection() {
 
       <FadeIn delay={100}>
         <div className="mx-auto mt-8 max-w-2xl px-5 sm:px-8">
-          <div className="relative">
-            <video
-              src="/header.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              aria-hidden="true"
-              className="mix-blend-multiply h-auto w-full"
-            />
-            <div className="grain-overlay pointer-events-none absolute inset-0" />
-          </div>
+          <HeroHeaderMedia />
         </div>
       </FadeIn>
 
