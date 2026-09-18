@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Send } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/admin/submit-button'
 
 type Template = { id: string; name: string; subject: string; body_html: string }
 
@@ -94,15 +94,15 @@ export function CampaignComposer({
           </p>
         </div>
 
-        <Button
-          type="submit"
+        <SubmitButton
           disabled={recipientCount === 0}
           size="lg"
           className="gap-2 bg-collage-red text-primary-foreground hover:bg-collage-red/90"
+          pendingLabel="Enviando…"
         >
           <Send className="h-4 w-4" />
           Enviar a {recipientCount} contactos
-        </Button>
+        </SubmitButton>
       </div>
 
       <div>

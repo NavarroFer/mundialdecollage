@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Image from 'next/image'
-import { Circle, CircleCheck, CircleX, EyeOff, ImageOff, ListChecks, Megaphone } from 'lucide-react'
+import { Circle, CircleCheck, CircleX, EyeOff, ImageOff, ListChecks, Loader2, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag } from '@/lib/participants'
 import { setSubmissionsVisibility } from '@/app/admin/obras/actions'
@@ -187,7 +187,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 onClick={() => applyVisibility(false)}
                 className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30 disabled:opacity-50"
               >
-                <EyeOff className="h-4 w-4" />
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <EyeOff className="h-4 w-4" />}
                 Ocultar
               </button>
               <button
@@ -196,7 +196,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 onClick={() => applyVisibility(true)}
                 className="flex items-center gap-2 rounded-full bg-collage-blue px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-collage-blue/90 disabled:opacity-50"
               >
-                <Megaphone className="h-4 w-4" />
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
                 Estas participan
               </button>
             </div>

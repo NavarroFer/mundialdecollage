@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { SubmitButton } from '@/components/admin/submit-button'
 import { deleteTemplate } from './actions'
 
 export default async function PlantillasPage({
@@ -62,15 +63,15 @@ export default async function PlantillasPage({
               </Link>
               <form action={deleteTemplate}>
                 <input type="hidden" name="id" value={t.id} />
-                <Button
-                  type="submit"
+                <SubmitButton
                   size="sm"
                   variant="ghost"
                   className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
+                  pendingLabel="Borrando…"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Borrar
-                </Button>
+                </SubmitButton>
               </form>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Save } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/admin/submit-button'
 
 export function TemplateForm({
   action,
@@ -65,10 +65,10 @@ export function TemplateForm({
           </p>
         </div>
 
-        <Button type="submit" className="gap-2">
+        <SubmitButton className="gap-2" pendingLabel="Guardando…">
           <Save className="h-4 w-4" />
           Guardar plantilla
-        </Button>
+        </SubmitButton>
       </div>
 
       <div>

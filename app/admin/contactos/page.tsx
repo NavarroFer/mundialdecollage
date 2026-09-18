@@ -1,7 +1,7 @@
 import { UserMinus, UserPlus, Trash2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { Button } from '@/components/ui/button'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
+import { SubmitButton } from '@/components/admin/submit-button'
 import { importContacts, toggleSubscribed, deleteContact } from './actions'
 
 export default async function ContactosPage({
@@ -66,10 +66,10 @@ export default async function ContactosPage({
             className="rounded-lg border-2 border-ink/15 bg-background px-3 py-1.5 text-sm text-ink"
           />
         </div>
-        <Button type="submit" className="mt-4 gap-2">
+        <SubmitButton className="mt-4 gap-2" pendingLabel="Importando…">
           <Upload className="h-4 w-4" />
           Importar
-        </Button>
+        </SubmitButton>
       </form>
 
       <div className="mt-10 overflow-hidden rounded-2xl border-2 border-ink/10">
@@ -112,7 +112,12 @@ export default async function ContactosPage({
                     <form action={toggleSubscribed}>
                       <input type="hidden" name="id" value={c.id} />
                       <input type="hidden" name="subscribed" value={String(c.subscribed)} />
-                      <Button type="submit" size="sm" variant="outline" className="gap-1.5">
+                      <SubmitButton
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        pendingLabel={c.subscribed ? 'Dando de baja…' : 'Resuscribiendo…'}
+                      >
                         {c.subscribed ? (
                           <>
                             <UserMinus className="h-3.5 w-3.5" />
@@ -124,19 +129,19 @@ export default async function ContactosPage({
                             Resuscribir
                           </>
                         )}
-                      </Button>
+                      </SubmitButton>
                     </form>
                     <form action={deleteContact}>
                       <input type="hidden" name="id" value={c.id} />
-                      <Button
-                        type="submit"
+                      <SubmitButton
                         size="sm"
                         variant="ghost"
                         className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
+                        pendingLabel="Borrando…"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         Borrar
-                      </Button>
+                      </SubmitButton>
                     </form>
                   </div>
                 </td>
