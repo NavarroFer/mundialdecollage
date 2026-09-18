@@ -130,13 +130,12 @@ export function OnboardingForm({
         <label htmlFor="technique" className="text-sm font-semibold text-ink">
           Técnica <span className="font-normal text-muted-foreground">(opcional)</span>
         </label>
-        <input
-          id="technique"
-          name="technique"
-          type="text"
-          placeholder="Collage analógico, fotomontaje..."
-          className={inputClass}
-        />
+        <select id="technique" name="technique" defaultValue="" className={inputClass}>
+          <option value="">Preferís no decir</option>
+          <option value="Analógica">Analógica</option>
+          <option value="Mixta">Mixta</option>
+          <option value="Digital">Digital</option>
+        </select>
       </div>
 
       <div>
