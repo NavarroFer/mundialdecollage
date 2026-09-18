@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { ADMIN_EMAILS } from '@/lib/admin'
 import { OnboardingForm } from './onboarding-form'
 import { completeOnboarding } from './actions'
 
@@ -16,6 +17,10 @@ export default async function OnboardingPage({
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/')
+
+  // Admins log in to moderate, not to submit an artwork — skip the
+  // onboarding form and drop them straight into the panel.
+  if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
 
   const { data: profile } = await supabase
     .from('profiles')
