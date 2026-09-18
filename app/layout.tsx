@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import { Anton } from 'next/font/google'
 import './globals.css'
-import { site } from '@/lib/site'
+import { site, getSiteUrl } from '@/lib/site'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' })
 const anton = Anton({
@@ -13,6 +13,7 @@ const anton = Anton({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: `${site.name} — Convocatoria abierta`,
   description:
     'Convocatoria abierta al Mundial Internacional de Collage. Enviá tu obra original hasta el 15 de noviembre. Jurado internacional, premios por anunciar.',

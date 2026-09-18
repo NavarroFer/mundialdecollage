@@ -7,8 +7,10 @@ import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
 const errorMessages: Record<string, string> = {
   missing_fields: 'Completá nombre, país y título de la obra para seguir.',
   missing_image: 'Subí una imagen de tu obra para seguir.',
-  invalid_image: 'El archivo tiene que ser una imagen (JPG, PNG, ...).',
+  invalid_image: 'El archivo tiene que ser una imagen (JPG, PNG, WEBP o GIF).',
   image_too_large: 'La imagen pesa más de 8MB — probá con una versión más liviana.',
+  invalid_instagram: 'Ese usuario de Instagram no parece válido — probá solo con el @usuario.',
+  invalid_website: 'Ese sitio web no parece una URL válida (tiene que empezar con http:// o https://).',
   upload_failed: 'Algo falló al subir la imagen. Probá de nuevo.',
   save_failed: 'Algo falló al guardar. Probá de nuevo.',
 }

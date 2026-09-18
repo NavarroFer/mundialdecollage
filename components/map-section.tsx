@@ -1,6 +1,6 @@
 import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
-import { WorldMap } from '@/components/world-map'
+import { WorldMap } from '@/components/world-map-lazy'
 import { countryCodeToFlag, countryCodeToName, getParticipants, type Participant } from '@/lib/participants'
 
 type CountryCount = { countryCode: string; count: number }

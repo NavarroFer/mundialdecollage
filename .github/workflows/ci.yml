@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npx tsc --noEmit
+
+      # No Supabase/Mercado Pago env vars on purpose: isSupabaseConfigured and
+      # isMercadoPagoConfigured (lib/supabase/config.ts, lib/mercadopago.ts)
+      # gate everything that touches those services, so the build takes the
+      # same "not configured yet" path CI needs — real credentials here would
+      # make build-time data fetches (e.g. app/sitemap.ts) hit a fake host.
+      - run: npm run build
