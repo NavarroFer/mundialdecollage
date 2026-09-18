@@ -3,6 +3,7 @@ import { Geist } from 'next/font/google'
 import { Anton } from 'next/font/google'
 import './globals.css'
 import { site, getSiteUrl } from '@/lib/site'
+import { ClarityAnalytics } from '@/components/clarity'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' })
 const anton = Anton({
@@ -39,7 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${geist.variable} ${anton.variable}`}>
-      <body className="bg-background font-sans text-foreground antialiased">{children}</body>
+      <body className="bg-background font-sans text-foreground antialiased">
+        {children}
+        <ClarityAnalytics />
+      </body>
     </html>
   )
 }

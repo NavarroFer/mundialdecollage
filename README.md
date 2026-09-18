@@ -40,6 +40,12 @@ RESEND_API_KEY=
 # MERCADOPAGO_ACCESS_TOKEN=
 # NEXT_PUBLIC_MP_PUBLIC_KEY=
 # MERCADOPAGO_WEBHOOK_SECRET=
+
+# Microsoft Clarity — https://clarity.microsoft.com, creá un proyecto para el
+# dominio del sitio y copiá el Project ID (Settings > Setup). Sin esto no se
+# inyecta ningún script (ver components/clarity.tsx). Da heatmaps de clicks,
+# mapas de scroll y grabaciones de sesión; no se carga en /admin.
+# NEXT_PUBLIC_CLARITY_PROJECT_ID=
 ```
 
 Una vez creado el proyecto de Supabase, corré la migración en
