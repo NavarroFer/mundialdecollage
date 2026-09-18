@@ -1,14 +1,16 @@
 'use client'
 
-import { useActionState, useMemo } from 'react'
+import { useActionState, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
+import { createClient } from '@/lib/supabase/client'
+import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
 
 const errorMessages: Record<string, string> = {
   missing_fields: 'Completá nombre, país y título de la obra para seguir.',
   missing_image: 'Subí una imagen de tu obra para seguir.',
   invalid_image: 'El archivo tiene que ser una imagen (JPG, PNG, WEBP o GIF).',
-  image_too_large: 'La imagen pesa más de 8MB — probá con una versión más liviana.',
+  image_too_large: 'La imagen pesa más de 15MB — probá con una versión más liviana.',
   invalid_instagram: 'Ese usuario de Instagram no parece válido — probá solo con el @usuario.',
   invalid_website: 'Ese sitio web no parece una URL válida (tiene que empezar con http:// o https://).',
   upload_failed: 'Algo falló al subir la imagen. Probá de nuevo.',
@@ -21,16 +23,20 @@ const inputClass =
 export function OnboardingForm({
   action,
   defaultName,
+  userId,
   error,
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaultName: string
+  userId: string
   error?: string
 }) {
   const [, formAction, pending] = useActionState(async (_prev: null, formData: FormData) => {
     await action(formData)
     return null
   }, null)
+  const [uploading, setUploading] = useState(false)
+  const [clientError, setClientError] = useState<string | null>(null)
 
   const countries = useMemo(
     () =>
@@ -40,15 +46,59 @@ export function OnboardingForm({
     [],
   )
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setClientError(null)
+
+    const formData = new FormData(event.currentTarget)
+    const image = formData.get('artwork_image')
+
+    if (!(image instanceof File) || image.size === 0) {
+      setClientError(errorMessages.missing_image)
+      return
+    }
+    if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
+      setClientError(errorMessages.invalid_image)
+      return
+    }
+    if (image.size > MAX_IMAGE_BYTES) {
+      setClientError(errorMessages.image_too_large)
+      return
+    }
+
+    setUploading(true)
+    // Uploaded straight to Storage from the browser — a Server Action's
+    // request body is capped by Vercel at ~4.5MB, well under photos people
+    // actually submit, and the raw 413 that comes back crashes the page
+    // instead of showing a clean error.
+    const supabase = createClient()
+    const extension = image.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const path = `${userId}/${Date.now()}.${extension}`
+    const { error: uploadError } = await supabase.storage
+      .from('artworks')
+      .upload(path, image, { contentType: image.type })
+    setUploading(false)
+
+    if (uploadError) {
+      setClientError(errorMessages.upload_failed)
+      return
+    }
+
+    formData.delete('artwork_image')
+    formData.set('artwork_image_path', path)
+    formAction(formData)
+  }
+
+  const displayError = clientError ?? (error && errorMessages[error])
+
   return (
     <form
-      action={formAction}
-      encType="multipart/form-data"
+      onSubmit={handleSubmit}
       className="mt-8 space-y-5 rounded-2xl border-2 border-ink/10 bg-card p-7"
     >
-      {error && errorMessages[error] && (
+      {displayError && (
         <p className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
-          {errorMessages[error]}
+          {displayError}
         </p>
       )}
 
@@ -150,8 +200,8 @@ export function OnboardingForm({
         />
       </div>
 
-      <Button type="submit" size="lg" disabled={pending} className="w-full">
-        {pending ? 'Enviando…' : 'Enviar mi obra'}
+      <Button type="submit" size="lg" disabled={uploading || pending} className="w-full">
+        {uploading ? 'Subiendo imagen…' : pending ? 'Enviando…' : 'Enviar mi obra'}
       </Button>
     </form>
   )

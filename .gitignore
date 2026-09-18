@@ -27,3 +27,6 @@ next-env.d.ts
 
 # claude code local overrides (personal, may hold secrets referenced by .mcp.json)
 .claude/settings.local.json
+
+# supabase CLI local cache
+supabase/.temp/

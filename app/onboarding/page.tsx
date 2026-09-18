@@ -45,6 +45,7 @@ export default async function OnboardingPage({
         <OnboardingForm
           action={completeOnboarding}
           defaultName={suggestedName}
+          userId={user.id}
           error={error}
         />
       </div>

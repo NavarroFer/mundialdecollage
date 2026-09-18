@@ -4,12 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { slugify } from '@/lib/slug'
-
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024
-
-// SVGs can carry <script> and get served back from Storage as-is — everything
-// else in this set is a plain raster format with no executable content.
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 
 // Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
 // so this also doubles as XSS defense — only ever accept http(s), never
@@ -66,19 +61,17 @@ export async function completeOnboarding(formData: FormData) {
   const artworkTitle = String(formData.get('artwork_title') ?? '').trim()
   const instagramInput = String(formData.get('instagram') ?? '').trim()
   const websiteInput = String(formData.get('website') ?? '').trim()
-  const image = formData.get('artwork_image')
+  // The image itself is uploaded client-side straight to Supabase Storage
+  // (see onboarding-form.tsx) — Vercel's Server Action body limit (~4.5MB)
+  // sits well under the photos people actually submit. This action only
+  // gets the resulting storage path back.
+  const imagePath = String(formData.get('artwork_image_path') ?? '').trim()
 
   if (!name || !countryCode || !artworkTitle) {
     redirect('/onboarding?error=missing_fields')
   }
-  if (!(image instanceof File) || image.size === 0) {
+  if (!imagePath) {
     redirect('/onboarding?error=missing_image')
-  }
-  if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
-    redirect('/onboarding?error=invalid_image')
-  }
-  if (image.size > MAX_IMAGE_BYTES) {
-    redirect('/onboarding?error=image_too_large')
   }
 
   const instagram = instagramInput ? normalizeInstagram(instagramInput) : null
@@ -96,18 +89,25 @@ export async function completeOnboarding(formData: FormData) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/')
 
-  const extension = image.name.split('.').pop()?.toLowerCase() || 'jpg'
-  const path = `${user.id}/${Date.now()}.${extension}`
-  const { error: uploadError } = await supabase.storage
-    .from('artworks')
-    .upload(path, image, { contentType: image.type })
-  if (uploadError) {
+  // The upload RLS policy already confines writes to `${uid}/...`, but the
+  // path arrives here as plain form data — re-check it wasn't tampered with
+  // before we treat it as this user's own file.
+  const [folder, filename] = imagePath.split('/')
+  const extension = filename?.split('.').pop()?.toLowerCase()
+  if (folder !== user.id || !filename || !extension || !ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
+    redirect('/onboarding?error=invalid_image')
+  }
+
+  const { data: existingFiles } = await supabase.storage.from('artworks').list(folder, {
+    search: filename,
+  })
+  if (!existingFiles?.some((file) => file.name === filename)) {
     redirect('/onboarding?error=upload_failed')
   }
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from('artworks').getPublicUrl(path)
+  } = supabase.storage.from('artworks').getPublicUrl(imagePath)
 
   const slug = await uniqueSlug(supabase, slugify(`${name}-${artworkTitle}`), user.id)
 
