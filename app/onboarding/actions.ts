@@ -34,6 +34,11 @@ function normalizeInstagram(value: string): string | null {
 
 // Finds a free artwork_slug, reusing the current user's own row if they're
 // resubmitting (so their URL doesn't change every time they edit).
+//
+// Checks via the artwork_slug_taken RPC rather than a plain SELECT: RLS only
+// lets a submitter see *published* profiles, so a slug already claimed by a
+// still-unpublished one would otherwise look free here and then fail the
+// upsert below with a real unique-constraint violation.
 async function uniqueSlug(
   supabase: Awaited<ReturnType<typeof createClient>>,
   base: string,
@@ -41,13 +46,11 @@ async function uniqueSlug(
 ) {
   let slug = base
   for (let suffix = 2; ; suffix++) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('artwork_slug', slug)
-      .neq('id', userId)
-      .maybeSingle()
-    if (!data) return slug
+    const { data: taken } = await supabase.rpc('artwork_slug_taken', {
+      candidate: slug,
+      owner: userId,
+    })
+    if (!taken) return slug
     slug = `${base}-${suffix}`
   }
 }
@@ -129,6 +132,7 @@ export async function completeOnboarding(formData: FormData) {
     onboarded_at: new Date().toISOString(),
   })
   if (error) {
+    console.error('onboarding: failed to save profile', user.id, error)
     redirect('/onboarding?error=save_failed')
   }
 
