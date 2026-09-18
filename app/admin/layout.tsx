@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -22,9 +23,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="mx-auto max-w-6xl px-5 py-6 sm:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link href="/admin" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 rotate-[-6deg] items-center justify-center rounded-md bg-collage-blue text-sm font-black text-primary-foreground">
-                M
-              </span>
+              <Image
+                src="/logo-mark.png"
+                alt=""
+                width={512}
+                height={512}
+                className="h-9 w-9 rounded-md"
+              />
               <span className="font-display text-lg leading-none tracking-wide text-ink">
                 PANEL
                 <span className="block text-[0.6rem] font-sans font-semibold tracking-[0.25em] text-muted-foreground">

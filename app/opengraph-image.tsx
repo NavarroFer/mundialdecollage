@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import { site } from '@/lib/site'
 
@@ -5,6 +7,8 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 export default function OpengraphImage() {
+  const logoBase64 = readFileSync(join(process.cwd(), 'public/logo.png')).toString('base64')
+
   return new ImageResponse(
     (
       <div
@@ -18,37 +22,14 @@ export default function OpengraphImage() {
           background: '#fdf7ec',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 88,
-            height: 88,
-            borderRadius: 18,
-            background: '#3b5695',
-            transform: 'rotate(-6deg)',
-            color: '#fdf7ec',
-            fontSize: 48,
-            fontWeight: 900,
-          }}
-        >
-          M
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            marginTop: 48,
-            fontSize: 68,
-            fontWeight: 900,
-            lineHeight: 1.05,
-            color: '#301f14',
-            maxWidth: 900,
-          }}
-        >
-          {site.name}
-        </div>
-        <div style={{ display: 'flex', marginTop: 24, fontSize: 32, color: '#8a6d4a' }}>
+        <img
+          src={`data:image/png;base64,${logoBase64}`}
+          width={520}
+          height={222}
+          alt=""
+          style={{ objectFit: 'contain' }}
+        />
+        <div style={{ display: 'flex', marginTop: 40, fontSize: 32, color: '#8a6d4a' }}>
           {site.tagline} — convocatoria abierta hasta el {site.deadlineLabel}
         </div>
       </div>

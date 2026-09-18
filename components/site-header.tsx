@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
@@ -43,16 +44,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b-2 border-ink/10 bg-paper/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
-        <a href="#top" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 rotate-[-6deg] items-center justify-center rounded-md bg-collage-blue text-sm font-black text-primary-foreground">
-            M
-          </span>
-          <span className="font-display text-lg leading-none tracking-wide text-ink">
-            MUNDIAL
-            <span className="block text-[0.6rem] font-sans font-semibold tracking-[0.25em] text-muted-foreground">
-              DE COLLAGE
-            </span>
-          </span>
+        <a href="#top" className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt={site.name}
+            width={728}
+            height={311}
+            priority
+            className="h-10 w-auto sm:h-12"
+          />
         </a>
 
         <nav className="hidden items-center gap-6 text-sm font-semibold text-ink/70 md:flex">
