@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useMemo, useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/client'
@@ -201,6 +202,7 @@ export function OnboardingForm({
       </div>
 
       <Button type="submit" size="lg" disabled={uploading || pending} className="w-full">
+        {uploading || pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {uploading ? 'Subiendo imagen…' : pending ? 'Enviando…' : 'Enviar mi obra'}
       </Button>
     </form>
