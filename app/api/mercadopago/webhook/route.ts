@@ -1,8 +1,8 @@
-import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { Payment } from 'mercadopago'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
+import { parseSignatureHeader, verifyMercadoPagoSignature } from '@/lib/mercadopago-signature'
 
 // Mercado Pago's server-to-server notification. Historically sent both as a
 // JSON body (`{ type: 'payment', data: { id } }`) and as query params
@@ -44,16 +44,7 @@ export async function POST(request: NextRequest) {
       return new NextResponse('Invalid signature', { status: 401 })
     }
 
-    // Manifest format per Mercado Pago docs: id:{data.id};request-id:{x-request-id};ts:{ts};
-    // (data.id lowercased per their spec — a no-op for numeric payment ids).
-    const manifest = `id:${paymentId.toLowerCase()};request-id:${requestId};ts:${ts};`
-    const expected = crypto.createHmac('sha256', secret).update(manifest).digest('hex')
-
-    const expectedBuffer = Buffer.from(expected, 'hex')
-    const receivedBuffer = Buffer.from(v1, 'hex')
-    const valid =
-      expectedBuffer.length === receivedBuffer.length &&
-      crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+    const valid = verifyMercadoPagoSignature({ paymentId, requestId, ts, v1, secret })
 
     if (!valid) {
       console.warn('mercadopago webhook: signature mismatch, rejecting')
@@ -127,15 +118,4 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ ok: true })
-}
-
-function parseSignatureHeader(header: string | null): { ts?: string; v1?: string } {
-  const result: { ts?: string; v1?: string } = {}
-  if (!header) return result
-  for (const part of header.split(',')) {
-    const [key, value] = part.split('=').map((s) => s.trim())
-    if (key === 'ts') result.ts = value
-    if (key === 'v1') result.v1 = value
-  }
-  return result
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import Image from 'next/image'
 import { Circle, CircleCheck, CircleX, EyeOff, ImageOff, ListChecks, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag } from '@/lib/participants'
@@ -132,12 +133,13 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                     isSelected ? 'border-collage-blue' : 'border-ink/10',
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={s.imageUrl}
                     alt={`${s.artworkTitle}, de ${s.name}`}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                     className={cn(
-                      'h-full w-full object-cover transition-opacity',
+                      'object-cover transition-opacity',
                       isSelected && 'opacity-70',
                     )}
                   />

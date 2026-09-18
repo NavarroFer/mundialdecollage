@@ -50,9 +50,18 @@ const regionNames =
     : undefined
 
 // Converts an ISO 3166-1 alpha-2 code ("AR") into its Spanish display name
-// ("Argentina"). Falls back to the raw code if the runtime can't resolve it.
+// ("Argentina"). Falls back to the raw code if the runtime can't resolve it
+// — Intl.DisplayNames.of() *throws* (not just returns undefined) for a code
+// that isn't well-formed (empty, one letter, three letters), so this needs a
+// try/catch, not just `??`. country_code is normally constrained by the
+// onboarding form's <select>, but this keeps a stray/malformed value from
+// crashing the whole page instead of just showing the raw code.
 export function countryCodeToName(countryCode: string) {
-  return regionNames?.of(countryCode.toUpperCase()) ?? countryCode.toUpperCase()
+  try {
+    return regionNames?.of(countryCode.toUpperCase()) ?? countryCode.toUpperCase()
+  } catch {
+    return countryCode.toUpperCase()
+  }
 }
 
 // Every ISO 3166-1 alpha-2 country code, for the registration form's country

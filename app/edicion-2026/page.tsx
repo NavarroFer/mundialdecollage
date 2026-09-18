@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, Images } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
@@ -61,12 +62,13 @@ export default async function Edicion2026Page() {
                       href={`/obras/${finalist.slug}`}
                       className="group block overflow-hidden rounded-2xl border-2 border-ink/10 bg-card transition-transform hover:-translate-y-1"
                     >
-                      <div className="aspect-square w-full overflow-hidden bg-muted">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                      <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                        <Image
                           src={finalist.imageUrl}
                           alt={`${finalist.artworkTitle}, de ${finalist.name}`}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       </div>
                       <div className="p-5">

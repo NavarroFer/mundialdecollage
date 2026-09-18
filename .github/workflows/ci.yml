@@ -22,6 +22,8 @@ jobs:
 
       - run: npx tsc --noEmit
 
+      - run: npm test
+
       # No Supabase/Mercado Pago env vars on purpose: isSupabaseConfigured and
       # isMercadoPagoConfigured (lib/supabase/config.ts, lib/mercadopago.ts)
       # gate everything that touches those services, so the build takes the
