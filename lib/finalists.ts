@@ -6,11 +6,11 @@ export { countryCodeToName } from '@/lib/participants'
 // slug feeds the individual work page route (/obras/[slug]). instagram/website
 // are optional and only set when the artist filled them in at submission.
 //
-// Every submission includes an artwork today (see app/onboarding/actions.ts),
-// so this is the same set as getParticipants() — there's no separate
-// "confirmed finalist" curation step yet. Once the Mundial wants to show a
-// curated subset instead of everyone who submitted, that's an admin flag to
-// add here, not a reason to keep two disconnected datasets.
+// Every submission gets saved on arrival, but only shows up here once an
+// admin publishes it from /admin/obras ("estas participan") — the
+// `profiles: public read published` RLS policy (see
+// supabase/migrations/20260918000000_profile_visibility.sql) is what
+// actually filters this to `is_public = true`, not the query below.
 export type Finalist = {
   slug: string
   name: string

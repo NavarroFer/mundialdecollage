@@ -11,8 +11,9 @@ export type Participant = {
   technique?: string
 }
 
-// Every completed submission (see app/onboarding/actions.ts), newest first.
-// Returns [] until real credentials are wired up or nobody has submitted yet.
+// Every *published* submission (see app/admin/obras/ — an admin has to mark
+// each one public before it shows up anywhere), newest first. Returns []
+// until real credentials are wired up or nothing's been published yet.
 export async function getParticipants(options?: { limit?: number }): Promise<Participant[]> {
   if (!isSupabaseConfigured) return []
 

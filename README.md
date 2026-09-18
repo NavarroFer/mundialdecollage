@@ -85,9 +85,14 @@ Google login vía Supabase Auth (`lib/supabase/`). Después de loguearse, el
 onboarding en `app/onboarding/` funciona como el formulario de inscripción al
 Mundial: nombre, país, técnica (opcional), título de la obra, imagen (sube a
 Supabase Storage, bucket `artworks`) e instagram/web (opcional). Se guarda
-todo en `profiles` y queda visible al instante en el directorio de
-participantes, el mapa y `/edicion-2026` — no hay paso de aprobación manual
-hoy. Todo el flujo está gateado por `isSupabaseConfigured`
+todo en `profiles`, pero **queda oculta hasta que un admin la publique**
+desde `/admin/obras` (grilla estilo Fotos de iPhone: tocá para seleccionar
+varias, "Estas participan" las hace públicas). Recién ahí aparece en el
+directorio de participantes, el mapa y `/edicion-2026`. El campo
+`is_public` (ver `supabase/migrations/20260918000000_profile_visibility.sql`)
+es la barrera real — un trigger en la tabla la protege incluso de un usuario
+que intente setearla directo por API, no solo la UI del panel. Todo el flujo
+está gateado por `isSupabaseConfigured`
 ([lib/supabase/config.ts](lib/supabase/config.ts)) — sin credenciales reales,
 el sitio se comporta exactamente como la versión sin login.
 
@@ -101,7 +106,3 @@ el sitio se comporta exactamente como la versión sin login.
 - Precio del taller + credenciales de Mercado Pago para conectar el checkout
   real (la utilidad de "aumentar el precio según la comisión" ya está en
   `lib/pricing.ts`, falta el formulario/admin que la use).
-- Curaduría de finalistas: hoy toda inscripción con obra se muestra como
-  finalista (no hay distinción participante/finalista). Si el Mundial quiere
-  mostrar solo un subconjunto curado más adelante, hace falta un flag de
-  admin en `profiles` (ver comentario en `lib/finalists.ts`).

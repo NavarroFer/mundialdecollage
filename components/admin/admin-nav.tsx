@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, FileText, Send, ClipboardList } from 'lucide-react'
+import { Users, FileText, Send, ClipboardList, Images } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
+  { href: '/admin/obras', label: 'Obras', icon: Images },
   { href: '/admin/contactos', label: 'Contactos', icon: Users },
   { href: '/admin/plantillas', label: 'Plantillas', icon: FileText },
   { href: '/admin/campanas', label: 'Campañas', icon: Send },
