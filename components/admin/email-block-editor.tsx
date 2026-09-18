@@ -127,6 +127,15 @@ export function EmailBlockEditor({
     onChange({ blocks: arrayMove(value.blocks, oldIndex, newIndex) })
   }
 
+  // "block-N of M" for screen-reader announcements — the raw sortable id
+  // (e.g. "block-12") means nothing spoken aloud, but dnd-kit's announcement
+  // callbacks only give us that id, so we look the block back up by it.
+  function describeBlock(id: string | number) {
+    const index = value.blocks.findIndex((b) => b.id === id)
+    if (index === -1) return String(id)
+    return `${BLOCK_LABELS[value.blocks[index].type]}, posición ${index + 1} de ${value.blocks.length}`
+  }
+
   return (
     <div className="space-y-4">
       <input type="hidden" name={bodyJsonFieldName} value={JSON.stringify(value)} />
@@ -152,7 +161,34 @@ export function EmailBlockEditor({
         </div>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext
+        // A stable id, not dnd-kit's auto-incrementing default — the counter
+        // starts fresh on every server render but keeps counting on the
+        // client, so the two can land on different values and React flags a
+        // hydration mismatch on the drag handle's aria-describedby.
+        id="email-block-editor"
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        accessibility={{
+          screenReaderInstructions: {
+            draggable:
+              'Para levantar un bloque, presioná la barra espaciadora. Mientras lo arrastrás, usá las flechas del teclado para moverlo. Presioná espacio de nuevo para soltarlo en su nueva posición, o escape para cancelar.',
+          },
+          announcements: {
+            onDragStart: ({ active }) => `Se levantó el bloque ${describeBlock(active.id)}.`,
+            onDragOver: ({ active, over }) =>
+              over
+                ? `El bloque ${describeBlock(active.id)} se movió sobre la posición de ${describeBlock(over.id)}.`
+                : `El bloque ${describeBlock(active.id)} ya no está sobre una posición.`,
+            onDragEnd: ({ active, over }) =>
+              over
+                ? `El bloque ${describeBlock(active.id)} se soltó en la posición de ${describeBlock(over.id)}.`
+                : `El bloque ${describeBlock(active.id)} se soltó.`,
+            onDragCancel: ({ active }) => `Se canceló el movimiento del bloque ${describeBlock(active.id)}.`,
+          },
+        }}
+      >
         <SortableContext items={value.blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
             {value.blocks.map((block, i) => (
@@ -215,19 +251,19 @@ function SortableBlockCard({
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab touch-none rounded p-1 text-muted-foreground hover:text-ink active:cursor-grabbing"
+          className="cursor-grab touch-none rounded-md p-2 text-muted-foreground hover:bg-ink/5 hover:text-ink active:cursor-grabbing"
           aria-label="Arrastrar para reordenar"
         >
           <GripVertical className="h-4 w-4" />
         </button>
         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-xs font-semibold text-muted-foreground">{BLOCK_LABELS[block.type]}</span>
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-0.5">
           <button
             type="button"
             onClick={() => onMove(-1)}
             disabled={index === 0}
-            className="rounded p-1 text-muted-foreground hover:text-ink disabled:opacity-30"
+            className="rounded-md p-2 text-muted-foreground hover:bg-ink/5 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent"
             aria-label="Mover arriba"
           >
             <ChevronUp className="h-3.5 w-3.5" />
@@ -236,7 +272,7 @@ function SortableBlockCard({
             type="button"
             onClick={() => onMove(1)}
             disabled={index === total - 1}
-            className="rounded p-1 text-muted-foreground hover:text-ink disabled:opacity-30"
+            className="rounded-md p-2 text-muted-foreground hover:bg-ink/5 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent"
             aria-label="Mover abajo"
           >
             <ChevronDown className="h-3.5 w-3.5" />
@@ -244,7 +280,7 @@ function SortableBlockCard({
           <button
             type="button"
             onClick={onDuplicate}
-            className="rounded p-1 text-muted-foreground hover:text-ink"
+            className="rounded-md p-2 text-muted-foreground hover:bg-ink/5 hover:text-ink"
             aria-label="Duplicar bloque"
           >
             <Copy className="h-3.5 w-3.5" />
@@ -252,7 +288,7 @@ function SortableBlockCard({
           <button
             type="button"
             onClick={onRemove}
-            className="rounded p-1 text-collage-red/70 hover:text-collage-red"
+            className="rounded-md p-2 text-collage-red/70 hover:bg-collage-red/10 hover:text-collage-red"
             aria-label="Borrar bloque"
           >
             <Trash2 className="h-3.5 w-3.5" />
