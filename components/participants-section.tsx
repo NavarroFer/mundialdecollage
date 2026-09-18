@@ -1,13 +1,25 @@
 import Link from 'next/link'
 import { FadeIn } from '@/components/fade-in'
+import { ObrasCarousel } from '@/components/obras-carousel'
 import { countryCodeToFlag, getParticipants } from '@/lib/participants'
+import { getFinalists } from '@/lib/finalists'
 
 // Teaser only — capped so the homepage doesn't grow an unbounded pill wall
 // as submissions come in. /participantes has search/filter for the full list.
 const HOMEPAGE_LIMIT = 40
 
+// The depth carousel needs the actual artwork image (and a slug to link to),
+// which getParticipants() doesn't select — so it gets its own, smaller pull
+// from the same published-only source. Capped tighter than the pill list so
+// the stack stays readable and light to render.
+const CAROUSEL_LIMIT = 10
+
 export async function ParticipantsSection() {
-  const participants = await getParticipants({ limit: HOMEPAGE_LIMIT })
+  const [participants, finalists] = await Promise.all([
+    getParticipants({ limit: HOMEPAGE_LIMIT }),
+    getFinalists(),
+  ])
+  const carouselFinalists = finalists.slice(0, CAROUSEL_LIMIT)
 
   return (
     <section id="participantes" className="border-t-2 border-ink/10 bg-background py-20 sm:py-28">
@@ -20,10 +32,18 @@ export async function ParticipantsSection() {
             Ya se están sumando
           </h2>
         </FadeIn>
+      </div>
 
+      {carouselFinalists.length > 0 && (
+        <FadeIn delay={100}>
+          <ObrasCarousel finalists={carouselFinalists} />
+        </FadeIn>
+      )}
+
+      <div className="mx-auto mt-12 max-w-4xl px-5 sm:px-8">
         <FadeIn delay={150}>
           {participants.length > 0 ? (
-            <ul className="mt-12 flex flex-wrap justify-center gap-3">
+            <ul className="flex flex-wrap justify-center gap-3">
               {participants.map((p) => (
                 <li
                   key={p.name}
