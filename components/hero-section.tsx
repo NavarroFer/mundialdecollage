@@ -25,16 +25,23 @@ export function HeroSection() {
           </span>
         </FadeIn>
 
-        <FadeIn delay={100}>
-          <h1 className="font-display mt-8 text-5xl leading-[0.95] tracking-tight uppercase sm:text-7xl md:text-8xl">
-            <span className="text-collage-red">Mundial</span>
-            <br />
-            <span className="text-collage-blue">Internacional</span>
-            <br />
-            <span className="text-ink">de Collage</span>
-          </h1>
-        </FadeIn>
+        <h1 className="sr-only">Mundial Internacional de Collage</h1>
+      </div>
 
+      <div className="relative mt-8 w-full overflow-hidden">
+        <video
+          src="/header.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden="true"
+          className="mix-blend-multiply h-[45vh] w-full object-cover sm:h-[60vh]"
+        />
+        <div className="grain-overlay pointer-events-none absolute inset-0" />
+      </div>
+
+      <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <FadeIn delay={200}>
           <p className="mx-auto mt-7 max-w-xl text-lg text-muted-foreground sm:text-xl">
             El Mundial ya está sucediendo y queremos que tu obra sea parte. Jurado
