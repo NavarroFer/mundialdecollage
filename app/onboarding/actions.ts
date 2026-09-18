@@ -109,7 +109,12 @@ export async function completeOnboarding(formData: FormData) {
     data: { publicUrl },
   } = supabase.storage.from('artworks').getPublicUrl(imagePath)
 
-  const slug = await uniqueSlug(supabase, slugify(`${name}-${artworkTitle}`), user.id)
+  // slugify() strips anything outside [a-z0-9] — a name/title with no Latin
+  // characters at all (a real possibility in an *international* contest)
+  // collapses to '', which /obras/[slug] can't route to. Fall back to a
+  // slice of the user id so every submission still gets a working page.
+  const baseSlug = slugify(`${name}-${artworkTitle}`) || user.id.slice(0, 8)
+  const slug = await uniqueSlug(supabase, baseSlug, user.id)
 
   const { error } = await supabase.from('profiles').upsert({
     id: user.id,

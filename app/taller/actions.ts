@@ -40,14 +40,16 @@ export async function registerForWorkshop(formData: FormData) {
     .maybeSingle()
   if (existing) redirect('/taller/inscripcion')
 
-  // Regular RLS only lets a user see their own row, so counting paid seats
-  // across everyone needs the service-role client (same pattern as the
-  // public unsubscribe link in lib/supabase/admin.ts).
+  // Fast, non-authoritative check for a quick "sold out" message — counts
+  // paid + pending like the DB trigger does, so it agrees with what the
+  // insert below will actually decide. Regular RLS only lets a user see
+  // their own row, so counting across everyone needs the service-role
+  // client (same pattern as the public unsubscribe link in lib/supabase/admin.ts).
   const admin = createAdminClient()
   const { count } = await admin
     .from('workshop_registrations')
     .select('id', { count: 'exact', head: true })
-    .eq('status', 'paid')
+    .in('status', ['paid', 'pending'])
   if ((count ?? 0) >= site.workshop.capacity) {
     redirect('/taller/inscripcion?error=full')
   }
@@ -76,6 +78,9 @@ export async function registerForWorkshop(formData: FormData) {
     // Unique violation on user_id means a row appeared between our check
     // and the insert (e.g. a double submit) — treat it as already registered.
     if (insertError?.code === '23505') redirect('/taller/inscripcion')
+    // Raised by enforce_workshop_capacity() (supabase/migrations/20260918020000_workshop_capacity_lock.sql)
+    // — the real capacity boundary, since the count above can race.
+    if (insertError?.code === 'P0001') redirect('/taller/inscripcion?error=full')
     redirect('/taller/inscripcion?error=save_failed')
   }
 

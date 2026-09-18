@@ -52,7 +52,8 @@ export async function deleteTemplate(formData: FormData) {
   const id = String(formData.get('id'))
 
   const supabase = await createClient()
-  await supabase.from('templates').delete().eq('id', id)
+  const { error } = await supabase.from('templates').delete().eq('id', id)
+  if (error) redirect(`/admin/plantillas?error=${encodeURIComponent(error.message)}`)
 
   revalidatePath('/admin/plantillas')
 }

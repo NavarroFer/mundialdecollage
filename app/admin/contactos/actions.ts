@@ -59,7 +59,8 @@ export async function toggleSubscribed(formData: FormData) {
   const subscribed = formData.get('subscribed') === 'true'
 
   const supabase = await createClient()
-  await supabase.from('contacts').update({ subscribed: !subscribed }).eq('id', id)
+  const { error } = await supabase.from('contacts').update({ subscribed: !subscribed }).eq('id', id)
+  if (error) redirect(`/admin/contactos?error=${encodeURIComponent(error.message)}`)
 
   revalidatePath('/admin/contactos')
 }
@@ -68,7 +69,8 @@ export async function deleteContact(formData: FormData) {
   const id = String(formData.get('id'))
 
   const supabase = await createClient()
-  await supabase.from('contacts').delete().eq('id', id)
+  const { error } = await supabase.from('contacts').delete().eq('id', id)
+  if (error) redirect(`/admin/contactos?error=${encodeURIComponent(error.message)}`)
 
   revalidatePath('/admin/contactos')
 }

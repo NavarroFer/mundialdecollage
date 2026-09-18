@@ -5,7 +5,12 @@ import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { deleteTemplate } from './actions'
 
-export default async function PlantillasPage() {
+export default async function PlantillasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const { error } = await searchParams
   const supabase = await createClient()
   const { data: templates } = await supabase
     .from('templates')
@@ -28,6 +33,12 @@ export default async function PlantillasPage() {
           </Link>
         }
       />
+
+      {error && (
+        <p className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-4 py-3 text-sm text-ink">
+          {error}
+        </p>
+      )}
 
       <div className="mt-8 space-y-3">
         {list.length === 0 && (
