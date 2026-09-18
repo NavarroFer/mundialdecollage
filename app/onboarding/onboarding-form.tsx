@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CountrySelect } from '@/components/ui/country-select'
 import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/client'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
@@ -122,16 +123,7 @@ export function OnboardingForm({
         <label htmlFor="country_code" className="text-sm font-semibold text-ink">
           País
         </label>
-        <select id="country_code" name="country_code" required defaultValue="" className={inputClass}>
-          <option value="" disabled>
-            Elegí tu país
-          </option>
-          {countries.map(({ code, name }) => (
-            <option key={code} value={code}>
-              {name}
-            </option>
-          ))}
-        </select>
+        <CountrySelect id="country_code" name="country_code" countries={countries} required />
       </div>
 
       <div>
