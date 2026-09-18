@@ -10,6 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/edicion-2026`, changeFrequency: 'daily', priority: 0.8 },
     { url: `${siteUrl}/participantes`, changeFrequency: 'daily', priority: 0.6 },
     { url: `${siteUrl}/taller/inscripcion`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${siteUrl}/terminos-y-condiciones`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteUrl}/politica-de-privacidad`, changeFrequency: 'yearly', priority: 0.3 },
   ]
 
   const finalists = await getFinalists()

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { site } from '@/lib/site'
 
 export function Footer() {
@@ -13,6 +14,14 @@ export function Footer() {
         >
           {site.email}
         </a>
+        <nav className="flex items-center gap-4 text-xs text-muted-foreground/80">
+          <Link href="/terminos-y-condiciones" className="underline-offset-4 hover:underline">
+            Términos y Condiciones
+          </Link>
+          <Link href="/politica-de-privacidad" className="underline-offset-4 hover:underline">
+            Política de Privacidad
+          </Link>
+        </nav>
         <p className="text-xs text-muted-foreground/70">
           © {new Date().getFullYear()} {site.name}
         </p>
