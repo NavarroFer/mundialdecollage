@@ -28,18 +28,22 @@ export function HeroSection() {
         <h1 className="sr-only">Mundial Internacional de Collage</h1>
       </div>
 
-      <div className="relative mt-8 w-full overflow-hidden">
-        <video
-          src="/header.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-          aria-hidden="true"
-          className="mix-blend-multiply h-[45vh] w-full object-cover sm:h-[60vh]"
-        />
-        <div className="grain-overlay pointer-events-none absolute inset-0" />
-      </div>
+      <FadeIn delay={100}>
+        <div className="mx-auto mt-8 max-w-2xl px-5 sm:px-8">
+          <div className="relative">
+            <video
+              src="/header.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden="true"
+              className="mix-blend-multiply h-auto w-full"
+            />
+            <div className="grain-overlay pointer-events-none absolute inset-0" />
+          </div>
+        </div>
+      </FadeIn>
 
       <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <FadeIn delay={200}>
