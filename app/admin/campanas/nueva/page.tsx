@@ -31,7 +31,7 @@ export default async function NuevaCampanaPage({
   const supabase = await createClient()
 
   const [{ data: templates }, { count }, domainStatus] = await Promise.all([
-    supabase.from('templates').select('id, name, subject, body_html').order('name'),
+    supabase.from('templates').select('id, name, subject, body_html, body_json').order('name'),
     supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('subscribed', true),
     getDomainStatus(),
   ])

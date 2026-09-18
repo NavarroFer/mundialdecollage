@@ -19,7 +19,7 @@ export default async function EditarPlantillaPage({
   const supabase = await createClient()
   const { data: template } = await supabase
     .from('templates')
-    .select('id, name, subject, body_html')
+    .select('id, name, subject, body_html, body_json')
     .eq('id', id)
     .maybeSingle()
 

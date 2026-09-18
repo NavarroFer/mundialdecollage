@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Copy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { SubmitButton } from '@/components/admin/submit-button'
-import { deleteTemplate } from './actions'
+import { deleteTemplate, duplicateTemplate } from './actions'
 
 export default async function PlantillasPage({
   searchParams,
@@ -61,6 +61,13 @@ export default async function PlantillasPage({
                   Editar
                 </Button>
               </Link>
+              <form action={duplicateTemplate}>
+                <input type="hidden" name="id" value={t.id} />
+                <SubmitButton size="sm" variant="outline" className="gap-1.5" pendingLabel="Duplicando…">
+                  <Copy className="h-3.5 w-3.5" />
+                  Duplicar
+                </SubmitButton>
+              </form>
               <form action={deleteTemplate}>
                 <input type="hidden" name="id" value={t.id} />
                 <SubmitButton

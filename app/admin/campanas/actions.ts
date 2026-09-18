@@ -17,9 +17,20 @@ function chunk<T>(items: T[], size: number): T[][] {
   return chunks
 }
 
+function parseBodyJson(formData: FormData) {
+  const raw = formData.get('body_json')
+  if (!raw) return null
+  try {
+    return JSON.parse(String(raw))
+  } catch {
+    return null
+  }
+}
+
 export async function sendCampaign(formData: FormData) {
   const subject = String(formData.get('subject') ?? '').trim()
   const bodyHtml = String(formData.get('body_html') ?? '').trim()
+  const bodyJson = parseBodyJson(formData)
   const templateId = String(formData.get('template_id') ?? '') || null
 
   if (!subject || !bodyHtml) {
@@ -47,6 +58,7 @@ export async function sendCampaign(formData: FormData) {
       template_id: templateId,
       subject,
       body_html: bodyHtml,
+      body_json: bodyJson,
       status: 'sending',
       recipient_count: recipients.length,
     })

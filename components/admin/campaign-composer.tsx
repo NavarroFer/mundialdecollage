@@ -3,8 +3,12 @@
 import { useState } from 'react'
 import { Send, FlaskConical } from 'lucide-react'
 import { SubmitButton } from '@/components/admin/submit-button'
+import { EmailBlockEditor } from '@/components/admin/email-block-editor'
+import { renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
 
-type Template = { id: string; name: string; subject: string; body_html: string }
+type Template = { id: string; name: string; subject: string; body_html: string; body_json: EmailDocument | null }
+
+const EMPTY_DOC: EmailDocument = { blocks: [] }
 
 export function CampaignComposer({
   action,
@@ -19,15 +23,27 @@ export function CampaignComposer({
 }) {
   const [templateId, setTemplateId] = useState('')
   const [subject, setSubject] = useState('')
-  const [bodyHtml, setBodyHtml] = useState('')
+  const [doc, setDoc] = useState<EmailDocument>(EMPTY_DOC)
+  // Campaigns built from a pre-block-editor template keep editing raw HTML —
+  // there's no lossless way to turn arbitrary saved HTML into blocks.
+  const [legacyHtml, setLegacyHtml] = useState<string | null>(null)
   const [testEmail, setTestEmail] = useState('fernando.navarro.mdp@gmail.com')
+
+  const bodyHtml = legacyHtml ?? renderEmailDocumentToHtml(doc)
+  // renderEmailDocumentToHtml always wraps in the outer table, so `bodyHtml`
+  // itself is never empty even with zero blocks — check the actual content.
+  const hasContent = legacyHtml !== null ? legacyHtml.trim().length > 0 : doc.blocks.length > 0
 
   function applyTemplate(id: string) {
     setTemplateId(id)
     const template = templates.find((t) => t.id === id)
-    if (template) {
-      setSubject(template.subject)
-      setBodyHtml(template.body_html)
+    if (!template) return
+    setSubject(template.subject)
+    if (template.body_json) {
+      setDoc(template.body_json)
+      setLegacyHtml(null)
+    } else {
+      setLegacyHtml(template.body_html)
     }
   }
 
@@ -82,26 +98,39 @@ export function CampaignComposer({
           />
         </div>
 
-        <div>
-          <label className="text-sm font-semibold text-ink" htmlFor="body_html">
-            Cuerpo (HTML)
-          </label>
-          <textarea
-            id="body_html"
-            name="body_html"
-            required
-            rows={14}
-            value={bodyHtml}
-            onChange={(e) => setBodyHtml(e.target.value)}
-            className="mt-1 w-full rounded-xl border-2 border-ink/15 bg-background p-3 font-mono text-xs text-ink"
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Se agrega automáticamente un link de baja al final — no hace falta escribirlo.
-          </p>
-        </div>
+        {legacyHtml !== null ? (
+          <div>
+            <label className="text-sm font-semibold text-ink" htmlFor="body_html">
+              Cuerpo (HTML)
+            </label>
+            <textarea
+              id="body_html"
+              name="body_html"
+              required
+              rows={14}
+              value={legacyHtml}
+              onChange={(e) => setLegacyHtml(e.target.value)}
+              className="mt-1 w-full rounded-xl border-2 border-ink/15 bg-background p-3 font-mono text-xs text-ink"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Esta plantilla se creó con el editor de HTML — seguí editándola acá.
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-sm font-semibold text-ink">Cuerpo</p>
+            <div className="mt-1">
+              <EmailBlockEditor value={doc} onChange={setDoc} />
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground">
+          Se agrega automáticamente un link de baja al final — no hace falta escribirlo.
+        </p>
 
         <SubmitButton
-          disabled={recipientCount === 0}
+          disabled={recipientCount === 0 || !subject || !hasContent}
           size="lg"
           className="gap-2 bg-collage-red text-primary-foreground hover:bg-collage-red/90"
           pendingLabel="Enviando…"
@@ -142,7 +171,7 @@ export function CampaignComposer({
             className="min-w-0 flex-1 rounded-xl border-2 border-ink/15 bg-background px-3 py-2 text-sm text-ink"
           />
           <SubmitButton
-            disabled={!subject || !bodyHtml}
+            disabled={!subject || !hasContent}
             variant="outline"
             className="gap-2"
             pendingLabel="Enviando…"
