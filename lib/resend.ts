@@ -10,6 +10,17 @@ export function createResendClient() {
   return new Resend(process.env.RESEND_API_KEY!)
 }
 
+// Domain management endpoints (list/update domains) require a key with
+// "Full access" in Resend — the "Sending access" key above is restricted to
+// sending and gets rejected, which used to show as a false "domain not
+// found" instead of the real permission error.
+export const isResendDomainConfigured = Boolean(process.env.RESEND_DOMAIN_API_KEY)
+
+// Only call after checking isResendDomainConfigured.
+export function createResendDomainClient() {
+  return new Resend(process.env.RESEND_DOMAIN_API_KEY!)
+}
+
 // Resend's batch endpoint caps out at 100 emails per call.
 export const RESEND_BATCH_SIZE = 100
 
@@ -31,13 +42,16 @@ export type ResendDomainStatus = {
 // tracked until openTracking is on — both invisible from inside the app
 // otherwise, so the "nueva campaña" page surfaces them directly.
 export async function getDomainStatus(): Promise<ResendDomainStatus | null> {
-  if (!isResendConfigured) return null
+  if (!isResendDomainConfigured) return null
   const domainName = getMailFromDomain()
   if (!domainName) return null
 
-  const resend = createResendClient()
+  const resend = createResendDomainClient()
   const { data, error } = await resend.domains.list()
-  if (error || !data) return { domain: domainName, found: false }
+  if (error || !data) {
+    if (error) console.error('resend.domains.list failed:', error)
+    return { domain: domainName, found: false }
+  }
 
   const domain = data.data.find((d) => d.name === domainName)
   if (!domain) return { domain: domainName, found: false }

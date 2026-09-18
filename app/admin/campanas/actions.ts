@@ -3,7 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { createResendClient, isResendConfigured, RESEND_BATCH_SIZE, getMailFromDomain } from '@/lib/resend'
+import {
+  createResendClient,
+  createResendDomainClient,
+  isResendConfigured,
+  isResendDomainConfigured,
+  RESEND_BATCH_SIZE,
+  getMailFromDomain,
+} from '@/lib/resend'
 import { site, getSiteUrl } from '@/lib/site'
 
 function withUnsubscribeFooter(bodyHtml: string, contactId: string) {
@@ -168,12 +175,12 @@ export async function sendTestEmail(formData: FormData) {
 // one-time account setting, exposed here so it doesn't need the Resend
 // dashboard to switch on.
 export async function enableOpenTracking() {
-  if (!isResendConfigured) {
-    redirect('/admin/campanas/nueva?error=resend_not_configured')
+  if (!isResendDomainConfigured) {
+    redirect('/admin/campanas/nueva?error=resend_domain_not_configured')
   }
 
   const domainName = getMailFromDomain()
-  const resend = createResendClient()
+  const resend = createResendDomainClient()
   const { data, error: listError } = await resend.domains.list()
 
   if (listError || !data) {

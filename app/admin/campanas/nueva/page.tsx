@@ -9,6 +9,7 @@ import { sendCampaign, sendTestEmail, enableOpenTracking } from '../actions'
 const errorMessages: Record<string, string> = {
   missing_fields: 'Completá asunto y cuerpo.',
   resend_not_configured: 'Todavía no está conectado Resend (falta RESEND_API_KEY).',
+  resend_domain_not_configured: 'Falta configurar RESEND_DOMAIN_API_KEY para gestionar el dominio en Resend.',
   no_recipients: 'No hay contactos suscriptos para enviar.',
   domain_not_found: 'El dominio configurado en site.mailFrom no aparece en la cuenta de Resend.',
 }
