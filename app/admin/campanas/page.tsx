@@ -14,13 +14,15 @@ const statusLabel: Record<string, string> = {
 export default async function CampanasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; failed?: string }>
+  searchParams: Promise<{ sent?: string; failed?: string; error?: string }>
 }) {
-  const { sent, failed } = await searchParams
+  const { sent, failed, error } = await searchParams
   const supabase = await createClient()
   const { data: campaigns } = await supabase
     .from('campaigns')
-    .select('id, subject, status, recipient_count, sent_count, failed_count, sent_at, created_at')
+    .select(
+      'id, subject, status, recipient_count, sent_count, failed_count, delivered_count, opened_count, bounced_count, sent_at, created_at',
+    )
     .order('created_at', { ascending: false })
 
   const list = campaigns ?? []
@@ -41,8 +43,17 @@ export default async function CampanasPage({
       />
 
       {sent && (
-        <p className="mt-4 rounded-xl border-2 border-collage-blue/30 bg-collage-blue/10 px-4 py-3 text-sm text-ink">
-          Enviada a {sent} contactos{Number(failed) > 0 ? ` (${failed} fallaron)` : ''}.
+        <p
+          className={`mt-4 rounded-xl border-2 px-4 py-3 text-sm text-ink ${
+            Number(sent) === 0
+              ? 'border-collage-red/30 bg-collage-red/10'
+              : 'border-collage-blue/30 bg-collage-blue/10'
+          }`}
+        >
+          {Number(sent) === 0
+            ? `Falló el envío (${failed} fallaron).`
+            : `Enviada a ${sent} contactos${Number(failed) > 0 ? ` (${failed} fallaron)` : ''}.`}
+          {error && <span className="mt-1 block text-xs text-muted-foreground">Error: {error}</span>}
         </p>
       )}
 
@@ -58,6 +69,9 @@ export default async function CampanasPage({
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {c.recipient_count} destinatarios · {c.sent_count} enviados
+              {c.delivered_count > 0 ? ` · ${c.delivered_count} entregados` : ''}
+              {c.opened_count > 0 ? ` · ${c.opened_count} abiertos` : ''}
+              {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
               {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
             </p>
           </div>
