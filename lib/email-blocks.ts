@@ -107,6 +107,24 @@ function escapeHtml(value: string) {
     .replace(/"/g, '&quot;')
 }
 
+const NOMBRE_TOKEN = /\{\{\s*nombre\s*\}\}/gi
+
+// Fills in the {{nombre}} merge tag the default template's greeting uses
+// (createDefaultEmailDocument above) with each recipient's name at send
+// time. Without a name, drop the token along with an adjacent comma so
+// "Hola {{nombre}}," doesn't leave a dangling "Hola ," behind.
+export function personalizeHtml(html: string, name: string | null | undefined): string {
+  const trimmedName = name?.trim()
+  if (trimmedName) {
+    return html.replace(NOMBRE_TOKEN, escapeHtml(trimmedName))
+  }
+  return html
+    .replace(/\s?\{\{\s*nombre\s*\}\}\s*,/gi, '')
+    .replace(/,\s*\{\{\s*nombre\s*\}\}\s?/gi, '')
+    .replace(NOMBRE_TOKEN, '')
+    .replace(/[ \t]{2,}/g, ' ')
+}
+
 // Plain-text blocks only ever need line breaks preserved — anything richer
 // (bold, links inline) would need a real rich-text model, out of scope for
 // the block editor's first version.

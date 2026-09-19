@@ -13,6 +13,7 @@ import {
   getMailFromDomain,
 } from '@/lib/resend'
 import { site, getSiteUrl } from '@/lib/site'
+import { personalizeHtml } from '@/lib/email-blocks'
 
 function withUnsubscribeFooter(bodyHtml: string, contactId: string) {
   const unsubscribeUrl = `${getSiteUrl()}/api/unsubscribe?id=${contactId}`
@@ -52,7 +53,7 @@ export async function sendCampaign(formData: FormData) {
 
   const { data: contacts } = await supabase
     .from('contacts')
-    .select('id, email')
+    .select('id, email, name')
     .eq('subscribed', true)
 
   const recipients = contacts ?? []
@@ -114,7 +115,7 @@ export async function sendCampaign(formData: FormData) {
         from: site.mailFrom,
         to: contact.email,
         subject,
-        html: withUnsubscribeFooter(bodyHtml, contact.id),
+        html: withUnsubscribeFooter(personalizeHtml(bodyHtml, contact.name), contact.id),
       })),
     )
 
@@ -182,7 +183,7 @@ export async function sendTestEmail(formData: FormData) {
     from: site.mailFrom,
     to: testEmail,
     subject: `[PRUEBA] ${subject}`,
-    html: withUnsubscribeFooter(bodyHtml, 'prueba'),
+    html: withUnsubscribeFooter(personalizeHtml(bodyHtml, null), 'prueba'),
   })
 
   if (error) {
