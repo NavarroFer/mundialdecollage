@@ -1,4 +1,4 @@
-import { CircleAlert, CircleCheck, ExternalLink, ImageOff, Trash2, Upload } from 'lucide-react'
+import { CircleAlert, CircleCheck, ExternalLink, ImageOff, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmissionsGallery } from '@/components/admin/submissions-gallery'
@@ -7,6 +7,7 @@ import { LegacyImageSync } from '@/components/admin/legacy-image-sync'
 import {
   deleteLegacySubmission,
   importLegacySubmissions,
+  retryLegacyImageFetch,
   selectLegacySubmission,
 } from './actions'
 
@@ -103,7 +104,9 @@ export default async function ObrasPage({
           <p className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-4 py-3 text-sm text-ink">
             {error === 'no_valid_legacy'
               ? 'No encontré ninguna línea válida en el texto pegado.'
-              : error}
+              : error === 'retry_failed'
+                ? 'Volví a intentar traer esa foto y falló de nuevo — puede que el link de Drive ya no sea público.'
+                : error}
           </p>
         )}
 
@@ -194,9 +197,21 @@ export default async function ObrasPage({
                               Foto guardada en el sitio
                             </span>
                           ) : row.image_fetch_failed_at ? (
-                            <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-collage-red">
+                            <span className="inline-flex items-center gap-1.5 text-[0.65rem] font-semibold text-collage-red">
                               <CircleAlert className="h-3 w-3" />
                               No se pudo traer
+                              <form action={retryLegacyImageFetch}>
+                                <input type="hidden" name="id" value={row.id} />
+                                <SubmitButton
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-auto gap-1 px-1.5 py-0.5 text-[0.65rem] text-collage-red hover:bg-collage-red/10"
+                                  pendingLabel="Reintentando…"
+                                >
+                                  <RefreshCw className="h-3 w-3" />
+                                  Reintentar
+                                </SubmitButton>
+                              </form>
                             </span>
                           ) : row.drive_url ? (
                             <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-muted-foreground">

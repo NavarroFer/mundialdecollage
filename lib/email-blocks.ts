@@ -116,7 +116,12 @@ const NOMBRE_TOKEN = /\{\{\s*nombre\s*\}\}/gi
 export function personalizeHtml(html: string, name: string | null | undefined): string {
   const trimmedName = name?.trim()
   if (trimmedName) {
-    return html.replace(NOMBRE_TOKEN, escapeHtml(trimmedName))
+    // A replacer function, not a string: String.replace() treats a string
+    // replacement's $&, $$, $` and $' as special patterns, so a name
+    // containing one of those (e.g. "Bio$$hop") would otherwise come out
+    // mangled instead of literal.
+    const escapedName = escapeHtml(trimmedName)
+    return html.replace(NOMBRE_TOKEN, () => escapedName)
   }
   return html
     .replace(/\s?\{\{\s*nombre\s*\}\}\s*,/gi, '')

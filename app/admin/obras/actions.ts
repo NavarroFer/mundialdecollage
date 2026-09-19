@@ -180,7 +180,8 @@ const IMAGE_BATCH_SIZE = 5
 // fetching lazily at registration time. Runs on the service-role client:
 // this is triggered from an admin button, not tied to any artist's session,
 // and rows aren't scoped to a user yet (nobody may ever register for some of
-// them).
+// them) — assertIsAdmin() is the real boundary here since the service-role
+// client bypasses RLS entirely.
 export async function fetchLegacyImagesBatch(): Promise<{
   attempted: number
   succeeded: number
@@ -188,14 +189,21 @@ export async function fetchLegacyImagesBatch(): Promise<{
   failed: number
   error: string | null
 }> {
+  await assertIsAdmin()
   const admin = createAdminClient()
 
+  // Selected obras first: those are the only ones that can ever actually
+  // show up on the site (the "read own unclaimed" RLS policy requires
+  // selected = true), so working through a big backlog gets the obras that
+  // matter into durable storage before the discarded candidates from
+  // multi-submission artists.
   const { data: rows, error: selectError } = await admin
     .from('legacy_submissions')
     .select('id, drive_url')
     .is('image_url', null)
     .is('image_fetch_failed_at', null)
     .not('drive_url', 'is', null)
+    .order('selected', { ascending: false })
     .order('created_at', { ascending: true })
     .limit(IMAGE_BATCH_SIZE)
 
@@ -205,20 +213,24 @@ export async function fetchLegacyImagesBatch(): Promise<{
   }
 
   const batch = rows ?? []
-  let succeeded = 0
-  for (const row of batch) {
-    const result = await storeLegacyArtworkGlobally(admin, { id: row.id, drive_url: row.drive_url })
-    if (result) {
-      const { error: updateError } = await admin
-        .from('legacy_submissions')
-        .update({ image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null })
-        .eq('id', row.id)
-      if (updateError) {
-        console.error('fetchLegacyImagesBatch: failed to save fetched image', row.id, updateError)
-      } else {
-        succeeded++
+  // Each row is an independent Drive fetch + sharp resize — safe to run
+  // concurrently within a batch, and cuts a full sync's wall-clock time
+  // roughly by IMAGE_BATCH_SIZE instead of processing one row at a time.
+  const results = await Promise.all(
+    batch.map(async (row) => {
+      const result = await storeLegacyArtworkGlobally(admin, { id: row.id, drive_url: row.drive_url })
+      if (result) {
+        const { error: updateError } = await admin
+          .from('legacy_submissions')
+          .update({ image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null })
+          .eq('id', row.id)
+        if (updateError) {
+          console.error('fetchLegacyImagesBatch: failed to save fetched image', row.id, updateError)
+          return false
+        }
+        return true
       }
-    } else {
+
       const { error: failError } = await admin
         .from('legacy_submissions')
         .update({ image_fetch_failed_at: new Date().toISOString() })
@@ -226,8 +238,10 @@ export async function fetchLegacyImagesBatch(): Promise<{
       if (failError) {
         console.error('fetchLegacyImagesBatch: failed to mark row as failed', row.id, failError)
       }
-    }
-  }
+      return false
+    }),
+  )
+  const succeeded = results.filter(Boolean).length
 
   const [{ count: pending, error: pendingError }, { count: failed, error: failedError }] =
     await Promise.all([
@@ -253,6 +267,44 @@ export async function fetchLegacyImagesBatch(): Promise<{
     failed: failed ?? 0,
     error: pendingError?.message ?? failedError?.message ?? null,
   }
+}
+
+// One-row version of fetchLegacyImagesBatch — lets an admin retry a specific
+// failed fetch right there (e.g. after re-sharing a Drive file that was
+// private) without waiting for a full batch or deleting/re-importing the
+// row. Same trust boundary as the batch version: service-role client, so
+// assertIsAdmin() up front is what actually gates it.
+export async function retryLegacyImageFetch(formData: FormData) {
+  await assertIsAdmin()
+  const id = String(formData.get('id'))
+
+  const admin = createAdminClient()
+  const { data: row, error: lookupError } = await admin
+    .from('legacy_submissions')
+    .select('id, drive_url')
+    .eq('id', id)
+    .maybeSingle()
+  if (lookupError || !row) {
+    redirect(`/admin/obras?error=${encodeURIComponent(lookupError?.message ?? 'not_found')}`)
+  }
+
+  const result = await storeLegacyArtworkGlobally(admin, { id: row.id, drive_url: row.drive_url })
+  if (result) {
+    const { error: updateError } = await admin
+      .from('legacy_submissions')
+      .update({ image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null })
+      .eq('id', row.id)
+    if (updateError) redirect(`/admin/obras?error=${encodeURIComponent(updateError.message)}`)
+  } else {
+    const { error: failError } = await admin
+      .from('legacy_submissions')
+      .update({ image_fetch_failed_at: new Date().toISOString() })
+      .eq('id', row.id)
+    if (failError) redirect(`/admin/obras?error=${encodeURIComponent(failError.message)}`)
+    redirect('/admin/obras?error=retry_failed')
+  }
+
+  revalidatePath('/admin/obras')
 }
 
 export async function deleteLegacySubmission(formData: FormData) {
