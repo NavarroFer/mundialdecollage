@@ -18,10 +18,13 @@ export function HeroSection() {
         <h1 className="sr-only">Mundial Internacional de Collage</h1>
       </div>
 
-      {/* decorative dots, echoing the flyers' color-block circles — kept above
-          the video so its mix-blend-multiply white background doesn't paint
-          over them (FadeIn's transform gives the video its own stacking context). */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* decorative dots, echoing the flyers' color-block circles — z-10 keeps
+          them above the video despite coming earlier in the DOM: FadeIn puts
+          a `transform` on the video's wrapper, which gives it its own
+          z-index:auto stacking context, and among same-priority (auto)
+          stacking contexts painting follows DOM order — without an explicit
+          z-index here the later, opaque video would paint over these. */}
+      <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
         <div className="absolute top-24 -left-10 h-28 w-28 rounded-full bg-collage-red/90 sm:top-32 sm:left-[6%]" />
         <div className="absolute top-10 right-[8%] h-16 w-16 rounded-full bg-collage-yellow sm:top-16" />
         <div className="animate-float-slow absolute bottom-16 left-[12%] h-10 w-10 rounded-full bg-collage-blue/80 [--rot:-8deg]" />
