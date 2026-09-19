@@ -136,5 +136,24 @@ export async function completeOnboarding(formData: FormData) {
     redirect('/onboarding?error=save_failed')
   }
 
+  // Best-effort: mark the matching legacy_submissions row (if any) as
+  // claimed, so it stops being offered for prefill and can't be matched
+  // twice. Runs on the user's own session client — the "legacy_submissions:
+  // claim own unclaimed" RLS policy (supabase/migrations/20260919000000_
+  // legacy_submissions.sql) is the real boundary here, no service client
+  // needed. A failure here never blocks the redirect below: the profile
+  // upsert above is what actually matters, this table is just bookkeeping.
+  if (user.email) {
+    const { error: claimError } = await supabase
+      .from('legacy_submissions')
+      .update({ claimed_by: user.id, claimed_at: new Date().toISOString() })
+      .eq('email', user.email.toLowerCase())
+      .eq('selected', true)
+      .is('claimed_by', null)
+    if (claimError) {
+      console.error('onboarding: failed to claim legacy submission', user.id, claimError)
+    }
+  }
+
   redirect('/')
 }
