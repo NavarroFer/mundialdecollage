@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isValidEmail } from '@/lib/resend'
 
 // Accepts one entry per line, in any of: "email", "email, Name", or
 // "Name <email>" — matches how people tend to paste lists out of an inbox
@@ -15,12 +16,12 @@ function parseContactLine(line: string): { email: string; name: string | null } 
   if (angleMatch) {
     const name = angleMatch[1].trim().replace(/^"|"$/g, '')
     const email = angleMatch[2].trim()
-    return email ? { email, name: name || null } : null
+    return isValidEmail(email) ? { email, name: name || null } : null
   }
 
   const [emailPart, ...rest] = trimmed.split(',')
   const email = emailPart.trim()
-  if (!email.includes('@')) return null
+  if (!isValidEmail(email)) return null
   const name = rest.join(',').trim()
   return { email, name: name || null }
 }

@@ -24,6 +24,16 @@ export function createResendDomainClient() {
 // Resend's batch endpoint caps out at 100 emails per call.
 export const RESEND_BATCH_SIZE = 100
 
+// What Resend itself accepts for a bare "to" address — no spaces, one "@",
+// a dot somewhere after it. Reject before sending: one malformed address in
+// a batch.send call fails the *entire* batch with "Invalid `to` field",
+// marking every recipient in it as failed even though only one was bad.
+const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/
+
+export function isValidEmail(email: string): boolean {
+  return EMAIL_RE.test(email.trim())
+}
+
 // Pulls "mundialdecollage.com.ar" out of site.mailFrom's "Name <user@domain>" form.
 export function getMailFromDomain(): string | null {
   return site.mailFrom.match(/@([^>]+)>/)?.[1] ?? null

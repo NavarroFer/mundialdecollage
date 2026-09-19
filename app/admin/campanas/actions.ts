@@ -8,6 +8,7 @@ import {
   createResendDomainClient,
   isResendConfigured,
   isResendDomainConfigured,
+  isValidEmail,
   RESEND_BATCH_SIZE,
   getMailFromDomain,
 } from '@/lib/resend'
@@ -81,7 +82,28 @@ export async function sendCampaign(formData: FormData) {
   let failedCount = 0
   let firstError: string | null = null
 
-  for (const batch of chunk(recipients, RESEND_BATCH_SIZE)) {
+  // A malformed address fails Resend's *entire* batch.send call, marking
+  // every recipient in that batch as failed even though only one was bad.
+  // Screen those out up front so one bad row in `contacts` can't take down
+  // sends to everyone else.
+  const validRecipients = recipients.filter((contact) => isValidEmail(contact.email))
+  const invalidRecipients = recipients.filter((contact) => !isValidEmail(contact.email))
+
+  if (invalidRecipients.length > 0) {
+    failedCount += invalidRecipients.length
+    firstError ??= 'Formato de email inválido'
+    await supabase.from('campaign_sends').insert(
+      invalidRecipients.map((contact) => ({
+        campaign_id: campaign.id,
+        contact_id: contact.id,
+        email: contact.email,
+        status: 'failed',
+        error: 'Formato de email inválido',
+      })),
+    )
+  }
+
+  for (const batch of chunk(validRecipients, RESEND_BATCH_SIZE)) {
     // The Resend SDK never throws for an API-level failure (bad key,
     // unverified domain, invalid recipient) — it always resolves to
     // { data, error }, so `error` is the only signal that a batch actually
