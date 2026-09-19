@@ -44,22 +44,14 @@ export async function optimizeImage(input: Buffer): Promise<Buffer | null> {
   }
 }
 
-// Called once, lazily, at the exact moment a matched legacy_submissions row
-// shows up at /onboarding — never in bulk during the admin import. Fetching
-// ~90 Drive files in one import request risks a serverless timeout and
-// wastes storage on people who never actually register.
-//
-// Never throws: any failure (private file, non-image response, network
-// error, oversized file) just returns null, and the caller falls back to
-// prefilling the name only — same as a normal onboarding where nobody
-// uploaded anything yet.
-export async function fetchAndStoreLegacyArtwork(
-  supabase: SupabaseClient,
-  userId: string,
-  legacy: { id: string; drive_url: string | null },
-): Promise<LegacyArtwork | null> {
-  if (!legacy.drive_url) return null
-  const fileId = extractDriveFileId(legacy.drive_url)
+// Downloads a submission's Drive photo and returns it resized/recompressed,
+// ready to upload — or null for any failure (private file, non-image
+// response, network error, corrupt data). Shared by both storage paths
+// below; never throws, so a broken link for one artist never takes down a
+// batch of others.
+async function fetchOptimizedDriveImage(driveUrl: string | null): Promise<Buffer | null> {
+  if (!driveUrl) return null
+  const fileId = extractDriveFileId(driveUrl)
   if (!fileId) return null
 
   try {
@@ -79,25 +71,59 @@ export async function fetchAndStoreLegacyArtwork(
     // and re-compressed here instead of being uploaded as-is — keeps
     // /obras/[slug] and the participants grid fast regardless of what
     // someone originally sent in.
-    const buffer = await optimizeImage(rawBuffer)
-    if (!buffer) return null
-
-    const path = `${userId}/legacy-${legacy.id}.jpg`
-
-    const { error: uploadError } = await supabase.storage
-      .from('artworks')
-      .upload(path, buffer, { contentType: 'image/jpeg', upsert: true })
-    if (uploadError) {
-      console.error('legacy_submissions: image upload failed', legacy.id, uploadError)
-      return null
-    }
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from('artworks').getPublicUrl(path)
-    return { path, publicUrl }
+    return await optimizeImage(rawBuffer)
   } catch (err) {
-    console.error('legacy_submissions: image fetch failed', legacy.id, err)
+    console.error('legacy_submissions: image fetch failed', driveUrl, err)
     return null
   }
+}
+
+async function uploadOptimizedImage(
+  supabase: SupabaseClient,
+  path: string,
+  buffer: Buffer,
+): Promise<LegacyArtwork | null> {
+  const { error: uploadError } = await supabase.storage
+    .from('artworks')
+    .upload(path, buffer, { contentType: 'image/jpeg', upsert: true })
+  if (uploadError) {
+    console.error('legacy_submissions: image upload failed', path, uploadError)
+    return null
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('artworks').getPublicUrl(path)
+  return { path, publicUrl }
+}
+
+// Called once, lazily, at the exact moment a matched legacy_submissions row
+// shows up at /onboarding with no `image_url` yet — a fallback for whatever
+// the admin-triggered batch fetch (storeLegacyArtworkGlobally, run from
+// /admin/obras) hasn't gotten to yet or couldn't fetch. Stored under this
+// user's own folder since it's their session/client doing the upload.
+export async function fetchAndStoreLegacyArtwork(
+  supabase: SupabaseClient,
+  userId: string,
+  legacy: { id: string; drive_url: string | null },
+): Promise<LegacyArtwork | null> {
+  const buffer = await fetchOptimizedDriveImage(legacy.drive_url)
+  if (!buffer) return null
+  return uploadOptimizedImage(supabase, `${userId}/legacy-${legacy.id}.jpg`, buffer)
+}
+
+// The primary path: called from the admin-triggered batch (see
+// fetchLegacyImagesBatch in app/admin/obras/actions.ts) right after import,
+// so the photo lives in our own storage — durably, independent of whether or
+// when that artist ever registers — instead of only ever existing as a Drive
+// link that can break (unshared, deleted, Drive itself down) at any time.
+// Uses the service-role client since there's no user session yet; stored
+// under a `legacy/` prefix, separate from user-owned upload folders.
+export async function storeLegacyArtworkGlobally(
+  adminClient: SupabaseClient,
+  legacy: { id: string; drive_url: string | null },
+): Promise<LegacyArtwork | null> {
+  const buffer = await fetchOptimizedDriveImage(legacy.drive_url)
+  if (!buffer) return null
+  return uploadOptimizedImage(adminClient, `legacy/${legacy.id}.jpg`, buffer)
 }

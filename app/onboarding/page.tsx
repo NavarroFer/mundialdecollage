@@ -35,7 +35,7 @@ export default async function OnboardingPage({
   if (email) {
     const { data: legacy } = await supabase
       .from('legacy_submissions')
-      .select('id, name, drive_url')
+      .select('id, name, drive_url, image_path, image_url')
       .eq('email', email)
       .is('claimed_by', null)
       .eq('selected', true)
@@ -43,13 +43,38 @@ export default async function OnboardingPage({
 
     if (legacy) {
       legacyName = legacy.name
-      // Fetched lazily, right now, for this one person — not in bulk during
-      // admin import, which would risk a serverless timeout across dozens of
-      // files and waste storage on people who never actually register.
-      legacyImagePreview = await fetchAndStoreLegacyArtwork(supabase, user.id, {
-        id: legacy.id,
-        drive_url: legacy.drive_url,
-      })
+
+      // The common case: an admin already ran the batch import (see
+      // fetchLegacyImagesBatch in app/admin/obras/actions.ts), so the photo
+      // is already sitting in our own storage under `legacy/<id>.jpg` —
+      // just copy it into this user's own folder (cheap storage-to-storage
+      // copy, no Drive involved) so it satisfies the same
+      // "folder === user.id" check completeOnboarding applies to every
+      // upload.
+      if (legacy.image_url && legacy.image_path) {
+        const destPath = `${user.id}/legacy-${legacy.id}.jpg`
+        const { error: copyError } = await supabase.storage
+          .from('artworks')
+          .copy(legacy.image_path, destPath)
+        if (!copyError) {
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from('artworks').getPublicUrl(destPath)
+          legacyImagePreview = { path: destPath, publicUrl }
+        }
+      }
+
+      // Fallback: the batch hasn't reached this row yet, or it previously
+      // failed — fetch straight from Drive right now, just for this one
+      // person. Safe to retry here even after a recorded batch failure
+      // (Drive links can be flaky), since it's a single file, not a bulk
+      // pass across dozens of them.
+      if (!legacyImagePreview) {
+        legacyImagePreview = await fetchAndStoreLegacyArtwork(supabase, user.id, {
+          id: legacy.id,
+          drive_url: legacy.drive_url,
+        })
+      }
     }
   }
 

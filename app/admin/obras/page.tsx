@@ -1,8 +1,9 @@
-import { CircleCheck, ExternalLink, Trash2, Upload } from 'lucide-react'
+import { CircleAlert, CircleCheck, ExternalLink, ImageOff, Trash2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmissionsGallery } from '@/components/admin/submissions-gallery'
 import { SubmitButton } from '@/components/admin/submit-button'
+import { LegacyImageSync } from '@/components/admin/legacy-image-sync'
 import {
   deleteLegacySubmission,
   importLegacySubmissions,
@@ -43,7 +44,9 @@ export default async function ObrasPage({
   // that counts per artist with "Usar esta obra".
   const { data: legacyData } = await supabase
     .from('legacy_submissions')
-    .select('id, email, name, drive_url, country_raw, selected, claimed_by, claimed_at, created_at')
+    .select(
+      'id, email, name, drive_url, country_raw, selected, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at',
+    )
     .order('email', { ascending: true })
     .order('created_at', { ascending: true })
 
@@ -56,6 +59,10 @@ export default async function ObrasPage({
   }
   const selectedCount = legacyRows.filter((r) => r.selected).length
   const multiSubmissionCount = [...legacyGroups.values()].filter((rows) => rows.length > 1).length
+  const imagesPendingCount = legacyRows.filter(
+    (r) => r.drive_url && !r.image_url && !r.image_fetch_failed_at,
+  ).length
+  const imagesFailedCount = legacyRows.filter((r) => r.image_fetch_failed_at).length
 
   return (
     <div>
@@ -127,6 +134,10 @@ export default async function ObrasPage({
           </SubmitButton>
         </form>
 
+        {legacyRows.length > 0 && (
+          <LegacyImageSync initialPending={imagesPendingCount} initialFailed={imagesFailedCount} />
+        )}
+
         <div className="mt-6 space-y-4">
           {legacyGroups.size === 0 && (
             <p className="rounded-2xl border-2 border-ink/10 bg-card px-4 py-8 text-center text-muted-foreground">
@@ -164,18 +175,36 @@ export default async function ObrasPage({
                             </span>
                           )}
                         </p>
-                        {row.drive_url ? (
-                          <a
-                            href={row.drive_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-collage-blue hover:underline"
-                          >
-                            Ver en Drive <ExternalLink className="h-3 w-3" />
-                          </a>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Sin link</span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {row.drive_url ? (
+                            <a
+                              href={row.drive_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-collage-blue hover:underline"
+                            >
+                              Ver en Drive <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Sin link</span>
+                          )}
+                          {row.image_url ? (
+                            <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-collage-blue">
+                              <CircleCheck className="h-3 w-3" />
+                              Foto guardada en el sitio
+                            </span>
+                          ) : row.image_fetch_failed_at ? (
+                            <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-collage-red">
+                              <CircleAlert className="h-3 w-3" />
+                              No se pudo traer
+                            </span>
+                          ) : row.drive_url ? (
+                            <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-muted-foreground">
+                              <ImageOff className="h-3 w-3" />
+                              Todavía en Drive
+                            </span>
+                          ) : null}
+                        </div>
                         {row.claimed_by && (
                           <span className="ml-2 rounded-full bg-collage-blue/15 px-2 py-0.5 text-[0.65rem] font-semibold text-collage-blue">
                             Reclamada

@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidEmail } from '@/lib/resend'
+import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 
 // Called directly from the gallery's bulk-action bar (not a <form> submit) —
 // the "profiles: admin update all" RLS policy is the real boundary here, so
@@ -148,6 +150,70 @@ export async function selectLegacySubmission(formData: FormData) {
   if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
 
   revalidatePath('/admin/obras')
+}
+
+// How many Drive files to fetch per call — kept small so one invocation
+// comfortably finishes inside a serverless function's time limit regardless
+// of hosting plan. The client (see components/admin/legacy-image-sync.tsx)
+// just calls this repeatedly until nothing's left.
+const IMAGE_BATCH_SIZE = 5
+
+// Copies one batch of legacy obra photos from Drive into our own storage —
+// see storeLegacyArtworkGlobally for why this exists instead of only
+// fetching lazily at registration time. Runs on the service-role client:
+// this is triggered from an admin button, not tied to any artist's session,
+// and rows aren't scoped to a user yet (nobody may ever register for some of
+// them).
+export async function fetchLegacyImagesBatch(): Promise<{
+  attempted: number
+  succeeded: number
+  pending: number
+  failed: number
+}> {
+  const admin = createAdminClient()
+
+  const { data: rows } = await admin
+    .from('legacy_submissions')
+    .select('id, drive_url')
+    .is('image_url', null)
+    .is('image_fetch_failed_at', null)
+    .not('drive_url', 'is', null)
+    .order('created_at', { ascending: true })
+    .limit(IMAGE_BATCH_SIZE)
+
+  const batch = rows ?? []
+  let succeeded = 0
+  for (const row of batch) {
+    const result = await storeLegacyArtworkGlobally(admin, { id: row.id, drive_url: row.drive_url })
+    if (result) {
+      await admin
+        .from('legacy_submissions')
+        .update({ image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null })
+        .eq('id', row.id)
+      succeeded++
+    } else {
+      await admin
+        .from('legacy_submissions')
+        .update({ image_fetch_failed_at: new Date().toISOString() })
+        .eq('id', row.id)
+    }
+  }
+
+  const [{ count: pending }, { count: failed }] = await Promise.all([
+    admin
+      .from('legacy_submissions')
+      .select('id', { count: 'exact', head: true })
+      .is('image_url', null)
+      .is('image_fetch_failed_at', null)
+      .not('drive_url', 'is', null),
+    admin
+      .from('legacy_submissions')
+      .select('id', { count: 'exact', head: true })
+      .not('image_fetch_failed_at', 'is', null),
+  ])
+
+  revalidatePath('/admin/obras')
+  return { attempted: batch.length, succeeded, pending: pending ?? 0, failed: failed ?? 0 }
 }
 
 export async function deleteLegacySubmission(formData: FormData) {
