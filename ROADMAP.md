@@ -53,6 +53,37 @@ librería de mapas pesada de más.
   puntual que se repite cada mes (mismo Checkout Pro del taller). Definir
   esto antes de tocar código — cambia bastante la arquitectura.
 
+## 5. Antes de lanzar públicamente — pendiente (2026-09-19)
+
+- Terminar el logo definitivo y subirlo a la app (reemplaza el badge "M"
+  generado en `components/site-header.tsx`).
+- Subir el logo/completar la verificación en Google Auth para poder publicar
+  la app (hoy el consentimiento de Google la muestra como app sin verificar).
+- Limpieza de datos: sanitizar mayúsculas/minúsculas y formato en nombres y
+  demás campos cargados manualmente (ver el backlog de `legacy_submissions`
+  y cualquier carga futura similar).
+
+## 6. Panel de obras: curación multi-obra y filtros — pendiente (2026-09-19)
+
+Hoy `legacy_submissions` ya tiene un flag `selected` para elegir cuál de las
+varias obras que mandó un mismo artista *antes* de registrarse es "la"
+oficial (ver `supabase/migrations/20260919000000_legacy_submissions.sql` y
+`/admin/obras`). Falta llevar esa misma idea a los artistas que ya se
+registraron por el sitio real:
+
+- Un artista podría terminar con más de una obra cargada, no solo en el
+  backlog previo al registro — hoy `profiles` asume una sola obra por
+  persona. Definir el modelo de datos antes de tocar código (¿tabla `obras`
+  separada, one-to-many con `profiles`?).
+- Selección de cuál obra queda como "final"/"la oficial" de cada artista,
+  como decisión separada de "publicada o no en la página principal"
+  (`is_public`) — son dos cosas distintas: cuál es la obra real, y si esa
+  obra ya se puede mostrar al público.
+- Filtros en `/admin/obras`: todos los que tengan sentido (país, técnica,
+  publicada/no publicada, con/sin foto guardada en el sitio, etc.).
+- Catalogar por técnica con categorías fijas en vez de texto libre: mixta,
+  analógica o digital.
+
 ## Cómo se construyó
 
 Los ítems 1, 2 y 3 se scaffoldearon en paralelo, cada uno en su propio
