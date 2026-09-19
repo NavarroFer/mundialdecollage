@@ -1,4 +1,5 @@
 import { createPublicClient } from '@/lib/supabase/public'
+import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 export { countryCodeToName } from '@/lib/participants'
@@ -6,11 +7,12 @@ export { countryCodeToName } from '@/lib/participants'
 // slug feeds the individual work page route (/obras/[slug]). instagram/website
 // are optional and only set when the artist filled them in at submission.
 //
-// Every submission gets saved on arrival, but only shows up here once an
-// admin publishes it from /admin/obras ("estas participan") — the
-// `profiles: public read published` RLS policy (see
+// Every submission gets saved on arrival, but only shows up in getFinalists()
+// (the public listing) once an admin publishes it from /admin/obras ("estas
+// participan") — the `profiles: public read published` RLS policy (see
 // supabase/migrations/20260918000000_profile_visibility.sql) is what
-// actually filters this to `is_public = true`, not the query below.
+// actually filters that to `is_public = true`, not the query below.
+// getFinalistBySlug() is the one exception: see its own comment.
 export type Finalist = {
   slug: string
   name: string
@@ -65,10 +67,22 @@ export async function getFinalists(): Promise<Finalist[]> {
   return (data ?? []).map(rowToFinalist).filter((f): f is Finalist => f !== undefined)
 }
 
+// Session-aware client here, unlike getFinalists() above — this lets an
+// artist open their own direct /obras/[slug] link and see it before an
+// admin has published it ("total la van a ver solo ellos"). RLS combines
+// permissive SELECT policies with OR, and none of profiles' policies are
+// role-scoped (no `to authenticated`/`to anon`), so this still resolves to
+// exactly: owner sees their own row regardless of is_public (via "profiles:
+// users read own", auth.uid() = id), everyone else — anonymous or a
+// logged-in non-owner — only sees it once is_public = true (via "profiles:
+// public read published"). An anonymous visitor gets the same anon-role
+// request createPublicClient() would have made, since createClient() falls
+// back to the anon key when there's no session cookie.
 export async function getFinalistBySlug(slug: string): Promise<Finalist | undefined> {
   if (!isSupabaseConfigured) return undefined
 
-  const { data } = await createPublicClient()
+  const supabase = await createClient()
+  const { data } = await supabase
     .from('profiles')
     .select(SELECT_COLUMNS)
     .eq('artwork_slug', slug)
