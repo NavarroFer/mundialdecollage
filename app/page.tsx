@@ -1,5 +1,6 @@
 import { SiteHeader } from '@/components/site-header'
 import { HeroSection } from '@/components/hero-section'
+import { ParticipationStatus } from '@/components/participation-status'
 import { BasesBanner } from '@/components/bases-banner'
 import { EditionSection } from '@/components/edition-section'
 import { HowToSection } from '@/components/how-to-section'
@@ -20,6 +21,7 @@ export default function Home() {
       <SiteHeader />
       <main>
         <HeroSection />
+        <ParticipationStatus />
         <BasesBanner />
         <EditionSection />
         <HowToSection />

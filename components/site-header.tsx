@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ShieldCheck } from 'lucide-react'
+import { CheckCircle2, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SignOutButton } from '@/components/auth/sign-out-button'
@@ -21,10 +21,28 @@ async function AuthSlot() {
   const firstName = (user.user_metadata?.full_name as string | undefined)?.split(' ')[0]
   const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
 
+  // Admins never submit an artwork, so skip the extra profile lookup for
+  // them entirely (same as app/onboarding/page.tsx).
+  let isParticipating = false
+  if (!isAdmin) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarded_at')
+      .eq('id', user.id)
+      .maybeSingle()
+    isParticipating = Boolean(profile?.onboarded_at)
+  }
+
   return (
     <div className="hidden items-center gap-3 sm:flex">
-      <span className="text-sm font-medium text-ink/70">
+      <span className="flex items-center gap-1.5 text-sm font-medium text-ink/70">
         Hola{firstName ? `, ${firstName}` : ''}
+        {isParticipating && (
+          <CheckCircle2
+            className="h-4 w-4 text-collage-blue"
+            aria-label="Ya estás participando"
+          />
+        )}
       </span>
       {isAdmin && (
         <Link href="/admin">
