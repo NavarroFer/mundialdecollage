@@ -6,6 +6,23 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
+import { ADMIN_EMAILS } from '@/lib/admin'
+
+// The service-role client bypasses RLS entirely, so any action that reaches
+// for it (unlike the rest of this file, which relies on the session client +
+// the "legacy_submissions: admin only" RLS policy as its real boundary) has
+// to check admin-ness itself — a Server Action is a callable endpoint in its
+// own right, reachable directly regardless of which page's admin gate
+// rendered the button that normally triggers it.
+async function assertIsAdmin() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+    throw new Error('Not authorized')
+  }
+}
 
 // Called directly from the gallery's bulk-action bar (not a <form> submit) —
 // the "profiles: admin update all" RLS policy is the real boundary here, so
@@ -169,10 +186,11 @@ export async function fetchLegacyImagesBatch(): Promise<{
   succeeded: number
   pending: number
   failed: number
+  error: string | null
 }> {
   const admin = createAdminClient()
 
-  const { data: rows } = await admin
+  const { data: rows, error: selectError } = await admin
     .from('legacy_submissions')
     .select('id, drive_url')
     .is('image_url', null)
@@ -181,39 +199,60 @@ export async function fetchLegacyImagesBatch(): Promise<{
     .order('created_at', { ascending: true })
     .limit(IMAGE_BATCH_SIZE)
 
+  if (selectError) {
+    console.error('fetchLegacyImagesBatch: failed to list pending rows', selectError)
+    return { attempted: 0, succeeded: 0, pending: 0, failed: 0, error: selectError.message }
+  }
+
   const batch = rows ?? []
   let succeeded = 0
   for (const row of batch) {
     const result = await storeLegacyArtworkGlobally(admin, { id: row.id, drive_url: row.drive_url })
     if (result) {
-      await admin
+      const { error: updateError } = await admin
         .from('legacy_submissions')
         .update({ image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null })
         .eq('id', row.id)
-      succeeded++
+      if (updateError) {
+        console.error('fetchLegacyImagesBatch: failed to save fetched image', row.id, updateError)
+      } else {
+        succeeded++
+      }
     } else {
-      await admin
+      const { error: failError } = await admin
         .from('legacy_submissions')
         .update({ image_fetch_failed_at: new Date().toISOString() })
         .eq('id', row.id)
+      if (failError) {
+        console.error('fetchLegacyImagesBatch: failed to mark row as failed', row.id, failError)
+      }
     }
   }
 
-  const [{ count: pending }, { count: failed }] = await Promise.all([
-    admin
-      .from('legacy_submissions')
-      .select('id', { count: 'exact', head: true })
-      .is('image_url', null)
-      .is('image_fetch_failed_at', null)
-      .not('drive_url', 'is', null),
-    admin
-      .from('legacy_submissions')
-      .select('id', { count: 'exact', head: true })
-      .not('image_fetch_failed_at', 'is', null),
-  ])
+  const [{ count: pending, error: pendingError }, { count: failed, error: failedError }] =
+    await Promise.all([
+      admin
+        .from('legacy_submissions')
+        .select('id', { count: 'exact', head: true })
+        .is('image_url', null)
+        .is('image_fetch_failed_at', null)
+        .not('drive_url', 'is', null),
+      admin
+        .from('legacy_submissions')
+        .select('id', { count: 'exact', head: true })
+        .not('image_fetch_failed_at', 'is', null),
+    ])
+  if (pendingError) console.error('fetchLegacyImagesBatch: failed to count pending', pendingError)
+  if (failedError) console.error('fetchLegacyImagesBatch: failed to count failed', failedError)
 
   revalidatePath('/admin/obras')
-  return { attempted: batch.length, succeeded, pending: pending ?? 0, failed: failed ?? 0 }
+  return {
+    attempted: batch.length,
+    succeeded,
+    pending: pending ?? 0,
+    failed: failed ?? 0,
+    error: pendingError?.message ?? failedError?.message ?? null,
+  }
 }
 
 export async function deleteLegacySubmission(formData: FormData) {

@@ -27,21 +27,31 @@ export function LegacyImageSync({
   const [failed, setFailed] = useState(initialFailed)
   const [running, setRunning] = useState(false)
   const [processed, setProcessed] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
   async function run() {
     setRunning(true)
     setProcessed(0)
+    setError(null)
     let rounds = 0
     let current = pending
 
-    while (current > 0 && rounds < MAX_ROUNDS) {
-      const result = await fetchLegacyImagesBatch()
-      setProcessed((n) => n + result.attempted)
-      setPending(result.pending)
-      setFailed(result.failed)
-      current = result.pending
-      rounds++
-      if (result.attempted === 0) break
+    try {
+      while (current > 0 && rounds < MAX_ROUNDS) {
+        const result = await fetchLegacyImagesBatch()
+        if (result.error) {
+          setError(result.error)
+          break
+        }
+        setProcessed((n) => n + result.attempted)
+        setPending(result.pending)
+        setFailed(result.failed)
+        current = result.pending
+        rounds++
+        if (result.attempted === 0) break
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
     }
 
     setRunning(false)
@@ -59,24 +69,31 @@ export function LegacyImageSync({
   }
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-3">
-      <Button onClick={run} disabled={running} variant="outline" className="gap-2">
-        {running ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Trayendo fotos… ({processed} procesadas)
-          </>
-        ) : (
-          <>
-            <Download className="h-4 w-4" />
-            Traer {pending} fotos de Drive al sitio
-          </>
-        )}
-      </Button>
-      <p className="text-sm text-muted-foreground">
-        Copia cada foto a nuestro almacenamiento para que no dependa del link de Drive.
-        {failed > 0 && ` ${failed} ya fallaron antes.`}
-      </p>
+    <div className="mt-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Button onClick={run} disabled={running} variant="outline" className="gap-2">
+          {running ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Trayendo fotos… ({processed} procesadas)
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4" />
+              Traer {pending} fotos de Drive al sitio
+            </>
+          )}
+        </Button>
+        <p className="text-sm text-muted-foreground">
+          Copia cada foto a nuestro almacenamiento para que no dependa del link de Drive.
+          {failed > 0 && ` ${failed} ya fallaron antes.`}
+        </p>
+      </div>
+      {error && (
+        <p className="mt-3 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-4 py-3 text-sm text-ink">
+          Algo falló: {error}
+        </p>
+      )}
     </div>
   )
 }
