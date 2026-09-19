@@ -27,11 +27,18 @@ export function HeroSection() {
           to win that fight; the blue dot and scissors sit near the bottom of
           the section and must stay z-index:auto so the footer text after
           them (also z-index:auto, later in the DOM) keeps painting on top —
-          giving the whole overlay a z-index previously covered that text. */}
+          giving the whole overlay a z-index previously covered that text.
+          The blue dot is also anchored off the left edge (like the red
+          circle) rather than at a `%` position — a percentage can land it
+          in the centered footer text's column at some viewport widths even
+          though the text wins the paint order, since a same-color-family
+          dot sitting right behind/beside the text still reads as "covering"
+          it. Off-canvas-edge placement keeps it clear of the padded text
+          column (px-5+) at every width instead of relying on one path. */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-24 -left-10 z-10 h-28 w-28 rounded-full bg-collage-red/90 sm:top-32 sm:left-[6%]" />
         <div className="absolute top-10 right-[8%] z-10 h-16 w-16 rounded-full bg-collage-yellow sm:top-16" />
-        <div className="animate-float-slow absolute bottom-16 left-[12%] h-10 w-10 rounded-full bg-collage-blue/80 [--rot:-8deg]" />
+        <div className="animate-float-slow absolute -left-4 bottom-16 h-10 w-10 rounded-full bg-collage-blue/80 [--rot:-8deg] sm:left-[12%]" />
         <Scissors
           className="animate-float-slow absolute right-[10%] bottom-24 h-10 w-10 text-ink/20 [--rot:18deg] sm:h-14 sm:w-14"
           strokeWidth={1.5}
