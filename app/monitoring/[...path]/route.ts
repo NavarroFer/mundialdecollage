@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+// Proxies Microsoft Clarity's loader + telemetry endpoints through our own
+// domain. `clarity.ms` (all subdomains) sits on common tracker blocklists
+// (EasyPrivacy etc.), so browsers with an ad/privacy blocker fail the direct
+// request with a synthetic 400 before it ever reaches Clarity. Routing it
+// same-origin sidesteps that, since the blocklist match happens client-side.
+//
+// The upload subdomain isn't fixed — Clarity hands out a different
+// single-letter host (u./z./t./r.clarity.ms, ...) on every tag.js response,
+// presumably to dodge static blocklists itself — so the proxy path encodes
+// whichever *.clarity.ms host tag.js embedded rather than assuming one.
+// See components/clarity.tsx for the loader that points here.
+
+const CLARITY_HOST = /^[a-z0-9-]+\.clarity\.ms$/i
+
+function stripCookieDomain(cookie: string) {
+  return cookie.replace(/;\s*domain=[^;]+/i, '')
+}
+
+async function proxy(request: NextRequest, path: string[]) {
+  const [host, ...rest] = path
+  if (!host || !CLARITY_HOST.test(host)) {
+    return new NextResponse('Not found', { status: 404 })
+  }
+
+  const headers = new Headers()
+  const userAgent = request.headers.get('user-agent')
+  if (userAgent) headers.set('user-agent', userAgent)
+  const contentType = request.headers.get('content-type')
+  if (contentType) headers.set('content-type', contentType)
+
+  const upstream = await fetch(`https://${host}/${rest.join('/')}${request.nextUrl.search}`, {
+    method: request.method,
+    headers,
+    body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.arrayBuffer(),
+  })
+
+  const body =
+    host === 'www.clarity.ms'
+      ? (await upstream.text()).replace(/https:\/\/([a-z0-9-]+\.clarity\.ms)/gi, '/monitoring/$1')
+      : upstream.body
+
+  const response = new NextResponse(body as BodyInit, {
+    status: upstream.status,
+    headers: {
+      'content-type': upstream.headers.get('content-type') ?? 'application/octet-stream',
+    },
+  })
+
+  for (const cookie of upstream.headers.getSetCookie?.() ?? []) {
+    response.headers.append('set-cookie', stripCookieDomain(cookie))
+  }
+
+  return response
+}
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(request, (await params).path)
+}
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(request, (await params).path)
+}
