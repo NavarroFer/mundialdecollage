@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { fetchAndStoreLegacyArtwork } from '@/lib/legacy-submissions'
 import { OnboardingForm } from './onboarding-form'
 import { completeOnboarding } from './actions'
 
@@ -22,6 +23,36 @@ export default async function OnboardingPage({
   // onboarding form and drop them straight into the panel.
   if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
 
+  // Before the real registration flow existed, ~90 artists already sent in
+  // their collage by email — see supabase/migrations/20260919000000_legacy_
+  // submissions.sql. Some sent more than one; an admin curates those down to
+  // one `selected` row from /admin/obras, and only that curated row is ever
+  // offered here. No match (including "not curated yet") is just the normal
+  // blank-form path, not an error.
+  let legacyName: string | null = null
+  let legacyImagePreview: { path: string; publicUrl: string } | null = null
+  const email = user.email?.toLowerCase()
+  if (email) {
+    const { data: legacy } = await supabase
+      .from('legacy_submissions')
+      .select('id, name, drive_url')
+      .eq('email', email)
+      .is('claimed_by', null)
+      .eq('selected', true)
+      .maybeSingle()
+
+    if (legacy) {
+      legacyName = legacy.name
+      // Fetched lazily, right now, for this one person — not in bulk during
+      // admin import, which would risk a serverless timeout across dozens of
+      // files and waste storage on people who never actually register.
+      legacyImagePreview = await fetchAndStoreLegacyArtwork(supabase, user.id, {
+        id: legacy.id,
+        drive_url: legacy.drive_url,
+      })
+    }
+  }
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('onboarded_at')
@@ -31,7 +62,7 @@ export default async function OnboardingPage({
   if (profile?.onboarded_at) redirect('/')
 
   const { error } = await searchParams
-  const suggestedName = (user.user_metadata?.full_name as string | undefined) ?? ''
+  const suggestedName = legacyName || (user.user_metadata?.full_name as string | undefined) || ''
 
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
@@ -52,6 +83,9 @@ export default async function OnboardingPage({
           defaultName={suggestedName}
           userId={user.id}
           error={error}
+          hasLegacyMatch={Boolean(legacyName)}
+          prefillImageUrl={legacyImagePreview?.publicUrl}
+          prefillImagePath={legacyImagePreview?.path}
         />
       </div>
     </main>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CountrySelect } from '@/components/ui/country-select'
@@ -27,11 +28,27 @@ export function OnboardingForm({
   defaultName,
   userId,
   error,
+  hasLegacyMatch,
+  prefillImageUrl,
+  prefillImagePath,
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaultName: string
   userId: string
   error?: string
+  // Set when app/onboarding/page.tsx found a curated legacy_submissions row
+  // for this person (see supabase/migrations/20260919000000_legacy_
+  // submissions.sql) — surfaces the "we found your obra" note even if the
+  // image fetch itself failed and only the name came through.
+  hasLegacyMatch?: boolean
+  // Public URL of the artwork image page.tsx already fetched from Drive and
+  // uploaded to Storage for this user, if that succeeded — shown as a
+  // preview so they're not asked to re-upload what we already have.
+  prefillImageUrl?: string
+  // The Storage path backing prefillImageUrl — submitted as-is when the
+  // artist doesn't pick a new file, so the server action treats it exactly
+  // like a normal upload.
+  prefillImagePath?: string
 }) {
   const [, formAction, pending] = useActionState(async (_prev: null, formData: FormData) => {
     await action(formData)
@@ -39,6 +56,8 @@ export function OnboardingForm({
   }, null)
   const [uploading, setUploading] = useState(false)
   const [clientError, setClientError] = useState<string | null>(null)
+  const [pickedFileName, setPickedFileName] = useState<string | null>(null)
+  const hasImagePrefill = Boolean(prefillImageUrl && prefillImagePath)
 
   const countries = useMemo(
     () =>
@@ -55,39 +74,48 @@ export function OnboardingForm({
     const formData = new FormData(event.currentTarget)
     const image = formData.get('artwork_image')
 
-    if (!(image instanceof File) || image.size === 0) {
+    if (image instanceof File && image.size > 0) {
+      if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
+        setClientError(errorMessages.invalid_image)
+        return
+      }
+      if (image.size > MAX_IMAGE_BYTES) {
+        setClientError(errorMessages.image_too_large)
+        return
+      }
+
+      setUploading(true)
+      // Uploaded straight to Storage from the browser — a Server Action's
+      // request body is capped by Vercel at ~4.5MB, well under photos people
+      // actually submit, and the raw 413 that comes back crashes the page
+      // instead of showing a clean error.
+      const supabase = createClient()
+      const extension = image.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const path = `${userId}/${Date.now()}.${extension}`
+      const { error: uploadError } = await supabase.storage
+        .from('artworks')
+        .upload(path, image, { contentType: image.type })
+      setUploading(false)
+
+      if (uploadError) {
+        setClientError(errorMessages.upload_failed)
+        return
+      }
+
+      formData.delete('artwork_image')
+      formData.set('artwork_image_path', path)
+      formAction(formData)
+      return
+    }
+
+    // No new file picked — fall back to the image page.tsx already fetched
+    // from Drive and uploaded on this person's behalf, if there is one.
+    if (!hasImagePrefill || !prefillImagePath) {
       setClientError(errorMessages.missing_image)
       return
     }
-    if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
-      setClientError(errorMessages.invalid_image)
-      return
-    }
-    if (image.size > MAX_IMAGE_BYTES) {
-      setClientError(errorMessages.image_too_large)
-      return
-    }
-
-    setUploading(true)
-    // Uploaded straight to Storage from the browser — a Server Action's
-    // request body is capped by Vercel at ~4.5MB, well under photos people
-    // actually submit, and the raw 413 that comes back crashes the page
-    // instead of showing a clean error.
-    const supabase = createClient()
-    const extension = image.name.split('.').pop()?.toLowerCase() || 'jpg'
-    const path = `${userId}/${Date.now()}.${extension}`
-    const { error: uploadError } = await supabase.storage
-      .from('artworks')
-      .upload(path, image, { contentType: image.type })
-    setUploading(false)
-
-    if (uploadError) {
-      setClientError(errorMessages.upload_failed)
-      return
-    }
-
     formData.delete('artwork_image')
-    formData.set('artwork_image_path', path)
+    formData.set('artwork_image_path', prefillImagePath)
     formAction(formData)
   }
 
@@ -101,6 +129,13 @@ export function OnboardingForm({
       {displayError && (
         <p className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
           {displayError}
+        </p>
+      )}
+
+      {hasLegacyMatch && (
+        <p className="rounded-lg bg-collage-blue/10 px-3 py-2 text-sm font-medium text-collage-blue">
+          Encontramos la obra que nos enviaste antes — revisá los datos y confirmá tu
+          participación.
         </p>
       )}
 
@@ -156,12 +191,31 @@ export function OnboardingForm({
         <label htmlFor="artwork_image" className="text-sm font-semibold text-ink">
           Imagen de la obra
         </label>
+
+        {hasImagePrefill && !pickedFileName && (
+          <div className="mt-1.5 mb-2 flex items-center gap-3 rounded-lg border-2 border-collage-blue/20 bg-collage-blue/5 p-2.5">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-ink/10 bg-muted">
+              <Image
+                src={prefillImageUrl!}
+                alt="Obra que nos enviaste antes"
+                fill
+                sizes="56px"
+                className="object-cover"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Ya tenemos esta imagen. Subí un archivo nuevo solo si querés reemplazarla.
+            </p>
+          </div>
+        )}
+
         <input
           id="artwork_image"
           name="artwork_image"
           type="file"
           accept="image/*"
-          required
+          required={!hasImagePrefill}
+          onChange={(event) => setPickedFileName(event.target.files?.[0]?.name ?? null)}
           className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-collage-blue file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary-foreground`}
         />
       </div>
