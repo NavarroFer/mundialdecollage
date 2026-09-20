@@ -5,6 +5,7 @@ import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmissionsGallery } from '@/components/admin/submissions-gallery'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { LegacyImageSync } from '@/components/admin/legacy-image-sync'
+import { LegacyImageUpload } from '@/components/admin/legacy-image-upload'
 import { NameCleanup, type NameCleanupItem } from '@/components/admin/name-cleanup'
 import { normalizeArtistName } from '@/lib/name-format'
 import {
@@ -453,6 +454,7 @@ export default async function ObrasPage({
                               Todavía en Drive
                             </span>
                           ) : null}
+                          {!row.image_url && <LegacyImageUpload id={row.id} />}
                         </div>
                         {row.claimed_by && (
                           <span className="ml-2 rounded-full bg-collage-blue/15 px-2 py-0.5 text-[0.65rem] font-semibold text-collage-blue">

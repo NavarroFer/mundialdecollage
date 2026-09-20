@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { normalizeArtistName } from '@/lib/name-format'
+import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { ADMIN_EMAILS } from '@/lib/admin'
 
 // The service-role client bypasses RLS entirely, so any action that reaches
@@ -181,6 +182,39 @@ export async function selectLegacySubmission(formData: FormData) {
     .update({ selected: true, promoted: siblingCount === 1 })
     .eq('id', id)
   if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
+
+  revalidatePath('/admin/obras')
+}
+
+// Pairs with components/admin/legacy-image-upload.tsx: an admin picks a
+// file when the Drive fetch keeps failing (private file, deleted, or still
+// failing after the fixes in lib/legacy-submissions.ts), uploads it
+// straight to `legacy/<id>.<ext>` in the artworks bucket from their own
+// session (the "artworks: admin upload/update" storage policies — see
+// supabase/migrations/20260921080000_artworks_bucket_admin_write.sql — are
+// the real boundary there, same as elsewhere in this file), and this just
+// records the resulting path/URL. Re-checks the extension against the
+// upload allowlist rather than trusting the client, same defensive pattern
+// as completeOnboarding's re-check of its own upload path.
+export async function setLegacyImageManually(formData: FormData) {
+  const id = String(formData.get('id'))
+  const path = String(formData.get('path'))
+
+  const extension = path.split('.').pop()?.toLowerCase()
+  if (path !== `legacy/${id}.${extension}` || !extension || !ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
+    redirect('/admin/obras?error=invalid_image')
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('artworks').getPublicUrl(path)
+
+  const { error } = await supabase
+    .from('legacy_submissions')
+    .update({ image_path: path, image_url: publicUrl, image_fetch_failed_at: null })
+    .eq('id', id)
+  if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
 
   revalidatePath('/admin/obras')
 }
