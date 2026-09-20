@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { fetchAndStoreLegacyArtwork } from '@/lib/legacy-submissions'
+import { guessCountryCodeFromName } from '@/lib/participants'
 import { OnboardingForm } from './onboarding-form'
 import { completeOnboarding } from './actions'
 
@@ -34,12 +35,19 @@ export default async function OnboardingPage({
   // (?another=1, linked from ParticipationStatus's "Enviar otra obra") —
   // that prefill only ever makes sense for someone's very first submission.
   let legacyName: string | null = null
+  // Best-effort only, same guessCountryCodeFromName used to prefill the
+  // admin's bulk-publish flow (app/admin/obras/actions.ts) — country_raw is
+  // hand-salvaged free text, not a real ISO code, so this is undefined for
+  // anything that doesn't cleanly match a real country name. Just a
+  // suggested default on the form below, never written anywhere on its
+  // own — the artist still has to confirm/pick it via CountrySelect.
+  let legacyCountryCode: string | undefined
   let legacyImagePreview: { path: string; publicUrl: string } | null = null
   const email = !another ? user.email?.toLowerCase() : undefined
   if (email) {
     const { data: legacy } = await supabase
       .from('legacy_submissions')
-      .select('id, name, drive_url, image_path, image_url')
+      .select('id, name, country_raw, drive_url, image_path, image_url')
       .eq('email', email)
       .is('claimed_by', null)
       .eq('selected', true)
@@ -47,6 +55,7 @@ export default async function OnboardingPage({
 
     if (legacy) {
       legacyName = legacy.name
+      legacyCountryCode = legacy.country_raw ? guessCountryCodeFromName(legacy.country_raw) : undefined
 
       // The common case: an admin already ran the batch import (see
       // fetchLegacyImagesBatch in app/admin/obras/actions.ts), so the photo
@@ -84,7 +93,7 @@ export default async function OnboardingPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarded_at, name')
+    .select('onboarded_at, name, country_code')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -95,6 +104,12 @@ export default async function OnboardingPage({
     legacyName ||
     (user.user_metadata?.full_name as string | undefined) ||
     ''
+
+  // Same fallback order as suggestedName: a resubmission keeps whatever the
+  // artist already has on file, otherwise fall back to the legacy import's
+  // best-effort guess. No third fallback here — unlike name, there's
+  // nothing in the Google auth profile to fall back to for country.
+  const suggestedCountryCode = (another ? profile?.country_code : null) || legacyCountryCode || ''
 
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
@@ -113,6 +128,7 @@ export default async function OnboardingPage({
         <OnboardingForm
           action={completeOnboarding}
           defaultName={suggestedName}
+          defaultCountryCode={suggestedCountryCode}
           userId={user.id}
           error={error}
           hasLegacyMatch={Boolean(legacyName)}

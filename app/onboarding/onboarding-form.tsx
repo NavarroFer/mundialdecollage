@@ -26,6 +26,7 @@ const inputClass =
 export function OnboardingForm({
   action,
   defaultName,
+  defaultCountryCode,
   userId,
   error,
   hasLegacyMatch,
@@ -34,6 +35,11 @@ export function OnboardingForm({
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaultName: string
+  // Best-effort guess from the legacy import's country_raw (or the artist's
+  // own value on a resubmission) — see app/onboarding/page.tsx. Just the
+  // CountrySelect's starting value, same as defaultName for the name field:
+  // the artist can still change it before submitting.
+  defaultCountryCode?: string
   userId: string
   error?: string
   // Set when app/onboarding/page.tsx found a curated legacy_submissions row
@@ -158,7 +164,13 @@ export function OnboardingForm({
         <label htmlFor="country_code" className="text-sm font-semibold text-ink">
           País
         </label>
-        <CountrySelect id="country_code" name="country_code" countries={countries} required />
+        <CountrySelect
+          id="country_code"
+          name="country_code"
+          countries={countries}
+          defaultValue={defaultCountryCode}
+          required
+        />
       </div>
 
       <div>
