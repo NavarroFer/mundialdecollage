@@ -36,7 +36,7 @@ export function HeroSection() {
           it. Off-canvas-edge placement keeps it clear of the padded text
           column (px-5+) at every width instead of relying on one path. */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-24 -left-10 z-10 h-28 w-28 rounded-full bg-collage-red/90 sm:top-32 sm:left-[6%]" />
+        <div className="absolute top-3 -left-14 z-10 h-24 w-24 rounded-full bg-collage-red/90 sm:top-32 sm:left-[6%] sm:h-28 sm:w-28" />
         <div className="absolute top-10 right-[8%] z-10 h-16 w-16 rounded-full bg-collage-yellow sm:top-16" />
         <div className="animate-float-slow absolute -left-4 bottom-16 h-10 w-10 rounded-full bg-collage-blue/80 [--rot:-8deg] sm:left-[12%]" />
         <Scissors

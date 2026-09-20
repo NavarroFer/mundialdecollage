@@ -9,9 +9,8 @@ export const site = {
   // ISO date used by the countdown + "hasta el" copy. Update this if the deadline moves.
   deadlineISO: '2026-11-15T23:59:59-03:00',
   deadlineLabel: '15 de noviembre',
-  // Bases del concurso (PDF). Drop the file at public/docs/bases-mundial-de-collage.pdf
-  // and this link starts working — nothing else to change.
-  basesPdfUrl: '/docs/bases-mundial-de-collage.pdf',
+  // Bases del concurso (PDF), servido desde public/mundial-de-collage.pdf.
+  basesPdfUrl: '/mundial-de-collage.pdf',
   // Requires mundialdecollage.com.ar verified as a sending domain in Resend —
   // sends fail with a clear error until DNS propagates and verification completes.
   mailFrom: 'Mundial de Collage <hola@mundialdecollage.com.ar>',
