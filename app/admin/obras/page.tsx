@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import { ArrowUp, CircleAlert, CircleCheck, ExternalLink, ImageOff, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
+import { guessCountryCodeFromName } from '@/lib/participants'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmissionsGallery } from '@/components/admin/submissions-gallery'
 import { SubmitButton } from '@/components/admin/submit-button'
@@ -32,6 +34,167 @@ type ArtworkRow = {
     is_public: boolean
     onboarded_at: string | null
   } | null
+}
+
+type LegacyRow = {
+  id: string
+  email: string
+  name: string | null
+  drive_url: string | null
+  country_raw: string | null
+  selected: boolean
+  promoted: boolean
+  claimed_by: string | null
+  claimed_at: string | null
+  created_at: string
+  image_url: string | null
+  image_fetch_failed_at: string | null
+}
+
+// Shared by "Artistas con varias obras" (always visible, so an admin can
+// revisit/switch the pick at any time — selectLegacySubmission un-promotes
+// the whole group the moment a different row is chosen, see its comment in
+// ./actions.ts) and "Curación pendiente" (single-row groups nobody's picked
+// yet) below — same per-artist card and actions, just fed a different slice
+// of groups.
+function LegacyGroupCard({ rows }: { rows: LegacyRow[] }) {
+  const email = rows[0].email
+  const displayName = rows.find((r) => r.name)?.name ?? null
+  const selectedRow = rows.find((r) => r.selected)
+  const promotedRow = rows.find((r) => r.promoted)
+
+  return (
+    <div className="rounded-2xl border-2 border-ink/10 bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="font-semibold text-ink">{email}</p>
+          <p className="text-sm text-muted-foreground">{displayName ?? 'Sin nombre'}</p>
+        </div>
+        {rows.length > 1 && (
+          <span
+            className={cn(
+              'rounded-full px-2.5 py-1 text-xs font-semibold',
+              promotedRow ? 'bg-collage-blue/10 text-collage-blue' : 'bg-collage-red/10 text-collage-red',
+            )}
+          >
+            {rows.length} obras —{' '}
+            {promotedRow ? 'confirmada, click para cambiar' : selectedRow ? 'elegida, falta subir' : 'falta elegir'}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-3 divide-y divide-ink/10">
+        {rows.map((row) => (
+          <div key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              {row.image_url && (
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-ink/10 bg-muted">
+                  <Image src={row.image_url} alt={row.name ?? row.email} fill sizes="48px" className="object-cover" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-sm text-ink">
+                  {row.name ?? 'Sin nombre'}
+                  {row.country_raw && (
+                    <span className="ml-1.5 font-normal text-muted-foreground">· {row.country_raw}</span>
+                  )}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {row.drive_url ? (
+                    <a
+                      href={row.drive_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-collage-blue hover:underline"
+                    >
+                      Ver en Drive <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Sin link</span>
+                  )}
+                  {row.image_url ? (
+                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-collage-blue">
+                      <CircleCheck className="h-3 w-3" />
+                      Foto guardada en el sitio
+                    </span>
+                  ) : row.image_fetch_failed_at ? (
+                    <span className="inline-flex items-center gap-1.5 text-[0.65rem] font-semibold text-collage-red">
+                      <CircleAlert className="h-3 w-3" />
+                      No se pudo traer
+                      <form action={retryLegacyImageFetch}>
+                        <input type="hidden" name="id" value={row.id} />
+                        <SubmitButton
+                          size="sm"
+                          variant="ghost"
+                          className="h-auto gap-1 px-1.5 py-0.5 text-[0.65rem] text-collage-red hover:bg-collage-red/10"
+                          pendingLabel="Reintentando…"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          Reintentar
+                        </SubmitButton>
+                      </form>
+                    </span>
+                  ) : row.drive_url ? (
+                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-muted-foreground">
+                      <ImageOff className="h-3 w-3" />
+                      Todavía en Drive
+                    </span>
+                  ) : null}
+                  {!row.image_url && <LegacyImageUpload id={row.id} />}
+                </div>
+                {row.claimed_by && (
+                  <span className="ml-2 rounded-full bg-collage-blue/15 px-2 py-0.5 text-[0.65rem] font-semibold text-collage-blue">
+                    Reclamada
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <form action={selectLegacySubmission}>
+                <input type="hidden" name="id" value={row.id} />
+                <SubmitButton
+                  size="sm"
+                  variant={row.selected ? 'primary' : 'outline'}
+                  className="gap-1.5"
+                  pendingLabel="Guardando…"
+                >
+                  {row.selected ? (
+                    <>
+                      <CircleCheck className="h-3.5 w-3.5" />
+                      Elegida
+                    </>
+                  ) : (
+                    'Usar esta obra'
+                  )}
+                </SubmitButton>
+              </form>
+              {row.selected && !row.promoted && (
+                <form action={promoteLegacySubmission}>
+                  <input type="hidden" name="id" value={row.id} />
+                  <SubmitButton size="sm" variant="primary" className="gap-1.5" pendingLabel="Subiendo…">
+                    <ArrowUp className="h-3.5 w-3.5" />
+                    Subir
+                  </SubmitButton>
+                </form>
+              )}
+              <form action={deleteLegacySubmission}>
+                <input type="hidden" name="id" value={row.id} />
+                <SubmitButton
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
+                  pendingLabel="Borrando…"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Borrar
+                </SubmitButton>
+              </form>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default async function ObrasPage({
@@ -115,21 +278,29 @@ export default async function ObrasPage({
     (r) => r.drive_url && !r.image_url && !r.image_fetch_failed_at,
   ).length
   const imagesFailedCount = legacyRows.filter((r) => r.image_fetch_failed_at).length
+  // Never has an image and never will without admin action — a promoted row
+  // in this state is invisible everywhere else (it fails the `image_url`
+  // check in promotedRows below), so this is the only place it still
+  // surfaces. Surfaced at the very top of the page (see the JSX below)
+  // instead of buried in whichever curation list it came from.
+  const missingImageRows = legacyRows.filter((r) => r.image_fetch_failed_at && !r.image_url)
 
-  // Split for display, by `promoted` rather than by photo presence — see
-  // supabase/migrations/20260921070000_legacy_submissions_promoted.sql.
-  // `promoted` is the deliberate second step past `selected` for a
-  // multi-candidate artist (a lone obra promotes in the same click as
-  // selecting it), so once ANY row in an email's group is promoted, that
-  // artist's decision is final: the promoted row moves to the confirmed
-  // gallery and its rejected siblings drop out of the pending list entirely
-  // instead of lingering there with nothing left to do.
   const promotedRows = legacyRows.filter((r) => r.promoted && r.image_url)
+
+  // A multi-obra artist's group used to drop out of view entirely the
+  // moment any row in it got promoted (see git history) — but a promotion
+  // here is never really final, just the currently-picked one
+  // (selectLegacySubmission always lets a different row take over), so
+  // hiding the group meant losing the only place to go back and change it.
+  // These stay listed regardless of promotion status; only a genuinely
+  // untouched single-row group counts as "pendiente" below.
+  const multiLegacyGroups = new Map<string, typeof legacyRows>()
   const unresolvedGroups = new Map<string, typeof legacyRows>()
   for (const [email, rows] of legacyGroups) {
-    if (rows.some((r) => r.promoted)) continue
-    unresolvedGroups.set(email, rows)
+    if (rows.length > 1) multiLegacyGroups.set(email, rows)
+    else if (!rows[0].promoted) unresolvedGroups.set(email, rows)
   }
+  const multiLegacyCount = [...multiLegacyGroups.values()].reduce((n, rows) => n + rows.length, 0)
   const unresolvedCount = [...unresolvedGroups.values()].reduce((n, rows) => n + rows.length, 0)
 
   // The "Obras" gallery up top used to only ever show real registrations —
@@ -144,7 +315,12 @@ export default async function ObrasPage({
   const legacyGalleryItems = promotedRows.map((row) => ({
     id: `legacy-${row.id}`,
     name: row.name ?? 'Sin nombre',
+    // Best-effort only — country_raw is hand-salvaged free text, not a real
+    // ISO code (see guessCountryCodeFromName's comment), so this is left
+    // undefined rather than shown/filtered wrong when it doesn't match.
+    countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
     imageUrl: row.image_url as string,
+    driveUrl: row.drive_url ?? undefined,
     isPublic: false,
     source: 'legacy' as const,
   }))
@@ -176,6 +352,56 @@ export default async function ObrasPage({
   return (
     <div>
       <AdminPageHeader eyebrow="Convocatoria" title="Obras" />
+
+      {missingImageRows.length > 0 && (
+        <div className="mt-6 rounded-2xl border-2 border-collage-red/30 bg-collage-red/5 p-5">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-collage-red">
+            <CircleAlert className="h-4 w-4" />
+            Obras precargadas sin foto ({missingImageRows.length})
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No se pudo traer la foto de Drive — sin foto no aparecen en ninguna galería, ni
+            siquiera si ya están confirmadas. Reintentá el link o subí la imagen a mano.
+          </p>
+          <div className="mt-4 divide-y divide-ink/10">
+            {missingImageRows.map((row) => (
+              <div key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-ink">
+                    {row.name ?? 'Sin nombre'}
+                    {row.promoted && (
+                      <span className="ml-1.5 rounded-full bg-collage-blue/15 px-2 py-0.5 text-[0.65rem] font-semibold text-collage-blue">
+                        Confirmada
+                      </span>
+                    )}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{row.email}</p>
+                  {row.drive_url && (
+                    <a
+                      href={row.drive_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-collage-blue hover:underline"
+                    >
+                      Ver en Drive <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <form action={retryLegacyImageFetch}>
+                    <input type="hidden" name="id" value={row.id} />
+                    <SubmitButton size="sm" variant="outline" className="gap-1.5" pendingLabel="Reintentando…">
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Reintentar
+                    </SubmitButton>
+                  </form>
+                  <LegacyImageUpload id={row.id} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         <StatPill label="Recibidas" value={submissions.length} />
@@ -378,7 +604,24 @@ export default async function ObrasPage({
           </div>
         )}
 
-        <div className="mt-6 space-y-4">
+        {multiLegacyGroups.size > 0 && (
+          <div className="mt-10">
+            <h3 className="text-sm font-semibold text-ink">
+              Artistas con varias obras precargadas ({multiLegacyCount})
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Quedan siempre listados acá, aunque ya tengan una obra confirmada — para poder
+              revisar con calma y cambiarla si hace falta.
+            </p>
+            <div className="mt-3 space-y-4">
+              {[...multiLegacyGroups.entries()].map(([email, rows]) => (
+                <LegacyGroupCard key={email} rows={rows} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-10 space-y-4">
           {legacyGroups.size === 0 && (
             <p className="rounded-2xl border-2 border-ink/10 bg-card px-4 py-8 text-center text-muted-foreground">
               Todavía no importaste ninguna obra precargada.
@@ -387,147 +630,9 @@ export default async function ObrasPage({
           {unresolvedGroups.size > 0 && (
             <h3 className="text-sm font-semibold text-ink">Curación pendiente ({unresolvedCount})</h3>
           )}
-          {[...unresolvedGroups.entries()].map(([email, rows]) => {
-            const displayName = rows.find((r) => r.name)?.name ?? null
-            const selectedRow = rows.find((r) => r.selected)
-            return (
-              <div key={email} className="rounded-2xl border-2 border-ink/10 bg-card p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-ink">{email}</p>
-                    <p className="text-sm text-muted-foreground">{displayName ?? 'Sin nombre'}</p>
-                  </div>
-                  {rows.length > 1 && (
-                    <span className="rounded-full bg-collage-red/10 px-2.5 py-1 text-xs font-semibold text-collage-red">
-                      {rows.length} obras — {selectedRow ? 'elegida, falta subir' : 'falta elegir'}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-3 divide-y divide-ink/10">
-                  {rows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="flex flex-wrap items-center justify-between gap-3 py-3"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        {row.image_url && (
-                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-ink/10 bg-muted">
-                            <Image
-                              src={row.image_url}
-                              alt={row.name ?? row.email}
-                              fill
-                              sizes="48px"
-                              className="object-cover"
-                            />
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                        <p className="truncate text-sm text-ink">
-                          {row.name ?? 'Sin nombre'}
-                          {row.country_raw && (
-                            <span className="ml-1.5 font-normal text-muted-foreground">
-                              · {row.country_raw}
-                            </span>
-                          )}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {row.drive_url ? (
-                            <a
-                              href={row.drive_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-collage-blue hover:underline"
-                            >
-                              Ver en Drive <ExternalLink className="h-3 w-3" />
-                            </a>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Sin link</span>
-                          )}
-                          {row.image_url ? (
-                            <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-collage-blue">
-                              <CircleCheck className="h-3 w-3" />
-                              Foto guardada en el sitio
-                            </span>
-                          ) : row.image_fetch_failed_at ? (
-                            <span className="inline-flex items-center gap-1.5 text-[0.65rem] font-semibold text-collage-red">
-                              <CircleAlert className="h-3 w-3" />
-                              No se pudo traer
-                              <form action={retryLegacyImageFetch}>
-                                <input type="hidden" name="id" value={row.id} />
-                                <SubmitButton
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-auto gap-1 px-1.5 py-0.5 text-[0.65rem] text-collage-red hover:bg-collage-red/10"
-                                  pendingLabel="Reintentando…"
-                                >
-                                  <RefreshCw className="h-3 w-3" />
-                                  Reintentar
-                                </SubmitButton>
-                              </form>
-                            </span>
-                          ) : row.drive_url ? (
-                            <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-muted-foreground">
-                              <ImageOff className="h-3 w-3" />
-                              Todavía en Drive
-                            </span>
-                          ) : null}
-                          {!row.image_url && <LegacyImageUpload id={row.id} />}
-                        </div>
-                        {row.claimed_by && (
-                          <span className="ml-2 rounded-full bg-collage-blue/15 px-2 py-0.5 text-[0.65rem] font-semibold text-collage-blue">
-                            Reclamada
-                          </span>
-                        )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <form action={selectLegacySubmission}>
-                          <input type="hidden" name="id" value={row.id} />
-                          <SubmitButton
-                            size="sm"
-                            variant={row.selected ? 'primary' : 'outline'}
-                            className="gap-1.5"
-                            pendingLabel="Guardando…"
-                          >
-                            {row.selected ? (
-                              <>
-                                <CircleCheck className="h-3.5 w-3.5" />
-                                Elegida
-                              </>
-                            ) : (
-                              'Usar esta obra'
-                            )}
-                          </SubmitButton>
-                        </form>
-                        {row.selected && !row.promoted && (
-                          <form action={promoteLegacySubmission}>
-                            <input type="hidden" name="id" value={row.id} />
-                            <SubmitButton size="sm" variant="primary" className="gap-1.5" pendingLabel="Subiendo…">
-                              <ArrowUp className="h-3.5 w-3.5" />
-                              Subir
-                            </SubmitButton>
-                          </form>
-                        )}
-                        <form action={deleteLegacySubmission}>
-                          <input type="hidden" name="id" value={row.id} />
-                          <SubmitButton
-                            size="sm"
-                            variant="ghost"
-                            className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
-                            pendingLabel="Borrando…"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Borrar
-                          </SubmitButton>
-                        </form>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
+          {[...unresolvedGroups.entries()].map(([email, rows]) => (
+            <LegacyGroupCard key={email} rows={rows} />
+          ))}
         </div>
       </div>
     </div>

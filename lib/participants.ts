@@ -74,3 +74,32 @@ export function countryCodeToName(countryCode: string) {
 export function getAllCountryCodes(): string[] {
   return Object.values(isoNumericToAlpha2).sort()
 }
+
+function normalizeCountryName(name: string) {
+  return name
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+}
+
+// Built once, not per call — Intl.DisplayNames.of() is comparatively
+// expensive to run 250-ish times on every lookup.
+let countryNameToCode: Map<string, string> | undefined
+function getCountryNameToCode() {
+  if (!countryNameToCode) {
+    countryNameToCode = new Map(getAllCountryCodes().map((code) => [normalizeCountryName(countryCodeToName(code)), code]))
+  }
+  return countryNameToCode
+}
+
+// Best-effort reverse of countryCodeToName, for free-text country names that
+// were never picked from the onboarding <select> — namely legacy_submissions.
+// country_raw (see supabase/migrations/20260919000000_legacy_submissions.sql),
+// hand-salvaged from a spreadsheet rather than backed by a real ISO code.
+// Matches case/accent-insensitively ("Mexico" ~ "México") but doesn't try to
+// fix typos or non-Spanish spellings — returns undefined rather than guessing
+// wrong for anything that doesn't cleanly match a real country name.
+export function guessCountryCodeFromName(name: string): string | undefined {
+  return getCountryNameToCode().get(normalizeCountryName(name))
+}

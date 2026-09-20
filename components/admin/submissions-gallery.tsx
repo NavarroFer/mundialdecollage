@@ -2,7 +2,17 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Image from 'next/image'
-import { Circle, CircleCheck, CircleX, EyeOff, ImageOff, ListChecks, Loader2, Megaphone } from 'lucide-react'
+import {
+  Circle,
+  CircleCheck,
+  CircleX,
+  ExternalLink,
+  EyeOff,
+  ImageOff,
+  ListChecks,
+  Loader2,
+  Megaphone,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { setSubmissionsVisibility } from '@/app/admin/obras/actions'
@@ -18,6 +28,11 @@ type Submission = {
   technique?: string
   artworkTitle?: string
   imageUrl: string
+  // Only ever set for a `source: 'legacy'` row — the site-stored imageUrl is
+  // a resized copy (see lib/legacy-submissions.ts's storeLegacyArtworkGlobally),
+  // so this is how an admin gets back to the original file on Drive to judge
+  // it at full size.
+  driveUrl?: string
   isPublic: boolean
   // How many artwork rows this artist has total (see
   // supabase/migrations/20260921040000_artworks.sql) — more than one means
@@ -184,14 +199,9 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
           {visible.map((s) => {
             const isLegacy = s.source === 'legacy'
             const isSelected = selected.has(s.id)
-            return (
-              <button
-                key={s.id}
-                type="button"
-                disabled={isLegacy}
-                onClick={() => toggle(s.id)}
-                className="group text-left disabled:cursor-default"
-              >
+
+            const card = (
+              <>
                 <div
                   className={cn(
                     'relative aspect-square overflow-hidden rounded-xl border-2 bg-muted',
@@ -227,6 +237,19 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                     </span>
                   )}
 
+                  {isLegacy && s.driveUrl && (
+                    <a
+                      href={s.driveUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Ver la foto original en Drive, en tamaño completo"
+                      className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.65rem] font-bold text-ink shadow hover:bg-white"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Drive
+                    </a>
+                  )}
+
                   {isLegacy ? (
                     <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-[0.65rem] font-bold text-white">
                       <CircleCheck className="h-3 w-3" />
@@ -246,6 +269,20 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                   {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span>} {s.name}
                 </p>
                 {s.artworkTitle && <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>}
+              </>
+            )
+
+            // A legacy row can't be select-toggled (see the Submission type's
+            // `source` comment), so it's a plain non-interactive container —
+            // a disabled <button> would also block clicks on the Drive <a>
+            // nested inside it.
+            return isLegacy ? (
+              <div key={s.id} className="text-left">
+                {card}
+              </div>
+            ) : (
+              <button key={s.id} type="button" onClick={() => toggle(s.id)} className="group text-left">
+                {card}
               </button>
             )
           })}
