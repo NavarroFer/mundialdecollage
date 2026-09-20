@@ -1,14 +1,14 @@
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Circle, CircleAlert, CircleCheck, Loader2, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
 
-const statusLabel: Record<string, string> = {
-  draft: 'Borrador',
-  sending: 'Enviando…',
-  sent: 'Enviada',
-  failed: 'Falló',
+const STATUS: Record<string, { label: string; icon: typeof Circle; className: string; spin?: boolean }> = {
+  draft: { label: 'Borrador', icon: Circle, className: 'bg-ink/10 text-muted-foreground' },
+  sending: { label: 'Enviando…', icon: Loader2, className: 'bg-collage-yellow/15 text-collage-yellow', spin: true },
+  sent: { label: 'Enviada', icon: CircleCheck, className: 'bg-collage-blue/15 text-collage-blue' },
+  failed: { label: 'Falló', icon: CircleAlert, className: 'bg-collage-red/15 text-collage-red' },
 }
 
 export default async function CampanasPage({
@@ -59,23 +59,34 @@ export default async function CampanasPage({
 
       <div className="mt-8 space-y-3">
         {list.length === 0 && <p className="text-muted-foreground">Todavía no mandaste ninguna campaña.</p>}
-        {list.map((c) => (
-          <div key={c.id} className="rounded-2xl border-2 border-ink/10 bg-card px-5 py-4">
-            <div className="flex items-center justify-between">
-              <p className="font-semibold text-ink">{c.subject}</p>
-              <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                {statusLabel[c.status] ?? c.status}
-              </span>
+        {list.map((c) => {
+          const status = STATUS[c.status] ?? {
+            label: c.status,
+            icon: Circle,
+            className: 'bg-ink/10 text-muted-foreground',
+          }
+          const StatusIcon = status.icon
+          return (
+            <div key={c.id} className="rounded-2xl border-2 border-ink/10 bg-card px-5 py-4">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-ink">{c.subject}</p>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase ${status.className}`}
+                >
+                  <StatusIcon className={`h-3.5 w-3.5 ${status.spin ? 'animate-spin' : ''}`} />
+                  {status.label}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {c.recipient_count} destinatarios · {c.sent_count} enviados
+                {c.delivered_count > 0 ? ` · ${c.delivered_count} entregados` : ''}
+                {c.opened_count > 0 ? ` · ${c.opened_count} abiertos` : ''}
+                {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
+                {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
+              </p>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {c.recipient_count} destinatarios · {c.sent_count} enviados
-              {c.delivered_count > 0 ? ` · ${c.delivered_count} entregados` : ''}
-              {c.opened_count > 0 ? ` · ${c.opened_count} abiertos` : ''}
-              {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
-              {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
-            </p>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
