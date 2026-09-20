@@ -60,6 +60,15 @@ export function HowToSection() {
             </FadeIn>
           ))}
         </div>
+
+        <FadeIn delay={400}>
+          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-muted-foreground">
+            ¿Para qué pedimos &quot;Iniciar sesión con Google&quot;? La usamos para
+            identificarte cuando subís tu obra al Mundial Internacional de Collage o
+            te anotás al taller, así podés hacer seguimiento de tu participación sin
+            crear una cuenta nueva.
+          </p>
+        </FadeIn>
       </div>
     </section>
   )
