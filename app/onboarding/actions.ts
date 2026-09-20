@@ -32,24 +32,21 @@ function normalizeInstagram(value: string): string | null {
   return /^[a-zA-Z0-9._]{1,30}$/.test(handle) ? `https://instagram.com/${handle}` : null
 }
 
-// Finds a free artwork_slug, reusing the current user's own row if they're
-// resubmitting (so their URL doesn't change every time they edit).
+// Finds a free artwork slug. Every artwork row (including a 2nd+ submission
+// from a returning artist) needs its own distinct slug now that a
+// resubmission is a new `artworks` row instead of overwriting the old one in
+// place — so unlike the old single-artwork version of this function, there's
+// no "exclude my own existing row" case to special-case.
 //
 // Checks via the artwork_slug_taken RPC rather than a plain SELECT: RLS only
-// lets a submitter see *published* profiles, so a slug already claimed by a
-// still-unpublished one would otherwise look free here and then fail the
-// upsert below with a real unique-constraint violation.
-async function uniqueSlug(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  base: string,
-  userId: string,
-) {
+// lets a submitter see their own rows or already-published ones, so a slug
+// belonging to someone else's unpublished/uncurated artwork would otherwise
+// look free here and then fail the insert below with a real
+// unique-constraint violation.
+async function uniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, base: string) {
   let slug = base
   for (let suffix = 2; ; suffix++) {
-    const { data: taken } = await supabase.rpc('artwork_slug_taken', {
-      candidate: slug,
-      owner: userId,
-    })
+    const { data: taken } = await supabase.rpc('artwork_slug_taken', { candidate: slug })
     if (!taken) return slug
     slug = `${base}-${suffix}`
   }
@@ -92,6 +89,19 @@ export async function completeOnboarding(formData: FormData) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/')
 
+  // A profile with onboarded_at already set has submitted before — this is
+  // a resubmission (see the "Enviar otra obra" link on ParticipationStatus).
+  // Its artwork lands as a new artworks row that an admin has to curate via
+  // "Usar esta obra" (app/admin/obras/actions.ts's selectArtwork) before it
+  // replaces the currently-selected one; a first-ever submission has
+  // nothing to curate against, so it auto-selects.
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('onboarded_at')
+    .eq('id', user.id)
+    .maybeSingle()
+  const isFirstSubmission = !existingProfile?.onboarded_at
+
   // The upload RLS policy already confines writes to `${uid}/...`, but the
   // path arrives here as plain form data — re-check it wasn't tampered with
   // before we treat it as this user's own file.
@@ -117,22 +127,37 @@ export async function completeOnboarding(formData: FormData) {
   // collapses to '', which /obras/[slug] can't route to. Fall back to a
   // slice of the user id so every submission still gets a working page.
   const baseSlug = slugify(`${name}-${artworkTitle}`) || user.id.slice(0, 8)
-  const slug = await uniqueSlug(supabase, baseSlug, user.id)
+  const slug = await uniqueSlug(supabase, baseSlug)
 
-  const { error } = await supabase.from('profiles').upsert({
+  // profiles row first — artworks.profile_id references it, and for a
+  // first-time submitter this row doesn't exist yet. onboarded_at is only
+  // ever set once: omitting it here on a resubmission leaves the original
+  // value untouched (upsert only writes the keys present in the payload).
+  const profilePayload: Record<string, unknown> = {
     id: user.id,
     name,
     country_code: countryCode,
-    technique: technique || null,
-    artwork_title: artworkTitle,
-    artwork_slug: slug,
-    artwork_image_url: publicUrl,
     instagram,
     website,
-    onboarded_at: new Date().toISOString(),
+  }
+  if (isFirstSubmission) profilePayload.onboarded_at = new Date().toISOString()
+
+  const { error: profileError } = await supabase.from('profiles').upsert(profilePayload)
+  if (profileError) {
+    console.error('onboarding: failed to save profile', user.id, profileError)
+    redirect('/onboarding?error=save_failed')
+  }
+
+  const { error: artworkError } = await supabase.from('artworks').insert({
+    profile_id: user.id,
+    title: artworkTitle,
+    slug,
+    image_url: publicUrl,
+    technique: technique || null,
+    is_selected: isFirstSubmission,
   })
-  if (error) {
-    console.error('onboarding: failed to save profile', user.id, error)
+  if (artworkError) {
+    console.error('onboarding: failed to save artwork', user.id, artworkError)
     redirect('/onboarding?error=save_failed')
   }
 

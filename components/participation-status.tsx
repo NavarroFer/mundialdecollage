@@ -24,15 +24,27 @@ export async function ParticipationStatus() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarded_at, artwork_title, artwork_slug, artwork_image_url')
+    .select('onboarded_at')
     .eq('id', user.id)
     .maybeSingle()
 
   if (!profile?.onboarded_at) return null
-  // Defensive: onboarding always fills these together (see
-  // app/onboarding/actions.ts), but don't render a broken card if a row is
-  // ever left in a partial state.
-  if (!profile.artwork_title || !profile.artwork_slug || !profile.artwork_image_url) return null
+
+  // The artwork this artist is currently represented by — see
+  // supabase/migrations/20260921040000_artworks.sql. Not necessarily set:
+  // it's technically possible (though it shouldn't happen in practice, since
+  // a first submission always auto-selects) for a profile to have artwork
+  // rows with none of them selected yet, e.g. right after an admin-curated
+  // resubmission. Rendering nothing in that edge case matches the previous
+  // defensive "don't show a broken card" behavior.
+  const { data: artwork } = await supabase
+    .from('artworks')
+    .select('title, slug, image_url')
+    .eq('profile_id', user.id)
+    .eq('is_selected', true)
+    .maybeSingle()
+
+  if (!artwork) return null
 
   return (
     <section className="border-t-2 border-ink/10 bg-background py-14 sm:py-20">
@@ -42,8 +54,8 @@ export async function ParticipationStatus() {
             <div className="aspect-square w-40 shrink-0 overflow-hidden rounded-xl border-2 border-ink/10 bg-muted sm:w-48">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={profile.artwork_image_url}
-                alt={profile.artwork_title}
+                src={artwork.image_url}
+                alt={artwork.title}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -55,19 +67,26 @@ export async function ParticipationStatus() {
               </span>
 
               <h2 className="font-display mt-4 text-2xl tracking-tight text-ink uppercase sm:text-3xl">
-                {profile.artwork_title}
+                {artwork.title}
               </h2>
 
               <p className="mt-2 text-muted-foreground">
                 Tu obra ya forma parte del Mundial de Collage.
               </p>
 
-              <Link href={`/obras/${profile.artwork_slug}`} className="mt-5 inline-block">
-                <Button variant="outline" className="gap-2">
-                  Ver mi obra
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
+                <Link href={`/obras/${artwork.slug}`}>
+                  <Button variant="outline" className="gap-2">
+                    Ver mi obra
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/onboarding?another=1">
+                  <Button variant="outline" className="gap-2">
+                    Enviar otra obra
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </FadeIn>

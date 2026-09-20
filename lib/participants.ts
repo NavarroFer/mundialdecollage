@@ -11,26 +11,30 @@ export type Participant = {
   technique?: string
 }
 
-// Every *published* submission (see app/admin/obras/ — an admin has to mark
-// each one public before it shows up anywhere), newest first. Returns []
-// until real credentials are wired up or nothing's been published yet.
+// Every *curated and published* submission (see app/admin/obras/ — an admin
+// has to select an artwork as the artist's final one and mark it public
+// before it shows up anywhere), newest first. Returns [] until real
+// credentials are wired up or nothing's been published yet.
 export async function getParticipants(options?: { limit?: number }): Promise<Participant[]> {
   if (!isSupabaseConfigured) return []
 
   let query = createPublicClient()
-    .from('profiles')
-    .select('name, country_code, technique')
-    .not('onboarded_at', 'is', null)
-    .order('onboarded_at', { ascending: false })
+    .from('artworks')
+    .select('technique, profiles!inner(name, country_code)')
+    .eq('is_selected', true)
+    .order('created_at', { ascending: false })
 
   if (options?.limit) query = query.limit(options.limit)
 
   const { data } = await query
-  return (data ?? [])
-    .filter((row) => row.name && row.country_code)
+  return ((data ?? []) as unknown as Array<{
+    technique: string | null
+    profiles: { name: string | null; country_code: string | null } | null
+  }>)
+    .filter((row) => row.profiles?.name && row.profiles?.country_code)
     .map((row) => ({
-      name: row.name as string,
-      countryCode: row.country_code as string,
+      name: row.profiles!.name as string,
+      countryCode: row.profiles!.country_code as string,
       technique: row.technique ?? undefined,
     }))
 }

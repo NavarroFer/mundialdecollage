@@ -9,7 +9,7 @@ import { completeOnboarding } from './actions'
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; another?: string }>
 }) {
   if (!isSupabaseConfigured) redirect('/')
 
@@ -23,15 +23,19 @@ export default async function OnboardingPage({
   // onboarding form and drop them straight into the panel.
   if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
 
+  const { error, another } = await searchParams
+
   // Before the real registration flow existed, ~90 artists already sent in
   // their collage by email — see supabase/migrations/20260919000000_legacy_
   // submissions.sql. Some sent more than one; an admin curates those down to
   // one `selected` row from /admin/obras, and only that curated row is ever
   // offered here. No match (including "not curated yet") is just the normal
-  // blank-form path, not an error.
+  // blank-form path, not an error. Skipped entirely for a resubmission
+  // (?another=1, linked from ParticipationStatus's "Enviar otra obra") —
+  // that prefill only ever makes sense for someone's very first submission.
   let legacyName: string | null = null
   let legacyImagePreview: { path: string; publicUrl: string } | null = null
-  const email = user.email?.toLowerCase()
+  const email = !another ? user.email?.toLowerCase() : undefined
   if (email) {
     const { data: legacy } = await supabase
       .from('legacy_submissions')
@@ -80,14 +84,17 @@ export default async function OnboardingPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarded_at')
+    .select('onboarded_at, name')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profile?.onboarded_at) redirect('/')
+  if (profile?.onboarded_at && !another) redirect('/')
 
-  const { error } = await searchParams
-  const suggestedName = legacyName || (user.user_metadata?.full_name as string | undefined) || ''
+  const suggestedName =
+    (another ? profile?.name : null) ||
+    legacyName ||
+    (user.user_metadata?.full_name as string | undefined) ||
+    ''
 
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">

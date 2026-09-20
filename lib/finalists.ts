@@ -8,11 +8,12 @@ export { countryCodeToName } from '@/lib/participants'
 // are optional and only set when the artist filled them in at submission.
 //
 // Every submission gets saved on arrival, but only shows up in getFinalists()
-// (the public listing) once an admin publishes it from /admin/obras ("estas
-// participan") — the `profiles: public read published` RLS policy (see
-// supabase/migrations/20260918000000_profile_visibility.sql) is what
-// actually filters that to `is_public = true`, not the query below.
-// getFinalistBySlug() is the one exception: see its own comment.
+// (the public listing) once its artwork is both `is_selected` (admin-curated
+// — see supabase/migrations/20260921040000_artworks.sql) and its profile is
+// published ("estas participan" from /admin/obras) — the "artworks: public
+// read of published profiles" RLS policy is what actually filters that, not
+// the query below. getFinalistBySlug() is the one exception: see its own
+// comment.
 export type Finalist = {
   slug: string
   name: string
@@ -24,69 +25,74 @@ export type Finalist = {
   website?: string
 }
 
-const SELECT_COLUMNS =
-  'artwork_slug, name, country_code, artwork_title, technique, artwork_image_url, instagram, website'
+const SELECT_COLUMNS = 'slug, title, technique, image_url, profiles!inner(name, country_code, instagram, website)'
 
 type FinalistRow = {
-  artwork_slug: string | null
-  name: string | null
-  country_code: string | null
-  artwork_title: string | null
+  slug: string | null
+  title: string | null
   technique: string | null
-  artwork_image_url: string | null
-  instagram: string | null
-  website: string | null
+  image_url: string | null
+  profiles: {
+    name: string | null
+    country_code: string | null
+    instagram: string | null
+    website: string | null
+  } | null
 }
 
 function rowToFinalist(row: FinalistRow): Finalist | undefined {
-  if (!row.artwork_slug || !row.name || !row.country_code || !row.artwork_title || !row.artwork_image_url) {
+  const profile = row.profiles
+  if (!row.slug || !row.title || !row.image_url || !profile?.name || !profile.country_code) {
     return undefined
   }
   return {
-    slug: row.artwork_slug,
-    name: row.name,
-    countryCode: row.country_code,
-    artworkTitle: row.artwork_title,
+    slug: row.slug,
+    name: profile.name,
+    countryCode: profile.country_code,
+    artworkTitle: row.title,
     technique: row.technique ?? undefined,
-    imageUrl: row.artwork_image_url,
-    instagram: row.instagram ?? undefined,
-    website: row.website ?? undefined,
+    imageUrl: row.image_url,
+    instagram: profile.instagram ?? undefined,
+    website: profile.website ?? undefined,
   }
 }
 
-// Every finalist with a completed submission, newest first.
+// Every finalist with a completed, curated submission, newest first.
 export async function getFinalists(): Promise<Finalist[]> {
   if (!isSupabaseConfigured) return []
 
   const { data } = await createPublicClient()
-    .from('profiles')
+    .from('artworks')
     .select(SELECT_COLUMNS)
-    .not('artwork_slug', 'is', null)
-    .order('onboarded_at', { ascending: false })
+    .eq('is_selected', true)
+    .order('created_at', { ascending: false })
 
-  return (data ?? []).map(rowToFinalist).filter((f): f is Finalist => f !== undefined)
+  // `profiles!inner(...)` is a many-to-one embed (an artwork has exactly one
+  // profile), but supabase-js's select-string type inference can't know
+  // that without generated DB types and defaults to an array — the actual
+  // runtime shape from PostgREST is a single object, matching FinalistRow.
+  return ((data ?? []) as unknown as FinalistRow[])
+    .map(rowToFinalist)
+    .filter((f): f is Finalist => f !== undefined)
 }
 
 // Session-aware client here, unlike getFinalists() above — this lets an
-// artist open their own direct /obras/[slug] link and see it before an
-// admin has published it ("total la van a ver solo ellos"). RLS combines
-// permissive SELECT policies with OR, and none of profiles' policies are
+// artist open their own direct /obras/[slug] link and see it before it's
+// been curated/published ("total la van a ver solo ellos"). RLS combines
+// permissive SELECT policies with OR, and none of artworks' policies are
 // role-scoped (no `to authenticated`/`to anon`), so this still resolves to
-// exactly: owner sees their own row regardless of is_public (via "profiles:
-// users read own", auth.uid() = id), everyone else — anonymous or a
-// logged-in non-owner — only sees it once is_public = true (via "profiles:
-// public read published"). An anonymous visitor gets the same anon-role
-// request createPublicClient() would have made, since createClient() falls
-// back to the anon key when there's no session cookie.
+// exactly: owner sees their own row regardless of is_selected/is_public (via
+// "artworks: owner read own", profile_id = auth.uid()), everyone else —
+// anonymous or a logged-in non-owner — only sees it once it's selected AND
+// its profile is published (via "artworks: public read of published
+// profiles"). An anonymous visitor gets the same anon-role request
+// createPublicClient() would have made, since createClient() falls back to
+// the anon key when there's no session cookie.
 export async function getFinalistBySlug(slug: string): Promise<Finalist | undefined> {
   if (!isSupabaseConfigured) return undefined
 
   const supabase = await createClient()
-  const { data } = await supabase
-    .from('profiles')
-    .select(SELECT_COLUMNS)
-    .eq('artwork_slug', slug)
-    .maybeSingle()
+  const { data } = await supabase.from('artworks').select(SELECT_COLUMNS).eq('slug', slug).maybeSingle()
 
-  return data ? rowToFinalist(data) : undefined
+  return data ? rowToFinalist(data as unknown as FinalistRow) : undefined
 }

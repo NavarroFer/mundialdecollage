@@ -316,3 +316,54 @@ export async function deleteLegacySubmission(formData: FormData) {
 
   revalidatePath('/admin/obras')
 }
+
+// The registered-artist equivalent of selectLegacySubmission: which of a
+// profile's (possibly several) submitted artworks is the one that counts.
+// Unlike legacy_submissions, artworks has no owner-update RLS policy at all
+// (see supabase/migrations/20260921040000_artworks.sql) — curation is
+// admin-only by construction, so this relies on "artworks: admin only" the
+// same way selectLegacySubmission relies on "legacy_submissions: admin
+// only". Picking/dropping an artist's selected artwork changes what's live
+// on the public site immediately (unlike legacy curation, which only ever
+// affects a future /onboarding prefill), so this revalidates the public
+// pages too, matching setSubmissionsVisibility above.
+export async function selectArtwork(formData: FormData) {
+  const id = String(formData.get('id'))
+
+  const supabase = await createClient()
+  const { data: row, error: lookupError } = await supabase
+    .from('artworks')
+    .select('profile_id')
+    .eq('id', id)
+    .maybeSingle()
+  if (lookupError || !row) {
+    redirect(`/admin/obras?error=${encodeURIComponent(lookupError?.message ?? 'not_found')}`)
+  }
+
+  const { error: clearError } = await supabase
+    .from('artworks')
+    .update({ is_selected: false })
+    .eq('profile_id', row.profile_id)
+  if (clearError) redirect(`/admin/obras?error=${encodeURIComponent(clearError.message)}`)
+
+  const { error: selectError } = await supabase.from('artworks').update({ is_selected: true }).eq('id', id)
+  if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
+
+  revalidatePath('/admin/obras')
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
+}
+
+export async function deleteArtwork(formData: FormData) {
+  const id = String(formData.get('id'))
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('artworks').delete().eq('id', id)
+  if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
+
+  revalidatePath('/admin/obras')
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
+}

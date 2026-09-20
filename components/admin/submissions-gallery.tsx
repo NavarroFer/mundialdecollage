@@ -15,6 +15,11 @@ type Submission = {
   artworkTitle: string
   imageUrl: string
   isPublic: boolean
+  // How many artwork rows this artist has total (see
+  // supabase/migrations/20260921040000_artworks.sql) — more than one means
+  // there's a resubmission waiting to be curated in the "Artistas con varias
+  // obras" section above this gallery.
+  artworkCount?: number
 }
 
 type Filter = 'all' | 'pending' | 'public'
@@ -25,17 +30,23 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'public', label: 'Publicadas' },
 ]
 
+const TECHNIQUES = ['Analógica', 'Mixta', 'Digital'] as const
+type TechniqueFilter = 'all' | (typeof TECHNIQUES)[number]
+
 export function SubmissionsGallery({ submissions }: { submissions: Submission[] }) {
   const [filter, setFilter] = useState<Filter>('all')
+  const [technique, setTechnique] = useState<TechniqueFilter>('all')
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
 
   const visible = useMemo(() => {
-    if (filter === 'pending') return submissions.filter((s) => !s.isPublic)
-    if (filter === 'public') return submissions.filter((s) => s.isPublic)
-    return submissions
-  }, [submissions, filter])
+    let list = submissions
+    if (filter === 'pending') list = list.filter((s) => !s.isPublic)
+    else if (filter === 'public') list = list.filter((s) => s.isPublic)
+    if (technique !== 'all') list = list.filter((s) => s.technique === technique)
+    return list
+  }, [submissions, filter, technique])
 
   function toggle(id: string) {
     if (!selectMode) {
@@ -71,7 +82,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   return (
     <div className={cn(selected.size > 0 && 'pb-24')}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {FILTERS.map((f) => (
             <button
               key={f.key}
@@ -87,6 +98,18 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
               {f.label}
             </button>
           ))}
+          <select
+            value={technique}
+            onChange={(e) => setTechnique(e.target.value as TechniqueFilter)}
+            className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
+          >
+            <option value="all">Toda técnica</option>
+            {TECHNIQUES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button
@@ -145,6 +168,12 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                   />
 
                   {isSelected && <div className="absolute inset-0 bg-collage-blue/20" aria-hidden />}
+
+                  {!selectMode && s.artworkCount && s.artworkCount > 1 && (
+                    <span className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[0.65rem] font-bold text-ink shadow">
+                      +{s.artworkCount} obras
+                    </span>
+                  )}
 
                   {selectMode && (
                     <span className="absolute top-2 right-2 rounded-full bg-white/90 p-0.5 shadow">
