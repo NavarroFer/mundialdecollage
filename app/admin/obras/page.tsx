@@ -59,7 +59,7 @@ export default async function ObrasPage({
     artworksByProfile.set(row.profile_id, list)
   }
 
-  const submissions = [...artworksByProfile.entries()]
+  const realSubmissions = [...artworksByProfile.entries()]
     .map(([profileId, rows]) => {
       const selected = rows.find((r) => r.is_selected)
       const profile = selected?.profiles
@@ -75,13 +75,14 @@ export default async function ObrasPage({
         imageUrl: selected.image_url,
         isPublic: profile.is_public,
         artworkCount: rows.length,
+        source: 'real' as const,
         onboardedAt: profile.onboarded_at ?? '',
       }
     })
     .filter((s): s is NonNullable<typeof s> => s !== null)
     .sort((a, b) => b.onboardedAt.localeCompare(a.onboardedAt))
 
-  const publicCount = submissions.filter((s) => s.isPublic).length
+  const publicCount = realSubmissions.filter((s) => s.isPublic).length
 
   // Profiles with more than one artwork row — the ones that actually need
   // an admin's "Usar esta obra" curation (a lone artwork always
@@ -130,6 +131,24 @@ export default async function ObrasPage({
     unresolvedGroups.set(email, rows)
   }
   const unresolvedCount = [...unresolvedGroups.values()].reduce((n, rows) => n + rows.length, 0)
+
+  // The "Obras" gallery up top used to only ever show real registrations —
+  // a confirmed legacy submission had nowhere to live but its own separate
+  // grid further down the page, so an admin had to check two different
+  // spots to see everything that's actually been received and decided.
+  // Folding promotedRows in here (still no real `profiles` row behind them —
+  // see SubmissionsGallery's `source: 'legacy'` handling for what that
+  // rules out) gives one unified view; unresolvedGroups below is the only
+  // thing that still needs its own section, since that's what's left to
+  // actually decide.
+  const legacyGalleryItems = promotedRows.map((row) => ({
+    id: `legacy-${row.id}`,
+    name: row.name ?? 'Sin nombre',
+    imageUrl: row.image_url as string,
+    isPublic: false,
+    source: 'legacy' as const,
+  }))
+  const submissions = [...realSubmissions, ...legacyGalleryItems]
 
   // "Limpieza de nombres" (ROADMAP.md item 5) — every artist name that would
   // change under normalizeArtistName(), across both real registrations and
@@ -320,40 +339,39 @@ export default async function ObrasPage({
 
         {promotedRows.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-sm font-semibold text-ink">Obras confirmadas ({promotedRows.length})</h3>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <h3 className="text-sm font-semibold text-ink">
+              Obras confirmadas ({promotedRows.length}) — ya se ven arriba, en la galería de &quot;Obras&quot;
+            </h3>
+            <div className="mt-3 divide-y divide-ink/10 rounded-2xl border-2 border-ink/10 bg-card px-5">
               {promotedRows.map((row) => (
-                <div key={row.id} className="text-left">
-                  <div className="relative aspect-square overflow-hidden rounded-xl border-2 border-ink/10 bg-muted">
-                    <Image
-                      src={row.image_url as string}
-                      alt={row.name ?? row.email}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                      className="object-cover"
-                    />
-                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
-                      <CircleCheck className="h-3 w-3" />
-                      Confirmada
-                    </span>
+                <div key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-ink/10 bg-muted">
+                      <Image
+                        src={row.image_url as string}
+                        alt={row.name ?? row.email}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-ink">{row.name ?? 'Sin nombre'}</p>
+                      <p className="truncate text-xs text-muted-foreground">{row.email}</p>
+                    </div>
                   </div>
-                  <p className="mt-1.5 truncate text-sm font-semibold text-ink">
-                    {row.name ?? 'Sin nombre'}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{row.email}</p>
-                  <div className="mt-1.5">
-                    <form action={deleteLegacySubmission}>
-                      <input type="hidden" name="id" value={row.id} />
-                      <SubmitButton
-                        size="sm"
-                        variant="ghost"
-                        className="h-auto gap-1 px-1.5 py-1 text-[0.65rem] text-collage-red hover:bg-collage-red/10"
-                        pendingLabel="Borrando…"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </SubmitButton>
-                    </form>
-                  </div>
+                  <form action={deleteLegacySubmission}>
+                    <input type="hidden" name="id" value={row.id} />
+                    <SubmitButton
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
+                      pendingLabel="Borrando…"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Borrar
+                    </SubmitButton>
+                  </form>
                 </div>
               ))}
             </div>

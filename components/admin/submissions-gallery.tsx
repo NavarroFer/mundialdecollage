@@ -10,9 +10,13 @@ import { setSubmissionsVisibility } from '@/app/admin/obras/actions'
 type Submission = {
   id: string
   name: string
-  countryCode: string
+  // Missing for a `source: 'legacy'` row — legacy_submissions only has
+  // free-text country_raw (see supabase/migrations/20260919000000_legacy_
+  // submissions.sql), never a real ISO code, so there's nothing to flag or
+  // filter by for those.
+  countryCode?: string
   technique?: string
-  artworkTitle: string
+  artworkTitle?: string
   imageUrl: string
   isPublic: boolean
   // How many artwork rows this artist has total (see
@@ -20,6 +24,13 @@ type Submission = {
   // there's a resubmission waiting to be curated in the "Artistas con varias
   // obras" section above this gallery.
   artworkCount?: number
+  // 'legacy' = a confirmed supabase/migrations/20260921070000_legacy_
+  // submissions_promoted.sql row, shown here alongside real registrations so
+  // the admin sees everything received in one place, but it has no real
+  // `profiles` row yet (the artist hasn't logged in and claimed it) — so
+  // unlike a real submission it can't be select-toggled to "Participa"
+  // (setSubmissionsVisibility below only ever updates `profiles`).
+  source?: 'real' | 'legacy'
 }
 
 type Filter = 'all' | 'pending' | 'public'
@@ -43,8 +54,10 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
   // Only the countries actually represented — a full ISO-3166 dropdown would
   // be mostly empty options for a gallery of a few dozen submissions.
+  // Legacy rows have no countryCode at all, so they're left out of this list
+  // (filtering by country just never matches/excludes them either way).
   const countries = useMemo(() => {
-    const codes = new Set(submissions.map((s) => s.countryCode))
+    const codes = new Set(submissions.map((s) => s.countryCode).filter((c): c is string => Boolean(c)))
     return [...codes].sort((a, b) => countryCodeToName(a).localeCompare(countryCodeToName(b)))
   }, [submissions])
 
@@ -77,7 +90,11 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   }
 
   function selectAllVisible() {
-    setSelected(new Set(visible.map((s) => s.id)))
+    // Legacy rows are rendered disabled and can never reach `toggle()` via a
+    // click, but this bypasses that button entirely — has to exclude them
+    // itself, or a bulk "Estas participan"/"Ocultar" would try to update
+    // `profiles` with a legacy_submissions id that table doesn't have.
+    setSelected(new Set(visible.filter((s) => s.source !== 'legacy').map((s) => s.id)))
   }
 
   function applyVisibility(isPublic: boolean) {
@@ -165,13 +182,15 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {visible.map((s) => {
+            const isLegacy = s.source === 'legacy'
             const isSelected = selected.has(s.id)
             return (
               <button
                 key={s.id}
                 type="button"
+                disabled={isLegacy}
                 onClick={() => toggle(s.id)}
-                className="group text-left"
+                className="group text-left disabled:cursor-default"
               >
                 <div
                   className={cn(
@@ -181,7 +200,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 >
                   <Image
                     src={s.imageUrl}
-                    alt={`${s.artworkTitle}, de ${s.name}`}
+                    alt={s.artworkTitle ? `${s.artworkTitle}, de ${s.name}` : s.name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                     className={cn(
@@ -198,7 +217,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                     </span>
                   )}
 
-                  {selectMode && (
+                  {selectMode && !isLegacy && (
                     <span className="absolute top-2 right-2 rounded-full bg-white/90 p-0.5 shadow">
                       {isSelected ? (
                         <CircleCheck className="h-6 w-6 text-collage-blue" fill="white" />
@@ -208,18 +227,25 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                     </span>
                   )}
 
-                  {s.isPublic && (
-                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
-                      <Megaphone className="h-3 w-3" />
-                      Participa
+                  {isLegacy ? (
+                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-[0.65rem] font-bold text-white">
+                      <CircleCheck className="h-3 w-3" />
+                      Precargada
                     </span>
+                  ) : (
+                    s.isPublic && (
+                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
+                        <Megaphone className="h-3 w-3" />
+                        Participa
+                      </span>
+                    )
                   )}
                 </div>
 
                 <p className="mt-1.5 truncate text-sm font-semibold text-ink">
-                  <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span> {s.name}
+                  {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span>} {s.name}
                 </p>
-                <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>
+                {s.artworkTitle && <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>}
               </button>
             )
           })}
