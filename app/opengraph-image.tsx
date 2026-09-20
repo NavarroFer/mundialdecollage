@@ -19,17 +19,17 @@ export default function OpengraphImage() {
           flexDirection: 'column',
           justifyContent: 'center',
           padding: 80,
-          background: '#fdf7ec',
+          background: '#FAF8F2',
         }}
       >
         <img
           src={`data:image/png;base64,${logoBase64}`}
-          width={520}
-          height={222}
+          width={560}
+          height={146}
           alt=""
           style={{ objectFit: 'contain' }}
         />
-        <div style={{ display: 'flex', marginTop: 40, fontSize: 32, color: '#8a6d4a' }}>
+        <div style={{ display: 'flex', marginTop: 40, fontSize: 32, color: '#1B110C' }}>
           {site.tagline} — convocatoria abierta hasta el {site.deadlineLabel}
         </div>
       </div>

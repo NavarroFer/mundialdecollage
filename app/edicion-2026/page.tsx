@@ -40,7 +40,7 @@ export default async function Edicion2026Page() {
 
           <FadeIn delay={100}>
             <h1 className="font-display mt-6 text-4xl leading-[1.05] tracking-tight text-ink uppercase sm:text-6xl">
-              Mundial de Collage 2026
+              Edición 01 · 2026
             </h1>
           </FadeIn>
 

@@ -22,13 +22,13 @@ export type EmailBlockType = EmailBlock['type']
 
 export type EmailDocument = { blocks: EmailBlock[] }
 
-// Rough hex stand-ins for the site's oklch design tokens (app/globals.css) —
-// email clients don't understand oklch(), and exact brand match matters less
-// here than in the product UI.
+// Exact hex from the brand guide (app/globals.css's --collage-red/blue/ink) —
+// spelled out again here rather than read from CSS because email clients
+// don't support CSS custom properties at send time.
 const ACCENT_HEX: Record<AccentColor, string> = {
-  red: '#c23b2b',
-  blue: '#2f3f73',
-  ink: '#241f1c',
+  red: '#D4302E',
+  blue: '#11458C',
+  ink: '#1B110C',
 }
 
 const HEADING_FONT_SIZE: Record<'sm' | 'md' | 'lg', string> = {

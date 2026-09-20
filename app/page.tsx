@@ -21,6 +21,7 @@ export default function Home() {
       <SiteHeader />
       <main>
         <HeroSection />
+        <div aria-hidden className="torn-top h-10 w-full bg-collage-blue sm:h-14" />
         <ParticipationStatus />
         <BasesBanner />
         <EditionSection />

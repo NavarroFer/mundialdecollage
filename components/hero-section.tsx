@@ -62,7 +62,7 @@ export function HeroSection() {
         <FadeIn delay={300}>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a href={`mailto:${site.email}`}>
-              <Button size="lg" className="gap-2">
+              <Button size="lg" variant="primary" className="gap-2">
                 Enviá tu obra
                 <ArrowRight className="h-5 w-5" />
               </Button>

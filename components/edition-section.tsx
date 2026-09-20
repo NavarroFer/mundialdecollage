@@ -18,7 +18,7 @@ export async function EditionSection() {
 
         <FadeIn delay={100}>
           <h2 className="font-display mt-6 text-4xl leading-[1.05] tracking-tight text-ink uppercase sm:text-6xl">
-            Mundial de Collage 2026
+            Edición 01 · 2026
           </h2>
         </FadeIn>
 

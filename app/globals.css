@@ -1,58 +1,43 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.19 0.02 50);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.19 0.02 50);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.19 0.02 50);
-  --primary: oklch(0.4 0.13 258);
-  --primary-foreground: oklch(0.98 0.01 90);
-  --secondary: oklch(0.75 0.16 75);
-  --secondary-foreground: oklch(0.22 0.03 50);
-  --muted: oklch(0.97 0.008 75);
-  --muted-foreground: oklch(0.42 0.03 55);
-  --accent: oklch(0.57 0.2 27);
-  --accent-foreground: oklch(0.98 0.01 90);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(0.85 0.02 60);
-  --input: oklch(0.85 0.02 60);
-  --ring: oklch(0.4 0.13 258);
+  /* Brand palette — exact hex from the identity guide (Sept. 2026), paper cream
+     and torn-paper blue/red/ocre. Every other token below is a var() of these
+     five, never a duplicated hex, so the guide's values stay the single source
+     of truth. No dark variant — the paper/torn-edge look is light-only by
+     design, and dark mode was never actually wired up here anyway. */
+  --paper: #faf8f2;
+  --ink: #1b110c;
+  --collage-blue: #11458c;
+  --collage-red: #d4302e;
+  --collage-yellow: #e79d00;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--collage-blue);
+  --primary-foreground: var(--paper);
+  --secondary: var(--collage-yellow);
+  --secondary-foreground: var(--ink);
+  --accent: var(--collage-red);
+  --accent-foreground: var(--paper);
+  --destructive: var(--collage-red);
+  --destructive-foreground: var(--paper);
+  /* Not in the guide (UI-only details) — derived from the two base colors
+     instead of invented hex, so they stay tied to the brand values above.
+     60% ink in --muted-foreground (not 55%) is deliberate: it's the minimum
+     that clears WCAG AA (4.79:1) for the ~50 files that use it as real body
+     text, not just decoration. */
+  --muted: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  --muted-foreground: color-mix(in srgb, var(--ink) 60%, var(--paper));
+  --border: color-mix(in srgb, var(--ink) 12%, var(--paper));
+  --input: color-mix(in srgb, var(--ink) 12%, var(--paper));
+  --ring: var(--collage-blue);
   --radius: 0.75rem;
-
-  /* Brand palette pulled from the flyer set — paper cream, poster blue, poster red, poster mustard. */
-  --paper: oklch(1 0 0);
-  --ink: oklch(0.19 0.02 50);
-  --collage-blue: oklch(0.4 0.13 258);
-  --collage-red: oklch(0.57 0.2 27);
-  --collage-yellow: oklch(0.75 0.16 75);
-}
-
-.dark {
-  --background: oklch(0.16 0.015 50);
-  --foreground: oklch(0.95 0.015 75);
-  --card: oklch(0.2 0.02 50);
-  --card-foreground: oklch(0.95 0.015 75);
-  --popover: oklch(0.2 0.02 50);
-  --popover-foreground: oklch(0.95 0.015 75);
-  --primary: oklch(0.72 0.11 258);
-  --primary-foreground: oklch(0.16 0.02 50);
-  --secondary: oklch(0.75 0.16 75);
-  --secondary-foreground: oklch(0.19 0.02 50);
-  --muted: oklch(0.27 0.02 50);
-  --muted-foreground: oklch(0.72 0.02 60);
-  --accent: oklch(0.62 0.2 27);
-  --accent-foreground: oklch(0.98 0.01 90);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(0.32 0.02 50);
-  --input: oklch(0.32 0.02 50);
-  --ring: oklch(0.72 0.11 258);
 }
 
 @theme inline {
