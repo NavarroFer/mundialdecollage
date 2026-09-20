@@ -20,22 +20,27 @@ export default function Home() {
   return (
     <>
       <SplashScreen />
-      <SiteHeader />
-      <main>
-        <HeroSection />
-        <div aria-hidden className="torn-top h-10 w-full bg-collage-blue sm:h-14" />
-        <ParticipationStatus />
-        <BasesBanner />
-        <EditionSection />
-        <HowToSection />
-        <AboutSection />
-        <WorkshopSection />
-        <ParticipantsSection />
-        <MapSection />
-        <JurySection />
-        <CtaSection />
-      </main>
-      <Footer />
+      {/* Wrapped so SplashScreen can mark it inert while it covers the
+          screen — otherwise keyboard/AT users could Tab into content
+          that's hidden behind the splash but still in the DOM. */}
+      <div id="site-content">
+        <SiteHeader />
+        <main>
+          <HeroSection />
+          <div aria-hidden className="torn-top h-10 w-full bg-collage-blue sm:h-14" />
+          <ParticipationStatus />
+          <BasesBanner />
+          <EditionSection />
+          <HowToSection />
+          <AboutSection />
+          <WorkshopSection />
+          <ParticipantsSection />
+          <MapSection />
+          <JurySection />
+          <CtaSection />
+        </main>
+        <Footer />
+      </div>
     </>
   )
 }

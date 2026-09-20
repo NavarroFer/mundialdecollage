@@ -59,6 +59,18 @@ export function SplashScreen() {
     }
   }, [show])
 
+  // The splash overlays the page visually, but the real content underneath
+  // stays in the DOM — without this, Tab could still reach it while it's
+  // hidden behind the splash. #site-content is the sibling wrapper in
+  // app/page.tsx around everything except this component.
+  useEffect(() => {
+    const content = document.getElementById('site-content')
+    content?.toggleAttribute('inert', show)
+    return () => {
+      content?.removeAttribute('inert')
+    }
+  }, [show])
+
   if (!show) return null
 
   return (
