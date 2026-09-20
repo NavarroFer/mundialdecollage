@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import Image from 'next/image'
 import { Circle, CircleCheck, CircleX, EyeOff, ImageOff, ListChecks, Loader2, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { countryCodeToFlag } from '@/lib/participants'
+import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { setSubmissionsVisibility } from '@/app/admin/obras/actions'
 
 type Submission = {
@@ -36,17 +36,26 @@ type TechniqueFilter = 'all' | (typeof TECHNIQUES)[number]
 export function SubmissionsGallery({ submissions }: { submissions: Submission[] }) {
   const [filter, setFilter] = useState<Filter>('all')
   const [technique, setTechnique] = useState<TechniqueFilter>('all')
+  const [country, setCountry] = useState<string>('all')
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
+
+  // Only the countries actually represented — a full ISO-3166 dropdown would
+  // be mostly empty options for a gallery of a few dozen submissions.
+  const countries = useMemo(() => {
+    const codes = new Set(submissions.map((s) => s.countryCode))
+    return [...codes].sort((a, b) => countryCodeToName(a).localeCompare(countryCodeToName(b)))
+  }, [submissions])
 
   const visible = useMemo(() => {
     let list = submissions
     if (filter === 'pending') list = list.filter((s) => !s.isPublic)
     else if (filter === 'public') list = list.filter((s) => s.isPublic)
     if (technique !== 'all') list = list.filter((s) => s.technique === technique)
+    if (country !== 'all') list = list.filter((s) => s.countryCode === country)
     return list
-  }, [submissions, filter, technique])
+  }, [submissions, filter, technique, country])
 
   function toggle(id: string) {
     if (!selectMode) {
@@ -110,6 +119,20 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
               </option>
             ))}
           </select>
+          {countries.length > 1 && (
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
+            >
+              <option value="all">Todo país</option>
+              {countries.map((code) => (
+                <option key={code} value={code}>
+                  {countryCodeToFlag(code)} {countryCodeToName(code)}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <button
