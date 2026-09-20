@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { CircleAlert, CircleCheck, ExternalLink, ImageOff, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
@@ -64,6 +65,21 @@ export default async function ObrasPage({
     (r) => r.drive_url && !r.image_url && !r.image_fetch_failed_at,
   ).length
   const imagesFailedCount = legacyRows.filter((r) => r.image_fetch_failed_at).length
+
+  // Split for display: obras that already have a photo in our own storage
+  // get a visual gallery (same idea as the "real" SubmissionsGallery above),
+  // so an admin can actually eyeball what got synced instead of reading
+  // status badges. Everything still on/pending from Drive stays in the
+  // detailed per-artist list below, where the retry/select/delete actions
+  // live.
+  const legacyWithImage = legacyRows.filter((r) => r.image_url)
+  const legacyPending = legacyRows.filter((r) => !r.image_url)
+  const legacyPendingGroups = new Map<string, typeof legacyRows>()
+  for (const row of legacyPending) {
+    const list = legacyPendingGroups.get(row.email) ?? []
+    list.push(row)
+    legacyPendingGroups.set(row.email, list)
+  }
 
   return (
     <div>
@@ -141,13 +157,75 @@ export default async function ObrasPage({
           <LegacyImageSync initialPending={imagesPendingCount} initialFailed={imagesFailedCount} />
         )}
 
+        {legacyWithImage.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-ink">
+              Con foto ya guardada en el sitio ({legacyWithImage.length})
+            </h3>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {legacyWithImage.map((row) => (
+                <div key={row.id} className="text-left">
+                  <div className="relative aspect-square overflow-hidden rounded-xl border-2 border-ink/10 bg-muted">
+                    <Image
+                      src={row.image_url as string}
+                      alt={row.name ?? row.email}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                      className="object-cover"
+                    />
+                    {row.selected && (
+                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
+                        <CircleCheck className="h-3 w-3" />
+                        Elegida
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1.5 truncate text-sm font-semibold text-ink">
+                    {row.name ?? 'Sin nombre'}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{row.email}</p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <form action={selectLegacySubmission}>
+                      <input type="hidden" name="id" value={row.id} />
+                      <SubmitButton
+                        size="sm"
+                        variant={row.selected ? 'primary' : 'outline'}
+                        className="h-auto gap-1 px-2 py-1 text-[0.65rem]"
+                        pendingLabel="Guardando…"
+                      >
+                        {row.selected ? 'Elegida' : 'Usar esta obra'}
+                      </SubmitButton>
+                    </form>
+                    <form action={deleteLegacySubmission}>
+                      <input type="hidden" name="id" value={row.id} />
+                      <SubmitButton
+                        size="sm"
+                        variant="ghost"
+                        className="h-auto gap-1 px-1.5 py-1 text-[0.65rem] text-collage-red hover:bg-collage-red/10"
+                        pendingLabel="Borrando…"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </SubmitButton>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 space-y-4">
           {legacyGroups.size === 0 && (
             <p className="rounded-2xl border-2 border-ink/10 bg-card px-4 py-8 text-center text-muted-foreground">
               Todavía no importaste ninguna obra precargada.
             </p>
           )}
-          {[...legacyGroups.entries()].map(([email, rows]) => {
+          {legacyPendingGroups.size > 0 && (
+            <h3 className="text-sm font-semibold text-ink">
+              Aún no importadas de Drive ({legacyPending.length})
+            </h3>
+          )}
+          {[...legacyPendingGroups.entries()].map(([email, rows]) => {
             const displayName = rows.find((r) => r.name)?.name ?? null
             return (
               <div key={email} className="rounded-2xl border-2 border-ink/10 bg-card p-5">
