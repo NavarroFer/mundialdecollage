@@ -250,8 +250,6 @@ export default async function ObrasPage({
     .filter((s): s is NonNullable<typeof s> => s !== null)
     .sort((a, b) => b.onboardedAt.localeCompare(a.onboardedAt))
 
-  const publicCount = realSubmissions.filter((s) => s.isPublic).length
-
   // Profiles with more than one artwork row — the ones that actually need
   // an admin's "Usar esta obra" curation (a lone artwork always
   // auto-selects on submission, see app/onboarding/actions.ts).
@@ -292,6 +290,19 @@ export default async function ObrasPage({
 
   const promotedRows = legacyRows.filter((r) => r.promoted && r.image_url)
 
+  // Rows already linked to a real profile — self-claimed via /onboarding, or
+  // previously published from here (see provisionLegacyProfiles in
+  // ./actions.ts) — so the gallery/viewer can show their real
+  // "Participa"/"Ocultar" state instead of always looking unpublished.
+  const claimedProfileIds = [
+    ...new Set(promotedRows.map((r) => r.claimed_by).filter((id): id is string => Boolean(id))),
+  ]
+  const { data: claimedProfiles } =
+    claimedProfileIds.length > 0
+      ? await supabase.from('profiles').select('id, is_public').in('id', claimedProfileIds)
+      : { data: [] as { id: string; is_public: boolean }[] }
+  const claimedPublicById = new Map((claimedProfiles ?? []).map((p) => [p.id, p.is_public]))
+
   // A multi-obra artist's group used to drop out of view entirely the
   // moment any row in it got promoted (see git history) — but a promotion
   // here is never really final, just the currently-picked one
@@ -317,37 +328,50 @@ export default async function ObrasPage({
   // rules out) gives one unified view; unresolvedGroups below is the only
   // thing that still needs its own section, since that's what's left to
   // actually decide.
-  const legacyGalleryItems = promotedRows.map((row) => {
-    const groupRows = legacyGroups.get(row.email) ?? [row]
-    return {
-      id: `legacy-${row.id}`,
-      name: row.name ?? 'Sin nombre',
-      // Best-effort only — country_raw is hand-salvaged free text, not a real
-      // ISO code (see guessCountryCodeFromName's comment), so this is left
-      // undefined rather than shown/filtered wrong when it doesn't match.
-      countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
-      imageUrl: row.image_url as string,
-      driveUrl: row.drive_url ?? undefined,
-      isPublic: false,
-      source: 'legacy' as const,
-      legacyId: row.id,
-      email: row.email,
-      imageFetchFailedAt: row.image_fetch_failed_at,
-      legacySiblings:
-        groupRows.length > 1
-          ? groupRows.map((r) => ({
-              id: r.id,
-              name: r.name,
-              imageUrl: r.image_url,
-              driveUrl: r.drive_url,
-              selected: r.selected,
-              promoted: r.promoted,
-              imageFetchFailedAt: r.image_fetch_failed_at,
-            }))
-          : undefined,
-    }
-  })
+  // A claimed row already has its own `source: 'real'` card above (via
+  // artworksByProfile) once that publish/self-onboarding actually went
+  // through — showing it again here would duplicate the same obra. Only
+  // dropped when the real counterpart actually made it into realSubmissions
+  // (name/country/title/image all present); otherwise this stays the only
+  // visible copy instead of the obra silently disappearing from both lists.
+  const realProfileIds = new Set(realSubmissions.map((s) => s.id))
+
+  const legacyGalleryItems = promotedRows
+    .filter((row) => !(row.claimed_by && realProfileIds.has(row.claimed_by)))
+    .map((row) => {
+      const groupRows = legacyGroups.get(row.email) ?? [row]
+      return {
+        id: `legacy-${row.id}`,
+        name: row.name ?? 'Sin nombre',
+        // Best-effort only — country_raw is hand-salvaged free text, not a real
+        // ISO code (see guessCountryCodeFromName's comment), so this is left
+        // undefined rather than shown/filtered wrong when it doesn't match.
+        // The viewer also uses this to decide whether "Estas participan" can
+        // publish straight away or needs a country picked by hand first.
+        countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
+        imageUrl: row.image_url as string,
+        driveUrl: row.drive_url ?? undefined,
+        isPublic: row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false,
+        source: 'legacy' as const,
+        legacyId: row.id,
+        email: row.email,
+        imageFetchFailedAt: row.image_fetch_failed_at,
+        legacySiblings:
+          groupRows.length > 1
+            ? groupRows.map((r) => ({
+                id: r.id,
+                name: r.name,
+                imageUrl: r.image_url,
+                driveUrl: r.drive_url,
+                selected: r.selected,
+                promoted: r.promoted,
+                imageFetchFailedAt: r.image_fetch_failed_at,
+              }))
+            : undefined,
+      }
+    })
   const submissions = [...realSubmissions, ...legacyGalleryItems]
+  const publicCount = submissions.filter((s) => s.isPublic).length
 
   // "Limpieza de nombres" (ROADMAP.md item 5) — every artist name that would
   // change under normalizeArtistName(), across both real registrations and
@@ -551,7 +575,11 @@ export default async function ObrasPage({
               ? 'No encontré ninguna línea válida en el texto pegado.'
               : error === 'retry_failed'
                 ? 'Volví a intentar traer esa foto y falló de nuevo — puede que el link de Drive ya no sea público.'
-                : error}
+                : error === 'missing_country'
+                  ? 'Elegí un país antes de publicar.'
+                  : error === 'publish_failed'
+                    ? 'No se pudo publicar esa obra — probá de nuevo en un rato.'
+                    : error}
           </p>
         )}
 

@@ -12,10 +12,11 @@ import {
   ListChecks,
   Loader2,
   Megaphone,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
-import { setSubmissionsVisibility } from '@/app/admin/obras/actions'
+import { deleteSubmissions, setSubmissionsVisibility } from '@/app/admin/obras/actions'
 import { ObraViewer } from '@/components/admin/obra-viewer'
 import type { Submission } from '@/components/admin/submission-types'
 
@@ -38,11 +39,12 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+  const [actionMessage, setActionMessage] = useState<string | null>(null)
 
   // Only the countries actually represented — a full ISO-3166 dropdown would
-  // be mostly empty options for a gallery of a few dozen submissions.
-  // Legacy rows have no countryCode at all, so they're left out of this list
-  // (filtering by country just never matches/excludes them either way).
+  // be mostly empty options for a gallery of a few dozen submissions. A
+  // legacy row without a guessable country (see Submission's countryCode
+  // comment) just never matches/excludes here either way.
   const countries = useMemo(() => {
     const codes = new Set(submissions.map((s) => s.countryCode).filter((c): c is string => Boolean(c)))
     return [...codes].sort((a, b) => countryCodeToName(a).localeCompare(countryCodeToName(b)))
@@ -77,17 +79,44 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   }
 
   function selectAllVisible() {
-    // Legacy rows are rendered disabled and can never reach `toggle()` via a
-    // click, but this bypasses that button entirely — has to exclude them
-    // itself, or a bulk "Estas participan"/"Ocultar" would try to update
-    // `profiles` with a legacy_submissions id that table doesn't have.
-    setSelected(new Set(visible.filter((s) => s.source !== 'legacy').map((s) => s.id)))
+    setSelected(new Set(visible.map((s) => s.id)))
   }
 
   function applyVisibility(isPublic: boolean) {
     const ids = Array.from(selected)
+    setActionMessage(null)
     startTransition(async () => {
-      await setSubmissionsVisibility(ids, isPublic)
+      const { skipped } = await setSubmissionsVisibility(ids, isPublic)
+      if (skipped.length > 0) {
+        const names = skipped
+          .map((legacyId) => submissions.find((s) => s.legacyId === legacyId)?.name)
+          .filter(Boolean)
+          .join(', ')
+        setActionMessage(
+          `${skipped.length} no se pudieron publicar porque no les pudimos adivinar el país (${names}) — abrilas una por una para elegirlo a mano.`,
+        )
+      }
+      cancelSelection()
+    })
+  }
+
+  function applyDelete() {
+    const items = Array.from(selected)
+      .map((id) => submissions.find((s) => s.id === id))
+      .filter((s): s is Submission => Boolean(s))
+      .map((s) =>
+        s.source === 'legacy'
+          ? { table: 'legacy_submissions' as const, id: s.legacyId! }
+          : { table: 'artworks' as const, id: s.artworkId! },
+      )
+
+    if (!window.confirm(`¿Borrar ${items.length} obra${items.length === 1 ? '' : 's'}? No se puede deshacer.`)) {
+      return
+    }
+
+    setActionMessage(null)
+    startTransition(async () => {
+      await deleteSubmissions(items)
       cancelSelection()
     })
   }
@@ -174,13 +203,21 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
             return (
               <div key={s.id} className="group relative text-left">
-                {/* Opens the detail viewer — a sibling of the selection checkbox and Drive
-                    link below, not their ancestor, so nothing needs stopPropagation. */}
+                {/* Opens the detail viewer when browsing, toggles selection instead
+                    once selectMode is on — a sibling of the selection checkbox and
+                    Drive link below, not their ancestor, so nothing needs
+                    stopPropagation. */}
                 <button
                   type="button"
-                  onClick={() => setViewerIndex(i)}
+                  onClick={() => (selectMode ? toggle(s.id) : setViewerIndex(i))}
                   className="block w-full text-left"
-                  aria-label={`Ver ${s.name} en detalle`}
+                  aria-label={
+                    selectMode
+                      ? isSelected
+                        ? `Deseleccionar ${s.name}`
+                        : `Seleccionar ${s.name}`
+                      : `Ver ${s.name} en detalle`
+                  }
                 >
                   <div
                     className={cn(
@@ -207,16 +244,16 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                       </span>
                     )}
 
-                    {isLegacy ? (
-                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-[0.65rem] font-bold text-white">
-                        <CircleCheck className="h-3 w-3" />
-                        Precargada
+                    {s.isPublic ? (
+                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
+                        <Megaphone className="h-3 w-3" />
+                        Participa
                       </span>
                     ) : (
-                      s.isPublic && (
-                        <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
-                          <Megaphone className="h-3 w-3" />
-                          Participa
+                      isLegacy && (
+                        <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-[0.65rem] font-bold text-white">
+                          <CircleCheck className="h-3 w-3" />
+                          Precargada
                         </span>
                       )
                     )}
@@ -228,15 +265,25 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                   {s.artworkTitle && <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>}
                 </button>
 
-                {/* A legacy row has no `profiles` row yet (see the Submission type's
-                    `source` comment), so it can't be select-toggled for the bulk bar below. */}
-                {!isLegacy && (
+                <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  {isLegacy && s.driveUrl && (
+                    <a
+                      href={s.driveUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Ver la foto original en Drive, en tamaño completo"
+                      className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.65rem] font-bold text-ink shadow hover:bg-white"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Drive
+                    </a>
+                  )}
                   <button
                     type="button"
                     onClick={() => toggle(s.id)}
                     aria-label={isSelected ? `Deseleccionar ${s.name}` : `Seleccionar ${s.name}`}
                     className={cn(
-                      'absolute top-2 right-2 rounded-full bg-white/90 p-0.5 shadow transition-opacity',
+                      'rounded-full bg-white/90 p-0.5 shadow transition-opacity',
                       selectMode
                         ? 'opacity-100'
                         : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
@@ -248,20 +295,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                       <Circle className="h-6 w-6 text-ink/40" />
                     )}
                   </button>
-                )}
-
-                {isLegacy && s.driveUrl && (
-                  <a
-                    href={s.driveUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Ver la foto original en Drive, en tamaño completo"
-                    className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.65rem] font-bold text-ink shadow hover:bg-white"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Drive
-                  </a>
-                )}
+                </div>
               </div>
             )
           })}
@@ -270,29 +304,45 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
       {selected.size > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-20 border-t-2 border-ink/10 bg-card/95 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-8">
-            <p className="text-sm font-semibold text-ink">
-              {selected.size} seleccionada{selected.size === 1 ? '' : 's'}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => applyVisibility(false)}
-                className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30 disabled:opacity-50"
-              >
-                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <EyeOff className="h-4 w-4" />}
-                Ocultar
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => applyVisibility(true)}
-                className="flex items-center gap-2 rounded-full bg-collage-blue px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-collage-blue/90 disabled:opacity-50"
-              >
-                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
-                Estas participan
-              </button>
+          <div className="mx-auto max-w-6xl px-5 py-4 sm:px-8">
+            {actionMessage && (
+              <p className="mb-3 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-3 py-2 text-xs text-ink">
+                {actionMessage}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-ink">
+                {selected.size} seleccionada{selected.size === 1 ? '' : 's'}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={applyDelete}
+                  className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-collage-red hover:border-collage-red/40 hover:bg-collage-red/10 disabled:opacity-50"
+                >
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  Borrar
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => applyVisibility(false)}
+                  className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30 disabled:opacity-50"
+                >
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <EyeOff className="h-4 w-4" />}
+                  Ocultar
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => applyVisibility(true)}
+                  className="flex items-center gap-2 rounded-full bg-collage-blue px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-collage-blue/90 disabled:opacity-50"
+                >
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
+                  Estas participan
+                </button>
+              </div>
             </div>
           </div>
         </div>

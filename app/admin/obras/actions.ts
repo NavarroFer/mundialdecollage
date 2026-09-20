@@ -7,6 +7,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { normalizeArtistName } from '@/lib/name-format'
+import { guessCountryCodeFromName } from '@/lib/participants'
+import { slugify } from '@/lib/slug'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { ADMIN_EMAILS } from '@/lib/admin'
 
@@ -26,15 +28,227 @@ async function assertIsAdmin() {
   }
 }
 
-// Called directly from the gallery's bulk-action bar (not a <form> submit) —
-// the "profiles: admin update all" RLS policy is the real boundary here, so
-// this stays on the session client rather than reaching for the service-role
-// one.
-export async function setSubmissionsVisibility(ids: string[], isPublic: boolean) {
-  if (ids.length === 0) return
+// A legacy_submissions row has no `profiles` row of its own (see
+// submission-types.ts), so publishing one to the real public site means
+// creating one on the fly: an auth user (so it has something profiles.id can
+// reference), a profiles row, and a selected artworks row, built from
+// whatever the legacy import captured (name, email, country_raw, the photo).
+// Only ever called for rows that aren't already claimed_by someone — a
+// self-registered or previously-provisioned row already has a real profile,
+// nothing to create.
+//
+// Sequential, not Promise.all: each row is its own auth-admin round trip,
+// and this runs inside a Server Action with a platform time limit. If a big
+// batch (e.g. "Seleccionar las 156 visibles" → "Estas participan") gets cut
+// off partway, that's fine to just resume — every row already written keeps
+// claimed_by set, so re-running the same selection skips those instantly
+// (the `alreadyClaimed` branch below) and continues with what's left.
+async function provisionLegacyProfiles(
+  items: { id: string; email: string; name: string | null; imageUrl: string; countryCode: string }[],
+): Promise<{ profileIds: string[]; skipped: string[] }> {
+  if (items.length === 0) return { profileIds: [], skipped: [] }
+
+  // The one function in this flow that reaches for the service-role client —
+  // same boundary as fetchLegacyImagesBatch/retryLegacyImageFetch above, and
+  // for the same reason: it bypasses RLS entirely, so it has to gate itself
+  // rather than lean on a policy. Both of this function's callers
+  // (setSubmissionsVisibility, publishLegacySubmissionWithCountry) are
+  // exported Server Actions reachable directly, not just from an
+  // admin-gated page.
+  await assertIsAdmin()
 
   const supabase = await createClient()
-  await supabase.from('profiles').update({ is_public: isPublic }).in('id', ids)
+  const admin = createAdminClient()
+  const profileIds: string[] = []
+  const skipped: string[] = []
+
+  // No admin.getUserByEmail() in this SDK — one paginated pass up front is
+  // cheaper than a lookup per row, and this only runs for rows about to be
+  // provisioned (typically a handful to a few dozen at a time).
+  const emailToUserId = new Map<string, string>()
+  for (let page = 1; ; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    if (error || !data.users || data.users.length === 0) break
+    for (const u of data.users) {
+      if (u.email) emailToUserId.set(u.email.toLowerCase(), u.id)
+    }
+    if (data.users.length < 1000) break
+  }
+
+  for (const item of items) {
+    try {
+      const emailKey = item.email.toLowerCase()
+      let userId = emailToUserId.get(emailKey)
+
+      if (!userId) {
+        // email_confirm: true is what lets this same address later sign in
+        // for real with Google and land on this same account instead of
+        // colliding with it — Supabase only auto-links a new OAuth identity
+        // onto an existing user when that user's email is already
+        // confirmed.
+        const { data: created, error: createError } = await admin.auth.admin.createUser({
+          email: item.email,
+          email_confirm: true,
+          user_metadata: item.name ? { full_name: item.name } : undefined,
+        })
+        if (createError || !created.user) {
+          skipped.push(item.id)
+          continue
+        }
+        userId = created.user.id
+        emailToUserId.set(emailKey, userId)
+      }
+
+      // profiles has no "admin insert on behalf of someone else" policy
+      // (only "users insert own"), so this has to go through the
+      // service-role client — which makes protect_profile_visibility's
+      // is_admin() check false and forces is_public back to false
+      // regardless of what's passed here. The real flip to true happens
+      // below, through the session client, same as the ordinary "Estas
+      // participan" path a couple lines down.
+      const { error: profileError } = await admin.from('profiles').upsert({
+        id: userId,
+        name: item.name,
+        country_code: item.countryCode,
+        onboarded_at: new Date().toISOString(),
+      })
+      if (profileError) {
+        skipped.push(item.id)
+        continue
+      }
+
+      const baseSlug = slugify(item.name ? `${item.name}-obra` : userId.slice(0, 8)) || userId.slice(0, 8)
+      let slug = baseSlug
+      for (let suffix = 2; ; suffix++) {
+        const { data: taken } = await admin.from('artworks').select('id').eq('slug', slug).maybeSingle()
+        if (!taken) break
+        slug = `${baseSlug}-${suffix}`
+      }
+
+      const { error: artworkError } = await admin.from('artworks').insert({
+        profile_id: userId,
+        // The legacy import never captured a title — the artist can give it
+        // a real one later by submitting again once (or if) they log in for
+        // real, which an admin then curates via "Usar esta obra".
+        title: item.name ? `Obra de ${item.name}` : 'Sin título',
+        slug,
+        image_url: item.imageUrl,
+        is_selected: true,
+      })
+      if (artworkError) {
+        skipped.push(item.id)
+        continue
+      }
+
+      await supabase
+        .from('legacy_submissions')
+        .update({ claimed_by: userId, claimed_at: new Date().toISOString() })
+        .eq('id', item.id)
+
+      profileIds.push(userId)
+    } catch (err) {
+      console.error('provisionLegacyProfiles: failed for', item.id, err)
+      skipped.push(item.id)
+    }
+  }
+
+  return { profileIds, skipped }
+}
+
+// The gallery's selection and the viewer both pass ids in the gallery's own
+// mixed shape — a bare profiles.id for a real submission, or
+// `legacy-<legacy_submissions.id>` for a precargada (see
+// app/admin/obras/page.tsx's legacyGalleryItems) — so "Ocultar"/"Estas
+// participan" work the same regardless of which kind is selected.
+//
+// Publishing (`isPublic: true`) a not-yet-claimed legacy id provisions a
+// real account for it first (see provisionLegacyProfiles) — skipped when its
+// country can't be guessed from the free-text import (no country to show on
+// the public site); publishLegacySubmissionWithCountry below is the
+// per-item fallback for those, with an explicit country picked by hand.
+// Hiding (`isPublic: false`) a legacy id only matters if it's already
+// claimed; an unclaimed one was never public to begin with, nothing to do.
+export async function setSubmissionsVisibility(
+  ids: string[],
+  isPublic: boolean,
+): Promise<{ skipped: string[] }> {
+  if (ids.length === 0) return { skipped: [] }
+
+  const realIds = ids.filter((id) => !id.startsWith('legacy-'))
+  const legacyIds = ids.filter((id) => id.startsWith('legacy-')).map((id) => id.slice('legacy-'.length))
+
+  const supabase = await createClient()
+  const profileIdsToUpdate = [...realIds]
+  let skipped: string[] = []
+
+  if (legacyIds.length > 0) {
+    const { data: rows } = await supabase
+      .from('legacy_submissions')
+      .select('id, email, name, country_raw, image_url, claimed_by')
+      .in('id', legacyIds)
+
+    for (const row of rows ?? []) {
+      if (row.claimed_by) {
+        profileIdsToUpdate.push(row.claimed_by)
+        continue
+      }
+      if (!isPublic) continue // never published, nothing to hide
+
+      const countryCode = row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined
+      if (!row.image_url || !countryCode) {
+        skipped.push(row.id)
+        continue
+      }
+
+      const { profileIds, skipped: rowSkipped } = await provisionLegacyProfiles([
+        { id: row.id, email: row.email, name: row.name, imageUrl: row.image_url, countryCode },
+      ])
+      profileIdsToUpdate.push(...profileIds)
+      skipped = [...skipped, ...rowSkipped]
+    }
+  }
+
+  if (profileIdsToUpdate.length > 0) {
+    await supabase.from('profiles').update({ is_public: isPublic }).in('id', profileIdsToUpdate)
+  }
+
+  revalidatePath('/admin/obras')
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
+
+  return { skipped }
+}
+
+// Per-item fallback for a legacy submission whose country couldn't be
+// guessed automatically (most of the imported "país" text didn't survive
+// the original spreadsheet cleanup — see the "Obras precargadas" copy on
+// the page) — an admin picks it by hand from the viewer instead.
+export async function publishLegacySubmissionWithCountry(formData: FormData) {
+  const id = String(formData.get('id') ?? '')
+  const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
+  if (!id || !countryCode) redirect('/admin/obras?error=missing_country')
+
+  const supabase = await createClient()
+  const { data: row, error: lookupError } = await supabase
+    .from('legacy_submissions')
+    .select('id, email, name, image_url, claimed_by')
+    .eq('id', id)
+    .maybeSingle()
+  if (lookupError || !row) redirect(`/admin/obras?error=${encodeURIComponent(lookupError?.message ?? 'not_found')}`)
+
+  let profileId = row.claimed_by
+  if (!profileId) {
+    if (!row.image_url) redirect('/admin/obras?error=missing_image')
+
+    const { profileIds, skipped } = await provisionLegacyProfiles([
+      { id: row.id, email: row.email, name: row.name, imageUrl: row.image_url, countryCode },
+    ])
+    if (skipped.length > 0 || profileIds.length === 0) redirect('/admin/obras?error=publish_failed')
+    profileId = profileIds[0]
+  }
+
+  await supabase.from('profiles').update({ is_public: true }).eq('id', profileId)
 
   revalidatePath('/admin/obras')
   revalidatePath('/')
@@ -425,6 +639,27 @@ export async function deleteArtwork(formData: FormData) {
   const supabase = await createClient()
   const { error } = await supabase.from('artworks').delete().eq('id', id)
   if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
+
+  revalidatePath('/admin/obras')
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
+}
+
+// Bulk version of deleteArtwork/deleteLegacySubmission for the gallery's
+// selection bar — same {table, id} shape as applyNameCleanup, for the same
+// reason: the two tables a selection can span need two different deletes.
+export async function deleteSubmissions(items: { table: 'artworks' | 'legacy_submissions'; id: string }[]) {
+  if (items.length === 0) return
+
+  const supabase = await createClient()
+  const artworkIds = items.filter((item) => item.table === 'artworks').map((item) => item.id)
+  const legacyIds = items.filter((item) => item.table === 'legacy_submissions').map((item) => item.id)
+
+  await Promise.all([
+    artworkIds.length > 0 ? supabase.from('artworks').delete().in('id', artworkIds) : null,
+    legacyIds.length > 0 ? supabase.from('legacy_submissions').delete().in('id', legacyIds) : null,
+  ])
 
   revalidatePath('/admin/obras')
   revalidatePath('/')

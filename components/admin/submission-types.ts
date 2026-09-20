@@ -22,10 +22,13 @@ export type LegacySibling = {
 export type Submission = {
   id: string
   name: string
-  // Missing for a `source: 'legacy'` row — legacy_submissions only has
-  // free-text country_raw (see supabase/migrations/20260919000000_legacy_
-  // submissions.sql), never a real ISO code, so there's nothing to flag or
-  // filter by for those.
+  // For a `source: 'legacy'` row this is a best-effort guess from the
+  // free-text country_raw the original import captured (see
+  // guessCountryCodeFromName) rather than a real ISO code picked from a
+  // list — undefined when nothing in country_raw matched a country name.
+  // The viewer's publish button only shows plainly when this (or an
+  // already-public row) has one; otherwise it falls back to letting an
+  // admin pick a country by hand (see publishLegacySubmissionWithCountry).
   countryCode?: string
   technique?: string
   artworkTitle?: string
