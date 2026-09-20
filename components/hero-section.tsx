@@ -1,8 +1,8 @@
+import Image from 'next/image'
 import { ArrowRight, Scissors } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Countdown } from '@/components/countdown'
 import { FadeIn } from '@/components/fade-in'
-import { HeroHeaderMedia } from '@/components/hero-header-media'
 import { site } from '@/lib/site'
 
 export function HeroSection() {
@@ -45,9 +45,26 @@ export function HeroSection() {
         />
       </div>
 
+      {/* Horizontal lockup (isotipo + wordmark), per the brand guide's
+          "para el encabezado web y espacios apaisados" composition — now
+          the hero's centerpiece since header.mp4 moved to the splash
+          screen (components/splash-screen.tsx) instead of playing here too. */}
       <FadeIn delay={100}>
-        <div className="mx-auto mt-8 max-w-[48.3rem] px-5 sm:px-8">
-          <HeroHeaderMedia />
+        <div className="mx-auto mt-8 flex max-w-[48.3rem] items-center justify-center gap-5 px-5 sm:gap-8 sm:px-8">
+          <Image
+            src="/logo-mark.png"
+            alt=""
+            width={512}
+            height={512}
+            className="h-24 w-24 shrink-0 sm:h-36 sm:w-36"
+          />
+          <Image
+            src="/wordmark.png"
+            alt="Mundial de Collage"
+            width={949}
+            height={322}
+            className="h-auto w-full max-w-sm sm:max-w-md"
+          />
         </div>
       </FadeIn>
 

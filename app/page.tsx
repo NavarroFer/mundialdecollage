@@ -1,4 +1,5 @@
 import { SiteHeader } from '@/components/site-header'
+import { SplashScreen } from '@/components/splash-screen'
 import { HeroSection } from '@/components/hero-section'
 import { ParticipationStatus } from '@/components/participation-status'
 import { BasesBanner } from '@/components/bases-banner'
@@ -18,6 +19,7 @@ export const dynamic = 'force-dynamic'
 export default function Home() {
   return (
     <>
+      <SplashScreen />
       <SiteHeader />
       <main>
         <HeroSection />

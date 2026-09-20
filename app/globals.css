@@ -195,20 +195,3 @@
 .animate-float-slow {
   animation: float-slow 7s ease-in-out infinite;
 }
-
-/* Idle state for the hero header image (components/hero-header-media.tsx) —
-   kicks in once scrolling has settled, gentler than .animate-float-slow
-   since it's applied to a large element instead of a small decorative one. */
-@keyframes float-hero {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-9px) rotate(0.6deg);
-  }
-}
-
-.animate-float-hero {
-  animation: float-hero 5.5s ease-in-out infinite;
-}
