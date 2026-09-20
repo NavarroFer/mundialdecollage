@@ -16,7 +16,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { countryCodeToFlag, countryCodeToName, getAllCountryCodes } from '@/lib/participants'
+import { countryCodeToFlag } from '@/lib/participants'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/admin/submit-button'
@@ -26,7 +26,6 @@ import {
   deleteArtwork,
   deleteLegacySubmission,
   promoteLegacySubmission,
-  publishLegacySubmissionWithCountry,
   retryLegacyImageFetch,
   selectArtwork,
   selectLegacySubmission,
@@ -284,30 +283,26 @@ function LegacyActions({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        {item.isPublic || item.countryCode ? (
-          // Either already public, or its country was guessed from the legacy
-          // import's free-text country_raw — either way setSubmissionsVisibility
-          // can publish/hide it straight away (see its comment in ./actions.ts),
-          // same call RealActions' toggle makes for a real submission.
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={isTogglingVisibility}
-            onClick={onToggleVisibility}
-          >
-            {isTogglingVisibility ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : item.isPublic ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Megaphone className="h-4 w-4" />
-            )}
-            {item.isPublic ? 'Ocultar' : 'Mostrar en el home'}
-          </Button>
-        ) : (
-          <PublishWithCountryForm legacyId={item.legacyId!} />
-        )}
+        {/* setSubmissionsVisibility provisions the account on first publish
+            regardless of whether a country was guessed (see its comment in
+            ./actions.ts) — same call RealActions' toggle makes for a real
+            submission. */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isTogglingVisibility}
+          onClick={onToggleVisibility}
+        >
+          {isTogglingVisibility ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : item.isPublic ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Megaphone className="h-4 w-4" />
+          )}
+          {item.isPublic ? 'Ocultar' : 'Mostrar en el home'}
+        </Button>
       </div>
       {!item.isPublic && (
         <p className="text-xs text-muted-foreground">
@@ -399,43 +394,6 @@ function LegacyActions({
         />
       )}
     </div>
-  )
-}
-
-// Most of the legacy import's "país" free text didn't survive the original
-// spreadsheet cleanup (see the "Obras precargadas" copy on the page), so a
-// good chunk of legacy rows reach here with no guessable country — this is
-// the one place an admin can still pick one by hand and publish in the same
-// click (publishLegacySubmissionWithCountry both creates the account, if
-// this row hasn't been claimed yet, and marks it public).
-const PUBLISH_COUNTRIES = getAllCountryCodes()
-  .map((code) => ({ code, name: countryCodeToName(code) }))
-  .sort((a, b) => a.name.localeCompare(b.name))
-
-function PublishWithCountryForm({ legacyId }: { legacyId: string }) {
-  return (
-    <form action={publishLegacySubmissionWithCountry} className="flex flex-wrap items-center gap-2">
-      <input type="hidden" name="id" value={legacyId} />
-      <select
-        name="country_code"
-        required
-        defaultValue=""
-        className="rounded-lg border-2 border-ink/15 bg-background px-3 py-1.5 text-sm text-ink"
-      >
-        <option value="" disabled>
-          Elegí el país…
-        </option>
-        {PUBLISH_COUNTRIES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {countryCodeToFlag(c.code)} {c.name}
-          </option>
-        ))}
-      </select>
-      <SubmitButton size="sm" pendingLabel="Publicando…">
-        <Megaphone className="h-4 w-4" />
-        Mostrar en el home
-      </SubmitButton>
-    </form>
   )
 }
 

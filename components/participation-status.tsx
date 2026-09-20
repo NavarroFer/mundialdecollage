@@ -2,9 +2,13 @@ import Link from 'next/link'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
+import { CountrySelect } from '@/components/ui/country-select'
+import { SubmitButton } from '@/components/admin/submit-button'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
+import { completeMissingDetails } from '@/app/onboarding/actions'
 
 // Shown right under the hero for a returning, already-submitted artist —
 // "cuando esté logueado cada artista, que diga 'Ya estás participando' y les
@@ -24,7 +28,7 @@ export async function ParticipationStatus() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarded_at')
+    .select('onboarded_at, country_code')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -39,12 +43,23 @@ export async function ParticipationStatus() {
   // defensive "don't show a broken card" behavior.
   const { data: artwork } = await supabase
     .from('artworks')
-    .select('title, slug, image_url')
+    .select('title, slug, image_url, technique')
     .eq('profile_id', user.id)
     .eq('is_selected', true)
     .maybeSingle()
 
   if (!artwork) return null
+
+  // /admin/obras can publish a legacy submission with no país (the
+  // free-text import couldn't guess one) rather than block on it — this is
+  // where that gets asked for real, along with técnica since the legacy
+  // import never captured that either. See completeMissingDetails.
+  const needsCountry = !profile.country_code
+  const countries = needsCountry
+    ? getAllCountryCodes()
+        .map((code) => ({ code, name: countryCodeToName(code) }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : []
 
   return (
     <section className="border-t-2 border-ink/10 bg-background py-14 sm:py-20">
@@ -73,6 +88,33 @@ export async function ParticipationStatus() {
               <p className="mt-2 text-muted-foreground">
                 Tu obra ya forma parte del Mundial de Collage.
               </p>
+
+              {needsCountry && (
+                <form
+                  action={completeMissingDetails}
+                  className="mt-4 rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4 text-left"
+                >
+                  <p className="text-sm font-medium text-ink">
+                    Nos falta tu país para mostrar tu obra en el mapa y el directorio.
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                    <CountrySelect name="country_code" countries={countries} required />
+                    <select
+                      name="technique"
+                      defaultValue=""
+                      className="mt-1.5 rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5 text-sm text-ink outline-none focus:border-collage-blue sm:mt-0"
+                    >
+                      <option value="">Técnica (opcional)</option>
+                      <option value="Analógica">Analógica</option>
+                      <option value="Mixta">Mixta</option>
+                      <option value="Digital">Digital</option>
+                    </select>
+                    <SubmitButton pendingLabel="Guardando…" className="sm:mt-0">
+                      Guardar
+                    </SubmitButton>
+                  </div>
+                </form>
+              )}
 
               <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
                 <Link href={`/obras/${artwork.slug}`}>

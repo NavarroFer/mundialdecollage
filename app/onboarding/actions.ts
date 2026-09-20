@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -180,5 +181,49 @@ export async function completeOnboarding(formData: FormData) {
     }
   }
 
+  redirect('/')
+}
+
+// For a profile that /admin/obras published without a país (the free-text
+// legacy import couldn't guess one — see provisionLegacyProfiles in
+// app/admin/obras/actions.ts) — ParticipationStatus asks for it here the
+// next time this person actually logs in, alongside técnica since the
+// legacy import never captured that either. A lighter completion step than
+// the full onboarding form: the artwork already exists, this only fills in
+// the two gaps on it.
+export async function completeMissingDetails(formData: FormData) {
+  if (!isSupabaseConfigured) redirect('/')
+
+  const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
+  const technique = String(formData.get('technique') ?? '').trim()
+  if (!countryCode) redirect('/')
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/')
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ country_code: countryCode })
+    .eq('id', user.id)
+  if (profileError) {
+    console.error('completeMissingDetails: failed to update profile', user.id, profileError)
+    redirect('/')
+  }
+
+  // Optional, same as on the full onboarding form — only written if given.
+  if (technique) {
+    await supabase
+      .from('artworks')
+      .update({ technique })
+      .eq('profile_id', user.id)
+      .eq('is_selected', true)
+  }
+
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
   redirect('/')
 }

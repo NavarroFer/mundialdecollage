@@ -92,9 +92,10 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
           .map((legacyId) => submissions.find((s) => s.legacyId === legacyId)?.name)
           .filter(Boolean)
           .join(', ')
-        setActionMessage(
-          `${skipped.length} no se pudieron publicar porque no les pudimos adivinar el país (${names}) — abrilas una por una para elegirlo a mano.`,
-        )
+        // A missing país no longer causes a skip here (see setSubmissionsVisibility
+        // in actions.ts) — reaching this now means the row has no image, or the
+        // account provisioning itself failed.
+        setActionMessage(`${skipped.length} no se pudieron publicar, faltó la imagen o falló su cuenta (${names}).`)
       }
       cancelSelection()
     })

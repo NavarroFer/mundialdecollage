@@ -44,7 +44,7 @@ async function assertIsAdmin() {
 // claimed_by set, so re-running the same selection skips those instantly
 // (the `alreadyClaimed` branch below) and continues with what's left.
 async function provisionLegacyProfiles(
-  items: { id: string; email: string; name: string | null; imageUrl: string; countryCode: string }[],
+  items: { id: string; email: string; name: string | null; imageUrl: string; countryCode?: string }[],
 ): Promise<{ profileIds: string[]; skipped: string[] }> {
   if (items.length === 0) return { profileIds: [], skipped: [] }
 
@@ -106,10 +106,17 @@ async function provisionLegacyProfiles(
       // regardless of what's passed here. The real flip to true happens
       // below, through the session client, same as the ordinary "Estas
       // participan" path a couple lines down.
+      // country_code goes in as null when the legacy import's free-text
+      // "país" couldn't be matched to a real country (see
+      // guessCountryCodeFromName) — that no longer blocks publishing (Fer:
+      // "no importa si no está el país, que quede sin valor"). getParticipants
+      // already excludes a profile with no country_code from the public
+      // directory/map, and ParticipationStatus asks for it the next time this
+      // person actually logs in, alongside técnica.
       const { error: profileError } = await admin.from('profiles').upsert({
         id: userId,
         name: item.name,
-        country_code: item.countryCode,
+        country_code: item.countryCode ?? null,
         onboarded_at: new Date().toISOString(),
       })
       if (profileError) {
@@ -162,10 +169,14 @@ async function provisionLegacyProfiles(
 // participan" work the same regardless of which kind is selected.
 //
 // Publishing (`isPublic: true`) a not-yet-claimed legacy id provisions a
-// real account for it first (see provisionLegacyProfiles) — skipped when its
-// country can't be guessed from the free-text import (no country to show on
-// the public site); publishLegacySubmissionWithCountry below is the
-// per-item fallback for those, with an explicit country picked by hand.
+// real account for it first (see provisionLegacyProfiles). A country that
+// can't be guessed from the free-text import no longer blocks this — it
+// just goes in as null (Fer: "no importa si no está el país, que quede sin
+// valor, y cuando entren se lo pedimos junto con la técnica"); the only
+// remaining skip reason is a row with no image at all, which shouldn't
+// happen for anything reaching here through the gallery (it only lists
+// `promoted` rows that already have one — see legacyGalleryItems in
+// app/admin/obras/page.tsx), just defensive for a direct call.
 // Hiding (`isPublic: false`) a legacy id only matters if it's already
 // claimed; an unclaimed one was never public to begin with, nothing to do.
 export async function setSubmissionsVisibility(
@@ -194,11 +205,11 @@ export async function setSubmissionsVisibility(
       }
       if (!isPublic) continue // never published, nothing to hide
 
-      const countryCode = row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined
-      if (!row.image_url || !countryCode) {
+      if (!row.image_url) {
         skipped.push(row.id)
         continue
       }
+      const countryCode = row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined
 
       const { profileIds, skipped: rowSkipped } = await provisionLegacyProfiles([
         { id: row.id, email: row.email, name: row.name, imageUrl: row.image_url, countryCode },
@@ -218,42 +229,6 @@ export async function setSubmissionsVisibility(
   revalidatePath('/participantes')
 
   return { skipped }
-}
-
-// Per-item fallback for a legacy submission whose country couldn't be
-// guessed automatically (most of the imported "país" text didn't survive
-// the original spreadsheet cleanup — see the "Obras precargadas" copy on
-// the page) — an admin picks it by hand from the viewer instead.
-export async function publishLegacySubmissionWithCountry(formData: FormData) {
-  const id = String(formData.get('id') ?? '')
-  const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
-  if (!id || !countryCode) redirect('/admin/obras?error=missing_country')
-
-  const supabase = await createClient()
-  const { data: row, error: lookupError } = await supabase
-    .from('legacy_submissions')
-    .select('id, email, name, image_url, claimed_by')
-    .eq('id', id)
-    .maybeSingle()
-  if (lookupError || !row) redirect(`/admin/obras?error=${encodeURIComponent(lookupError?.message ?? 'not_found')}`)
-
-  let profileId = row.claimed_by
-  if (!profileId) {
-    if (!row.image_url) redirect('/admin/obras?error=missing_image')
-
-    const { profileIds, skipped } = await provisionLegacyProfiles([
-      { id: row.id, email: row.email, name: row.name, imageUrl: row.image_url, countryCode },
-    ])
-    if (skipped.length > 0 || profileIds.length === 0) redirect('/admin/obras?error=publish_failed')
-    profileId = profileIds[0]
-  }
-
-  await supabase.from('profiles').update({ is_public: true }).eq('id', profileId)
-
-  revalidatePath('/admin/obras')
-  revalidatePath('/')
-  revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
 }
 
 type ParsedLegacyLine = {
