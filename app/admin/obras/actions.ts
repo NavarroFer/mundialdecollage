@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
+import { normalizeArtistName } from '@/lib/name-format'
 import { ADMIN_EMAILS } from '@/lib/admin'
 
 // The service-role client bypasses RLS entirely, so any action that reaches
@@ -141,6 +142,15 @@ export async function importLegacySubmissions(formData: FormData) {
 // obras is "the" one that counts — /onboarding only ever prefills from a
 // `selected = true` row. Two sequential updates instead of one clever query:
 // this is low-volume admin-only traffic, not worth the complexity.
+//
+// `selected` alone used to also be what moved a row into the confirmed
+// gallery; promoteLegacySubmission below is now the separate, deliberate
+// second step for that (see supabase/migrations/20260921070000_legacy_
+// submissions_promoted.sql). A lone obra has nothing to decide between, so
+// it still promotes in this same click — the extra step only exists for
+// picking among several. Switching which candidate is selected in a
+// multi-obra group always resets promoted, so a previous promotion never
+// silently carries over to whichever candidate happens to be selected now.
 export async function selectLegacySubmission(formData: FormData) {
   const id = String(formData.get('id'))
 
@@ -154,17 +164,37 @@ export async function selectLegacySubmission(formData: FormData) {
     redirect(`/admin/obras?error=${encodeURIComponent(lookupError?.message ?? 'not_found')}`)
   }
 
+  const { count: siblingCount, error: countError } = await supabase
+    .from('legacy_submissions')
+    .select('id', { count: 'exact', head: true })
+    .eq('email', row.email)
+  if (countError) redirect(`/admin/obras?error=${encodeURIComponent(countError.message)}`)
+
   const { error: clearError } = await supabase
     .from('legacy_submissions')
-    .update({ selected: false })
+    .update({ selected: false, promoted: false })
     .eq('email', row.email)
   if (clearError) redirect(`/admin/obras?error=${encodeURIComponent(clearError.message)}`)
 
   const { error: selectError } = await supabase
     .from('legacy_submissions')
-    .update({ selected: true })
+    .update({ selected: true, promoted: siblingCount === 1 })
     .eq('id', id)
   if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
+
+  revalidatePath('/admin/obras')
+}
+
+// The deliberate second step: moves an already-selected candidate into the
+// confirmed gallery. Only meaningful for a multi-obra group — a lone obra
+// promotes automatically inside selectLegacySubmission above and this
+// button never renders for it.
+export async function promoteLegacySubmission(formData: FormData) {
+  const id = String(formData.get('id'))
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('legacy_submissions').update({ promoted: true }).eq('id', id)
+  if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
 
   revalidatePath('/admin/obras')
 }

@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { CircleAlert, CircleCheck, ExternalLink, ImageOff, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { ArrowUp, CircleAlert, CircleCheck, ExternalLink, ImageOff, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmissionsGallery } from '@/components/admin/submissions-gallery'
@@ -9,6 +9,7 @@ import {
   deleteArtwork,
   deleteLegacySubmission,
   importLegacySubmissions,
+  promoteLegacySubmission,
   retryLegacyImageFetch,
   selectArtwork,
   selectLegacySubmission,
@@ -92,7 +93,7 @@ export default async function ObrasPage({
   const { data: legacyData } = await supabase
     .from('legacy_submissions')
     .select(
-      'id, email, name, drive_url, country_raw, selected, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at',
+      'id, email, name, drive_url, country_raw, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at',
     )
     .order('email', { ascending: true })
     .order('created_at', { ascending: true })
@@ -111,20 +112,21 @@ export default async function ObrasPage({
   ).length
   const imagesFailedCount = legacyRows.filter((r) => r.image_fetch_failed_at).length
 
-  // Split for display: obras that already have a photo in our own storage
-  // get a visual gallery (same idea as the "real" SubmissionsGallery above),
-  // so an admin can actually eyeball what got synced instead of reading
-  // status badges. Everything still on/pending from Drive stays in the
-  // detailed per-artist list below, where the retry/select/delete actions
-  // live.
-  const legacyWithImage = legacyRows.filter((r) => r.image_url)
-  const legacyPending = legacyRows.filter((r) => !r.image_url)
-  const legacyPendingGroups = new Map<string, typeof legacyRows>()
-  for (const row of legacyPending) {
-    const list = legacyPendingGroups.get(row.email) ?? []
-    list.push(row)
-    legacyPendingGroups.set(row.email, list)
+  // Split for display, by `promoted` rather than by photo presence — see
+  // supabase/migrations/20260921070000_legacy_submissions_promoted.sql.
+  // `promoted` is the deliberate second step past `selected` for a
+  // multi-candidate artist (a lone obra promotes in the same click as
+  // selecting it), so once ANY row in an email's group is promoted, that
+  // artist's decision is final: the promoted row moves to the confirmed
+  // gallery and its rejected siblings drop out of the pending list entirely
+  // instead of lingering there with nothing left to do.
+  const promotedRows = legacyRows.filter((r) => r.promoted && r.image_url)
+  const unresolvedGroups = new Map<string, typeof legacyRows>()
+  for (const [email, rows] of legacyGroups) {
+    if (rows.some((r) => r.promoted)) continue
+    unresolvedGroups.set(email, rows)
   }
+  const unresolvedCount = [...unresolvedGroups.values()].reduce((n, rows) => n + rows.length, 0)
 
   return (
     <div>
@@ -217,7 +219,9 @@ export default async function ObrasPage({
           Obras que llegaron por mail antes de que existiera el registro con Google. Al
           importarlas acá, cuando esa persona se registre en el sitio ya va a encontrar sus
           datos cargados en el formulario de inscripción — pero solo la obra que marques como
-          &quot;Usar esta obra&quot; si mandó más de una.
+          &quot;Usar esta obra&quot; si mandó más de una. Si mandó una sola, queda confirmada
+          en el mismo click; si mandó varias, después de elegir hace falta un segundo click en
+          &quot;Subir&quot; para confirmarla.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-3">
@@ -225,6 +229,7 @@ export default async function ObrasPage({
           <StatPill label="Artistas" value={legacyGroups.size} />
           <StatPill label="Con varias obras" value={multiSubmissionCount} />
           <StatPill label="Elegidas" value={selectedCount} />
+          <StatPill label="Confirmadas" value={promotedRows.length} />
         </div>
 
         {imported && (
@@ -273,13 +278,11 @@ export default async function ObrasPage({
           <LegacyImageSync initialPending={imagesPendingCount} initialFailed={imagesFailedCount} />
         )}
 
-        {legacyWithImage.length > 0 && (
+        {promotedRows.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-sm font-semibold text-ink">
-              Con foto ya guardada en el sitio ({legacyWithImage.length})
-            </h3>
+            <h3 className="text-sm font-semibold text-ink">Obras confirmadas ({promotedRows.length})</h3>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {legacyWithImage.map((row) => (
+              {promotedRows.map((row) => (
                 <div key={row.id} className="text-left">
                   <div className="relative aspect-square overflow-hidden rounded-xl border-2 border-ink/10 bg-muted">
                     <Image
@@ -289,29 +292,16 @@ export default async function ObrasPage({
                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                       className="object-cover"
                     />
-                    {row.selected && (
-                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
-                        <CircleCheck className="h-3 w-3" />
-                        Elegida
-                      </span>
-                    )}
+                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
+                      <CircleCheck className="h-3 w-3" />
+                      Confirmada
+                    </span>
                   </div>
                   <p className="mt-1.5 truncate text-sm font-semibold text-ink">
                     {row.name ?? 'Sin nombre'}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">{row.email}</p>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <form action={selectLegacySubmission}>
-                      <input type="hidden" name="id" value={row.id} />
-                      <SubmitButton
-                        size="sm"
-                        variant={row.selected ? 'primary' : 'outline'}
-                        className="h-auto gap-1 px-2 py-1 text-[0.65rem]"
-                        pendingLabel="Guardando…"
-                      >
-                        {row.selected ? 'Elegida' : 'Usar esta obra'}
-                      </SubmitButton>
-                    </form>
+                  <div className="mt-1.5">
                     <form action={deleteLegacySubmission}>
                       <input type="hidden" name="id" value={row.id} />
                       <SubmitButton
@@ -336,13 +326,12 @@ export default async function ObrasPage({
               Todavía no importaste ninguna obra precargada.
             </p>
           )}
-          {legacyPendingGroups.size > 0 && (
-            <h3 className="text-sm font-semibold text-ink">
-              Aún no importadas de Drive ({legacyPending.length})
-            </h3>
+          {unresolvedGroups.size > 0 && (
+            <h3 className="text-sm font-semibold text-ink">Curación pendiente ({unresolvedCount})</h3>
           )}
-          {[...legacyPendingGroups.entries()].map(([email, rows]) => {
+          {[...unresolvedGroups.entries()].map(([email, rows]) => {
             const displayName = rows.find((r) => r.name)?.name ?? null
+            const selectedRow = rows.find((r) => r.selected)
             return (
               <div key={email} className="rounded-2xl border-2 border-ink/10 bg-card p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -352,7 +341,7 @@ export default async function ObrasPage({
                   </div>
                   {rows.length > 1 && (
                     <span className="rounded-full bg-collage-red/10 px-2.5 py-1 text-xs font-semibold text-collage-red">
-                      {rows.length} obras — {rows.some((r) => r.selected) ? 'elegida' : 'falta elegir'}
+                      {rows.length} obras — {selectedRow ? 'elegida, falta subir' : 'falta elegir'}
                     </span>
                   )}
                 </div>
@@ -363,7 +352,19 @@ export default async function ObrasPage({
                       key={row.id}
                       className="flex flex-wrap items-center justify-between gap-3 py-3"
                     >
-                      <div className="min-w-0">
+                      <div className="flex min-w-0 items-center gap-3">
+                        {row.image_url && (
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-ink/10 bg-muted">
+                            <Image
+                              src={row.image_url}
+                              alt={row.name ?? row.email}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="min-w-0">
                         <p className="truncate text-sm text-ink">
                           {row.name ?? 'Sin nombre'}
                           {row.country_raw && (
@@ -419,6 +420,7 @@ export default async function ObrasPage({
                             Reclamada
                           </span>
                         )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <form action={selectLegacySubmission}>
@@ -439,6 +441,15 @@ export default async function ObrasPage({
                             )}
                           </SubmitButton>
                         </form>
+                        {row.selected && !row.promoted && (
+                          <form action={promoteLegacySubmission}>
+                            <input type="hidden" name="id" value={row.id} />
+                            <SubmitButton size="sm" variant="primary" className="gap-1.5" pendingLabel="Subiendo…">
+                              <ArrowUp className="h-3.5 w-3.5" />
+                              Subir
+                            </SubmitButton>
+                          </form>
+                        )}
                         <form action={deleteLegacySubmission}>
                           <input type="hidden" name="id" value={row.id} />
                           <SubmitButton
