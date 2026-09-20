@@ -16,37 +16,8 @@ import {
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { setSubmissionsVisibility } from '@/app/admin/obras/actions'
-
-type Submission = {
-  id: string
-  name: string
-  // Missing for a `source: 'legacy'` row — legacy_submissions only has
-  // free-text country_raw (see supabase/migrations/20260919000000_legacy_
-  // submissions.sql), never a real ISO code, so there's nothing to flag or
-  // filter by for those.
-  countryCode?: string
-  technique?: string
-  artworkTitle?: string
-  imageUrl: string
-  // Only ever set for a `source: 'legacy'` row — the site-stored imageUrl is
-  // a resized copy (see lib/legacy-submissions.ts's storeLegacyArtworkGlobally),
-  // so this is how an admin gets back to the original file on Drive to judge
-  // it at full size.
-  driveUrl?: string
-  isPublic: boolean
-  // How many artwork rows this artist has total (see
-  // supabase/migrations/20260921040000_artworks.sql) — more than one means
-  // there's a resubmission waiting to be curated in the "Artistas con varias
-  // obras" section above this gallery.
-  artworkCount?: number
-  // 'legacy' = a confirmed supabase/migrations/20260921070000_legacy_
-  // submissions_promoted.sql row, shown here alongside real registrations so
-  // the admin sees everything received in one place, but it has no real
-  // `profiles` row yet (the artist hasn't logged in and claimed it) — so
-  // unlike a real submission it can't be select-toggled to "Participa"
-  // (setSubmissionsVisibility below only ever updates `profiles`).
-  source?: 'real' | 'legacy'
-}
+import { ObraViewer } from '@/components/admin/obra-viewer'
+import type { Submission } from '@/components/admin/submission-types'
 
 type Filter = 'all' | 'pending' | 'public'
 
@@ -66,6 +37,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
 
   // Only the countries actually represented — a full ISO-3166 dropdown would
   // be mostly empty options for a gallery of a few dozen submissions.
@@ -196,94 +168,101 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
         <p className="mt-10 text-center text-muted-foreground">No hay obras en esta categoría.</p>
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {visible.map((s) => {
+          {visible.map((s, i) => {
             const isLegacy = s.source === 'legacy'
             const isSelected = selected.has(s.id)
 
-            const card = (
-              <>
-                <div
-                  className={cn(
-                    'relative aspect-square overflow-hidden rounded-xl border-2 bg-muted',
-                    isSelected ? 'border-collage-blue' : 'border-ink/10',
-                  )}
+            return (
+              <div key={s.id} className="group relative text-left">
+                {/* Opens the detail viewer — a sibling of the selection checkbox and Drive
+                    link below, not their ancestor, so nothing needs stopPropagation. */}
+                <button
+                  type="button"
+                  onClick={() => setViewerIndex(i)}
+                  className="block w-full text-left"
+                  aria-label={`Ver ${s.name} en detalle`}
                 >
-                  <Image
-                    src={s.imageUrl}
-                    alt={s.artworkTitle ? `${s.artworkTitle}, de ${s.name}` : s.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                  <div
                     className={cn(
-                      'object-cover transition-opacity',
-                      isSelected && 'opacity-70',
+                      'relative aspect-square overflow-hidden rounded-xl border-2 bg-muted',
+                      isSelected ? 'border-collage-blue' : 'border-ink/10',
                     )}
-                  />
-
-                  {isSelected && <div className="absolute inset-0 bg-collage-blue/20" aria-hidden />}
-
-                  {!selectMode && s.artworkCount && s.artworkCount > 1 && (
-                    <span className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[0.65rem] font-bold text-ink shadow">
-                      +{s.artworkCount} obras
-                    </span>
-                  )}
-
-                  {selectMode && !isLegacy && (
-                    <span className="absolute top-2 right-2 rounded-full bg-white/90 p-0.5 shadow">
-                      {isSelected ? (
-                        <CircleCheck className="h-6 w-6 text-collage-blue" fill="white" />
-                      ) : (
-                        <Circle className="h-6 w-6 text-ink/40" />
+                  >
+                    <Image
+                      src={s.imageUrl}
+                      alt={s.artworkTitle ? `${s.artworkTitle}, de ${s.name}` : s.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                      className={cn(
+                        'object-cover transition-opacity',
+                        isSelected && 'opacity-70',
                       )}
-                    </span>
-                  )}
+                    />
 
-                  {isLegacy && s.driveUrl && (
-                    <a
-                      href={s.driveUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="Ver la foto original en Drive, en tamaño completo"
-                      className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.65rem] font-bold text-ink shadow hover:bg-white"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Drive
-                    </a>
-                  )}
+                    {isSelected && <div className="absolute inset-0 bg-collage-blue/20" aria-hidden />}
 
-                  {isLegacy ? (
-                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-[0.65rem] font-bold text-white">
-                      <CircleCheck className="h-3 w-3" />
-                      Precargada
-                    </span>
-                  ) : (
-                    s.isPublic && (
-                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
-                        <Megaphone className="h-3 w-3" />
-                        Participa
+                    {!selectMode && s.artworkCount && s.artworkCount > 1 && (
+                      <span className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[0.65rem] font-bold text-ink shadow">
+                        +{s.artworkCount} obras
                       </span>
-                    )
-                  )}
-                </div>
+                    )}
 
-                <p className="mt-1.5 truncate text-sm font-semibold text-ink">
-                  {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span>} {s.name}
-                </p>
-                {s.artworkTitle && <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>}
-              </>
-            )
+                    {isLegacy ? (
+                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-[0.65rem] font-bold text-white">
+                        <CircleCheck className="h-3 w-3" />
+                        Precargada
+                      </span>
+                    ) : (
+                      s.isPublic && (
+                        <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
+                          <Megaphone className="h-3 w-3" />
+                          Participa
+                        </span>
+                      )
+                    )}
+                  </div>
 
-            // A legacy row can't be select-toggled (see the Submission type's
-            // `source` comment), so it's a plain non-interactive container —
-            // a disabled <button> would also block clicks on the Drive <a>
-            // nested inside it.
-            return isLegacy ? (
-              <div key={s.id} className="text-left">
-                {card}
+                  <p className="mt-1.5 truncate text-sm font-semibold text-ink">
+                    {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span>} {s.name}
+                  </p>
+                  {s.artworkTitle && <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>}
+                </button>
+
+                {/* A legacy row has no `profiles` row yet (see the Submission type's
+                    `source` comment), so it can't be select-toggled for the bulk bar below. */}
+                {!isLegacy && (
+                  <button
+                    type="button"
+                    onClick={() => toggle(s.id)}
+                    aria-label={isSelected ? `Deseleccionar ${s.name}` : `Seleccionar ${s.name}`}
+                    className={cn(
+                      'absolute top-2 right-2 rounded-full bg-white/90 p-0.5 shadow transition-opacity',
+                      selectMode
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
+                    )}
+                  >
+                    {isSelected ? (
+                      <CircleCheck className="h-6 w-6 text-collage-blue" fill="white" />
+                    ) : (
+                      <Circle className="h-6 w-6 text-ink/40" />
+                    )}
+                  </button>
+                )}
+
+                {isLegacy && s.driveUrl && (
+                  <a
+                    href={s.driveUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Ver la foto original en Drive, en tamaño completo"
+                    className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.65rem] font-bold text-ink shadow hover:bg-white"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Drive
+                  </a>
+                )}
               </div>
-            ) : (
-              <button key={s.id} type="button" onClick={() => toggle(s.id)} className="group text-left">
-                {card}
-              </button>
             )
           })}
         </div>
@@ -318,6 +297,8 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
           </div>
         </div>
       )}
+
+      <ObraViewer items={visible} activeIndex={viewerIndex} onActiveIndexChange={setViewerIndex} />
     </div>
   )
 }

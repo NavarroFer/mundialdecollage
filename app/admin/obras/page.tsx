@@ -240,6 +240,11 @@ export default async function ObrasPage({
         artworkCount: rows.length,
         source: 'real' as const,
         onboardedAt: profile.onboarded_at ?? '',
+        artworkId: selected.id,
+        siblings:
+          rows.length > 1
+            ? rows.map((r) => ({ id: r.id, title: r.title, imageUrl: r.image_url, isSelected: r.is_selected }))
+            : undefined,
       }
     })
     .filter((s): s is NonNullable<typeof s> => s !== null)
@@ -312,18 +317,36 @@ export default async function ObrasPage({
   // rules out) gives one unified view; unresolvedGroups below is the only
   // thing that still needs its own section, since that's what's left to
   // actually decide.
-  const legacyGalleryItems = promotedRows.map((row) => ({
-    id: `legacy-${row.id}`,
-    name: row.name ?? 'Sin nombre',
-    // Best-effort only — country_raw is hand-salvaged free text, not a real
-    // ISO code (see guessCountryCodeFromName's comment), so this is left
-    // undefined rather than shown/filtered wrong when it doesn't match.
-    countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
-    imageUrl: row.image_url as string,
-    driveUrl: row.drive_url ?? undefined,
-    isPublic: false,
-    source: 'legacy' as const,
-  }))
+  const legacyGalleryItems = promotedRows.map((row) => {
+    const groupRows = legacyGroups.get(row.email) ?? [row]
+    return {
+      id: `legacy-${row.id}`,
+      name: row.name ?? 'Sin nombre',
+      // Best-effort only — country_raw is hand-salvaged free text, not a real
+      // ISO code (see guessCountryCodeFromName's comment), so this is left
+      // undefined rather than shown/filtered wrong when it doesn't match.
+      countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
+      imageUrl: row.image_url as string,
+      driveUrl: row.drive_url ?? undefined,
+      isPublic: false,
+      source: 'legacy' as const,
+      legacyId: row.id,
+      email: row.email,
+      imageFetchFailedAt: row.image_fetch_failed_at,
+      legacySiblings:
+        groupRows.length > 1
+          ? groupRows.map((r) => ({
+              id: r.id,
+              name: r.name,
+              imageUrl: r.image_url,
+              driveUrl: r.drive_url,
+              selected: r.selected,
+              promoted: r.promoted,
+              imageFetchFailedAt: r.image_fetch_failed_at,
+            }))
+          : undefined,
+    }
+  })
   const submissions = [...realSubmissions, ...legacyGalleryItems]
 
   // "Limpieza de nombres" (ROADMAP.md item 5) — every artist name that would
