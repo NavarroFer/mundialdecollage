@@ -397,3 +397,51 @@ export async function deleteArtwork(formData: FormData) {
   revalidatePath('/edicion-2026')
   revalidatePath('/participantes')
 }
+
+// Applies the "limpieza de nombres" cleanup an admin approved in
+// components/admin/name-cleanup.tsx (see the "Limpieza de nombres" section
+// of /admin/obras). Only ever takes {table, id} pairs from the client, never
+// the proposed new name itself — the normalized value is recomputed here
+// from whatever is actually in the row right now, so a stale preview (e.g.
+// someone else edited the name in between) can't overwrite it with the
+// wrong text, and re-running this on an already-clean name is a harmless
+// no-op either way.
+export async function applyNameCleanup(items: { table: 'profiles' | 'legacy_submissions'; id: string }[]) {
+  if (items.length === 0) return
+
+  const supabase = await createClient()
+  const profileIds = items.filter((item) => item.table === 'profiles').map((item) => item.id)
+  const legacyIds = items.filter((item) => item.table === 'legacy_submissions').map((item) => item.id)
+
+  await Promise.all([
+    (async () => {
+      if (profileIds.length === 0) return
+      const { data: rows } = await supabase.from('profiles').select('id, name').in('id', profileIds)
+      await Promise.all(
+        (rows ?? []).map((row) => {
+          if (!row.name) return null
+          const normalized = normalizeArtistName(row.name)
+          if (normalized === row.name) return null
+          return supabase.from('profiles').update({ name: normalized }).eq('id', row.id)
+        }),
+      )
+    })(),
+    (async () => {
+      if (legacyIds.length === 0) return
+      const { data: rows } = await supabase.from('legacy_submissions').select('id, name').in('id', legacyIds)
+      await Promise.all(
+        (rows ?? []).map((row) => {
+          if (!row.name) return null
+          const normalized = normalizeArtistName(row.name)
+          if (normalized === row.name) return null
+          return supabase.from('legacy_submissions').update({ name: normalized }).eq('id', row.id)
+        }),
+      )
+    })(),
+  ])
+
+  revalidatePath('/admin/obras')
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
+}

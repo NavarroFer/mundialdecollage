@@ -5,6 +5,8 @@ import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmissionsGallery } from '@/components/admin/submissions-gallery'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { LegacyImageSync } from '@/components/admin/legacy-image-sync'
+import { NameCleanup, type NameCleanupItem } from '@/components/admin/name-cleanup'
+import { normalizeArtistName } from '@/lib/name-format'
 import {
   deleteArtwork,
   deleteLegacySubmission,
@@ -128,6 +130,29 @@ export default async function ObrasPage({
   }
   const unresolvedCount = [...unresolvedGroups.values()].reduce((n, rows) => n + rows.length, 0)
 
+  // "Limpieza de nombres" (ROADMAP.md item 5) — every artist name that would
+  // change under normalizeArtistName(), across both real registrations and
+  // the legacy backlog. Queried directly against `profiles` rather than
+  // reused from artworksByProfile above: a profile can in principle exist
+  // without an artwork row yet (e.g. onboarding failed partway through), and
+  // its name is still worth cleaning up.
+  const { data: allProfiles } = await supabase.from('profiles').select('id, name')
+  const nameCleanupItems: NameCleanupItem[] = []
+  for (const profile of allProfiles ?? []) {
+    if (!profile.name) continue
+    const after = normalizeArtistName(profile.name)
+    if (after !== profile.name) {
+      nameCleanupItems.push({ table: 'profiles', id: profile.id, before: profile.name, after })
+    }
+  }
+  for (const row of legacyRows) {
+    if (!row.name) continue
+    const after = normalizeArtistName(row.name)
+    if (after !== row.name) {
+      nameCleanupItems.push({ table: 'legacy_submissions', id: row.id, before: row.name, after })
+    }
+  }
+
   return (
     <div>
       <AdminPageHeader eyebrow="Convocatoria" title="Obras" />
@@ -141,6 +166,20 @@ export default async function ObrasPage({
       <div className="mt-8">
         <SubmissionsGallery submissions={submissions} />
       </div>
+
+      {nameCleanupItems.length > 0 && (
+        <div className="mt-14">
+          <AdminPageHeader eyebrow="Curación" title="Limpieza de nombres" />
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Nombres cargados en cualquier combinación de mayúsculas/minúsculas —
+            &quot;Registrado&quot; es lo que el artista escribió en /onboarding, &quot;Precargado&quot;
+            viene del backlog pegado a mano en el import de abajo.
+          </p>
+          <div className="mt-6">
+            <NameCleanup items={nameCleanupItems} />
+          </div>
+        </div>
+      )}
 
       {multiArtworkGroups.length > 0 && (
         <div className="mt-14">
