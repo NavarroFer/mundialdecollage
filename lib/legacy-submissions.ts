@@ -44,6 +44,67 @@ export async function optimizeImage(input: Buffer): Promise<Buffer | null> {
   }
 }
 
+// A plain server-side fetch with no User-Agent reads as a bot to Drive and
+// can get an HTML interstitial back instead of the file even when a normal
+// browser wouldn't — every request below goes through this.
+function fetchFromDrive(url: string): Promise<Response> {
+  return fetch(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+    },
+  })
+}
+
+// Files too large for Drive to virus-scan come back as an HTML "download
+// anyway?" page instead of the file, with a hidden form carrying a `confirm`
+// token. Pulls every hidden input out of that form and replays them against
+// whichever action URL the page itself points to (Drive has moved this
+// between drive.google.com and drive.usercontent.google.com over time, so
+// trusting the page's own action avoids hardcoding either).
+function extractConfirmDownloadUrl(html: string, fileId: string): string | null {
+  const actionMatch = html.match(/<form[^>]*action="([^"]+)"/)
+  const action = actionMatch
+    ? actionMatch[1].replace(/&amp;/g, '&')
+    : 'https://drive.usercontent.google.com/download'
+
+  const params = new URLSearchParams()
+  for (const [, name, value] of html.matchAll(/<input[^>]*name="([^"]+)"[^>]*value="([^"]*)"/g)) {
+    params.set(name, value)
+  }
+  if (!params.has('confirm')) return null
+  if (!params.has('id')) params.set('id', fileId)
+
+  return `${action}?${params.toString()}`
+}
+
+// One attempt at turning a Drive URL into image bytes: follows the
+// virus-scan confirmation page when Drive serves one, then checks whatever
+// it lands on is actually an image before returning it. Returns null (never
+// throws) for anything that isn't a usable image, so callers can fall back
+// to another URL.
+async function tryDownloadImage(url: string, fileId: string): Promise<Buffer | null> {
+  let response = await fetchFromDrive(url)
+  if (!response.ok) return null
+
+  let contentType = response.headers.get('content-type')?.split(';')[0].trim() ?? ''
+  if (contentType === 'text/html') {
+    const confirmUrl = extractConfirmDownloadUrl(await response.text(), fileId)
+    if (!confirmUrl) return null
+    response = await fetchFromDrive(confirmUrl)
+    if (!response.ok) return null
+    contentType = response.headers.get('content-type')?.split(';')[0].trim() ?? ''
+  }
+  if (!ALLOWED_IMAGE_TYPES.has(contentType)) return null
+
+  const contentLength = Number(response.headers.get('content-length') ?? '0')
+  if (contentLength > MAX_FETCH_BYTES) return null
+
+  const rawBuffer = Buffer.from(await response.arrayBuffer())
+  if (rawBuffer.byteLength === 0 || rawBuffer.byteLength > MAX_FETCH_BYTES) return null
+  return rawBuffer
+}
+
 // Downloads a submission's Drive photo and returns it resized/recompressed,
 // ready to upload — or null for any failure (private file, non-image
 // response, network error, corrupt data). Shared by both storage paths
@@ -55,17 +116,16 @@ async function fetchOptimizedDriveImage(driveUrl: string | null): Promise<Buffer
   if (!fileId) return null
 
   try {
-    const response = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`)
-    if (!response.ok) return null
-
-    const contentType = response.headers.get('content-type')?.split(';')[0].trim() ?? ''
-    if (!ALLOWED_IMAGE_TYPES.has(contentType)) return null
-
-    const contentLength = Number(response.headers.get('content-length') ?? '0')
-    if (contentLength > MAX_FETCH_BYTES) return null
-
-    const rawBuffer = Buffer.from(await response.arrayBuffer())
-    if (rawBuffer.byteLength === 0 || rawBuffer.byteLength > MAX_FETCH_BYTES) return null
+    // The direct-download endpoint fails for files the owner marked
+    // "viewers can't download/copy" — the file is still visible, just not
+    // downloadable that way. The thumbnail endpoint renders a preview
+    // instead of transferring the original bytes, which Drive allows even
+    // under that restriction, so it's tried as a fallback rather than the
+    // primary path (it re-encodes and may crop/cap resolution).
+    const rawBuffer =
+      (await tryDownloadImage(`https://drive.google.com/uc?export=download&id=${fileId}`, fileId)) ??
+      (await tryDownloadImage(`https://drive.google.com/thumbnail?id=${fileId}&sz=w2000`, fileId))
+    if (!rawBuffer) return null
 
     // Heavy submission photos (uncompressed phone shots, scans) get resized
     // and re-compressed here instead of being uploaded as-is — keeps
