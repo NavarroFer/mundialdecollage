@@ -41,14 +41,20 @@ export function InteractionManager() {
   })
 
   // Rising edge only — holding E must not reopen/spam the modal every frame.
+  // E also closes an open modal: ESC always exits Pointer Lock too (the
+  // browser reserves that, no way around it), so E is the way to close a
+  // piece and keep walking without dropping back to the pause screen.
   useEffect(() => {
     return subscribeKeys(
       (state) => state.interact,
       (pressed) => {
         if (!pressed) return
         const { targetId, openId } = useInteractionStore.getState()
-        if (openId || !targetId) return
-        useInteractionStore.getState().open(targetId)
+        if (openId) {
+          useInteractionStore.getState().close()
+          return
+        }
+        if (targetId) useInteractionStore.getState().open(targetId)
       },
     )
   }, [subscribeKeys])

@@ -29,7 +29,7 @@ export function ArtworkModal() {
           </p>
           <p className="text-base text-ink/80">{artwork.description}</p>
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            ESC para volver a recorrer
+            E para cerrar · ESC para salir de la exposición
           </p>
         </div>
       </div>
