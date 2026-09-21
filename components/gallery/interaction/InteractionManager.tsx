@@ -48,13 +48,7 @@ export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
     return subscribeKeys(
       (state) => state.interact,
       (pressed) => {
-        if (!pressed) return
-        const { targetId, openId } = useInteractionStore.getState()
-        if (openId) {
-          useInteractionStore.getState().close()
-          return
-        }
-        if (targetId) useInteractionStore.getState().open(targetId)
+        if (pressed) useInteractionStore.getState().toggle()
       },
     )
   }, [subscribeKeys])

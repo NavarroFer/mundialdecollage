@@ -8,6 +8,8 @@ type InteractionState = {
   setTarget: (id: string | null) => void
   open: (id: string) => void
   close: () => void
+  /** Open the current target, or close whatever's open — shared by the E key and the mobile interact button. */
+  toggle: () => void
 }
 
 export const useInteractionStore = create<InteractionState>((set, get) => ({
@@ -18,4 +20,12 @@ export const useInteractionStore = create<InteractionState>((set, get) => ({
   },
   open: (id) => set({ openId: id }),
   close: () => set({ openId: null }),
+  toggle: () => {
+    const { targetId, openId } = get()
+    if (openId) {
+      set({ openId: null })
+      return
+    }
+    if (targetId) set({ openId: targetId })
+  },
 }))

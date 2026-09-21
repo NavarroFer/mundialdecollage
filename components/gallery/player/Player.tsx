@@ -6,6 +6,7 @@ import { PerspectiveCamera, useKeyboardControls } from '@react-three/drei'
 import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { useInteractionStore } from '../interaction/store'
+import { useTouchStore } from '../mobile/touchStore'
 import type { Controls } from './controls'
 
 const WALK_SPEED = 2.6
@@ -38,20 +39,39 @@ export function Player({ active }: { active: boolean }) {
     }
 
     const { forward: goForward, backward, left, right: goRight, run } = getKeys()
+    const touch = useTouchStore.getState()
+    const touchActive = touch.moveX !== 0 || touch.moveZ !== 0
 
     camera.getWorldDirection(forward.current)
     forward.current.y = 0
     forward.current.normalize()
     right.current.crossVectors(forward.current, UP).normalize()
 
-    moveDirection.current.set(0, 0, 0)
-    if (goForward) moveDirection.current.add(forward.current)
-    if (backward) moveDirection.current.sub(forward.current)
-    if (goRight) moveDirection.current.add(right.current)
-    if (left) moveDirection.current.sub(right.current)
-    if (moveDirection.current.lengthSq() > 0) moveDirection.current.normalize()
+    let inputX: number
+    let inputZ: number
+    if (touchActive) {
+      inputX = touch.moveX
+      inputZ = touch.moveZ
+    } else {
+      inputX = (goRight ? 1 : 0) - (left ? 1 : 0)
+      inputZ = (goForward ? 1 : 0) - (backward ? 1 : 0)
+    }
 
-    const speed = run ? RUN_SPEED : WALK_SPEED
+    moveDirection.current.set(0, 0, 0)
+    moveDirection.current.addScaledVector(forward.current, inputZ)
+    moveDirection.current.addScaledVector(right.current, inputX)
+    // Diagonal keyboard input (length √2) still normalizes to 1 like before;
+    // an analog joystick pushed only halfway keeps its own smaller magnitude.
+    if (moveDirection.current.lengthSq() > 1) moveDirection.current.normalize()
+
+    // The joystick's push distance doubles as a run trigger — no separate
+    // mobile run control needed, same as pushing a stick further in a
+    // console FPS.
+    const speed = touchActive
+      ? THREE.MathUtils.lerp(WALK_SPEED, RUN_SPEED, Math.min(moveDirection.current.length(), 1))
+      : run
+        ? RUN_SPEED
+        : WALK_SPEED
     const velocity = body.linvel()
     body.setLinvel(
       { x: moveDirection.current.x * speed, y: velocity.y, z: moveDirection.current.z * speed },
