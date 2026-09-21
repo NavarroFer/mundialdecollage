@@ -10,8 +10,9 @@ import { getFinalists } from '@/lib/finalists'
 // as submissions come in. /participantes has search/filter for the full list.
 const HOMEPAGE_LIMIT = 40
 
-// Keep the collage compact; the full participant list is linked below.
-const COLLAGE_LIMIT = 10
+// A generous cap keeps the homepage feeling like a growing table of artwork
+// without letting the DOM grow forever as the convocatoria expands.
+const COLLAGE_LIMIT = 30
 
 export async function ParticipantsSection() {
   const [participants, finalists] = await Promise.all([

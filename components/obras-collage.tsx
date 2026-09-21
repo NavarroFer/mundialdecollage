@@ -1,23 +1,28 @@
 import Link from 'next/link'
+import type { CSSProperties } from 'react'
 import type { Finalist } from '@/lib/finalists'
 import './obras-collage.css'
 
 export function ObrasCollage({ finalists }: { finalists: Finalist[] }) {
   return (
     <div className="obras-collage">
-      <p className="mb-6 text-center text-sm text-muted-foreground">
-        Un mundo de recortes. Tocá una obra para descubrirla.
+      <p className="obras-collage__hint text-center text-sm text-muted-foreground">
+        <span className="obras-collage__hint-desktop">Rozá una punta: esa obra sube al frente.</span>
+        <span className="obras-collage__hint-touch">Tocá una obra para descubrirla.</span>
       </p>
       <ul className="obras-collage__stage" aria-label="Obras participantes">
-        {finalists.map((artwork) => (
-          <li key={artwork.slug} className="obras-collage__item">
+        {finalists.map((artwork, index) => (
+          <li
+            key={artwork.slug}
+            className="obras-collage__item"
+            style={{ '--stack-order': index + 1 } as CSSProperties}
+          >
             <Link
               href={`/obras/${artwork.slug}`}
               className="obras-collage__window"
               aria-label={`${artwork.artworkTitle}, de ${artwork.name}. Ver obra`}
             >
               <span className="obras-collage__bar" aria-hidden="true">
-                <i /><i /><i />
                 <span>{artwork.name}</span>
                 <span className="obras-collage__arrow">↗</span>
               </span>
