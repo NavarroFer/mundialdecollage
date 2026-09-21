@@ -28,14 +28,26 @@ export function JurySection() {
         <FadeIn direction="left" delay={150}>
           <div className="ml-auto w-full max-w-sm rounded-2xl border-2 border-primary-foreground/20 bg-primary-foreground/10 p-8 text-center backdrop-blur-sm">
             <Sparkles className="mx-auto h-8 w-8 text-collage-yellow" strokeWidth={1.5} />
-            <p className="font-display mt-4 text-2xl tracking-wide uppercase">
-              Premios
-              <br />
-              por anunciar
-            </p>
-            <p className="mt-3 text-sm text-primary-foreground/70">
-              Los premios se revelan durante la convocatoria. Estate atento.
-            </p>
+            <p className="font-display mt-4 text-2xl tracking-wide uppercase">Premios</p>
+            <div className="mt-5 space-y-4 text-left">
+              <div>
+                <p className="font-display text-lg tracking-wide text-collage-yellow uppercase">
+                  Gran Muestra Online
+                </p>
+                <p className="mt-1 text-sm text-primary-foreground/70">
+                  Todas las obras seleccionadas por el jurado forman parte de la muestra oficial.
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-lg tracking-wide text-collage-yellow uppercase">
+                  Revista — 1ª edición de Collage
+                </p>
+                <p className="mt-1 text-sm text-primary-foreground/70">
+                  Las mejores 30 obras se publican en la primera edición de la revista del Mundial
+                  de Collage.
+                </p>
+              </div>
+            </div>
           </div>
         </FadeIn>
       </div>

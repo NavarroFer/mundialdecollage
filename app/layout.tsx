@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: `${site.name} — Convocatoria abierta`,
   description:
-    'Convocatoria abierta al Mundial Internacional de Collage. Enviá tu obra original hasta el 15 de noviembre. Jurado internacional, premios por anunciar.',
+    'Convocatoria abierta al Mundial Internacional de Collage. Enviá tu obra original hasta el 15 de noviembre. Jurado internacional, Gran Muestra Online y Revista 1ª Edición de Collage.',
   openGraph: {
     title: `${site.name} — Convocatoria abierta`,
     description:

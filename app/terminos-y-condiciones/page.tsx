@@ -83,8 +83,8 @@ export default function TerminosYCondicionesPage() {
               </li>
               <li>
                 Premios y reconocimiento: Gran Muestra Online Oficial para las obras
-                seleccionadas, y publicación en una edición impresa/editorial especial
-                para las 30 obras finalistas.
+                seleccionadas, y publicación en la Revista 1ª Edición de Collage para las
+                30 obras finalistas.
               </li>
             </ul>
             <p>

@@ -75,7 +75,7 @@ export function HeroSection() {
         <FadeIn delay={200}>
           <p className="mx-auto mt-7 max-w-xl text-lg text-muted-foreground sm:text-xl">
             El Mundial ya está sucediendo y queremos que tu obra sea parte. Jurado
-            internacional, premios por anunciar.
+            internacional, Gran Muestra Online y Revista 1ª Edición de Collage.
           </p>
         </FadeIn>
 
