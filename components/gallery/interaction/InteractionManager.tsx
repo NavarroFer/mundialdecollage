@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useKeyboardControls } from '@react-three/drei'
 import * as THREE from 'three'
-import { artworks } from '@/data/artworks'
+import type { Artwork } from '@/data/artworks'
 import type { Controls } from '../player/controls'
 import { useInteractionStore } from './store'
 
@@ -16,7 +16,7 @@ const cameraPosition = new THREE.Vector3()
 const cameraForward = new THREE.Vector3()
 const toArtwork = new THREE.Vector3()
 
-export function InteractionManager() {
+export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
   const camera = useThree((state) => state.camera)
   const subscribeKeys = useKeyboardControls<Controls>()[0]
 

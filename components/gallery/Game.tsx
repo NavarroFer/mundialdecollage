@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
+import type { Artwork } from '@/data/artworks'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
 import { InteractionManager } from './interaction/InteractionManager'
 import { PlayerTracker } from './minimap/PlayerTracker'
@@ -15,7 +16,7 @@ import { Minimap } from './ui/Minimap'
 import { StartScreen } from './ui/StartScreen'
 import { World } from './world/World'
 
-export function Game() {
+export function Game({ artworks }: { artworks: Artwork[] }) {
   const [locked, setLocked] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
 
@@ -31,7 +32,7 @@ export function Game() {
           className="bg-[#e9e6dd]"
         >
           <Physics>
-            <World />
+            <World artworks={artworks} />
             <Player active={locked} />
           </Physics>
           <FirstPersonCamera
@@ -39,13 +40,13 @@ export function Game() {
             onLock={() => setLocked(true)}
             onUnlock={() => setLocked(false)}
           />
-          <InteractionManager />
+          <InteractionManager artworks={artworks} />
           <PlayerTracker />
         </Canvas>
       </KeyboardControls>
       <Minimap />
       <InteractionPrompt />
-      <ArtworkModal />
+      <ArtworkModal artworks={artworks} />
       {!locked && (
         <StartScreen
           label={hasStarted ? 'Click para continuar' : 'ENTRAR A LA EXPOSICIÓN'}

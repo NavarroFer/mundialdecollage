@@ -1,10 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import { artworks } from '@/data/artworks'
+import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
 
-export function ArtworkModal() {
+export function ArtworkModal({ artworks }: { artworks: Artwork[] }) {
   const openId = useInteractionStore((state) => state.openId)
   const artwork = artworks.find((item) => item.id === openId)
 

@@ -12,109 +12,63 @@ export type Artwork = {
   height: number
 }
 
-export const artworks: Artwork[] = [
-  {
-    id: 'obra-01',
-    title: 'Recortes de domingo',
-    artist: 'Juana Ibarra',
-    year: 2025,
-    image: '/artworks/obra-01.webp',
-    description: 'Fragmentos de diarios y revistas de los noventa, recompuestos en una escena doméstica imposible.',
-    roomId: 'room-01',
-    position: [-15.5, 1.8, -4.9],
-    rotation: [0, 0, 0],
-    width: 2.4,
-    height: 1.6,
-  },
-  {
-    id: 'obra-02',
-    title: 'Mapa imposible',
-    artist: 'Tomás Ferreyra',
-    year: 2026,
-    image: '/artworks/obra-02.webp',
-    description: 'Un atlas recortado y vuelto a unir sin respetar fronteras ni escalas.',
-    roomId: 'room-01',
-    position: [-8.5, 1.9, -4.9],
-    rotation: [0, 0, 0],
-    width: 1.4,
-    height: 2.0,
-  },
-  {
-    id: 'obra-03',
-    title: 'Retrato con ruido',
-    artist: 'Camila Suárez',
-    year: 2025,
-    image: '/artworks/obra-03.webp',
-    description: 'Un rostro construido a partir de capas de papel encontrado y estática de televisión analógica.',
-    roomId: 'room-01',
-    position: [-12, 1.8, 4.9],
-    rotation: [0, Math.PI, 0],
-    width: 1.8,
-    height: 1.8,
-  },
-  {
-    id: 'obra-04',
-    title: 'Domingo eléctrico',
-    artist: 'Bruno Acosta',
-    year: 2026,
-    image: '/artworks/obra-04.webp',
-    description: 'Cables, enchufes y facturas de luz recortados en homenaje al living familiar.',
-    roomId: 'room-02',
-    position: [0, 1.8, -4.9],
-    rotation: [0, 0, 0],
-    width: 2.0,
-    height: 1.3,
-  },
-  {
-    id: 'obra-05',
-    title: 'Herbario urbano',
-    artist: 'Delfina Rojas',
-    year: 2025,
-    image: '/artworks/obra-05.webp',
-    description: 'Hojas prensadas junto a recortes de cemento y asfalto fotografiado.',
-    roomId: 'room-02',
-    position: [0, 1.9, 4.9],
-    rotation: [0, Math.PI, 0],
-    width: 1.5,
-    height: 2.1,
-  },
-  {
-    id: 'obra-06',
-    title: 'Mundial de bolsillo',
-    artist: 'Nicolás Peralta',
-    year: 2026,
-    image: '/artworks/obra-06.webp',
-    description: 'Figuritas incompletas de un álbum mundialista, reorganizadas en un nuevo seleccionado.',
-    roomId: 'room-03',
-    position: [9.5, 1.75, -4.9],
-    rotation: [0, 0, 0],
-    width: 2.6,
-    height: 1.5,
-  },
-  {
-    id: 'obra-07',
-    title: 'Postal sin destino',
-    artist: 'Ana Belén Correa',
-    year: 2025,
-    image: '/artworks/obra-07.webp',
-    description: 'Estampillas y sobres viejos superpuestos sobre una postal nunca enviada.',
-    roomId: 'room-03',
-    position: [9.5, 1.9, 4.9],
-    rotation: [0, Math.PI, 0],
-    width: 1.3,
-    height: 1.9,
-  },
-  {
-    id: 'obra-08',
-    title: 'Fin de fiesta',
-    artist: 'Lautaro Méndez',
-    year: 2026,
-    image: '/artworks/obra-08.webp',
-    description: 'Serpentinas, entradas y servilletas de un cumpleaños compuestas como paisaje.',
-    roomId: 'room-03',
-    position: [15.5, 1.8, 4.9],
-    rotation: [0, Math.PI, 0],
-    width: 1.9,
-    height: 1.9,
-  },
+/** Where an obra can hang — content-agnostic, filled in from real data at request time. */
+export type GallerySlot = {
+  roomId: string
+  position: [number, number, number]
+  rotation: [number, number, number]
+  width: number
+  height: number
+}
+
+const NORTH_Z = -4.9
+const SOUTH_Z = 4.9
+const NORTH_ROTATION: [number, number, number] = [0, 0, 0]
+const SOUTH_ROTATION: [number, number, number] = [0, Math.PI, 0]
+
+// Cycled per slot so neighboring pieces don't all read the same size —
+// the real image still keeps its own aspect ratio inside this box (see
+// Artwork.tsx's contain-fit).
+const SIZE_PRESETS: Array<[number, number]> = [
+  [2.2, 1.5],
+  [1.5, 2.1],
+  [1.9, 1.9],
+]
+
+function wallSlots(
+  roomId: string,
+  xFrom: number,
+  xTo: number,
+  z: number,
+  rotation: [number, number, number],
+  count: number,
+  presetOffset: number,
+): GallerySlot[] {
+  const margin = 1.6
+  const usableFrom = xFrom + margin
+  const usableTo = xTo - margin
+  const step = count > 1 ? (usableTo - usableFrom) / (count - 1) : 0
+  const baseY = 1.85
+
+  return Array.from({ length: count }, (_, i) => {
+    const x = count > 1 ? usableFrom + step * i : (xFrom + xTo) / 2
+    const [width, height] = SIZE_PRESETS[(presetOffset + i) % SIZE_PRESETS.length]
+    return {
+      roomId,
+      position: [x, baseY, z],
+      rotation,
+      width,
+      height,
+    }
+  })
+}
+
+// 15 wall spots spread across the 6 long walls (3 rooms x north/south).
+export const gallerySlots: GallerySlot[] = [
+  ...wallSlots('room-01', -18, -6, NORTH_Z, NORTH_ROTATION, 3, 0),
+  ...wallSlots('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 2, 1),
+  ...wallSlots('room-02', -6, 6, NORTH_Z, NORTH_ROTATION, 2, 2),
+  ...wallSlots('room-02', -6, 6, SOUTH_Z, SOUTH_ROTATION, 3, 0),
+  ...wallSlots('room-03', 6, 18, NORTH_Z, NORTH_ROTATION, 2, 1),
+  ...wallSlots('room-03', 6, 18, SOUTH_Z, SOUTH_ROTATION, 3, 2),
 ]

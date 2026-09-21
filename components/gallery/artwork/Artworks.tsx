@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
-import { artworks } from '@/data/artworks'
+import type { Artwork as ArtworkData } from '@/data/artworks'
 import { Artwork } from './Artwork'
 
-export function Artworks() {
+export function Artworks({ artworks }: { artworks: ArtworkData[] }) {
   return (
     <Suspense fallback={null}>
       {artworks.map((data) => (
