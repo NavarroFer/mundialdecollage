@@ -49,6 +49,7 @@ export async function optimizeImage(input: Buffer): Promise<Buffer | null> {
 // browser wouldn't — every request below goes through this.
 function fetchFromDrive(url: string): Promise<Response> {
   return fetch(url, {
+    signal: AbortSignal.timeout(30_000),
     headers: {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',

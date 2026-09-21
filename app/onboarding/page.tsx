@@ -49,6 +49,7 @@ export default async function OnboardingPage({
       .from('legacy_submissions')
       .select('id, name, country_raw, drive_url, image_path, image_url')
       .eq('email', email)
+      .is('archived_at', null)
       .is('claimed_by', null)
       .eq('selected', true)
       .maybeSingle()

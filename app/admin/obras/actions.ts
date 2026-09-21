@@ -453,6 +453,7 @@ export async function fetchLegacyImagesBatch(): Promise<{
   const { data: rows, error: selectError } = await admin
     .from('legacy_submissions')
     .select('id, drive_url')
+    .is('archived_at', null)
     .is('image_url', null)
     .is('image_fetch_failed_at', null)
     .not('drive_url', 'is', null)
@@ -501,12 +502,14 @@ export async function fetchLegacyImagesBatch(): Promise<{
       admin
         .from('legacy_submissions')
         .select('id', { count: 'exact', head: true })
+        .is('archived_at', null)
         .is('image_url', null)
         .is('image_fetch_failed_at', null)
         .not('drive_url', 'is', null),
       admin
         .from('legacy_submissions')
         .select('id', { count: 'exact', head: true })
+        .is('archived_at', null)
         .not('image_fetch_failed_at', 'is', null),
     ])
   if (pendingError) console.error('fetchLegacyImagesBatch: failed to count pending', pendingError)

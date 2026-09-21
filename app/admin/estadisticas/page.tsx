@@ -6,7 +6,7 @@ export default function EstadisticasPage() {
     <div>
       <AdminPageHeader eyebrow="Convocatoria" title="Estadísticas" />
       <div className="mt-6 flex flex-wrap gap-3">
-        <StatPill label="Artistas · 21/9" value={stats.totalArtists} />
+        <StatPill label="Artistas · Registro" value={stats.totalArtists} />
       </div>
       <section className="mt-10 max-w-2xl">
         <h2 className="font-display text-xl tracking-tight text-ink uppercase">Artistas por país</h2>
@@ -15,8 +15,8 @@ export default function EstadisticasPage() {
           <a href={stats.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">
             {stats.sheet}
           </a>
-          . Cada artista cuenta una vez, aunque haya enviado varias obras.
-          Las inscripciones de la web fuera de esta hoja no se incluyen.
+          . Cada artista cuenta una vez por email, aunque haya enviado varias obras. El país se toma del
+          corte curado «21/9» y sólo se cuentan artistas que siguen en Registro.
         </p>
         <table className="mt-6 w-full text-sm">
           <thead>

@@ -204,6 +204,7 @@ export default async function ObrasPage({
 }) {
   const { error, imported } = await searchParams
   const supabase = await createClient()
+  const { data: receivedCount } = await supabase.rpc('get_total_submissions_count')
 
   // One row per artwork, grouped by profile below — a profile can now have
   // more than one (see supabase/migrations/20260921040000_artworks.sql),
@@ -213,6 +214,7 @@ export default async function ObrasPage({
     .select(
       'id, profile_id, slug, title, image_url, technique, is_selected, profiles!inner(name, country_code, is_public, onboarded_at)',
     )
+    .is('archived_at', null)
     .order('created_at', { ascending: true })
 
   const artworksByProfile = new Map<string, ArtworkRow[]>()
@@ -265,6 +267,7 @@ export default async function ObrasPage({
     .select(
       'id, email, name, drive_url, country_raw, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at',
     )
+    .is('archived_at', null)
     .order('email', { ascending: true })
     .order('created_at', { ascending: true })
 
@@ -451,7 +454,7 @@ export default async function ObrasPage({
       )}
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <StatPill label="Recibidas" value={submissions.length} />
+        <StatPill label="Recibidas" value={typeof receivedCount === 'number' ? receivedCount : submissions.length} />
         <StatPill label="Publicadas" value={publicCount} />
         <StatPill label="Pendientes" value={submissions.length - publicCount} />
       </div>
