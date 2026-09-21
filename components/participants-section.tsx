@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { FadeIn } from '@/components/fade-in'
-import { ObrasCarousel } from '@/components/obras-carousel'
+import { ObrasCollage } from '@/components/obras-collage'
 import { countryCodeToFlag, getParticipants } from '@/lib/participants'
 import { getFinalists } from '@/lib/finalists'
 
@@ -8,18 +8,15 @@ import { getFinalists } from '@/lib/finalists'
 // as submissions come in. /participantes has search/filter for the full list.
 const HOMEPAGE_LIMIT = 40
 
-// The depth carousel needs the actual artwork image (and a slug to link to),
-// which getParticipants() doesn't select — so it gets its own, smaller pull
-// from the same published-only source. Capped tighter than the pill list so
-// the stack stays readable and light to render.
-const CAROUSEL_LIMIT = 10
+// Keep the collage compact; the full participant list is linked below.
+const COLLAGE_LIMIT = 10
 
 export async function ParticipantsSection() {
   const [participants, finalists] = await Promise.all([
     getParticipants({ limit: HOMEPAGE_LIMIT }),
     getFinalists(),
   ])
-  const carouselFinalists = finalists.slice(0, CAROUSEL_LIMIT)
+  const collageFinalists = finalists.slice(0, COLLAGE_LIMIT)
 
   return (
     <section id="participantes" className="border-t-2 border-ink/10 bg-background py-20 sm:py-28">
@@ -34,9 +31,9 @@ export async function ParticipantsSection() {
         </FadeIn>
       </div>
 
-      {carouselFinalists.length > 0 && (
+      {collageFinalists.length > 0 && (
         <FadeIn delay={100}>
-          <ObrasCarousel finalists={carouselFinalists} />
+          <ObrasCollage finalists={collageFinalists} />
         </FadeIn>
       )}
 
