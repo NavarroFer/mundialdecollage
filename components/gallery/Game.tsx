@@ -81,7 +81,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           hint={
             isTouchDevice
               ? 'Joystick para moverte · Arrastrá para mirar · Botón E para ver una obra'
-              : 'WASD para moverte · Shift para correr · Mouse para mirar · E para ver una obra'
+              : 'WASD para moverte · Shift para correr · Mantené Control (Ctrl) para agacharte · Mouse para mirar · E para ver una obra'
           }
           onEnter={handleEnter}
         />
