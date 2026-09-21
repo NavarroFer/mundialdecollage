@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test'
+import { describe, it } from 'vitest'
 import assert from 'node:assert/strict'
 import { driveFileId, parseRegistro, planRegistro, type RegistroCell } from '../lib/registro.ts'
 
