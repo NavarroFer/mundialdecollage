@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
@@ -11,6 +11,7 @@ import { PlayerTracker } from './minimap/PlayerTracker'
 import { Player } from './player/Player'
 import { keyboardMap } from './player/controls'
 import { ArtworkModal } from './ui/ArtworkModal'
+import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusic'
 import { InteractionPrompt } from './ui/InteractionPrompt'
 import { Minimap } from './ui/Minimap'
 import { StartScreen } from './ui/StartScreen'
@@ -19,6 +20,12 @@ import { World } from './world/World'
 export function Game({ artworks }: { artworks: Artwork[] }) {
   const [locked, setLocked] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
+  const musicRef = useRef<BackgroundMusicHandle>(null)
+
+  function handleEnter() {
+    setHasStarted(true)
+    musicRef.current?.play()
+  }
 
   return (
     <div className="relative">
@@ -45,13 +52,14 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <PlayerTracker />
         </Canvas>
       </KeyboardControls>
+      <BackgroundMusic ref={musicRef} />
       <Minimap />
       <InteractionPrompt />
       <ArtworkModal artworks={artworks} />
       {!locked && (
         <StartScreen
           label={hasStarted ? 'Click para continuar' : 'ENTRAR A LA EXPOSICIÓN'}
-          onEnter={() => setHasStarted(true)}
+          onEnter={handleEnter}
         />
       )}
     </div>
