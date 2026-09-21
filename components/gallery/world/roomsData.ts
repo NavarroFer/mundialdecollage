@@ -6,6 +6,7 @@ export const WALL_HEIGHT = 3.6
 export const WALL_THICKNESS = 0.2
 export const DOOR_WIDTH = 2.4
 export const DOOR_HEIGHT = 2.6
+export const BASEBOARD_HEIGHT = 0.14
 
 export type RoomDef = {
   id: string

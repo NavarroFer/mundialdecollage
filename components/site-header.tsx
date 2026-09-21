@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Boxes, CheckCircle2, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SignOutButton } from '@/components/auth/sign-out-button'
@@ -73,16 +73,26 @@ export function SiteHeader() {
           />
         </a>
 
-        <nav className="hidden items-center gap-6 text-sm font-semibold text-ink/70 md:flex">
-          <a href="#como-participar" className="hover:text-ink">
+        <nav className="flex items-center gap-6 text-sm font-semibold text-ink/70" aria-label="Navegación principal">
+          <a href="#como-participar" className="hidden hover:text-ink md:block">
             Cómo participar
           </a>
-          <a href="#taller" className="hover:text-ink">
+          <a href="#taller" className="hidden hover:text-ink md:block">
             Taller
           </a>
-          <a href="#participantes" className="hover:text-ink">
+          <a href="#participantes" className="hidden hover:text-ink md:block">
             Participantes
           </a>
+          <Link
+            href="/galeria-3d"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap text-collage-blue hover:opacity-80"
+          >
+            <Boxes className="h-4 w-4" aria-hidden="true" />
+            Galería 3D
+            <span className="sr-only"> (se abre en una pestaña nueva)</span>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
