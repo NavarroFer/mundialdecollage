@@ -1,0 +1,91 @@
+{
+  "sourceUrl": "https://docs.google.com/spreadsheets/d/1OsmZcP9F4AwIZTJpLq-uzJ__Hv-D0MyoenELXFGqFxM/edit#gid=467638671",
+  "sheet": "21/9",
+  "totalArtists": 230,
+  "countries": [
+    {
+      "country": "Argentina",
+      "count": 109
+    },
+    {
+      "country": "España",
+      "count": 25
+    },
+    {
+      "country": "México",
+      "count": 17
+    },
+    {
+      "country": "Chile",
+      "count": 16
+    },
+    {
+      "country": "Colombia",
+      "count": 14
+    },
+    {
+      "country": "Brasil",
+      "count": 13
+    },
+    {
+      "country": "Venezuela",
+      "count": 7
+    },
+    {
+      "country": "Italia",
+      "count": 6
+    },
+    {
+      "country": "Uruguay",
+      "count": 5
+    },
+    {
+      "country": "Francia",
+      "count": 4
+    },
+    {
+      "country": "Perú",
+      "count": 4
+    },
+    {
+      "country": "Canadá / Venezuela",
+      "count": 1
+    },
+    {
+      "country": "Cuba",
+      "count": 1
+    },
+    {
+      "country": "Ecuador",
+      "count": 1
+    },
+    {
+      "country": "Estados Unidos",
+      "count": 1
+    },
+    {
+      "country": "Indonesia",
+      "count": 1
+    },
+    {
+      "country": "Paraguay",
+      "count": 1
+    },
+    {
+      "country": "Polonia",
+      "count": 1
+    },
+    {
+      "country": "Portugal",
+      "count": 1
+    },
+    {
+      "country": "Rusia",
+      "count": 1
+    },
+    {
+      "country": "Suiza",
+      "count": 1
+    }
+  ]
+}
