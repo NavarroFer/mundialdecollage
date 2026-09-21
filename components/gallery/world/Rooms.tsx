@@ -13,7 +13,7 @@ const floorWidth = maxX - minX
 const floorDepth = maxZ - minZ
 const floorCenter: [number, number] = [(minX + maxX) / 2, (minZ + maxZ) / 2]
 
-const wallMaterial = <meshStandardMaterial color="#f4f2ec" roughness={0.9} />
+const wallMaterial = <meshStandardMaterial color="#f5f1e8" roughness={0.85} />
 
 function DoorwayFrame({ center, axis }: { center: [number, number, number]; axis: 'x' | 'z' }) {
   const lintelHeight = WALL_HEIGHT - DOOR_HEIGHT
@@ -51,7 +51,7 @@ export function Rooms() {
     <group>
       <mesh position={[floorCenter[0], 0, floorCenter[1]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[floorWidth, floorDepth]} />
-        <meshStandardMaterial color="#d8d3c7" roughness={0.75} />
+        <meshStandardMaterial color="#d8d3c7" roughness={0.45} metalness={0.05} />
       </mesh>
 
       <mesh
@@ -59,7 +59,7 @@ export function Rooms() {
         rotation={[Math.PI / 2, 0, 0]}
       >
         <planeGeometry args={[floorWidth, floorDepth]} />
-        <meshStandardMaterial color="#fbfaf7" roughness={1} />
+        <meshStandardMaterial color="#faf8f2" roughness={0.95} />
       </mesh>
 
       {walls.map((wall) => (

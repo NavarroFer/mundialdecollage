@@ -19,7 +19,7 @@ export function Minimap() {
   const tipZ = z - Math.cos(heading) * HEADING_LENGTH
 
   return (
-    <div className="absolute top-4 right-4 w-56 overflow-hidden rounded-lg border border-paper/30 bg-ink/70 shadow-lg backdrop-blur-sm">
+    <div className="animate-in fade-in absolute top-4 right-4 w-56 overflow-hidden rounded-lg border border-paper/30 bg-ink/70 shadow-lg backdrop-blur-sm duration-300">
       <svg viewBox={viewBox} className="block w-full" style={{ aspectRatio: `${maxX - minX + PADDING * 2} / ${maxZ - minZ + PADDING * 2}` }}>
         <rect x={minX} y={minZ} width={maxX - minX} height={maxZ - minZ} fill="#3a352f" />
         {walls.map((wall) => (

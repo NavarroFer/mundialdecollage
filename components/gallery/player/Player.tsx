@@ -8,8 +8,8 @@ import * as THREE from 'three'
 import { useInteractionStore } from '../interaction/store'
 import type { Controls } from './controls'
 
-const WALK_SPEED = 3
-const RUN_SPEED = 6
+const WALK_SPEED = 2.6
+const RUN_SPEED = 5.2
 const PLAYER_RADIUS = 0.35
 const PLAYER_HALF_HEIGHT = 0.5
 const EYE_HEIGHT_OFFSET = 0.75

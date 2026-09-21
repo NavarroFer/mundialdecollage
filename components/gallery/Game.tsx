@@ -24,7 +24,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
     <div className="relative">
       <KeyboardControls map={keyboardMap}>
         <Canvas
-          shadows="percentage"
+          shadows="variance"
           // R3F's Canvas hardcodes the container div to width/height 100% and
           // merges any `style` prop on top — a `className` can't win against
           // that inline style, so the viewport-relative height has to go here.
@@ -37,6 +37,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           </Physics>
           <FirstPersonCamera
             selector="#gallery-enter-button"
+            pointerSpeed={0.75}
             onLock={() => setLocked(true)}
             onUnlock={() => setLocked(false)}
           />
