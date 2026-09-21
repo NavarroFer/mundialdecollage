@@ -82,7 +82,13 @@
   text-transform: uppercase;
 }
 
-.obras-collage__bar > span:first-of-type {
+.obras-collage__flag {
+  flex: 0 0 auto;
+  font-size: 14px;
+  letter-spacing: normal;
+}
+
+.obras-collage__artist {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

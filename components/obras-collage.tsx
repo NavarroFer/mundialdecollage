@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import type { Finalist } from '@/lib/finalists'
+import { countryCodeToFlag } from '@/lib/participants'
 import './obras-collage.css'
 
 export function ObrasCollage({ finalists }: { finalists: Finalist[] }) {
@@ -23,7 +24,8 @@ export function ObrasCollage({ finalists }: { finalists: Finalist[] }) {
               aria-label={`${artwork.artworkTitle}, de ${artwork.name}. Ver obra`}
             >
               <span className="obras-collage__bar" aria-hidden="true">
-                <span>{artwork.name}</span>
+                <span className="obras-collage__flag">{countryCodeToFlag(artwork.countryCode)}</span>
+                <span className="obras-collage__artist">{artwork.name}</span>
                 <span className="obras-collage__arrow">↗</span>
               </span>
               {/* Preserve the complete artwork, including portrait and landscape formats. */}
