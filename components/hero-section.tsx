@@ -58,12 +58,15 @@ export function HeroSection() {
             height={512}
             className="h-24 w-24 shrink-0 sm:h-36 sm:w-36"
           />
+          {/* min-w-0 overrides the flex item's default automatic minimum
+              size, which otherwise floors at max-w-sm/md and blows out the
+              row past narrow viewports instead of actually shrinking. */}
           <Image
             src="/wordmark.png"
             alt="Mundial de Collage"
             width={949}
             height={322}
-            className="h-auto w-full max-w-sm sm:max-w-md"
+            className="h-auto w-full min-w-0 max-w-sm sm:max-w-md"
           />
         </div>
       </FadeIn>
