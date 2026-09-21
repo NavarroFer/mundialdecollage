@@ -23,7 +23,10 @@ export async function MapSection() {
   const breakdown = getCountryBreakdown(participants)
 
   return (
-    <section className="relative overflow-hidden border-t-2 border-ink/10 bg-card py-20 sm:py-28">
+    <section
+      id="mapa"
+      className="relative overflow-hidden border-t-2 border-ink/10 bg-card py-20 sm:py-28"
+    >
       <Globe2
         className="pointer-events-none absolute -top-14 -left-10 h-56 w-56 text-collage-blue/10 sm:h-72 sm:w-72"
         strokeWidth={1}

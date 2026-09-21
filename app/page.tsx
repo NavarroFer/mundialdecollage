@@ -1,5 +1,6 @@
 import { SiteHeader } from '@/components/site-header'
 import { SplashScreen } from '@/components/splash-screen'
+import { GalleryTour } from '@/components/gallery-tour'
 import { HeroSection } from '@/components/hero-section'
 import { ParticipationStatus } from '@/components/participation-status'
 import { BasesBanner } from '@/components/bases-banner'
@@ -20,6 +21,7 @@ export default function Home() {
   return (
     <>
       <SplashScreen />
+      <GalleryTour />
       {/* Wrapped so SplashScreen can mark it inert while it covers the
           screen — otherwise keyboard/AT users could Tab into content
           that's hidden behind the splash but still in the DOM. */}
