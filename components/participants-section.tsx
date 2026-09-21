@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { Gamepad2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { ObrasCollage } from '@/components/obras-collage'
 import { countryCodeToFlag, getParticipants } from '@/lib/participants'
@@ -36,6 +38,23 @@ export async function ParticipantsSection() {
           <ObrasCollage finalists={collageFinalists} />
         </FadeIn>
       )}
+
+      <FadeIn delay={150}>
+        <div className="mx-auto mt-8 max-w-xl px-5 text-center sm:px-8">
+          <p className="mb-4 text-sm font-bold tracking-[0.15em] text-collage-red uppercase">
+            El arte también se juega
+          </p>
+          <Button asChild size="lg" variant="primary" className="h-auto min-h-14 whitespace-normal py-4">
+            <Link href="/galeria-3d" prefetch={false}>
+              <Gamepad2 className="size-5" aria-hidden="true" />
+              Jugá y explorá la muestra en 3D
+            </Link>
+          </Button>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Una muestra distinta cada día. Entrá gratis, recorré la galería y descubrí las obras.
+          </p>
+        </div>
+      </FadeIn>
 
       <div className="mx-auto mt-12 max-w-4xl px-5 sm:px-8">
         <FadeIn delay={150}>

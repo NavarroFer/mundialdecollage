@@ -5,7 +5,7 @@ import { site } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: `Galería 3D — ${site.shortName}`,
-  description: 'Recorré la galería del Mundial de Collage en 3D desde el navegador.',
+  description: 'Jugá y explorá la muestra diaria del Mundial de Collage en 3D. Entrá gratis desde el navegador y descubrí una selección distinta de obras cada día.',
 }
 
 // A fresh, date-seeded random 15 every day — see lib/gallery-artworks.ts.
