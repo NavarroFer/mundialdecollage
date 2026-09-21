@@ -5,6 +5,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera, useKeyboardControls } from '@react-three/drei'
 import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
+import { useInteractionStore } from '../interaction/store'
 import type { Controls } from './controls'
 
 const WALK_SPEED = 3
@@ -29,7 +30,8 @@ export function Player({ active }: { active: boolean }) {
     const body = bodyRef.current
     if (!body) return
 
-    if (!active) {
+    const modalOpen = useInteractionStore.getState().openId !== null
+    if (!active || modalOpen) {
       const velocity = body.linvel()
       body.setLinvel({ x: 0, y: velocity.y, z: 0 }, true)
       return

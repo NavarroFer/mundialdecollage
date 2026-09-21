@@ -5,8 +5,11 @@ import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
+import { InteractionManager } from './interaction/InteractionManager'
 import { Player } from './player/Player'
 import { keyboardMap } from './player/controls'
+import { ArtworkModal } from './ui/ArtworkModal'
+import { InteractionPrompt } from './ui/InteractionPrompt'
 import { StartScreen } from './ui/StartScreen'
 import { World } from './world/World'
 
@@ -34,8 +37,11 @@ export function Game() {
             onLock={() => setLocked(true)}
             onUnlock={() => setLocked(false)}
           />
+          <InteractionManager />
         </Canvas>
       </KeyboardControls>
+      <InteractionPrompt />
+      <ArtworkModal />
       {!locked && (
         <StartScreen
           label={hasStarted ? 'Click para continuar' : 'ENTRAR A LA EXPOSICIÓN'}
