@@ -33,11 +33,11 @@ export default function Home() {
           <EditionSection />
           <HowToSection />
           <AboutSection />
-          <WorkshopSection />
           <ParticipantsSection />
           <MapSection />
           <JurySection />
           <CtaSection />
+          <WorkshopSection />
         </main>
         <Footer />
       </div>
