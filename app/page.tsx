@@ -4,7 +4,6 @@ import { GalleryTour } from '@/components/gallery-tour'
 import { HeroSection } from '@/components/hero-section'
 import { ParticipationStatus } from '@/components/participation-status'
 import { BasesBanner } from '@/components/bases-banner'
-import { EditionSection } from '@/components/edition-section'
 import { HowToSection } from '@/components/how-to-section'
 import { AboutSection } from '@/components/about-section'
 import { WorkshopSection } from '@/components/workshop-section'
@@ -32,7 +31,6 @@ export default function Home() {
           <div aria-hidden className="torn-top h-10 w-full bg-collage-blue sm:h-14" />
           <ParticipationStatus />
           <BasesBanner />
-          <EditionSection />
           <HowToSection />
           <AboutSection />
           <ParticipantsSection />

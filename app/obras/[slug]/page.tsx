@@ -33,11 +33,11 @@ export default async function ObraPage({ params }: { params: Promise<{ slug: str
       <main className="bg-background py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-5 sm:px-8">
           <Link
-            href="/edicion-2026"
+            href="/#participantes"
             className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver a la Primera Edición
+            Volver a las obras
           </Link>
 
           <div className="mt-8 overflow-hidden rounded-2xl border-2 border-ink/10 bg-muted">
