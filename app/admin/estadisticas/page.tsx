@@ -15,6 +15,7 @@ type LegacyStatsRow = {
   country_raw: string | null
   promoted: boolean
   image_url: string | null
+  claimed_by: string | null
 }
 
 // Fixed order/colors for the technique breakdown — the same three values the
@@ -50,16 +51,20 @@ export default async function EstadisticasPage() {
     artworksByProfile.set(row.profile_id, list)
   }
 
+  // A selected artwork is what makes someone "confirmed" here — país is a
+  // separate, optional fact about them (tracked below as "sin país", same
+  // treatment the legacy branch already got), not a condition for counting
+  // as an artist at all. Requiring it here used to silently drop every
+  // artist whose profile never got a country backfilled.
   const realArtists = [...artworksByProfile.values()]
     .map((rows) => {
       const selected = rows.find((r) => r.is_selected)
-      const profile = selected?.profiles
-      if (!selected || !profile?.country_code) return null
+      if (!selected) return null
       return {
-        countryCode: profile.country_code,
+        countryCode: selected.profiles?.country_code ?? null,
         technique: selected.technique ?? null,
         artworkCount: rows.length,
-        isPublic: profile.is_public,
+        isPublic: selected.profiles?.is_public ?? false,
       }
     })
     .filter((s): s is NonNullable<typeof s> => s !== null)
@@ -73,7 +78,7 @@ export default async function EstadisticasPage() {
   // "varias obras" numbers below, not técnica or estado de publicación.
   const { data: legacyData } = await supabase
     .from('legacy_submissions')
-    .select('email, country_raw, promoted, image_url')
+    .select('email, country_raw, promoted, image_url, claimed_by')
 
   const legacyGroups = new Map<string, LegacyStatsRow[]>()
   for (const row of (legacyData ?? []) as LegacyStatsRow[]) {
@@ -86,6 +91,12 @@ export default async function EstadisticasPage() {
     .map((rows) => {
       const promotedRow = rows.find((r) => r.promoted && r.image_url)
       if (!promotedRow) return null
+      // Once someone claims their old submission by registering for real
+      // (app/onboarding/actions.ts), they already have a row in
+      // artworksByProfile above and get counted via realArtists instead —
+      // same merge rule as legacyGalleryItems in app/admin/obras/page.tsx.
+      // Without this, every claimed artist was counted twice.
+      if (promotedRow.claimed_by && artworksByProfile.has(promotedRow.claimed_by)) return null
       return {
         // Best-effort only, same caveat as app/admin/obras/page.tsx — free-text
         // country_raw doesn't always resolve to a real ISO code.
@@ -103,7 +114,11 @@ export default async function EstadisticasPage() {
   const countryCounts = new Map<string, number>()
   let noCountryCount = 0
   for (const artist of realArtists) {
-    countryCounts.set(artist.countryCode, (countryCounts.get(artist.countryCode) ?? 0) + 1)
+    if (artist.countryCode) {
+      countryCounts.set(artist.countryCode, (countryCounts.get(artist.countryCode) ?? 0) + 1)
+    } else {
+      noCountryCount += 1
+    }
   }
   for (const artist of confirmedLegacyArtists) {
     if (artist.countryCode) {
