@@ -39,13 +39,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
             <div className="flex items-center gap-4">
               <Link
-                href="/#tour-galeria"
+                href="/galeria-3d"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 rounded-full bg-collage-blue px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
               >
                 <Boxes className="h-4 w-4" />
-                Ver galería 3D
+                Recorrido 3D (WASD)
               </Link>
               <Link
                 href="/"
