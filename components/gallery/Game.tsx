@@ -6,10 +6,12 @@ import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
 import { InteractionManager } from './interaction/InteractionManager'
+import { PlayerTracker } from './minimap/PlayerTracker'
 import { Player } from './player/Player'
 import { keyboardMap } from './player/controls'
 import { ArtworkModal } from './ui/ArtworkModal'
 import { InteractionPrompt } from './ui/InteractionPrompt'
+import { Minimap } from './ui/Minimap'
 import { StartScreen } from './ui/StartScreen'
 import { World } from './world/World'
 
@@ -38,8 +40,10 @@ export function Game() {
             onUnlock={() => setLocked(false)}
           />
           <InteractionManager />
+          <PlayerTracker />
         </Canvas>
       </KeyboardControls>
+      <Minimap />
       <InteractionPrompt />
       <ArtworkModal />
       {!locked && (
