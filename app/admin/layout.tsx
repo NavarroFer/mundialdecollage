@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Boxes } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -37,13 +37,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 </span>
               </span>
             </Link>
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Volver al sitio
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/galeria-3d"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full bg-collage-blue px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                <Boxes className="h-4 w-4" />
+                Ver galería 3D
+              </Link>
+              <Link
+                href="/"
+                className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver al sitio
+              </Link>
+            </div>
           </div>
           <div className="mt-5">
             <AdminNav />
