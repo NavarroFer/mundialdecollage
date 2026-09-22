@@ -17,7 +17,9 @@ const CROUCH_DROP = 0.6
 const PLAYER_RADIUS = 0.35
 const PLAYER_HALF_HEIGHT = 0.5
 const EYE_HEIGHT_OFFSET = 0.75
-const SPAWN_POSITION: [number, number, number] = [0, 0.9, 3]
+// The camera initially looks toward -Z. Start in front of the central bench
+// (at z=2.25), with room to walk forward into the gallery.
+const SPAWN_POSITION: [number, number, number] = [0, 0.9, -0.5]
 
 const UP = new THREE.Vector3(0, 1, 0)
 const focusWorldPosition = new THREE.Vector3()

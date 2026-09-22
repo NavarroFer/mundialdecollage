@@ -97,73 +97,163 @@ function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: 
   const elapsed = useRef(definition.offset * 1.7)
   const palette = themeSkin[theme]
 
-  useFrame((_, delta) => {
+  const head = useRef<THREE.Group>(null)
+  const gait = useRef(0)
+
+  useFrame((_, frameDelta) => {
     const person = root.current
     if (!person) return
+    const delta = Math.min(frameDelta, 0.05)
     elapsed.current += delta
+    let moving = false
+    let facing = person.rotation.y
 
     if (pauseLeft.current > 0) {
       pauseLeft.current = Math.max(0, pauseLeft.current - delta)
-      const stop = definition.route[routeIndex.current]
-      if (stop.face !== undefined) person.rotation.y = THREE.MathUtils.damp(person.rotation.y, stop.face, 5, delta)
-      person.position.y = Math.sin(elapsed.current * 1.6) * 0.008
-      return
+      facing = definition.route[routeIndex.current].face ?? facing
+    } else {
+      const nextIndex = (routeIndex.current + 1) % definition.route.length
+      const target = definition.route[nextIndex]
+      const dx = target.position[0] - person.position.x
+      const dz = target.position[1] - person.position.z
+      const distance = Math.hypot(dx, dz)
+      if (distance < 0.04) {
+        routeIndex.current = nextIndex
+        pauseLeft.current = target.wait ?? 0
+      } else {
+        moving = true
+        const step = Math.min(distance, definition.speed * delta)
+        person.position.x += (dx / distance) * step
+        person.position.z += (dz / distance) * step
+        facing = Math.atan2(dx, dz)
+        gait.current += step * 9
+      }
     }
 
-    const nextIndex = (routeIndex.current + 1) % definition.route.length
-    const target = definition.route[nextIndex]
-    const dx = target.position[0] - person.position.x
-    const dz = target.position[1] - person.position.z
-    const distance = Math.hypot(dx, dz)
-
-    if (distance < 0.08) {
-      routeIndex.current = nextIndex
-      pauseLeft.current = target.wait ?? 0
-      return
+    // Always take the shortest turn, including across the -PI / PI boundary.
+    const turn = Math.atan2(Math.sin(facing - person.rotation.y), Math.cos(facing - person.rotation.y))
+    person.rotation.y += turn * (1 - Math.exp(-6 * delta))
+    const stride = moving ? Math.sin(gait.current) * 0.3 : 0
+    for (const [joint, target] of [
+      [leftArm, stride * 0.7], [rightArm, -stride * 0.7],
+      [leftLeg, -stride], [rightLeg, stride],
+    ] as const) {
+      if (joint.current) joint.current.rotation.x = THREE.MathUtils.damp(joint.current.rotation.x, target, 10, delta)
     }
-
-    const step = Math.min(distance, definition.speed * delta)
-    person.position.x += (dx / distance) * step
-    person.position.z += (dz / distance) * step
-    person.rotation.y = THREE.MathUtils.damp(person.rotation.y, Math.atan2(dx, dz), 9, delta)
-
-    const stride = Math.sin(elapsed.current * 8.5) * 0.48
-    if (leftArm.current) leftArm.current.rotation.x = stride
-    if (rightArm.current) rightArm.current.rotation.x = -stride
-    if (leftLeg.current) leftLeg.current.rotation.x = -stride
-    if (rightLeg.current) rightLeg.current.rotation.x = stride
-    person.position.y = Math.abs(Math.sin(elapsed.current * 8.5)) * 0.018
+    if (head.current) {
+      head.current.rotation.y = THREE.MathUtils.damp(head.current.rotation.y, moving ? 0 : Math.sin(elapsed.current * 0.55) * 0.14, 4, delta)
+      head.current.rotation.z = Math.sin(elapsed.current * 0.7) * 0.025
+    }
+    person.position.y = THREE.MathUtils.damp(person.position.y, moving ? Math.abs(Math.sin(gait.current)) * 0.012 : 0, 10, delta)
   })
 
   const start = definition.route[initialIndex].position
-  const segments = palette.pixel ? 5 : 12
+  const segments = palette.pixel ? 8 : 16
+  const looks = [
+    { skin: '#c99573', hair: '#33251f', trousers: '#384252', height: 1.02 },
+    { skin: '#82543e', hair: '#211d1b', trousers: '#363332', height: 0.96 },
+    { skin: '#e5b99a', hair: '#786252', trousers: '#404a43', height: 1.06 },
+    { skin: '#b77f5d', hair: '#29211d', trousers: '#34404d', height: 1 },
+    { skin: '#dbac89', hair: '#554039', trousers: '#3d3340', height: 0.94 },
+  ]
+  const look = looks[definition.offset % looks.length]
+  const hairstyle = definition.offset % 5
+  const skin = palette.pixel ? palette.skin : look.skin
+  const shirt = theme === 'ps2' ? palette.dark : definition.color
+
+  function ellipsoid(position: [number, number, number], scale: [number, number, number], color: string) {
+    return (
+      <mesh position={position} scale={scale} castShadow>
+        <sphereGeometry args={[1, segments, segments]} />
+        <meshStandardMaterial color={color} roughness={0.85} />
+      </mesh>
+    )
+  }
 
   return (
-    <group ref={root} position={[start[0], 0, start[1]]}>
-      <mesh position={[0, 1.55, 0]} castShadow>
-        <sphereGeometry args={[0.2, segments, segments]} />
-        <meshStandardMaterial color={palette.skin} roughness={0.85} />
-      </mesh>
-      <mesh position={[0, 1.18, 0]} castShadow>
-        <boxGeometry args={[0.45, 0.62, 0.25]} />
-        <meshStandardMaterial color={theme === 'ps2' ? palette.dark : definition.color} roughness={0.7}
-          emissive={palette.emissive} emissiveIntensity={theme === 'ps2' ? 0.35 : 0} />
-      </mesh>
-      <group ref={leftArm} position={[-0.29, 1.4, 0]}>
-        <mesh position={[0, -0.28, 0]} castShadow><boxGeometry args={[0.13, 0.58, 0.14]} /><meshStandardMaterial color={definition.color} /></mesh>
+    <group ref={root} position={[start[0], 0, start[1]]} scale={look.height}>
+      {/* Rounded shoulders, a tapered waist, and a separate neck. */}
+      {ellipsoid([0, 1.17, 0], [0.235, 0.31, 0.135], shirt)}
+      {ellipsoid([0, 0.91, 0], [0.19, 0.14, 0.13], look.trousers)}
+      {ellipsoid([0, 1.47, 0], [0.065, 0.105, 0.065], skin)}
+      <group ref={head} position={[0, 1.64, 0]}>
+        {ellipsoid([0, 0, 0], [0.125, 0.17, 0.115], skin)}
+        {/* Each visitor has a distinct silhouette: crop, curls, side part, bun, or long hair. */}
+        {hairstyle === 0 && (
+          <>
+            {ellipsoid([0, 0.12, -0.015], [0.128, 0.065, 0.115], look.hair)}
+            {ellipsoid([0, 0.074, 0.07], [0.11, 0.028, 0.05], look.hair)}
+          </>
+        )}
+        {hairstyle === 1 && (
+          <>
+            {ellipsoid([0, 0.1, -0.015], [0.145, 0.098, 0.13], look.hair)}
+            {[-0.1, 0, 0.1].map((x) => (
+              <group key={x}>
+                {ellipsoid([x, 0.17, 0.02], [0.061, 0.055, 0.06], look.hair)}
+                {ellipsoid([x, 0.115, 0.09], [0.048, 0.04, 0.045], look.hair)}
+              </group>
+            ))}
+          </>
+        )}
+        {hairstyle === 2 && (
+          <>
+            {ellipsoid([0, 0.105, -0.025], [0.133, 0.079, 0.115], look.hair)}
+            {ellipsoid([-0.06, 0.078, 0.065], [0.067, 0.034, 0.056], look.hair)}
+            {ellipsoid([0.087, 0.058, 0.028], [0.037, 0.066, 0.077], look.hair)}
+          </>
+        )}
+        {hairstyle === 3 && (
+          <>
+            {ellipsoid([0, 0.094, -0.025], [0.13, 0.071, 0.113], look.hair)}
+            {ellipsoid([0, 0.085, -0.108], [0.123, 0.119, 0.048], look.hair)}
+            {ellipsoid([0, 0.21, -0.102], [0.079, 0.081, 0.075], look.hair)}
+          </>
+        )}
+        {hairstyle === 4 && (
+          <>
+            {ellipsoid([0, 0.098, -0.04], [0.14, 0.087, 0.12], look.hair)}
+            {ellipsoid([0, -0.051, -0.117], [0.127, 0.17, 0.049], look.hair)}
+            {[-1, 1].map((side) => (
+              <group key={side}>
+                {ellipsoid([side * 0.125, -0.083, -0.025], [0.043, 0.15, 0.065], look.hair)}
+              </group>
+            ))}
+          </>
+        )}
+        {ellipsoid([-0.124, -0.012, 0], [0.024, 0.041, 0.025], skin)}
+        {ellipsoid([0.124, -0.012, 0], [0.024, 0.041, 0.025], skin)}
+        {ellipsoid([0, -0.017, 0.108], [0.023, 0.034, 0.033], skin)}
+        {[-1, 1].map((side) => (
+          <group key={side}>
+            {ellipsoid([side * 0.046, 0.025, 0.103], [0.022, 0.012, 0.009], '#eee5d9')}
+            {ellipsoid([side * 0.046, 0.025, 0.111], [0.008, 0.009, 0.004], '#302820')}
+            {ellipsoid([side * 0.046, 0.051, 0.102], [0.025, 0.005, 0.007], look.hair)}
+          </group>
+        ))}
+        {ellipsoid([0, -0.069, 0.101], [0.032, 0.006, 0.008], '#925e50')}
       </group>
-      <group ref={rightArm} position={[0.29, 1.4, 0]}>
-        <mesh position={[0, -0.28, 0]} castShadow><boxGeometry args={[0.13, 0.58, 0.14]} /><meshStandardMaterial color={definition.color} /></mesh>
-      </group>
-      <group ref={leftLeg} position={[-0.13, 0.88, 0]}>
-        <mesh position={[0, -0.36, 0]} castShadow><boxGeometry args={[0.17, 0.72, 0.19]} /><meshStandardMaterial color={palette.dark} /></mesh>
-      </group>
-      <group ref={rightLeg} position={[0.13, 0.88, 0]}>
-        <mesh position={[0, -0.36, 0]} castShadow><boxGeometry args={[0.17, 0.72, 0.19]} /><meshStandardMaterial color={palette.dark} /></mesh>
-      </group>
+      {([-1, 1] as const).map((side) => (
+        <group key={side}>
+          <group ref={side === -1 ? leftArm : rightArm} position={[side * 0.225, 1.38, 0]} rotation={[0, 0, side * 0.08]}>
+            {ellipsoid([side * 0.025, -0.12, 0], [0.078, 0.18, 0.08], shirt)}
+            <group position={[side * 0.03, -0.28, 0]} rotation={[-0.12, 0, 0]}>
+              {ellipsoid([0, -0.1, 0], [0.048, 0.135, 0.049], skin)}
+              {ellipsoid([0, -0.245, 0], [0.044, 0.073, 0.03], skin)}
+              {ellipsoid([-side * 0.035, -0.225, 0.016], [0.019, 0.036, 0.018], skin)}
+            </group>
+          </group>
+          <group ref={side === -1 ? leftLeg : rightLeg} position={[side * 0.103, 0.89, 0]}>
+            {ellipsoid([0, -0.2, 0], [0.091, 0.245, 0.1], look.trousers)}
+            {ellipsoid([0, -0.56, 0], [0.069, 0.22, 0.077], look.trousers)}
+            {ellipsoid([0, -0.825, 0.055], [0.082, 0.065, 0.145], '#292726')}
+          </group>
+        </group>
+      ))}
       {theme === 'ps2' && <pointLight position={[0, 1.1, -0.1]} color="#4164ff" intensity={0.35} distance={1.2} />}
     </group>
   )
+
 }
 
 export function Visitors({ theme }: { theme: GalleryTheme }) {
