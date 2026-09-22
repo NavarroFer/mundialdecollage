@@ -64,12 +64,13 @@ function wallSlots(
   })
 }
 
-// 15 wall spots spread across the 6 long walls (3 rooms x north/south).
+// 20 spots across the 6 uninterrupted north/south walls (7 / 6 / 7 per room).
+// The east/west dividers contain doorways and must remain free of artwork.
 export const gallerySlots: GallerySlot[] = [
   ...wallSlots('room-01', -18, -6, NORTH_Z, NORTH_ROTATION, 3, 0),
-  ...wallSlots('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 2, 1),
-  ...wallSlots('room-02', -6, 6, NORTH_Z, NORTH_ROTATION, 2, 2),
+  ...wallSlots('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 4, 1),
+  ...wallSlots('room-02', -6, 6, NORTH_Z, NORTH_ROTATION, 3, 2),
   ...wallSlots('room-02', -6, 6, SOUTH_Z, SOUTH_ROTATION, 3, 0),
-  ...wallSlots('room-03', 6, 18, NORTH_Z, NORTH_ROTATION, 2, 1),
+  ...wallSlots('room-03', 6, 18, NORTH_Z, NORTH_ROTATION, 4, 1),
   ...wallSlots('room-03', 6, 18, SOUTH_Z, SOUTH_ROTATION, 3, 2),
 ]

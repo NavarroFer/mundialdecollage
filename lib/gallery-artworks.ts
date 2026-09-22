@@ -10,7 +10,7 @@ const EDITION_YEAR = new Date(site.deadlineISO).getFullYear()
 // deterministic from the seed alone (no state to store or cron to run).
 const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949
 
-// One stable seed per calendar day (UTC) — same visitors see the same 15
+// One stable seed per calendar day (UTC) — same visitors see the same 20
 // obras all day, and the selection rotates on its own at midnight.
 function dailySeed(date = new Date()): number {
   const isoDay = date.toISOString().slice(0, 10)
@@ -42,9 +42,15 @@ function describeArtwork(finalist: Finalist): string {
 // placed into the 3D gallery's wall slots. Re-runs on every request (the
 // page that calls this is already force-dynamic), so it needs no background
 // job to "rotate" — the date itself is the trigger.
-export async function getGalleryArtworks(): Promise<Artwork[]> {
+export async function getDailyExhibition(): Promise<Finalist[]> {
   const finalists = await getFinalists()
-  const selected = goldenShuffle(finalists, dailySeed()).slice(0, gallerySlots.length)
+  // Stable input order keeps both pages aligned even when creation dates tie.
+  const ordered = [...finalists].sort((a, b) => a.slug.localeCompare(b.slug))
+  return goldenShuffle(ordered, dailySeed()).slice(0, gallerySlots.length)
+}
+
+export async function getGalleryArtworks(): Promise<Artwork[]> {
+  const selected = await getDailyExhibition()
 
   return selected.map((finalist, index) => {
     const slot = gallerySlots[index]

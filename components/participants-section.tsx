@@ -4,22 +4,17 @@ import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { ObrasCollage } from '@/components/obras-collage'
 import { countryCodeToFlag, getParticipants } from '@/lib/participants'
-import { getFinalists } from '@/lib/finalists'
+import { getDailyExhibition } from '@/lib/gallery-artworks'
 
 // Teaser only — capped so the homepage doesn't grow an unbounded pill wall
 // as submissions come in. /participantes has search/filter for the full list.
 const HOMEPAGE_LIMIT = 40
 
-// A generous cap keeps the homepage feeling like a growing table of artwork
-// without letting the DOM grow forever as the convocatoria expands.
-const COLLAGE_LIMIT = 30
-
 export async function ParticipantsSection() {
-  const [participants, finalists] = await Promise.all([
+  const [participants, collageFinalists] = await Promise.all([
     getParticipants({ limit: HOMEPAGE_LIMIT }),
-    getFinalists(),
+    getDailyExhibition(),
   ])
-  const collageFinalists = finalists.slice(0, COLLAGE_LIMIT)
 
   return (
     <section id="participantes" className="border-t-2 border-ink/10 bg-background py-20 sm:py-28">
