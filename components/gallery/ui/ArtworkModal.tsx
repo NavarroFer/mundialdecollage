@@ -22,8 +22,8 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) useInteractionStore.getState().close() }}>
-      <DialogContent aria-describedby={undefined} className={cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2, 'grid max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl gap-6 overflow-y-auto p-6 sm:grid-cols-2 sm:p-8')}>
-        <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-card">
+      <DialogContent aria-describedby={undefined} className={cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2, 'flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl flex-col gap-6 overflow-y-auto p-6 sm:grid sm:auto-rows-max sm:grid-cols-2 sm:items-start sm:p-8')}>
+        <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-lg bg-card">
           <Image
             src={artwork.image}
             alt={artwork.title}
@@ -32,7 +32,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
             className="object-contain"
           />
         </div>
-        <div className="flex flex-col justify-center gap-3">
+        <div className="flex min-w-0 shrink-0 flex-col justify-center gap-3">
           <DialogTitle className="font-display text-2xl leading-tight text-ink">{artwork.title}</DialogTitle>
           <p className="text-sm font-semibold tracking-wide text-muted-foreground">
             {artwork.artist} · {artwork.year}

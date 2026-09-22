@@ -1,4 +1,6 @@
-.shell {
+/* Dialog portals also need the default theme tokens on their own root. */
+.shell,
+.modal {
   --gallery-panel: rgba(27, 17, 12, 0.78);
   --gallery-panel-solid: #faf8f2;
   --gallery-text: #faf8f2;
@@ -8,6 +10,9 @@
   --gallery-radius: 0.75rem;
   --gallery-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
   --gallery-font: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.shell {
   position: relative;
   overflow: hidden;
   font-family: var(--gallery-font);
