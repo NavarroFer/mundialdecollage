@@ -27,6 +27,8 @@ export function OnboardingForm({
   action,
   defaultName,
   defaultCountryCode,
+  defaultInstagram = '',
+  defaultWebsite = '',
   userId,
   error,
   hasLegacyMatch,
@@ -35,6 +37,8 @@ export function OnboardingForm({
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaultName: string
+  defaultInstagram?: string
+  defaultWebsite?: string
   // Best-effort guess from the legacy import's country_raw (or the artist's
   // own value on a resubmission) — see app/onboarding/page.tsx. Just the
   // CountrySelect's starting value, same as defaultName for the name field:
@@ -237,6 +241,7 @@ export function OnboardingForm({
           Instagram <span className="font-normal text-muted-foreground">(opcional)</span>
         </label>
         <input
+          defaultValue={defaultInstagram}
           id="instagram"
           name="instagram"
           type="text"
@@ -250,6 +255,7 @@ export function OnboardingForm({
           Sitio web <span className="font-normal text-muted-foreground">(opcional)</span>
         </label>
         <input
+          defaultValue={defaultWebsite}
           id="website"
           name="website"
           type="url"

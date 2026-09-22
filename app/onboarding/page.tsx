@@ -6,6 +6,7 @@ import { fetchAndStoreLegacyArtwork } from '@/lib/legacy-submissions'
 import { guessCountryCodeFromName } from '@/lib/participants'
 import { OnboardingForm } from './onboarding-form'
 import { completeOnboarding } from './actions'
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 
 export default async function OnboardingPage({
   searchParams,
@@ -18,7 +19,17 @@ export default async function OnboardingPage({
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/')
+  if (!user) {
+    return (
+      <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
+        <div className="w-full max-w-lg rounded-2xl bg-card p-8 text-center">
+          <h1 className="font-display text-3xl uppercase">Enviá tu obra</h1>
+          <p className="my-6 text-muted-foreground">Ingresá con Google para continuar. Vamos a completar el formulario con los datos que ya tengamos de vos.</p>
+          <GoogleSignInButton next="/onboarding" />
+        </div>
+      </main>
+    )
+  }
 
   // Admins log in to moderate, not to submit an artwork — skip the
   // onboarding form and drop them straight into the panel.
@@ -94,23 +105,24 @@ export default async function OnboardingPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarded_at, name, country_code')
+    .select('onboarded_at, name, country_code, instagram, website')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profile?.onboarded_at && !another) redirect('/')
+  if (profile?.onboarded_at && !another) {
+    redirect(`/onboarding?another=1${error ? `&error=${encodeURIComponent(error)}` : ''}`)
+  }
 
   const suggestedName =
-    (another ? profile?.name : null) ||
+    profile?.name ||
     legacyName ||
     (user.user_metadata?.full_name as string | undefined) ||
     ''
 
-  // Same fallback order as suggestedName: a resubmission keeps whatever the
-  // artist already has on file, otherwise fall back to the legacy import's
+  // Prefer the artist’s saved profile, then fall back to the legacy import’s
   // best-effort guess. No third fallback here — unlike name, there's
   // nothing in the Google auth profile to fall back to for country.
-  const suggestedCountryCode = (another ? profile?.country_code : null) || legacyCountryCode || ''
+  const suggestedCountryCode = profile?.country_code || legacyCountryCode || ''
 
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
@@ -130,6 +142,8 @@ export default async function OnboardingPage({
           action={completeOnboarding}
           defaultName={suggestedName}
           defaultCountryCode={suggestedCountryCode}
+          defaultInstagram={profile?.instagram ?? ''}
+          defaultWebsite={profile?.website ?? ''}
           userId={user.id}
           error={error}
           hasLegacyMatch={Boolean(legacyName)}

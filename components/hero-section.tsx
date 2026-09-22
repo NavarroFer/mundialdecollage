@@ -1,6 +1,6 @@
 import Image from 'next/image'
-import { ArrowRight, Scissors } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Scissors } from 'lucide-react'
+import { SubmitArtworkCta } from '@/components/submit-artwork-cta'
 import { Countdown } from '@/components/countdown'
 import { FadeIn } from '@/components/fade-in'
 import { site } from '@/lib/site'
@@ -81,12 +81,7 @@ export function HeroSection() {
 
         <FadeIn delay={300}>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a href={`mailto:${site.email}`}>
-              <Button size="lg" variant="primary" className="gap-2">
-                Enviá tu obra
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </a>
+            <SubmitArtworkCta />
             <Countdown />
           </div>
         </FadeIn>
