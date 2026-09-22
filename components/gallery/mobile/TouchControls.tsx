@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useInteractionStore } from '../interaction/store'
 import { useTouchStore } from './touchStore'
+import type { GalleryTheme } from '../themes'
+import styles from '../gallery-theme.module.css'
 
 const JOYSTICK_RADIUS = 55
 
 type Vec2 = { x: number; y: number }
 
-export function TouchControls() {
+export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
   const layerRef = useRef<HTMLDivElement>(null)
   const [joystickOrigin, setJoystickOrigin] = useState<Vec2 | null>(null)
   const [knobOffset, setKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
@@ -119,7 +121,7 @@ export function TouchControls() {
           event.stopPropagation()
           useInteractionStore.getState().toggle()
         }}
-        className="pointer-events-auto absolute right-8 bottom-10 flex h-16 w-16 items-center justify-center rounded-full bg-paper/80 font-display text-xl text-ink shadow-lg active:scale-95"
+        className={`${styles.hudButton} pointer-events-auto absolute right-8 bottom-10 flex h-16 w-16 items-center justify-center text-xl active:scale-95`}
       >
         E
       </button>

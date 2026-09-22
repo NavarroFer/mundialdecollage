@@ -4,14 +4,13 @@ import { useMemo } from 'react'
 import { useTexture } from '@react-three/drei'
 import { SRGBColorSpace } from 'three'
 import type { Artwork as ArtworkData } from '@/data/artworks'
+import { galleryThemes, type GalleryTheme } from '../themes'
 
 // Modern museum framing: a slim dark frame + a white mat (passe-partout)
 // between the frame and the image, instead of one thick flat border.
 const MAT_MARGIN = 0.07
 const FRAME_BORDER = 0.045
 const FRAME_DEPTH = 0.035
-const FRAME_COLOR = '#161513'
-const MAT_COLOR = '#f7f5f0'
 const LABEL_HEIGHT = 0.24
 const LABEL_GAP = 0.12
 
@@ -38,8 +37,9 @@ function setSrgb(texture: { colorSpace: string }) {
   texture.colorSpace = SRGBColorSpace
 }
 
-export function Artwork({ data }: { data: ArtworkData }) {
+export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryTheme }) {
   const texture = useTexture(data.image, setSrgb)
+  const frame = galleryThemes[theme].frame
   const labelUrl = useMemo(() => artistLabelDataUrl(data.artist), [data.artist])
   const labelTexture = useTexture(labelUrl, setSrgb)
 
@@ -66,12 +66,12 @@ export function Artwork({ data }: { data: ArtworkData }) {
       {/* Slim outer frame, sitting slightly proud of the wall */}
       <mesh position={[0, 0, FRAME_DEPTH / 2]}>
         <boxGeometry args={[frameWidth, frameHeight, FRAME_DEPTH]} />
-        <meshStandardMaterial color={FRAME_COLOR} roughness={0.55} />
+        <meshStandardMaterial color={frame.outer} roughness={frame.roughness} emissive={frame.emissive} emissiveIntensity={frame.emissive ? 0.55 : 0} />
       </mesh>
       {/* Mat board between the frame and the image */}
       <mesh position={[0, 0, FRAME_DEPTH + 0.002]}>
         <planeGeometry args={[matWidth, matHeight]} />
-        <meshStandardMaterial color={MAT_COLOR} roughness={0.9} />
+        <meshStandardMaterial color={frame.mat} roughness={0.9} />
       </mesh>
       <mesh position={[0, 0, FRAME_DEPTH + 0.006]}>
         <planeGeometry args={[renderWidth, renderHeight]} />

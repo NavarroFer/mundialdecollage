@@ -1,5 +1,7 @@
 'use client'
 
+import styles from '../gallery-theme.module.css'
+
 type StartScreenProps = {
   label: string
   hint: string
@@ -8,16 +10,23 @@ type StartScreenProps = {
 
 export function StartScreen({ label, hint, onEnter }: StartScreenProps) {
   return (
-    <div className="animate-in fade-in absolute inset-0 flex flex-col items-center justify-center gap-6 bg-ink/70 backdrop-blur-sm duration-300">
+    <div className={`${styles.startScreen} animate-in fade-in absolute inset-0 z-30 flex items-center justify-center p-4 duration-300`}>
+      <section className={styles.startPanel} aria-labelledby="gallery-start-title">
+        <div className={styles.windowsTitlebar} aria-hidden="true">
+          <span>museo.exe</span><span>□ ×</span>
+        </div>
+        <p className="mb-2 text-xs font-bold tracking-[0.18em] opacity-60">MUNDIAL DE COLLAGE · GALERÍA 3D</p>
+        <h1 id="gallery-start-title" className={styles.title}>Recorré la exposición</h1>
       <button
         type="button"
         id="gallery-enter-button"
         onClick={onEnter}
-        className="rounded-full bg-paper px-8 py-4 font-display text-lg tracking-wide text-ink shadow-lg transition-transform hover:scale-105"
+        className={styles.enterButton}
       >
         {label}
       </button>
-      <p className="text-center text-xs font-semibold tracking-wide text-paper/70 uppercase">{hint}</p>
+      <p className={styles.hint}>{hint}</p>
+      </section>
     </div>
   )
 }

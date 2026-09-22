@@ -1,0 +1,46 @@
+'use client'
+
+import { useState } from 'react'
+import { Check, Palette, X } from 'lucide-react'
+import { galleryThemes, GALLERY_THEMES, type GalleryTheme } from '../themes'
+import styles from '../gallery-theme.module.css'
+
+const swatches: Record<GalleryTheme, string> = {
+  museum: 'linear-gradient(90deg, #f2f1ec 0 45%, #232323 45% 55%, #e79d00 55%)',
+  windows98: 'linear-gradient(90deg, #008080 0 33%, #c0c0c0 33% 66%, #000080 66%)',
+  ps2: 'linear-gradient(90deg, #02020d 0 35%, #172bba 35% 70%, #688cff 70%)',
+}
+
+export function ThemePicker({ theme, onChange }: { theme: GalleryTheme; onChange: (theme: GalleryTheme) => void }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <aside className={styles.themePicker}>
+      {open && (
+        <div className={styles.themeMenu} role="radiogroup" aria-label="Tema de la galería">
+          <div className={styles.themeMenuTitle}>
+            <span>Elegir tema</span>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Cerrar selector de temas"><X size={15} /></button>
+          </div>
+          {GALLERY_THEMES.map((id) => {
+            const option = galleryThemes[id]
+            const selected = id === theme
+            return (
+              <button key={id} type="button" role="radio" aria-checked={selected}
+                onClick={() => { onChange(id); setOpen(false) }} className={styles.themeMenuOption}>
+                <span className={styles.themeMenuSwatch} style={{ background: swatches[id] }} />
+                <span>{option.name}</span>
+                {selected && <Check size={14} aria-hidden="true" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      <button type="button" className={styles.themeTrigger} onClick={() => setOpen((value) => !value)}
+        aria-label={open ? 'Cerrar selector de temas' : `Cambiar tema. Tema actual: ${galleryThemes[theme].name}`}
+        aria-expanded={open}>
+        <Palette size={19} aria-hidden="true" />
+      </button>
+    </aside>
+  )
+}

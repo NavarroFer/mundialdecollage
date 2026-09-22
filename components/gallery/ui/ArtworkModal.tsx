@@ -6,8 +6,11 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
 import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
+import type { GalleryTheme } from '../themes'
+import styles from '../gallery-theme.module.css'
+import { cn } from '@/lib/utils'
 
-export function ArtworkModal({ artworks }: { artworks: Artwork[] }) {
+export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
   const openId = useInteractionStore((state) => state.openId)
   const artwork = artworks.find((item) => item.id === openId)
 
@@ -19,7 +22,7 @@ export function ArtworkModal({ artworks }: { artworks: Artwork[] }) {
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) useInteractionStore.getState().close() }}>
-      <DialogContent aria-describedby={undefined} className="grid max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl gap-6 overflow-y-auto bg-paper p-6 sm:grid-cols-2 sm:p-8">
+      <DialogContent aria-describedby={undefined} className={cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2, 'grid max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl gap-6 overflow-y-auto p-6 sm:grid-cols-2 sm:p-8')}>
         <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-card">
           <Image
             src={artwork.image}

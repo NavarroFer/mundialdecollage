@@ -17,8 +17,12 @@ import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusi
 import { InteractionPrompt } from './ui/InteractionPrompt'
 import { Minimap } from './ui/Minimap'
 import { StartScreen } from './ui/StartScreen'
+import { ThemePicker } from './ui/ThemePicker'
 import { useInteractionStore } from './interaction/store'
 import { World } from './world/World'
+import { galleryThemes, type GalleryTheme } from './themes'
+import styles from './gallery-theme.module.css'
+import { cn } from '@/lib/utils'
 
 // Doesn't change over a session, so no subscription is needed — just a
 // client-only snapshot read via useSyncExternalStore (SSR-safe, and no
@@ -31,6 +35,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const [locked, setLocked] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
+  const [theme, setTheme] = useState<GalleryTheme>('museum')
   const openId = useInteractionStore((state) => state.openId)
   const musicRef = useRef<BackgroundMusicHandle>(null)
 
@@ -45,18 +50,17 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   }
 
   return (
-    <div className="relative">
+    <div className={cn(styles.shell, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2)}>
       <KeyboardControls map={keyboardMap}>
         <Canvas
           shadows="variance"
           // R3F's Canvas hardcodes the container div to width/height 100% and
           // merges any `style` prop on top — a `className` can't win against
           // that inline style, so the viewport-relative height has to go here.
-          style={{ width: '100%', height: '100dvh' }}
-          className="bg-[#e9e6dd]"
+          style={{ width: '100%', height: '100dvh', background: galleryThemes[theme].canvas }}
         >
           <Physics>
-            <World artworks={artworks} />
+            <World artworks={artworks} theme={theme} />
             <Player active={isActive} />
           </Physics>
           {!isTouchDevice && (
@@ -72,11 +76,12 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <PlayerTracker />
         </Canvas>
       </KeyboardControls>
-      {isTouchDevice && isActive && !openId && <TouchControls />}
-      <BackgroundMusic ref={musicRef} />
-      <Minimap />
-      <InteractionPrompt />
-      <ArtworkModal artworks={artworks} />
+      {isTouchDevice && isActive && !openId && <TouchControls theme={theme} />}
+      <BackgroundMusic ref={musicRef} theme={theme} />
+      <Minimap theme={theme} />
+      <InteractionPrompt theme={theme} />
+      <ArtworkModal artworks={artworks} theme={theme} />
+      {!openId && <ThemePicker theme={theme} onChange={setTheme} />}
       {!isActive && !openId && (
         <StartScreen
           label={hasStarted ? 'Click para continuar' : 'ENTRAR A LA EXPOSICIÓN'}

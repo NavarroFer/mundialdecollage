@@ -1,8 +1,10 @@
 'use client'
 
 import { useInteractionStore } from '../interaction/store'
+import type { GalleryTheme } from '../themes'
+import styles from '../gallery-theme.module.css'
 
-export function InteractionPrompt() {
+export function InteractionPrompt({ theme: _theme }: { theme: GalleryTheme }) {
   const targetId = useInteractionStore((state) => state.targetId)
   const openId = useInteractionStore((state) => state.openId)
 
@@ -10,8 +12,8 @@ export function InteractionPrompt() {
 
   return (
     <div className="animate-in fade-in pointer-events-none absolute inset-x-0 bottom-16 flex justify-center duration-150">
-      <div className="flex items-center gap-2 rounded-full bg-ink/80 px-5 py-2 text-sm font-semibold text-paper shadow-lg">
-        <kbd className="rounded bg-paper/20 px-2 py-0.5 font-display text-xs">E</kbd>
+      <div className={`${styles.hudPanel} flex items-center gap-2 px-5 py-2 text-sm font-semibold`}>
+        <kbd className="border border-current px-2 py-0.5 text-xs">E</kbd>
         Ver obra
       </div>
     </div>

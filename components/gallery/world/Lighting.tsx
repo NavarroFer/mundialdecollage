@@ -1,6 +1,16 @@
 const WARM_WHITE = '#fff3df'
 
-export function Lighting() {
+import type { GalleryTheme } from '../themes'
+
+export function Lighting({ theme }: { theme: GalleryTheme }) {
+  if (theme === 'windows98') {
+    return <><ambientLight intensity={1.05} color="#ffffff" /><directionalLight position={[0, 8, 2]} intensity={1.4} color="#ffffff" castShadow /></>
+  }
+
+  if (theme === 'ps2') {
+    return <><ambientLight intensity={0.22} color="#3446aa" /><directionalLight position={[4, 8, 2]} intensity={1.5} color="#7290ff" castShadow /><pointLight position={[-12, 2.4, 0]} intensity={20} distance={11} decay={2} color="#334dff" /><pointLight position={[0, 2.4, 0]} intensity={18} distance={11} decay={2} color="#755cff" /><pointLight position={[12, 2.4, 0]} intensity={20} distance={11} decay={2} color="#334dff" /></>
+  }
+
   return (
     <>
       <ambientLight intensity={0.45} />
