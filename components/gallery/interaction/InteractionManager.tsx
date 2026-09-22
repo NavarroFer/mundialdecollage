@@ -40,14 +40,13 @@ export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
     useInteractionStore.getState().setTarget(nearestId)
   })
 
-  // Rising edge only — holding E must not reopen/spam the modal every frame.
-  // E also closes an open modal: ESC always exits Pointer Lock too (the
-  // browser reserves that, no way around it), so E is the way to close a
-  // piece and keep walking without dropping back to the pause screen.
+  // Ignore gallery shortcuts while typing into the like form.
   useEffect(() => {
     return subscribeKeys(
       (state) => state.interact,
       (pressed) => {
+        const element = document.activeElement
+        if (element instanceof HTMLElement && (element.matches('input, textarea, select, button') || element.isContentEditable)) return
         if (pressed) useInteractionStore.getState().toggle()
       },
     )

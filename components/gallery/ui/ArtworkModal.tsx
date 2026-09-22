@@ -1,6 +1,9 @@
 'use client'
 
 import Image from 'next/image'
+import { useEffect } from 'react'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { ArtworkLike } from './ArtworkLike'
 import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
 
@@ -8,11 +11,15 @@ export function ArtworkModal({ artworks }: { artworks: Artwork[] }) {
   const openId = useInteractionStore((state) => state.openId)
   const artwork = artworks.find((item) => item.id === openId)
 
+  useEffect(() => {
+    if (openId && document.pointerLockElement) document.exitPointerLock()
+  }, [openId])
+
   if (!artwork) return null
 
   return (
-    <div className="animate-in fade-in absolute inset-0 flex items-center justify-center bg-ink/85 p-6 backdrop-blur-sm duration-200">
-      <div className="animate-in fade-in zoom-in-95 grid max-h-full w-full max-w-4xl gap-6 overflow-y-auto rounded-2xl bg-paper p-6 shadow-2xl duration-200 sm:grid-cols-2 sm:p-8">
+    <Dialog open onOpenChange={(open) => { if (!open) useInteractionStore.getState().close() }}>
+      <DialogContent aria-describedby={undefined} className="grid max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl gap-6 overflow-y-auto bg-paper p-6 sm:grid-cols-2 sm:p-8">
         <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-card">
           <Image
             src={artwork.image}
@@ -23,16 +30,17 @@ export function ArtworkModal({ artworks }: { artworks: Artwork[] }) {
           />
         </div>
         <div className="flex flex-col justify-center gap-3">
-          <p className="font-display text-2xl leading-tight text-ink">{artwork.title}</p>
+          <DialogTitle className="font-display text-2xl leading-tight text-ink">{artwork.title}</DialogTitle>
           <p className="text-sm font-semibold tracking-wide text-muted-foreground">
             {artwork.artist} · {artwork.year}
           </p>
           <p className="text-base leading-relaxed text-ink/80">{artwork.description}</p>
+          <ArtworkLike key={artwork.id} slug={artwork.id} />
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            E para cerrar · ESC para salir de la exposición
+            Cerrá esta ventana para seguir recorriendo
           </p>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

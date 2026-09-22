@@ -82,6 +82,13 @@ export default function PoliticaDePrivacidadPage() {
                 nombre, email y los datos de pago necesarios para procesar tu inscripción.
               </li>
               <li>
+                <span className="font-semibold text-foreground">Likes en la galería:</span>{' '}
+                tu email y las obras que te gustan, para guardar un único like por mail y
+                obra y enviarte novedades del Mundial. No necesitás crear una cuenta.
+                Recordamos tu mail mediante una cookie durante un año para que no tengas
+                que ingresarlo cada vez. Podés darte de baja de las novedades cuando quieras.
+              </li>
+              <li>
                 <span className="font-semibold text-foreground">Uso del Sitio:</span>{' '}
                 información técnica básica (como dirección IP y tipo de navegador) que
                 se genera automáticamente al navegar.

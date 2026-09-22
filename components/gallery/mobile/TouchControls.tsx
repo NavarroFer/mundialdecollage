@@ -88,6 +88,7 @@ export function TouchControls() {
     layer.addEventListener('touchend', onTouchEnd, { passive: true })
     layer.addEventListener('touchcancel', onTouchEnd, { passive: true })
     return () => {
+      useTouchStore.getState().setMove(0, 0)
       layer.removeEventListener('touchstart', onTouchStart)
       layer.removeEventListener('touchmove', onTouchMove)
       layer.removeEventListener('touchend', onTouchEnd)

@@ -17,6 +17,7 @@ import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusi
 import { InteractionPrompt } from './ui/InteractionPrompt'
 import { Minimap } from './ui/Minimap'
 import { StartScreen } from './ui/StartScreen'
+import { useInteractionStore } from './interaction/store'
 import { World } from './world/World'
 
 // Doesn't change over a session, so no subscription is needed — just a
@@ -30,6 +31,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const [locked, setLocked] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
+  const openId = useInteractionStore((state) => state.openId)
   const musicRef = useRef<BackgroundMusicHandle>(null)
 
   // Desktop has no concept of "started but not locked" — Pointer Lock IS
@@ -70,12 +72,12 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <PlayerTracker />
         </Canvas>
       </KeyboardControls>
-      {isTouchDevice && isActive && <TouchControls />}
+      {isTouchDevice && isActive && !openId && <TouchControls />}
       <BackgroundMusic ref={musicRef} />
       <Minimap />
       <InteractionPrompt />
       <ArtworkModal artworks={artworks} />
-      {!isActive && (
+      {!isActive && !openId && (
         <StartScreen
           label={hasStarted ? 'Click para continuar' : 'ENTRAR A LA EXPOSICIÓN'}
           hint={
