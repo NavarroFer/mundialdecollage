@@ -6,6 +6,7 @@ import { ParticipationStatus } from '@/components/participation-status'
 import { BasesBanner } from '@/components/bases-banner'
 import { HowToSection } from '@/components/how-to-section'
 import { AboutSection } from '@/components/about-section'
+import { EditionSection } from '@/components/edition-section'
 import { WorkshopSection } from '@/components/workshop-section'
 import { ParticipantsSection } from '@/components/participants-section'
 import { MapSection } from '@/components/map-section'
@@ -33,6 +34,7 @@ export default function Home() {
           <BasesBanner />
           <HowToSection />
           <AboutSection />
+          <EditionSection />
           <ParticipantsSection />
           <MapSection />
           <JurySection />
