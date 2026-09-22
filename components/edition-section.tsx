@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Images } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { getSubmissionsCount } from '@/lib/submissions'
@@ -10,7 +9,7 @@ export async function EditionSection() {
   const hasSubmissions = submissionsCount > 0
 
   return (
-    <section id="primera-edicion" className="relative overflow-hidden border-t-2 border-ink/10 bg-background py-20 sm:py-28">
+    <section id="primera-edicion" className="bg-grain relative overflow-hidden border-t-2 border-ink/10 bg-collage-yellow py-16 sm:py-24">
       <div className="mx-auto max-w-3xl px-5 text-center sm:px-8">
         <FadeIn>
           <span className="torn-strip inline-block -rotate-1 bg-collage-blue px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase sm:text-sm">
@@ -28,12 +27,12 @@ export async function EditionSection() {
           <h2 className="font-display mt-2 flex flex-col items-center gap-2 text-ink">
             {hasSubmissions ? (
               <>
-                <span className="flex items-center gap-3 text-7xl leading-none tracking-tight text-collage-red sm:text-8xl">
-                  <Images className="h-10 w-10 sm:h-14 sm:w-14" strokeWidth={2.5} aria-hidden="true" />
+                <span className="text-3xl uppercase sm:text-5xl">Recibimos</span>
+                <span className="my-3 inline-block -rotate-3 bg-paper px-6 py-3 text-8xl leading-none tracking-tight text-collage-red shadow-[6px_6px_0_var(--color-ink)] sm:px-10 sm:text-9xl">
                   {submissionsCount.toLocaleString('es-AR')}
                 </span>
-                <span className="text-sm font-bold tracking-[0.2em] uppercase sm:text-base">
-                  {submissionsCount === 1 ? 'Obra recibida' : 'Obras recibidas'}
+                <span className="text-4xl uppercase sm:text-6xl">
+                  {submissionsCount === 1 ? 'obra!' : 'obras!'}
                 </span>
               </>
             ) : (
