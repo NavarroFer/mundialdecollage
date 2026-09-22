@@ -1,27 +1,21 @@
 import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { WorldMap } from '@/components/world-map-lazy'
-import { countryCodeToFlag, countryCodeToName, getParticipants, type Participant } from '@/lib/participants'
+import { countryCodeToFlag, guessCountryCodeFromName } from '@/lib/participants'
+import stats from '@/data/artist-country-stats.json'
 
-type CountryCount = { countryCode: string; count: number }
+type CountryCount = { country: string; countryCode?: string; count: number }
 
-// Groups real participants by country and sorts descending by count.
-// Everything here is derived from real submissions — nothing fabricated.
-function getCountryBreakdown(participants: Participant[]): CountryCount[] {
-  const counts = new Map<string, number>()
-  for (const p of participants) {
-    const code = p.countryCode.toUpperCase()
-    counts.set(code, (counts.get(code) ?? 0) + 1)
-  }
-  return Array.from(counts.entries())
-    .map(([countryCode, count]) => ({ countryCode, count }))
-    .sort((a, b) => b.count - a.count)
-}
+// The homepage and admin statistics share the same curated source of truth.
+// Composite or missing country labels stay in the ranking but are not painted
+// on a single country in the map.
+const breakdown: CountryCount[] = stats.countries.map(({ country, count }) => ({
+  country,
+  count,
+  countryCode: guessCountryCodeFromName(country),
+}))
 
-export async function MapSection() {
-  const participants = await getParticipants()
-  const breakdown = getCountryBreakdown(participants)
-
+export function MapSection() {
   return (
     <section
       id="mapa"
@@ -51,7 +45,11 @@ export async function MapSection() {
       {breakdown.length > 0 && (
         <FadeIn delay={200}>
           <div className="relative mx-auto mt-12 max-w-4xl px-5 sm:px-8">
-            <WorldMap breakdown={breakdown} />
+            <WorldMap
+              breakdown={breakdown.flatMap(({ countryCode, count }) =>
+                countryCode ? [{ countryCode, count }] : [],
+              )}
+            />
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Cada país se pinta más oscuro cuanto más collages recibió. Pasá el mouse
               para ver el detalle.
@@ -64,19 +62,21 @@ export async function MapSection() {
         <FadeIn delay={300}>
           {breakdown.length > 0 ? (
             <ul className="mt-12 space-y-3">
-              {breakdown.map(({ countryCode, count }, i) => (
+              {breakdown.map(({ country, countryCode, count }, i) => (
                 <li
-                  key={countryCode}
+                  key={country}
                   className="flex items-center justify-between gap-4 rounded-2xl border-2 border-ink/10 bg-background px-5 py-3"
                 >
                   <span className="flex items-center gap-3 font-medium text-ink">
                     <span className="text-sm text-muted-foreground">
                       #{i + 1}
                     </span>
-                    <span aria-hidden className="text-xl">
-                      {countryCodeToFlag(countryCode)}
-                    </span>
-                    {countryCodeToName(countryCode)}
+                    {countryCode && (
+                      <span aria-hidden className="text-xl">
+                        {countryCodeToFlag(countryCode)}
+                      </span>
+                    )}
+                    {country}
                   </span>
                   <span className="rounded-full bg-collage-blue px-3 py-1 text-sm font-bold text-primary-foreground">
                     {count}
