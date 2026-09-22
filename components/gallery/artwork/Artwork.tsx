@@ -25,7 +25,7 @@ function escapeSvgText(value: string) {
 }
 
 function artistLabelDataUrl(artist: string) {
-  const fontSize = Math.max(25, Math.min(44, 700 / Math.max(artist.length * 0.58, 1)))
+  const fontSize = Math.max(25, Math.min(44, 700 / Math.max(artist.length * 0.58, 1))) * 0.7
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="160" viewBox="0 0 800 160">
     <rect x="2" y="2" width="796" height="156" rx="8" fill="#f7f5f0" stroke="#d8d3ca" stroke-width="4"/>
     <text x="400" y="83" dominant-baseline="middle" text-anchor="middle" fill="#161513" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="600" letter-spacing="1">${escapeSvgText(artist)}</text>
