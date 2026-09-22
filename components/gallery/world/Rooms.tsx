@@ -70,14 +70,7 @@ function WindowsPaintDetails() {
 }
 
 function Ps2Details() {
-  const towers = [-16, -14.8, -13.6, 13.6, 14.8, 16]
   return <group>
-    {towers.map((x, index) => (
-      <mesh key={x} position={[x, 0.4 + (index % 3) * 0.35, 4.55]}>
-        <boxGeometry args={[0.38, 0.8 + (index % 3) * 0.7, 0.38]} />
-        <meshStandardMaterial color="#06061d" emissive="#2748ff" emissiveIntensity={0.45} roughness={0.25} />
-      </mesh>
-    ))}
     {[-12, 0, 12].map((x) => (
       <mesh key={x} position={[x, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.1, 1.16, 48]} /><meshBasicMaterial color="#496dff" />
