@@ -8,7 +8,6 @@ import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { normalizeArtistName } from '@/lib/name-format'
 import { guessCountryCodeFromName } from '@/lib/participants'
-import { slugify } from '@/lib/slug'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { ADMIN_EMAILS } from '@/lib/admin'
 
@@ -57,7 +56,6 @@ async function provisionLegacyProfiles(
   // admin-gated page.
   await assertIsAdmin()
 
-  const supabase = await createClient()
   const admin = createAdminClient()
   const profileIds: string[] = []
   const skipped: string[] = []
@@ -99,59 +97,40 @@ async function provisionLegacyProfiles(
         emailToUserId.set(emailKey, userId)
       }
 
-      // profiles has no "admin insert on behalf of someone else" policy
-      // (only "users insert own"), so this has to go through the
-      // service-role client — which makes protect_profile_visibility's
-      // is_admin() check false and forces is_public back to false
-      // regardless of what's passed here. The real flip to true happens
-      // below, through the session client, same as the ordinary "Estas
-      // participan" path a couple lines down.
-      // country_code goes in as null when the legacy import's free-text
-      // "país" couldn't be matched to a real country (see
-      // guessCountryCodeFromName) — that no longer blocks publishing (Fer:
-      // "no importa si no está el país, que quede sin valor"). getParticipants
-      // already excludes a profile with no country_code from the public
-      // directory/map, and ParticipationStatus asks for it the next time this
-      // person actually logs in, alongside técnica.
-      const { error: profileError } = await admin.from('profiles').upsert({
-        id: userId,
-        name: item.name,
-        country_code: item.countryCode ?? null,
-        onboarded_at: new Date().toISOString(),
+      // Creating a verified auth user already fires auth_link_registro.
+      // Reuse that same locked, idempotent linker for existing users and
+      // retries instead of inserting a second, untracked artwork here.
+      const { error: linkError } = await admin.rpc('link_registro_user', {
+        target_user: userId,
       })
-      if (profileError) {
+      if (linkError) {
+        console.error('provisionLegacyProfiles: link failed', item.id, linkError)
+        skipped.push(item.id)
+        continue
+      }
+      const { data: linked, error: lookupError } = await admin.from('artworks')
+        .select('id')
+        .eq('legacy_submission_id', item.id)
+        .eq('profile_id', userId)
+        .is('archived_at', null)
+        .maybeSingle()
+      if (lookupError || !linked) {
         skipped.push(item.id)
         continue
       }
 
-      const baseSlug = slugify(item.name ? `${item.name}-obra` : userId.slice(0, 8)) || userId.slice(0, 8)
-      let slug = baseSlug
-      for (let suffix = 2; ; suffix++) {
-        const { data: taken } = await admin.from('artworks').select('id').eq('slug', slug).maybeSingle()
-        if (!taken) break
-        slug = `${baseSlug}-${suffix}`
+      // Preserve the country inferred by the admin flow when an older
+      // imported row has no normalized country_code for the linker to use.
+      if (item.countryCode) {
+        const { error: countryError } = await admin.from('profiles')
+          .update({ country_code: item.countryCode })
+          .eq('id', userId)
+          .is('country_code', null)
+        if (countryError) {
+          skipped.push(item.id)
+          continue
+        }
       }
-
-      const { error: artworkError } = await admin.from('artworks').insert({
-        profile_id: userId,
-        // The legacy import never captured a title — the artist can give it
-        // a real one later by submitting again once (or if) they log in for
-        // real, which an admin then curates via "Usar esta obra".
-        title: item.name ? `Obra de ${item.name}` : 'Sin título',
-        slug,
-        image_url: item.imageUrl,
-        is_selected: true,
-      })
-      if (artworkError) {
-        skipped.push(item.id)
-        continue
-      }
-
-      await supabase
-        .from('legacy_submissions')
-        .update({ claimed_by: userId, claimed_at: new Date().toISOString() })
-        .eq('id', item.id)
-
       profileIds.push(userId)
     } catch (err) {
       console.error('provisionLegacyProfiles: failed for', item.id, err)
