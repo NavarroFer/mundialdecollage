@@ -618,10 +618,15 @@ export default async function ObrasPage({
         )}
 
         {promotedRows.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-sm font-semibold text-ink">
-              Obras confirmadas ({promotedRows.length}) — ya se ven arriba, en la galería de &quot;Obras&quot;
-            </h3>
+          <details className="group/confirmed mt-6">
+            <summary className="cursor-pointer rounded-lg text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue">
+              Obras confirmadas ({promotedRows.length})
+              <span className="ml-3 text-collage-blue group-open/confirmed:hidden">Mostrar listado</span>
+              <span className="ml-3 hidden text-collage-blue group-open/confirmed:inline">Ocultar listado</span>
+            </summary>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Ya se ven arriba, en la galería de &quot;Obras&quot;.
+            </p>
             <div className="mt-3 divide-y divide-ink/10 rounded-2xl border-2 border-ink/10 bg-card px-5">
               {promotedRows.map((row) => (
                 <div key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -655,7 +660,7 @@ export default async function ObrasPage({
                 </div>
               ))}
             </div>
-          </div>
+          </details>
         )}
 
         {multiLegacyGroups.size > 0 && (
