@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { slugify } from '@/lib/slug'
+import { getAllCountryCodes } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 
 // Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
@@ -181,7 +182,37 @@ export async function completeOnboarding(formData: FormData) {
     }
   }
 
-  redirect('/')
+  redirect('/onboarding/confirmado')
+}
+
+// Confirmation edits only the signed-in artist's profile. The artwork stays
+// intact: publication and curation remain under the existing admin policies.
+export async function confirmArtistDetails(_previous: string, formData: FormData): Promise<string> {
+  if (!isSupabaseConfigured) return 'No pudimos conectar. Probá de nuevo en unos minutos.'
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 'Tu sesión terminó. Volvé a ingresar con Google para confirmar.'
+
+  const name = String(formData.get('name') ?? '').trim()
+  const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
+  const artworkId = String(formData.get('artwork_id') ?? '')
+  if (!name || !getAllCountryCodes().includes(countryCode)) {
+    return 'Completá tu nombre y elegí tu país para confirmar.'
+  }
+  const { data: artwork, error: artworkError } = await supabase.from('artworks')
+    .select('id, slug').eq('id', artworkId).eq('profile_id', user.id).maybeSingle()
+  if (artworkError || !artwork) return 'No pudimos encontrar tu obra en esta cuenta. Volvé a ingresar para revisar tu envío.'
+
+  const { data: profile, error: profileError } = await supabase.from('profiles')
+    .update({ name, country_code: countryCode })
+    .eq('id', user.id).select('id').maybeSingle()
+  if (profileError || !profile) return 'No pudimos guardar los cambios. Tus datos siguen acá; probá confirmar de nuevo.'
+
+  revalidatePath('/')
+  revalidatePath('/participantes')
+  revalidatePath('/edicion-2026')
+  revalidatePath(`/obras/${artwork.slug}`)
+  redirect('/onboarding/confirmado')
 }
 
 // For a profile that /admin/obras published without a país (the free-text

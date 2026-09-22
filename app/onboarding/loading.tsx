@@ -4,6 +4,7 @@ export default function Loading() {
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-lg">
+        <p role="status" className="mb-6 text-center text-sm text-muted-foreground">Estamos preparando tu bienvenida y buscando los datos de tu envío…</p>
         <Skeleton className="mx-auto h-3 w-40" />
         <Skeleton className="mx-auto mt-3 h-9 w-64" />
         <Skeleton className="mx-auto mt-3 h-4 w-full max-w-sm" />

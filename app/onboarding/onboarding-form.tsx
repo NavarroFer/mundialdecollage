@@ -1,8 +1,9 @@
 'use client'
 
-import { useActionState, useMemo, useState } from 'react'
+import { startTransition, useActionState, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
+import { SignOutButton } from '@/components/auth/sign-out-button'
 import { Button } from '@/components/ui/button'
 import { CountrySelect } from '@/components/ui/country-select'
 import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
@@ -32,6 +33,7 @@ export function OnboardingForm({
   userId,
   error,
   hasLegacyMatch,
+  email,
   prefillImageUrl,
   prefillImagePath,
 }: {
@@ -51,6 +53,7 @@ export function OnboardingForm({
   // submissions.sql) — surfaces the "we found your obra" note even if the
   // image fetch itself failed and only the name came through.
   hasLegacyMatch?: boolean
+  email?: string
   // Public URL of the artwork image page.tsx already fetched from Drive and
   // uploaded to Storage for this user, if that succeeded — shown as a
   // preview so they're not asked to re-upload what we already have.
@@ -114,7 +117,7 @@ export function OnboardingForm({
 
       formData.delete('artwork_image')
       formData.set('artwork_image_path', path)
-      formAction(formData)
+      startTransition(() => formAction(formData))
       return
     }
 
@@ -126,7 +129,7 @@ export function OnboardingForm({
     }
     formData.delete('artwork_image')
     formData.set('artwork_image_path', prefillImagePath)
-    formAction(formData)
+    startTransition(() => formAction(formData))
   }
 
   const displayError = clientError ?? (error && errorMessages[error])
@@ -137,16 +140,32 @@ export function OnboardingForm({
       className="mt-8 space-y-5 rounded-2xl border-2 border-ink/10 bg-card p-7"
     >
       {displayError && (
-        <p className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
+        <p role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
           {displayError}
         </p>
       )}
 
       {hasLegacyMatch && (
-        <p className="rounded-lg bg-collage-blue/10 px-3 py-2 text-sm font-medium text-collage-blue">
-          Encontramos la obra que nos enviaste antes — revisá los datos y confirmá tu
-          participación.
-        </p>
+        <div className="rounded-xl bg-collage-blue/5 p-4">
+          <p className="font-semibold text-collage-blue">Ya empezamos por vos</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {hasImagePrefill ? 'Esta es la obra que nos enviaste. No hace falta volver a subirla.' : 'Encontramos tu envío, pero no pudimos recuperar la imagen. Podés volver a cargarla abajo.'}
+          </p>
+          {hasImagePrefill && (
+            <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-lg bg-paper">
+              <Image src={prefillImageUrl!} alt="La obra que nos enviaste" fill sizes="(max-width: 640px) 100vw, 448px" className="object-contain p-2" priority />
+            </div>
+          )}
+        </div>
+      )}
+
+      {email && (
+        <div className="rounded-lg bg-paper p-3">
+          <p className="text-sm text-muted-foreground">Email de tu cuenta Google</p>
+          <p className="break-all text-sm font-semibold">{email}</p>
+          <p className="mt-1 text-xs text-muted-foreground">No se muestra en tu ficha pública. Si enviaste tu obra con otro email, ingresá con esa cuenta para que podamos reconocerla.</p>
+          <SignOutButton />
+        </div>
       )}
 
       <div>
@@ -205,10 +224,10 @@ export function OnboardingForm({
 
       <div>
         <label htmlFor="artwork_image" className="text-sm font-semibold text-ink">
-          Imagen de la obra
+          {hasImagePrefill ? 'Cambiar imagen (opcional)' : 'Imagen de la obra'}
         </label>
 
-        {hasImagePrefill && !pickedFileName && (
+        {hasImagePrefill && !pickedFileName && !hasLegacyMatch && (
           <div className="mt-1.5 mb-2 flex items-center gap-3 rounded-lg border-2 border-collage-blue/20 bg-collage-blue/5 p-2.5">
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-ink/10 bg-muted">
               <Image
@@ -266,7 +285,7 @@ export function OnboardingForm({
 
       <Button type="submit" size="lg" disabled={uploading || pending} className="w-full">
         {uploading || pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        {uploading ? 'Subiendo imagen…' : pending ? 'Enviando…' : 'Enviar mi obra'}
+        {uploading ? 'Subiendo imagen…' : pending ? 'Confirmando…' : hasLegacyMatch ? 'Confirmar mi participación' : 'Enviar mi obra'}
       </Button>
     </form>
   )
