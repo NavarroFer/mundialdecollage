@@ -2,6 +2,7 @@ export type Artwork = {
   id: string
   title: string
   artist: string
+  countryCode: string
   year: number
   image: string
   description: string

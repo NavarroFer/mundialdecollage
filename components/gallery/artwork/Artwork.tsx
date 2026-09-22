@@ -11,8 +11,8 @@ import { galleryThemes, type GalleryTheme } from '../themes'
 const MAT_MARGIN = 0.07
 const FRAME_BORDER = 0.045
 const FRAME_DEPTH = 0.035
-const LABEL_HEIGHT = 0.24
-const LABEL_GAP = 0.12
+const LABEL_HEIGHT = 0.14
+const LABEL_GAP = 0.08
 
 function escapeSvgText(value: string) {
   return value
@@ -23,14 +23,26 @@ function escapeSvgText(value: string) {
     .replaceAll("'", '&apos;')
 }
 
-function artistLabelDataUrl(artist: string) {
-  const fontSize = Math.max(25, Math.min(44, 700 / Math.max(artist.length * 0.58, 1))) * 0.7
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="160" viewBox="0 0 800 160">
-    <rect x="2" y="2" width="796" height="156" rx="8" fill="#f7f5f0" stroke="#d8d3ca" stroke-width="4"/>
-    <text x="400" y="83" dominant-baseline="middle" text-anchor="middle" fill="#161513" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="600" letter-spacing="1">${escapeSvgText(artist)}</text>
+function artistLabel(artist: string, countryCode: string) {
+  const code = countryCode.toUpperCase()
+  const flag = /^[A-Z]{2}$/.test(code)
+    ? Array.from(code, (letter) => String.fromCodePoint(127397 + letter.charCodeAt(0))).join('')
+    : ''
+  const flagSpace = flag ? 62 : 0
+  const textWidth = Array.from(artist).length * 19
+  const width = Math.min(760, Math.max(320, textWidth + flagSpace + 48))
+  const availableTextWidth = width - flagSpace - 48
+  const fontSize = Math.min(32, 32 * availableTextWidth / Math.max(textWidth, 1))
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="100" viewBox="0 0 ${width} 100">
+    <rect x="1" y="1" width="${width - 2}" height="98" rx="6" fill="#f7f5f0" stroke="#d8d3ca" stroke-width="2"/>
+    ${flag ? `<text x="24" y="53" dominant-baseline="middle" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif" font-size="38">${flag}</text>` : ''}
+    <text x="${24 + flagSpace}" y="53" dominant-baseline="middle" fill="#161513" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="600">${escapeSvgText(artist)}</text>
   </svg>`
 
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+  return {
+    url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+    width: LABEL_HEIGHT * width / 100,
+  }
 }
 
 function setSrgb(texture: { colorSpace: string }) {
@@ -40,8 +52,8 @@ function setSrgb(texture: { colorSpace: string }) {
 export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryTheme }) {
   const texture = useTexture(data.image, setSrgb)
   const frame = galleryThemes[theme].frame
-  const labelUrl = useMemo(() => artistLabelDataUrl(data.artist), [data.artist])
-  const labelTexture = useTexture(labelUrl, setSrgb)
+  const label = useMemo(() => artistLabel(data.artist, data.countryCode), [data.artist, data.countryCode])
+  const labelTexture = useTexture(label.url, setSrgb)
 
   // data.width/height is a bounding footprint on the wall — the image keeps
   // its native aspect ratio and is fit (never stretched) inside that box.
@@ -58,7 +70,6 @@ export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryThem
   const matHeight = renderHeight + MAT_MARGIN * 2
   const frameWidth = matWidth + FRAME_BORDER * 2
   const frameHeight = matHeight + FRAME_BORDER * 2
-  const labelWidth = Math.min(1.5, Math.max(0.95, frameWidth * 0.78))
   const labelY = -frameHeight / 2 - LABEL_GAP - LABEL_HEIGHT / 2
 
   return (
@@ -79,7 +90,7 @@ export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryThem
       </mesh>
       {/* Museum-style label: always follows the frame and never covers the artwork. */}
       <mesh position={[0, labelY, FRAME_DEPTH + 0.006]}>
-        <planeGeometry args={[labelWidth, LABEL_HEIGHT]} />
+        <planeGeometry args={[label.width, LABEL_HEIGHT]} />
         <meshBasicMaterial map={labelTexture} toneMapped={false} />
       </mesh>
     </group>

@@ -52,6 +52,7 @@ export async function getGalleryArtworks(): Promise<Artwork[]> {
       id: finalist.slug,
       title: finalist.artworkTitle,
       artist: finalist.name,
+      countryCode: finalist.countryCode,
       year: EDITION_YEAR,
       image: finalist.imageUrl,
       description: describeArtwork(finalist),
