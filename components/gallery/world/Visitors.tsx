@@ -82,6 +82,7 @@ const themeSkin: Record<GalleryTheme, { skin: string; dark: string; emissive: st
   museum: { skin: '#c99573', dark: '#262522', emissive: '#000000', pixel: false },
   windows98: { skin: '#ffff00', dark: '#000080', emissive: '#000000', pixel: true },
   ps2: { skin: '#8fa2d8', dark: '#050515', emissive: '#244bff', pixel: true },
+  collage: { skin: '#d69b72', dark: '#33271f', emissive: '#000000', pixel: false },
 }
 
 function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: GalleryTheme }) {

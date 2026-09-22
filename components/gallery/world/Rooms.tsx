@@ -79,6 +79,59 @@ function Ps2Details() {
   </group>
 }
 
+const ROOM_CENTERS = [-12, 0, 12]
+const ROOM_ACCENTS = ['#d84b38', '#487a65', '#e4b84a']
+
+function RoomAccents({ theme }: { theme: GalleryTheme }) {
+  const colors = theme === 'ps2'
+    ? ['#2e55ff', '#765cff', '#23a7db']
+    : theme === 'windows98'
+      ? ['#ff00ff', '#00ffff', '#ffff00']
+      : ROOM_ACCENTS
+
+  return <group>{ROOM_CENTERS.map((x, index) => (
+    <mesh key={x} position={[x, 0.009, -4.76]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[3.2, 0.12]} />
+      <meshBasicMaterial color={colors[index]} />
+    </mesh>
+  ))}</group>
+}
+
+function Benches({ theme }: { theme: GalleryTheme }) {
+  const seat = theme === 'ps2' ? '#111148' : theme === 'windows98' ? '#c0c0c0' : theme === 'collage' ? '#725039' : '#59483e'
+  const legs = theme === 'ps2' ? '#3156ff' : theme === 'windows98' ? '#000080' : '#2b2927'
+
+  return <group>{ROOM_CENTERS.map((x) => (
+    <group key={x} position={[x, 0, 2.25]}>
+      <mesh position={[0, 0.52, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.35, 0.18, 0.62]} />
+        <meshStandardMaterial color={seat} roughness={0.72} />
+      </mesh>
+      {[-0.86, 0.86].map((legX) => (
+        <mesh key={legX} position={[legX, 0.26, 0]} castShadow>
+          <boxGeometry args={[0.13, 0.52, 0.48]} />
+          <meshStandardMaterial color={legs} roughness={0.55} metalness={theme === 'ps2' ? 0.45 : 0.08} />
+        </mesh>
+      ))}
+    </group>
+  ))}</group>
+}
+
+function CollageDetails() {
+  const scraps = [
+    { x: -16.1, z: 3.9, w: 1.3, h: 0.72, color: '#d84b38', rotation: -0.25 },
+    { x: -7.7, z: -3.9, w: 1.6, h: 0.6, color: '#487a65', rotation: 0.18 },
+    { x: 4.2, z: 4.05, w: 1.25, h: 0.7, color: '#e4b84a', rotation: -0.12 },
+    { x: 15.6, z: -3.95, w: 1.45, h: 0.58, color: '#3766a0', rotation: 0.28 },
+  ]
+  return <group>{scraps.map((scrap) => (
+    <mesh key={`${scrap.x}-${scrap.z}`} position={[scrap.x, 0.012, scrap.z]} rotation={[-Math.PI / 2, 0, scrap.rotation]}>
+      <planeGeometry args={[scrap.w, scrap.h]} />
+      <meshStandardMaterial color={scrap.color} roughness={0.95} />
+    </mesh>
+  ))}</group>
+}
+
 export function Rooms({ theme }: { theme: GalleryTheme }) {
   const palette = galleryThemes[theme].room
   return (
@@ -119,6 +172,9 @@ export function Rooms({ theme }: { theme: GalleryTheme }) {
       ))}
       {theme === 'windows98' && <WindowsPaintDetails />}
       {theme === 'ps2' && <Ps2Details />}
+      <RoomAccents theme={theme} />
+      <Benches theme={theme} />
+      {theme === 'collage' && <CollageDetails />}
     </group>
   )
 }

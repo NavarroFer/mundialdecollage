@@ -16,6 +16,7 @@ const mapColors: Record<GalleryTheme, { floor: string; wall: string; player: str
   museum: { floor: '#3a352f', wall: '#faf8f2', player: '#e79d00', stroke: '#1b110c' },
   windows98: { floor: '#008080', wall: '#c0c0c0', player: '#ffff00', stroke: '#000080' },
   ps2: { floor: '#02020d', wall: '#263b9e', player: '#a9baff', stroke: '#496dff' },
+  collage: { floor: '#9d7958', wall: '#f2e8d5', player: '#e4b84a', stroke: '#33271f' },
 }
 
 export function Minimap({ theme }: { theme: GalleryTheme }) {

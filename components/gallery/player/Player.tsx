@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber'
 import { PerspectiveCamera, useKeyboardControls } from '@react-three/drei'
 import { CapsuleCollider, RigidBody, type RapierCollider, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
+import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
 import { useTouchStore } from '../mobile/touchStore'
 import type { Controls } from './controls'
@@ -19,8 +20,13 @@ const EYE_HEIGHT_OFFSET = 0.75
 const SPAWN_POSITION: [number, number, number] = [0, 0.9, 3]
 
 const UP = new THREE.Vector3(0, 1, 0)
+const focusWorldPosition = new THREE.Vector3()
+const focusLocalPosition = new THREE.Vector3()
+const focusTarget = new THREE.Vector3()
+const focusRotationMatrix = new THREE.Matrix4()
+const focusQuaternion = new THREE.Quaternion()
 
-export function Player({ active }: { active: boolean }) {
+export function Player({ active, artworks }: { active: boolean; artworks: Artwork[] }) {
   const bodyRef = useRef<RapierRigidBody>(null)
   const colliderRef = useRef<RapierCollider>(null)
   const crouchHeld = useRef(false)
@@ -58,14 +64,44 @@ export function Player({ active }: { active: boolean }) {
     const body = bodyRef.current
     if (!body) return
 
-    const modalOpen = useInteractionStore.getState().openId !== null
+    const openId = useInteractionStore.getState().openId
+    const modalOpen = openId !== null
+    const focusedArtwork = modalOpen ? artworks.find((artwork) => artwork.id === openId) : undefined
+
+    if (focusedArtwork) {
+      const rotationY = focusedArtwork.rotation[1]
+      const viewingDistance = Math.max(focusedArtwork.width, focusedArtwork.height) * 0.62 + 0.75
+      focusTarget.set(...focusedArtwork.position)
+      focusWorldPosition.set(
+        focusedArtwork.position[0] + Math.sin(rotationY) * viewingDistance,
+        focusedArtwork.position[1],
+        focusedArtwork.position[2] + Math.cos(rotationY) * viewingDistance,
+      )
+      const bodyPosition = body.translation()
+      focusLocalPosition.set(
+        focusWorldPosition.x - bodyPosition.x,
+        focusWorldPosition.y - bodyPosition.y,
+        focusWorldPosition.z - bodyPosition.z,
+      )
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, focusLocalPosition.x, 5.5, delta)
+      camera.position.y = THREE.MathUtils.damp(camera.position.y, focusLocalPosition.y, 5.5, delta)
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, focusLocalPosition.z, 5.5, delta)
+      focusRotationMatrix.lookAt(focusWorldPosition, focusTarget, UP)
+      focusQuaternion.setFromRotationMatrix(focusRotationMatrix)
+      camera.quaternion.slerp(focusQuaternion, 1 - Math.exp(-6 * delta))
+    } else {
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, 8, delta)
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, 0, 8, delta)
+    }
     const crouching = active && !modalOpen && crouchHeld.current
-    camera.position.y = THREE.MathUtils.damp(
-      camera.position.y,
-      EYE_HEIGHT_OFFSET - (crouching ? CROUCH_DROP : 0),
-      14,
-      delta,
-    )
+    if (!focusedArtwork) {
+      camera.position.y = THREE.MathUtils.damp(
+        camera.position.y,
+        EYE_HEIGHT_OFFSET - (crouching ? CROUCH_DROP : 0),
+        14,
+        delta,
+      )
+    }
     if (crouching !== wasCrouching.current && colliderRef.current) {
       const halfDrop = crouching ? CROUCH_DROP / 2 : 0
       colliderRef.current.setHalfHeight(PLAYER_HALF_HEIGHT - halfDrop)

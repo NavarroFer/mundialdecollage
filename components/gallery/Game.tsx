@@ -50,7 +50,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   }
 
   return (
-    <div className={cn(styles.shell, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2)}>
+    <div className={cn(styles.shell, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2, theme === 'collage' && styles.collage)}>
       <KeyboardControls map={keyboardMap}>
         <Canvas
           shadows="variance"
@@ -61,7 +61,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
         >
           <Physics>
             <World artworks={artworks} theme={theme} />
-            <Player active={isActive} />
+            <Player active={isActive} artworks={artworks} />
           </Physics>
           {!isTouchDevice && (
             <FirstPersonCamera

@@ -1,4 +1,4 @@
-export const GALLERY_THEMES = ['museum', 'windows98', 'ps2'] as const
+export const GALLERY_THEMES = ['museum', 'windows98', 'ps2', 'collage'] as const
 
 export type GalleryTheme = (typeof GALLERY_THEMES)[number]
 
@@ -49,5 +49,14 @@ export const galleryThemes: Record<GalleryTheme, GalleryThemeDefinition> = {
     canvas: '#02020d',
     room: { wall: '#080823', floor: '#03030d', ceiling: '#111142', trim: '#2455ff' },
     frame: { outer: '#101064', mat: '#09091c', roughness: 0.3, emissive: '#172bba' },
+  },
+  collage: {
+    id: 'collage',
+    name: 'Adentro de un collage',
+    eyebrow: 'MODO 04',
+    description: 'Papel, cartón y cinta: una sala armada a mano.',
+    canvas: '#d9c7a8',
+    room: { wall: '#e8dcc4', floor: '#9d7958', ceiling: '#f2e8d5', trim: '#d84b38' },
+    frame: { outer: '#33271f', mat: '#f5ecd9', roughness: 0.82 },
   },
 }
