@@ -80,7 +80,6 @@ const VISITORS: VisitorDefinition[] = [
 
 const themeSkin: Record<GalleryTheme, { skin: string; dark: string; emissive: string; pixel: boolean }> = {
   collage: { skin: '#d69b72', dark: '#33271f', emissive: '#000000', pixel: false },
-  museum: { skin: '#c99573', dark: '#262522', emissive: '#000000', pixel: false },
   windows98: { skin: '#ffff00', dark: '#000080', emissive: '#000000', pixel: true },
   garden: { skin: '#c99573', dark: '#205d3a', emissive: '#000000', pixel: false },
 }

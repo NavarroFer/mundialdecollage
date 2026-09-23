@@ -14,7 +14,6 @@ const HEADING_LENGTH = 1.4
 
 const mapColors: Record<GalleryTheme, { floor: string; wall: string; player: string; stroke: string }> = {
   collage: { floor: '#9d7958', wall: '#f2e8d5', player: '#e4b84a', stroke: '#33271f' },
-  museum: { floor: '#3a352f', wall: '#faf8f2', player: '#e79d00', stroke: '#1b110c' },
   windows98: { floor: '#008080', wall: '#c0c0c0', player: '#ffff00', stroke: '#000080' },
   garden: { floor: '#72ad53', wall: '#fff0c7', player: '#ffcf45', stroke: '#205d3a' },
 }
