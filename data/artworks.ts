@@ -24,8 +24,17 @@ export type GallerySlot = {
 
 const NORTH_Z = -4.9
 const SOUTH_Z = 4.9
+const WEST_X = -17.9
+const EAST_X = 17.9
+const FIRST_DIVIDER_WEST_X = -6.1
+const FIRST_DIVIDER_EAST_X = -5.9
+const SECOND_DIVIDER_WEST_X = 5.9
+const SECOND_DIVIDER_EAST_X = 6.1
+const DOOR_HALF_WIDTH = 1.2
 const NORTH_ROTATION: [number, number, number] = [0, 0, 0]
 const SOUTH_ROTATION: [number, number, number] = [0, Math.PI, 0]
+const WEST_ROTATION: [number, number, number] = [0, Math.PI / 2, 0]
+const EAST_ROTATION: [number, number, number] = [0, -Math.PI / 2, 0]
 
 // Cycled per slot so neighboring pieces don't all read the same size —
 // the real image still keeps its own aspect ratio inside this box (see
@@ -36,7 +45,7 @@ const SIZE_PRESETS: Array<[number, number]> = [
   [1.9, 1.9],
 ]
 
-function wallSlots(
+function wallSlotsAlongX(
   roomId: string,
   xFrom: number,
   xTo: number,
@@ -70,13 +79,39 @@ function wallSlots(
   })
 }
 
-// 20 spots across the 6 uninterrupted north/south walls (7 / 6 / 7 per room).
-// The east/west dividers contain doorways and must remain free of artwork.
+function wallSlotsAlongZ(
+  roomId: string,
+  zFrom: number,
+  zTo: number,
+  x: number,
+  rotation: [number, number, number],
+  count: number,
+  presetOffset: number,
+): GallerySlot[] {
+  return wallSlotsAlongX(roomId, zFrom, zTo, x, rotation, count, presetOffset)
+    .map((slot) => ({
+      ...slot,
+      position: [x, slot.position[1], slot.position[0]],
+    }))
+}
+
+// 20 spots distributed across every kind of usable wall (7 / 6 / 7 per
+// room): the long north/south runs, both dead ends, and the transverse wall
+// segments beside the doors. Door-wall pieces alternate faces so each room
+// gets artwork without hanging two frames back-to-back on the same segment.
 export const gallerySlots: GallerySlot[] = [
-  ...wallSlots('room-01', -18, -6, NORTH_Z, NORTH_ROTATION, 3, 0),
-  ...wallSlots('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 4, 1),
-  ...wallSlots('room-02', -6, 6, NORTH_Z, NORTH_ROTATION, 3, 2),
-  ...wallSlots('room-02', -6, 6, SOUTH_Z, SOUTH_ROTATION, 3, 0),
-  ...wallSlots('room-03', 6, 18, NORTH_Z, NORTH_ROTATION, 4, 1),
-  ...wallSlots('room-03', 6, 18, SOUTH_Z, SOUTH_ROTATION, 3, 2),
+  ...wallSlotsAlongX('room-01', -18, -6, NORTH_Z, NORTH_ROTATION, 2, 0),
+  ...wallSlotsAlongX('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 2, 2),
+  ...wallSlotsAlongZ('room-01', -5, 5, WEST_X, WEST_ROTATION, 2, 1),
+  ...wallSlotsAlongZ('room-01', -5, -DOOR_HALF_WIDTH, FIRST_DIVIDER_WEST_X, EAST_ROTATION, 1, 0),
+
+  ...wallSlotsAlongX('room-02', -6, 6, NORTH_Z, NORTH_ROTATION, 2, 1),
+  ...wallSlotsAlongX('room-02', -6, 6, SOUTH_Z, SOUTH_ROTATION, 2, 0),
+  ...wallSlotsAlongZ('room-02', DOOR_HALF_WIDTH, 5, FIRST_DIVIDER_EAST_X, WEST_ROTATION, 1, 2),
+  ...wallSlotsAlongZ('room-02', -5, -DOOR_HALF_WIDTH, SECOND_DIVIDER_WEST_X, EAST_ROTATION, 1, 1),
+
+  ...wallSlotsAlongX('room-03', 6, 18, NORTH_Z, NORTH_ROTATION, 2, 2),
+  ...wallSlotsAlongX('room-03', 6, 18, SOUTH_Z, SOUTH_ROTATION, 2, 1),
+  ...wallSlotsAlongZ('room-03', -5, 5, EAST_X, EAST_ROTATION, 2, 0),
+  ...wallSlotsAlongZ('room-03', DOOR_HALF_WIDTH, 5, SECOND_DIVIDER_EAST_X, WEST_ROTATION, 1, 2),
 ]

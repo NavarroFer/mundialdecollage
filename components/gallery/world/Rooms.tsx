@@ -161,21 +161,21 @@ function WindowsPaintDetails() {
     <group>
       <RetroWallPanel
         texture={paintTexture}
-        position={[-17.88, 1.86, -2.35]}
+        position={[-17.88, 2.55, 0]}
         rotation={[0, Math.PI / 2, 0]}
-        size={[3.55, 2.56]}
+        size={[1.7, 1.2]}
       />
       <RetroWallPanel
         texture={dialogTexture}
-        position={[-17.88, 1.65, 2.25]}
+        position={[-17.88, 1.05, 0]}
         rotation={[0, Math.PI / 2, 0]}
-        size={[3.15, 1.65]}
+        size={[1.7, 0.9]}
       />
       <RetroWallPanel
         texture={explorerTexture}
-        position={[17.88, 1.85, 0]}
+        position={[17.88, 1.8, 0]}
         rotation={[0, -Math.PI / 2, 0]}
-        size={[4, 2.9]}
+        size={[1.7, 1.25]}
       />
       {colors.map((color, index) => (
         <mesh key={color} position={[-15 + index * 1.15, 0.012, 4.8]} rotation={[-Math.PI / 2, 0, 0]}>
