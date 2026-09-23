@@ -11,7 +11,6 @@ import { WorkshopSection } from '@/components/workshop-section'
 import { ParticipantsSection } from '@/components/participants-section'
 import { MapSection } from '@/components/map-section'
 import { JurySection } from '@/components/jury-section'
-import { CtaSection } from '@/components/cta-section'
 import { Footer } from '@/components/footer'
 
 // Renders per request so a new submission shows up without a redeploy.
@@ -38,7 +37,6 @@ export default function Home() {
           <ParticipantsSection />
           <MapSection />
           <JurySection />
-          <CtaSection />
           <WorkshopSection />
         </main>
         <Footer />
