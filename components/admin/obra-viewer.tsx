@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { LegacyImageUpload } from '@/components/admin/legacy-image-upload'
+import { ArtworkEditForm } from '@/components/admin/artwork-edit-form'
 import type { ArtworkSibling, LegacySibling, Submission } from '@/components/admin/submission-types'
 import {
   deleteArtwork,
@@ -230,6 +231,8 @@ function RealActions({
           </SubmitButton>
         </form>
       </div>
+
+      {item.artworkId && <ArtworkEditForm key={item.artworkId} item={item} />}
 
       {item.siblings && item.siblings.length > 0 && (
         <SiblingStrip

@@ -14,8 +14,9 @@ import { setLegacyImageManually } from '@/app/admin/obras/actions'
 //
 // Uploads straight to Storage from the browser, same reason as
 // onboarding-form.tsx: a Server Action's body is capped well under what a
-// phone photo can weigh. `upsert: true` so retrying after picking the wrong
-// file just overwrites.
+// phone photo can weigh. Each upload gets its own timestamped path so
+// replacing a wrong photo changes the public URL — overwriting in place kept
+// the old image cached by the CDN and next/image.
 export function LegacyImageUpload({ id }: { id: string }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -39,11 +40,11 @@ export function LegacyImageUpload({ id }: { id: string }) {
 
     setUploading(true)
     const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-    const path = `legacy/${id}.${extension}`
+    const path = `legacy/${id}-${Date.now()}.${extension}`
     const supabase = createClient()
     const { error: uploadError } = await supabase.storage
       .from('artworks')
-      .upload(path, file, { contentType: file.type, upsert: true })
+      .upload(path, file, { contentType: file.type })
     setUploading(false)
 
     if (uploadError) {

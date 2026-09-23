@@ -370,7 +370,9 @@ export async function setLegacyImageManually(formData: FormData) {
   const path = String(formData.get('path'))
 
   const extension = path.split('.').pop()?.toLowerCase()
-  if (path !== `legacy/${id}.${extension}` || !extension || !ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
+  const stamp = path.startsWith(`legacy/${id}-`) ? path.slice(`legacy/${id}-`.length, -(`.${extension}`.length)) : ''
+  const validPath = path === `legacy/${id}.${extension}` || (/^\d+$/.test(stamp) && path.endsWith(`.${extension}`))
+  if (!extension || !ALLOWED_IMAGE_EXTENSIONS.has(extension) || !validPath) {
     redirect('/admin/obras?error=invalid_image')
   }
 
@@ -614,6 +616,67 @@ export async function deleteArtwork(formData: FormData) {
   revalidatePath('/')
   revalidatePath('/edicion-2026')
   revalidatePath('/participantes')
+}
+
+const ARTWORK_TECHNIQUES = new Set(['Analógica', 'Mixta', 'Digital'])
+
+// Fixes an already-loaded (and possibly already-public) artwork in place:
+// title, technique and/or its photo. A replacement photo is uploaded from the
+// admin's browser first (see components/admin/artwork-edit-form.tsx) into a
+// fresh `admin/<artworkId>/<timestamp>.<ext>` path — never overwriting the
+// old file, so the new image gets a new URL instead of the CDN/next/image
+// cache serving the old one for hours. Runs on the service-role client
+// (artworks has no UPDATE grant for `authenticated`, see
+// 20260921040000_artworks.sql), so assertIsAdmin() is the real boundary.
+// Updating image_url here is safe against the Registro sync: it links rows
+// by legacy_submission_id and never rewrites an existing artwork's image.
+export async function updateArtwork(input: {
+  artworkId: string
+  title: string
+  technique: string
+  imagePath?: string
+}): Promise<{ error?: string }> {
+  await assertIsAdmin()
+
+  const title = input.title.trim()
+  if (!title) return { error: 'El título no puede quedar vacío.' }
+  if (input.technique && !ARTWORK_TECHNIQUES.has(input.technique)) return { error: 'Técnica inválida.' }
+
+  const admin = createAdminClient()
+  const update: { title: string; technique: string | null; image_url?: string } = {
+    title,
+    technique: input.technique || null,
+  }
+
+  if (input.imagePath) {
+    const extension = input.imagePath.split('.').pop()?.toLowerCase() ?? ''
+    const prefix = `admin/${input.artworkId}/`
+    if (
+      !input.imagePath.startsWith(prefix) ||
+      !/^\d+$/.test(input.imagePath.slice(prefix.length, -(extension.length + 1))) ||
+      !ALLOWED_IMAGE_EXTENSIONS.has(extension)
+    ) {
+      return { error: 'Imagen inválida.' }
+    }
+    update.image_url = admin.storage.from('artworks').getPublicUrl(input.imagePath).data.publicUrl
+  }
+
+  const { data: row, error } = await admin
+    .from('artworks')
+    .update(update)
+    .eq('id', input.artworkId)
+    .select('slug')
+    .maybeSingle()
+  if (error) return { error: error.message }
+  if (!row) return { error: 'No se encontró la obra.' }
+
+  revalidatePath('/admin/obras')
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
+  revalidatePath('/galeria-3d')
+  revalidatePath(`/obras/${row.slug}`)
+  return {}
 }
 
 // Bulk version of deleteArtwork/deleteLegacySubmission for the gallery's
