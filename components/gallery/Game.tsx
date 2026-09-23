@@ -35,7 +35,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const [locked, setLocked] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
-  const [theme, setTheme] = useState<GalleryTheme>('museum')
+  const [theme, setTheme] = useState<GalleryTheme>('collage')
   const openId = useInteractionStore((state) => state.openId)
   const musicRef = useRef<BackgroundMusicHandle>(null)
 
@@ -50,7 +50,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   }
 
   return (
-    <div className={cn(styles.shell, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2, theme === 'collage' && styles.collage)}>
+    <div className={cn(styles.shell, theme === 'windows98' && styles.windows98, theme === 'collage' && styles.collage, theme === 'garden' && styles.garden)}>
       <KeyboardControls map={keyboardMap}>
         <Canvas
           shadows="variance"

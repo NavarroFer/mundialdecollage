@@ -30,17 +30,15 @@
   --gallery-font: "MS Sans Serif", Tahoma, Geneva, sans-serif;
 }
 
-.ps2 {
-  --gallery-panel: rgba(3, 3, 24, 0.88);
-  --gallery-panel-solid: #080824;
-  --gallery-text: #e7ecff;
-  --gallery-ink: #e7ecff;
-  --gallery-accent: #688cff;
-  --gallery-border: rgba(114, 145, 255, 0.62);
-  --gallery-radius: 0.25rem;
-  --gallery-shadow: 0 0 28px rgba(48, 82, 255, 0.42), inset 0 0 20px rgba(61, 74, 255, 0.08);
-  --gallery-font: Arial, Helvetica, sans-serif;
-  letter-spacing: 0.025em;
+.garden {
+  --gallery-panel: rgba(32, 93, 58, 0.88);
+  --gallery-panel-solid: #fffaf0;
+  --gallery-text: #fffdf4;
+  --gallery-ink: #174d31;
+  --gallery-accent: #ffcf45;
+  --gallery-border: rgba(255, 250, 224, 0.58);
+  --gallery-radius: 1rem;
+  --gallery-shadow: 0 16px 40px rgba(23, 77, 49, 0.24);
 }
 
 .collage {
@@ -68,20 +66,11 @@
   background-size: 16px 16px;
 }
 
-.ps2 .startScreen {
+.garden .startScreen {
   background:
-    radial-gradient(circle at 50% 62%, rgba(43, 58, 204, 0.36), transparent 25%),
-    linear-gradient(180deg, rgba(0, 0, 12, .5), rgba(0, 0, 16, .93));
-}
-
-.ps2 .startScreen::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: .22;
-  background-image: linear-gradient(rgba(91, 110, 255, .15) 1px, transparent 1px);
-  background-size: 100% 5px;
+    radial-gradient(circle at 16% 82%, rgba(255, 207, 69, .72) 0 4%, transparent 4.5%),
+    radial-gradient(circle at 83% 86%, rgba(239, 111, 97, .7) 0 4%, transparent 4.5%),
+    linear-gradient(180deg, rgba(143, 211, 255, .45), rgba(55, 126, 73, .74));
 }
 
 .collage .startScreen {
@@ -139,13 +128,9 @@
   line-height: 1.1;
 }
 
-.ps2 .title {
-  color: #f1f4ff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: 300;
-  letter-spacing: .18em;
-  text-shadow: 0 0 18px #4468ff;
-  text-transform: uppercase;
+.garden .title {
+  color: #fff8d8;
+  text-shadow: 3px 3px 0 #2d7b4a;
 }
 
 .collage .title { color: #fff8e9; transform: rotate(.4deg); }
@@ -186,11 +171,8 @@
   background-size: 2px 2px;
 }
 
-.ps2 .themeOption {
-  background: linear-gradient(135deg, rgba(40, 48, 140, .38), rgba(0, 0, 15, .35));
-}
-
-.ps2 .themeOptionSelected { box-shadow: inset 3px 0 0 #6f8dff, 0 0 16px rgba(68, 98, 255, .28); }
+.garden .themeOption { background: rgba(255, 250, 224, .12); }
+.garden .themeOptionSelected { box-shadow: inset 3px 0 0 #ffcf45; }
 
 .swatch {
   display: block;
@@ -222,12 +204,11 @@
   box-shadow: 1px 1px 0 #000;
 }
 
-.ps2 .enterButton {
-  border-color: #6989ff;
-  color: #eef1ff;
-  background: transparent;
-  box-shadow: 0 0 18px rgba(74, 105, 255, .35);
-  text-transform: uppercase;
+.garden .enterButton {
+  border: 0;
+  color: #174d31;
+  background: #ffcf45;
+  box-shadow: 5px 6px 0 rgba(23, 77, 49, .28);
 }
 
 .collage .enterButton { transform: rotate(-1deg); border: 0; background: #e4b84a; }
@@ -313,8 +294,7 @@
 
 .windows98 .themeMenuTitle { color: #fff; background: #000080; }
 .windows98 .themeMenuOption:hover { background: #000080; color: #fff; }
-.ps2 .themeTrigger { box-shadow: 0 0 15px rgba(74, 105, 255, .4); }
-.ps2 .themeMenu { border-left: 3px solid #688cff; }
+.garden .themeTrigger, .garden .themeMenu { border-color: rgba(255, 207, 69, .72); }
 .collage .themeTrigger, .collage .themeMenu { border-style: dashed; }
 
 .hudPanel {
@@ -333,7 +313,7 @@
   backdrop-filter: none;
 }
 
-.ps2 .hudPanel { border-left: 3px solid #688cff; }
+.garden .hudPanel { border-color: rgba(255, 207, 69, .72); }
 .collage .hudPanel { border-style: dashed; }
 
 .hudButton {
@@ -345,7 +325,7 @@
 }
 
 .windows98 .hudButton { border: 2px solid; border-color: #fff #000 #000 #fff; }
-.ps2 .hudButton { box-shadow: 0 0 16px rgba(74, 105, 255, .42); }
+.garden .hudButton { border-color: rgba(255, 207, 69, .72); }
 .collage .hudButton { border-style: dashed; }
 
 .modal {
@@ -376,9 +356,8 @@
 }
 
 .windows98.modal { padding-top: 3.25rem !important; }
-.ps2.modal { border-left: 4px solid #6c8aff !important; }
+.garden.modal { border-top: 5px solid #ffcf45 !important; }
 .collage.modal { border-style: dashed !important; }
-.ps2.modal :global(h2) { color: #f2f4ff; font-family: Arial, sans-serif; font-weight: 300; letter-spacing: .12em; text-transform: uppercase; }
 .modal :global(p), .modal :global(label) { color: var(--gallery-ink); }
 .modal :global(button) { border-radius: var(--gallery-radius); }
 

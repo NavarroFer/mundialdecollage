@@ -25,7 +25,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
       <DialogContent
         aria-describedby={undefined}
         overlayClassName="bg-ink/25 backdrop-blur-[1px]"
-        className={cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'ps2' && styles.ps2, theme === 'collage' && styles.collage, 'flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl flex-col gap-6 overflow-y-auto p-6 sm:left-auto sm:right-6 sm:w-[min(25rem,calc(100%-3rem))] sm:max-w-md sm:translate-x-0 sm:p-8')}
+        className={cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'collage' && styles.collage, theme === 'garden' && styles.garden, 'flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl flex-col gap-6 overflow-y-auto p-6 sm:left-auto sm:right-6 sm:w-[min(25rem,calc(100%-3rem))] sm:max-w-md sm:translate-x-0 sm:p-8')}
       >
         <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-lg bg-card sm:hidden">
           <Image

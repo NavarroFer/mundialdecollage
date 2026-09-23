@@ -45,15 +45,21 @@ function wallSlots(
   count: number,
   presetOffset: number,
 ): GallerySlot[] {
-  const margin = 1.6
-  const usableFrom = xFrom + margin
-  const usableTo = xTo - margin
-  const step = count > 1 ? (usableTo - usableFrom) / (count - 1) : 0
   const baseY = 1.85
+  const sizes = Array.from(
+    { length: count },
+    (_, i) => SIZE_PRESETS[(presetOffset + i) % SIZE_PRESETS.length],
+  )
+  const occupiedWidth = sizes.reduce((total, [width]) => total + width, 0)
+  // Divide every bit of empty wall into equal gaps, including the space at
+  // both ends. Using the frame widths (rather than equally spaced centers)
+  // keeps mixed portrait/landscape presets visually equidistant.
+  const gap = (xTo - xFrom - occupiedWidth) / (count + 1)
+  let cursor = xFrom + gap
 
-  return Array.from({ length: count }, (_, i) => {
-    const x = count > 1 ? usableFrom + step * i : (xFrom + xTo) / 2
-    const [width, height] = SIZE_PRESETS[(presetOffset + i) % SIZE_PRESETS.length]
+  return sizes.map(([width, height]) => {
+    const x = cursor + width / 2
+    cursor += width + gap
     return {
       roomId,
       position: [x, baseY, z],

@@ -10,7 +10,6 @@ export function World({ artworks, theme }: { artworks: Artwork[]; theme: Gallery
   return (
     <>
       <color attach="background" args={[galleryThemes[theme].canvas]} />
-      {theme === 'ps2' && <fog attach="fog" args={['#02020d', 7, 35]} />}
       <Lighting theme={theme} />
       <RigidBody type="fixed" colliders="trimesh">
         <Rooms theme={theme} />

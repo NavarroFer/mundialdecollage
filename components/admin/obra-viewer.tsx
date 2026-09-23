@@ -397,9 +397,8 @@ function LegacyActions({
   )
 }
 
-// Compact thumbnail row shared by RealActions/LegacyActions — same idea as the
-// existing "Artistas con varias obras" section and LegacyGroupCard further down
-// the page, just condensed for the viewer's action panel.
+// Compact thumbnail row shared by RealActions/LegacyActions so every artwork
+// from the same artist remains editable directly from the unified gallery.
 function SiblingStrip<T extends { id: string; imageUrl: string | null }>({
   label,
   siblings,

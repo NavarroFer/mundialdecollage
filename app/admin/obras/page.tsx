@@ -51,12 +51,9 @@ type LegacyRow = {
   image_fetch_failed_at: string | null
 }
 
-// Shared by "Artistas con varias obras" (always visible, so an admin can
-// revisit/switch the pick at any time — selectLegacySubmission un-promotes
-// the whole group the moment a different row is chosen, see its comment in
-// ./actions.ts) and "Curación pendiente" (single-row groups nobody's picked
-// yet) below — same per-artist card and actions, just fed a different slice
-// of groups.
+// Used by "Curación pendiente" for every legacy group that still has no
+// confirmed artwork. Confirmed groups live in the gallery above, where the
+// viewer also exposes every sibling artwork and lets an admin change the pick.
 function LegacyGroupCard({ rows }: { rows: LegacyRow[] }) {
   const email = rows[0].email
   const displayName = rows.find((r) => r.name)?.name ?? null
@@ -306,20 +303,13 @@ export default async function ObrasPage({
       : { data: [] as { id: string; is_public: boolean }[] }
   const claimedPublicById = new Map((claimedProfiles ?? []).map((p) => [p.id, p.is_public]))
 
-  // A multi-obra artist's group used to drop out of view entirely the
-  // moment any row in it got promoted (see git history) — but a promotion
-  // here is never really final, just the currently-picked one
-  // (selectLegacySubmission always lets a different row take over), so
-  // hiding the group meant losing the only place to go back and change it.
-  // These stay listed regardless of promotion status; only a genuinely
-  // untouched single-row group counts as "pendiente" below.
-  const multiLegacyGroups = new Map<string, typeof legacyRows>()
+  // Every group without a confirmed row still needs the curation card below.
+  // Once confirmed, it moves to the unified gallery above; multi-obra groups
+  // remain editable there through the viewer's sibling strip.
   const unresolvedGroups = new Map<string, typeof legacyRows>()
   for (const [email, rows] of legacyGroups) {
-    if (rows.length > 1) multiLegacyGroups.set(email, rows)
-    else if (!rows[0].promoted) unresolvedGroups.set(email, rows)
+    if (!rows.some((row) => row.promoted)) unresolvedGroups.set(email, rows)
   }
-  const multiLegacyCount = [...multiLegacyGroups.values()].reduce((n, rows) => n + rows.length, 0)
   const unresolvedCount = [...unresolvedGroups.values()].reduce((n, rows) => n + rows.length, 0)
 
   // The "Obras" gallery up top used to only ever show real registrations —
@@ -661,23 +651,6 @@ export default async function ObrasPage({
               ))}
             </div>
           </details>
-        )}
-
-        {multiLegacyGroups.size > 0 && (
-          <div className="mt-10">
-            <h3 className="text-sm font-semibold text-ink">
-              Artistas con varias obras precargadas ({multiLegacyCount})
-            </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Quedan siempre listados acá, aunque ya tengan una obra confirmada — para poder
-              revisar con calma y cambiarla si hace falta.
-            </p>
-            <div className="mt-3 space-y-4">
-              {[...multiLegacyGroups.entries()].map(([email, rows]) => (
-                <LegacyGroupCard key={email} rows={rows} />
-              ))}
-            </div>
-          </div>
         )}
 
         <div className="mt-10 space-y-4">

@@ -7,8 +7,8 @@ export function Lighting({ theme }: { theme: GalleryTheme }) {
     return <><ambientLight intensity={1.05} color="#ffffff" /><directionalLight position={[0, 8, 2]} intensity={1.4} color="#ffffff" castShadow /></>
   }
 
-  if (theme === 'ps2') {
-    return <><ambientLight intensity={0.22} color="#3446aa" /><directionalLight position={[4, 8, 2]} intensity={1.5} color="#7290ff" castShadow /><pointLight position={[-12, 2.4, 0]} intensity={20} distance={11} decay={2} color="#334dff" /><pointLight position={[0, 2.4, 0]} intensity={18} distance={11} decay={2} color="#755cff" /><pointLight position={[12, 2.4, 0]} intensity={20} distance={11} decay={2} color="#334dff" /></>
+  if (theme === 'garden') {
+    return <><hemisphereLight color="#dff6ff" groundColor="#56833f" intensity={1.35} /><ambientLight intensity={0.55} color="#fff7db" /><directionalLight position={[-8, 12, 5]} intensity={2.2} color="#fff3c4" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-20} shadow-camera-right={20} shadow-camera-top={12} shadow-camera-bottom={-12} shadow-radius={5} /></>
   }
 
   const warmColor = theme === 'collage' ? '#ffd8a3' : WARM_WHITE

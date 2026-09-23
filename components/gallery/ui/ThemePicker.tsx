@@ -6,10 +6,10 @@ import { galleryThemes, GALLERY_THEMES, type GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
 
 const swatches: Record<GalleryTheme, string> = {
+  collage: 'linear-gradient(90deg, #e8dcc4 0 38%, #d84b38 38% 55%, #487a65 55% 75%, #e4b84a 75%)',
   museum: 'linear-gradient(90deg, #f2f1ec 0 45%, #232323 45% 55%, #e79d00 55%)',
   windows98: 'linear-gradient(90deg, #008080 0 33%, #c0c0c0 33% 66%, #000080 66%)',
-  ps2: 'linear-gradient(90deg, #02020d 0 35%, #172bba 35% 70%, #688cff 70%)',
-  collage: 'linear-gradient(90deg, #e8dcc4 0 38%, #d84b38 38% 55%, #487a65 55% 75%, #e4b84a 75%)',
+  garden: 'linear-gradient(90deg, #8fd3ff 0 30%, #72ad53 30% 58%, #ffcf45 58% 74%, #ef6f61 74%)',
 }
 
 export function ThemePicker({ theme, onChange }: { theme: GalleryTheme; onChange: (theme: GalleryTheme) => void }) {

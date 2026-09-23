@@ -41,8 +41,7 @@ export type Submission = {
   isPublic: boolean
   // How many artwork rows this artist has total (see
   // supabase/migrations/20260921040000_artworks.sql) — more than one means
-  // there's a resubmission waiting to be curated in the "Artistas con varias
-  // obras" section above this gallery.
+  // the gallery viewer should expose the sibling picker.
   artworkCount?: number
   // 'legacy' = a confirmed supabase/migrations/20260921070000_legacy_
   // submissions_promoted.sql row, shown here alongside real registrations so
