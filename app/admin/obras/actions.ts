@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
+import { reuseRegistroArtwork } from '@/lib/reuse-registro-artwork'
 import { normalizeArtistName } from '@/lib/name-format'
 import { guessCountryCodeFromName } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
@@ -431,7 +432,7 @@ export async function fetchLegacyImagesBatch(): Promise<{
   // multi-submission artists.
   const { data: rows, error: selectError } = await admin
     .from('legacy_submissions')
-    .select('id, drive_url')
+    .select('id, drive_url, claimed_by')
     .is('archived_at', null)
     .is('image_url', null)
     .is('image_fetch_failed_at', null)
@@ -453,6 +454,13 @@ export async function fetchLegacyImagesBatch(): Promise<{
     batch.map(async (row) => {
       const result = await storeLegacyArtworkGlobally(admin, { id: row.id, drive_url: row.drive_url })
       if (result) {
+        try {
+          await reuseRegistroArtwork(admin, row, result.fingerprint)
+        } catch (matchError) {
+          console.error('fetchLegacyImagesBatch: image needs duplicate review', row.id, matchError)
+          await admin.from('legacy_submissions').update({ image_fetch_failed_at: new Date().toISOString() }).eq('id', row.id)
+          return false
+        }
         const { error: updateError } = await admin
           .from('legacy_submissions')
           .update({ image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null })
@@ -516,7 +524,7 @@ export async function retryLegacyImageFetch(formData: FormData) {
   const admin = createAdminClient()
   const { data: row, error: lookupError } = await admin
     .from('legacy_submissions')
-    .select('id, drive_url')
+    .select('id, drive_url, claimed_by')
     .eq('id', id)
     .maybeSingle()
   if (lookupError || !row) {
@@ -525,6 +533,11 @@ export async function retryLegacyImageFetch(formData: FormData) {
 
   const result = await storeLegacyArtworkGlobally(admin, { id: row.id, drive_url: row.drive_url })
   if (result) {
+    try {
+      await reuseRegistroArtwork(admin, row, result.fingerprint)
+    } catch (matchError) {
+      redirect(`/admin/obras?error=${encodeURIComponent(String(matchError))}`)
+    }
     const { error: updateError } = await admin
       .from('legacy_submissions')
       .update({ image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null })

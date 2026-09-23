@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js'
 import { parseRegistro, planRegistro } from '../lib/registro.ts'
 import { isoNumericToAlpha2 } from '../lib/iso-numeric-country-codes.ts'
 import { storeLegacyArtworkGlobally } from '../lib/legacy-submissions.ts'
+import { reuseRegistroArtwork } from '../lib/reuse-registro-artwork.ts'
 
 const args = process.argv.slice(2)
 const snapshotPath = args.find((arg) => !arg.startsWith('--'))
@@ -60,9 +61,11 @@ const current = await readAll('legacy_submissions')
 const pending = current.filter((row) => !row.archived_at && !row.image_url)
 let downloaded = 0
 let failed = 0
+let reused = 0
 for (let i = 0; i < pending.length; i += 4) {
   await Promise.all(pending.slice(i, i + 4).map(async (row) => {
     const result = await storeLegacyArtworkGlobally(db, { id: String(row.id), drive_url: String(row.drive_url) })
+    if (result && await reuseRegistroArtwork(db, { id: String(row.id), claimed_by: row.claimed_by as string | null }, result.fingerprint)) reused++
     const { error: imageError } = await db.from('legacy_submissions').update(result
       ? { image_path: result.path, image_url: result.publicUrl, image_fetch_failed_at: null }
       : { image_fetch_failed_at: new Date().toISOString() }).eq('id', row.id)
@@ -70,10 +73,10 @@ for (let i = 0; i < pending.length; i += 4) {
     if (result) downloaded++
     else failed++
   }))
-  console.log(JSON.stringify({ imagesProcessed: Math.min(i + 4, pending.length), pendingTotal: pending.length, downloaded, failed }))
+  console.log(JSON.stringify({ imagesProcessed: Math.min(i + 4, pending.length), pendingTotal: pending.length, downloaded, failed, reused }))
 }
 const { count, error: countError } = await db.from('legacy_submissions')
   .select('id', { count: 'exact', head: true }).is('archived_at', null)
 if (countError || count !== entries.length) throw new Error('El total activo no coincide con la planilla; revisar concurrencia.')
-console.log(JSON.stringify({ verifiedActive: count, downloaded, failed }))
+console.log(JSON.stringify({ verifiedActive: count, downloaded, failed, reused }))
 if (failed) process.exitCode = 2

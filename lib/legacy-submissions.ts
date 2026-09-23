@@ -1,6 +1,7 @@
 import sharp from 'sharp'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_FETCH_BYTES } from '@/lib/onboarding-image'
+import { registroImageFingerprint } from '@/lib/registro-image-fingerprint'
 
 // The spreadsheet always stores links shaped like
 // ".../file/d/<FILE_ID>/view?usp=sharing" — pull just the id out so we can
@@ -10,7 +11,7 @@ export function extractDriveFileId(url: string): string | null {
   return match ? match[1] : null
 }
 
-export type LegacyArtwork = { path: string; publicUrl: string }
+export type LegacyArtwork = { path: string; publicUrl: string; fingerprint?: string }
 
 // Longest side a submission photo ever needs to render at (the biggest
 // display on the site is the full-width image on /obras/[slug]) — anything
@@ -183,8 +184,9 @@ export async function fetchAndStoreLegacyArtwork(
 export async function storeLegacyArtworkGlobally(
   adminClient: SupabaseClient,
   legacy: { id: string; drive_url: string | null },
-): Promise<LegacyArtwork | null> {
+): Promise<(LegacyArtwork & { fingerprint: string }) | null> {
   const buffer = await fetchOptimizedDriveImage(legacy.drive_url)
   if (!buffer) return null
-  return uploadOptimizedImage(adminClient, `legacy/${legacy.id}.jpg`, buffer)
+  const uploaded = await uploadOptimizedImage(adminClient, `legacy/${legacy.id}.jpg`, buffer)
+  return uploaded ? { ...uploaded, fingerprint: await registroImageFingerprint(buffer) } : null
 }
