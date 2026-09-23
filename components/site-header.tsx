@@ -62,7 +62,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b-2 border-ink/10 bg-paper/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
-        <a href="#top" className="flex items-center gap-2.5">
+        <a href="#top" className="flex items-center gap-2.5 transition-opacity duration-300 hover:opacity-75">
           <Image src="/logo-mark.png" alt="" width={512} height={512} className="h-9 w-9" />
           <Image
             src="/wordmark.png"
@@ -74,13 +74,13 @@ export function SiteHeader() {
         </a>
 
         <nav className="flex items-center gap-6 text-sm font-semibold text-ink/70" aria-label="Navegación principal">
-          <a href="#como-participar" className="hidden hover:text-ink md:block">
+          <a href="#como-participar" className="hidden transition-colors duration-300 hover:text-ink md:block">
             Cómo participar
           </a>
-          <a href="#taller" className="hidden hover:text-ink md:block">
+          <a href="#taller" className="hidden transition-colors duration-300 hover:text-ink md:block">
             Taller
           </a>
-          <a href="#participantes" className="hidden hover:text-ink md:block">
+          <a href="#participantes" className="hidden transition-colors duration-300 hover:text-ink md:block">
             Participantes
           </a>
           <Link
