@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { getSubmissionsCount } from '@/lib/submissions'
-import { site } from '@/lib/site'
 
 export async function EditionSection() {
   const submissionsCount = await getSubmissionsCount()
@@ -53,7 +52,7 @@ export async function EditionSection() {
         <FadeIn delay={400}>
           <div className="mt-8 flex flex-col items-center justify-center gap-5 sm:flex-row">
             <Button asChild size="lg" variant="primary">
-              <a href={`mailto:${site.email}`}>Sumá tu obra al Mundial</a>
+              <Link href="/onboarding">Sumá tu obra al Mundial</Link>
             </Button>
             <Link href="#participantes" className="text-sm font-semibold text-collage-blue underline underline-offset-4">
               Descubrí las obras participantes →
