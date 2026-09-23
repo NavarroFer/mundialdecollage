@@ -188,22 +188,6 @@ function WindowsPaintDetails() {
 }
 
 const ROOM_CENTERS = [-12, 0, 12]
-const ROOM_ACCENTS = ['#d84b38', '#487a65', '#e4b84a']
-
-function RoomAccents({ theme }: { theme: GalleryTheme }) {
-  const colors = theme === 'garden'
-    ? ['#ef6f61', '#7b61a8', '#f1b62e']
-    : theme === 'windows98'
-      ? ['#ff00ff', '#00ffff', '#ffff00']
-      : ROOM_ACCENTS
-
-  return <group>{ROOM_CENTERS.map((x, index) => (
-    <mesh key={x} position={[x, 0.009, -4.76]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[3.2, 0.12]} />
-      <meshBasicMaterial color={colors[index]} />
-    </mesh>
-  ))}</group>
-}
 
 function Benches({ theme }: { theme: GalleryTheme }) {
   const seat = theme === 'garden' ? '#ef6f61' : theme === 'windows98' ? '#c0c0c0' : theme === 'collage' ? '#725039' : '#59483e'
@@ -222,21 +206,6 @@ function Benches({ theme }: { theme: GalleryTheme }) {
         </mesh>
       ))}
     </group>
-  ))}</group>
-}
-
-function CollageDetails() {
-  const scraps = [
-    { x: -16.1, z: 3.9, w: 1.3, h: 0.72, color: '#d84b38', rotation: -0.25 },
-    { x: -7.7, z: -3.9, w: 1.6, h: 0.6, color: '#487a65', rotation: 0.18 },
-    { x: 4.2, z: 4.05, w: 1.25, h: 0.7, color: '#e4b84a', rotation: -0.12 },
-    { x: 15.6, z: -3.95, w: 1.45, h: 0.58, color: '#3766a0', rotation: 0.28 },
-  ]
-  return <group>{scraps.map((scrap) => (
-    <mesh key={`${scrap.x}-${scrap.z}`} position={[scrap.x, 0.012, scrap.z]} rotation={[-Math.PI / 2, 0, scrap.rotation]}>
-      <planeGeometry args={[scrap.w, scrap.h]} />
-      <meshStandardMaterial color={scrap.color} roughness={0.95} />
-    </mesh>
   ))}</group>
 }
 
@@ -341,9 +310,7 @@ export function Rooms({ theme }: { theme: GalleryTheme }) {
         <DoorwayFrame key={doorway.id} center={doorway.center} axis={doorway.axis} theme={theme} />
       ))}
       {theme === 'windows98' && <WindowsPaintDetails />}
-      <RoomAccents theme={theme} />
       <Benches theme={theme} />
-      {theme === 'collage' && <CollageDetails />}
       {theme === 'garden' && <GardenDetails />}
     </group>
   )
