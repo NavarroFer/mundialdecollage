@@ -127,7 +127,7 @@ function setTextureSrgb(texture: Texture) {
   texture.colorSpace = SRGBColorSpace
 }
 
-function RetroWallPanel({
+function RetroBenchDisplay({
   texture,
   position,
   rotation,
@@ -148,6 +148,14 @@ function RetroWallPanel({
         <planeGeometry args={size} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
+      <mesh position={[0, -size[1] / 2 - 0.065, 0]} castShadow>
+        <boxGeometry args={[0.08, 0.13, 0.06]} />
+        <meshStandardMaterial color="#777" roughness={0.55} metalness={0.18} />
+      </mesh>
+      <mesh position={[0, -size[1] / 2 - 0.13, 0]} castShadow>
+        <boxGeometry args={[0.34, 0.04, 0.18]} />
+        <meshStandardMaterial color="#c0c0c0" roughness={0.65} />
+      </mesh>
     </group>
   )
 }
@@ -159,23 +167,23 @@ function WindowsPaintDetails() {
   const colors = ['#000080', '#008080', '#ff00ff', '#ffff00', '#00ff00', '#ff0000']
   return (
     <group>
-      <RetroWallPanel
+      <RetroBenchDisplay
         texture={paintTexture}
-        position={[-17.88, 2.55, 0]}
-        rotation={[0, Math.PI / 2, 0]}
-        size={[1.7, 1.2]}
+        position={[-12, 1.02, 2.25]}
+        rotation={[0, Math.PI - 0.16, 0]}
+        size={[0.95, 0.68]}
       />
-      <RetroWallPanel
+      <RetroBenchDisplay
         texture={dialogTexture}
-        position={[-17.88, 1.05, 0]}
-        rotation={[0, Math.PI / 2, 0]}
-        size={[1.7, 0.9]}
+        position={[0, 0.94, 2.25]}
+        rotation={[0, Math.PI, 0]}
+        size={[1, 0.52]}
       />
-      <RetroWallPanel
+      <RetroBenchDisplay
         texture={explorerTexture}
-        position={[17.88, 1.8, 0]}
-        rotation={[0, -Math.PI / 2, 0]}
-        size={[1.7, 1.25]}
+        position={[12, 1.02, 2.25]}
+        rotation={[0, Math.PI + 0.16, 0]}
+        size={[0.95, 0.68]}
       />
       {colors.map((color, index) => (
         <mesh key={color} position={[-15 + index * 1.15, 0.012, 4.8]} rotation={[-Math.PI / 2, 0, 0]}>
