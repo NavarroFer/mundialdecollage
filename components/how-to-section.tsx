@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { site } from '@/lib/site'
 
@@ -11,22 +13,14 @@ const steps = [
   {
     number: '02',
     color: 'bg-collage-red',
-    title: 'Enviá una imagen',
-    description: (
-      <>
-        Mandá una foto de tu obra a{' '}
-        <a href={`mailto:${site.email}`} className="font-semibold text-ink underline underline-offset-4">
-          {site.email}
-        </a>
-        .
-      </>
-    ),
+    title: 'Elegí cómo enviarla',
+    description: 'Podés cargar la imagen directamente en la web o mandarla por email.',
   },
   {
     number: '03',
     color: 'bg-collage-yellow',
-    title: 'Sumá los datos',
-    description: 'Incluí tu nombre, país y el título de la obra en el mismo mail.',
+    title: 'Completá tus datos',
+    description: 'Sumá tu nombre, país y el título de la obra. Si elegís email, incluí todo en el mismo mensaje.',
   },
 ]
 
@@ -62,7 +56,18 @@ export function HowToSection() {
         </div>
 
         <FadeIn delay={400}>
-          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-muted-foreground">
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Button asChild size="lg" variant="primary">
+              <Link href="/onboarding">Registrarme y cargar mi obra</Link>
+            </Button>
+            <a
+              href={`mailto:${site.email}`}
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-ink underline underline-offset-4"
+            >
+              Enviar mi obra por email
+            </a>
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-muted-foreground">
             ¿Para qué pedimos &quot;Iniciar sesión con Google&quot;? La usamos para
             identificarte cuando subís tu obra al Mundial Internacional de Collage o
             te anotás al taller, así podés hacer seguimiento de tu participación sin
