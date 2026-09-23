@@ -2,6 +2,7 @@ import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { WorldMap } from '@/components/world-map-lazy'
 import { countryCodeToFlag, guessCountryCodeFromName } from '@/lib/participants'
+import { getFinalists } from '@/lib/finalists'
 import stats from '@/data/artist-country-stats.json'
 
 type CountryCount = { country: string; countryCode?: string; count: number }
@@ -15,7 +16,9 @@ const breakdown: CountryCount[] = stats.countries.map(({ country, count }) => ({
   countryCode: guessCountryCodeFromName(country),
 }))
 
-export function MapSection() {
+export async function MapSection() {
+  const artworks = await getFinalists()
+
   return (
     <section
       id="mapa"
@@ -49,10 +52,11 @@ export function MapSection() {
               breakdown={breakdown.flatMap(({ countryCode, count }) =>
                 countryCode ? [{ countryCode, count }] : [],
               )}
+              artworks={artworks}
             />
             <p className="mt-4 text-center text-sm text-muted-foreground">
-              Cada país se pinta más oscuro cuanto más collages recibió. Pasá el mouse
-              para ver el detalle.
+              Cada país se pinta más oscuro cuanto más collages recibió. Tocá un país
+              para desplegar sus obras.
             </p>
           </div>
         </FadeIn>

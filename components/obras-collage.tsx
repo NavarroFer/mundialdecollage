@@ -4,19 +4,34 @@ import type { Finalist } from '@/lib/finalists'
 import { countryCodeToFlag } from '@/lib/participants'
 import './obras-collage.css'
 
-export function ObrasCollage({ finalists }: { finalists: Finalist[] }) {
+export function ObrasCollage({
+  finalists,
+  animateEntrance = false,
+  showHint = true,
+  ariaLabel = 'Obras participantes',
+}: {
+  finalists: Finalist[]
+  animateEntrance?: boolean
+  showHint?: boolean
+  ariaLabel?: string
+}) {
   return (
-    <div className="obras-collage">
-      <p className="obras-collage__hint text-center text-sm text-muted-foreground">
-        <span className="obras-collage__hint-desktop">Rozá una punta: esa obra sube al frente.</span>
-        <span className="obras-collage__hint-touch">Tocá una obra para descubrirla.</span>
-      </p>
-      <ul className="obras-collage__stage" aria-label="Obras participantes">
+    <div className={`obras-collage${animateEntrance ? ' obras-collage--entering' : ''}`}>
+      {showHint && (
+        <p className="obras-collage__hint text-center text-sm text-muted-foreground">
+          <span className="obras-collage__hint-desktop">Rozá una punta: esa obra sube al frente.</span>
+          <span className="obras-collage__hint-touch">Tocá una obra para descubrirla.</span>
+        </p>
+      )}
+      <ul className="obras-collage__stage" aria-label={ariaLabel}>
         {finalists.map((artwork, index) => (
           <li
             key={artwork.slug}
             className="obras-collage__item"
-            style={{ '--stack-order': index + 1 } as CSSProperties}
+            style={{
+              '--stack-order': index + 1,
+              '--entrance-delay': `${Math.min(index * 35, 280)}ms`,
+            } as CSSProperties}
           >
             <Link
               href={`/obras/${artwork.slug}`}

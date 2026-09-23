@@ -45,6 +45,18 @@
 .obras-collage__item:nth-child(10n + 9) { --shift-x: 5px; --shift-y: 16px; --tilt: -4deg; }
 .obras-collage__item:nth-child(10n) { --shift-x: -12px; --shift-y: -24px; --tilt: 7deg; }
 
+.obras-collage--entering .obras-collage__item {
+  animation: obra-scatter-in 420ms cubic-bezier(.2, .85, .3, 1.15) backwards;
+  animation-delay: var(--entrance-delay, 0ms);
+}
+
+@keyframes obra-scatter-in {
+  from {
+    opacity: 0;
+    transform: translate(0, 26px) rotate(0deg) scale(.72);
+  }
+}
+
 .obras-collage__item:hover,
 .obras-collage__item:focus-within {
   z-index: 999;
@@ -133,4 +145,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .obras-collage__item { transition: none; }
+  .obras-collage--entering .obras-collage__item { animation: none; }
 }
