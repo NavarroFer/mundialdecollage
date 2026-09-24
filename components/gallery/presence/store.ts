@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { PresenceSummary, ReactionEmoji } from './protocol'
+import type { Pose, PresenceSummary, ReactionEmoji } from './protocol'
 
 export type LiveReaction = {
   id: number
@@ -51,3 +51,23 @@ export const usePresenceStore = create<PresenceState>((set, get) => ({
     setTimeout(() => set({ reactions: get().reactions.filter((item) => item.id !== reaction.id) }), REACTION_LIFETIME_MS)
   },
 }))
+
+// Other visitors' latest positions. Read every frame by the avatars, so it
+// lives outside React state — updating it re-renders nothing.
+export const peerPoses = new Map<string, Pose & { receivedAt: number }>()
+// A pose can arrive before the presence join it belongs to; keep it that long.
+const ORPHAN_POSE_MS = 5000
+
+/** Stores a pose unless a newer one from the same visitor already arrived. */
+export function recordPeerPose(pose: Pose, now: number): boolean {
+  const known = peerPoses.get(pose.key)
+  if (known && known.seq >= pose.seq) return false
+  peerPoses.set(pose.key, { ...pose, receivedAt: now })
+  return true
+}
+
+export function prunePeerPoses(present: ReadonlySet<string>, now: number) {
+  for (const [key, pose] of peerPoses) {
+    if (!present.has(key) && now - pose.receivedAt > ORPHAN_POSE_MS) peerPoses.delete(key)
+  }
+}

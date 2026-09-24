@@ -4,6 +4,8 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { GalleryTheme } from '../themes'
+import { MAX_LIVE_VISITORS } from '../presence/protocol'
+import { usePresenceStore } from '../presence/store'
 
 type Stop = {
   position: [number, number]
@@ -84,16 +86,40 @@ const themeSkin: Record<GalleryTheme, { skin: string; dark: string; emissive: st
   garden: { skin: '#c99573', dark: '#205d3a', emissive: '#000000', pixel: false },
 }
 
-function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: GalleryTheme }) {
-  const initialIndex = definition.offset % definition.route.length
+const LOOKS = [
+  { skin: '#c99573', hair: '#33251f', trousers: '#384252', height: 1.02 },
+  { skin: '#82543e', hair: '#211d1b', trousers: '#363332', height: 0.96 },
+  { skin: '#e5b99a', hair: '#786252', trousers: '#404a43', height: 1.06 },
+  { skin: '#b77f5d', hair: '#29211d', trousers: '#34404d', height: 1 },
+  { skin: '#dbac89', hair: '#554039', trousers: '#3d3340', height: 0.94 },
+]
+export const LOOK_COUNT = LOOKS.length
+
+/** Which of the looks (build + hairstyle) and what shirt color. */
+export type Appearance = { look: number; shirt: string }
+
+/** What a person's driver decided this frame; Person animates the rest. */
+export type Motion = { moving: boolean; facing: number; step: number }
+
+type PersonProps = {
+  appearance: Appearance
+  theme: GalleryTheme
+  start: [number, number]
+  /** Offsets idle head sway so people don't move in lockstep. */
+  phase?: number
+  /** A small marker overhead: this is a real visitor, not a scripted one. */
+  marker?: boolean
+  /** Moves the root group's x/z (and may hide it); called every frame. */
+  move: (person: THREE.Group, delta: number) => Motion
+}
+
+export function Person({ appearance, theme, start, phase = 0, marker = false, move }: PersonProps) {
   const root = useRef<THREE.Group>(null)
   const leftArm = useRef<THREE.Group>(null)
   const rightArm = useRef<THREE.Group>(null)
   const leftLeg = useRef<THREE.Group>(null)
   const rightLeg = useRef<THREE.Group>(null)
-  const routeIndex = useRef(initialIndex)
-  const pauseLeft = useRef(definition.route[initialIndex].wait ?? 0)
-  const elapsed = useRef(definition.offset * 1.7)
+  const elapsed = useRef(phase)
   const palette = themeSkin[theme]
 
   const head = useRef<THREE.Group>(null)
@@ -104,30 +130,8 @@ function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: 
     if (!person) return
     const delta = Math.min(frameDelta, 0.05)
     elapsed.current += delta
-    let moving = false
-    let facing = person.rotation.y
-
-    if (pauseLeft.current > 0) {
-      pauseLeft.current = Math.max(0, pauseLeft.current - delta)
-      facing = definition.route[routeIndex.current].face ?? facing
-    } else {
-      const nextIndex = (routeIndex.current + 1) % definition.route.length
-      const target = definition.route[nextIndex]
-      const dx = target.position[0] - person.position.x
-      const dz = target.position[1] - person.position.z
-      const distance = Math.hypot(dx, dz)
-      if (distance < 0.04) {
-        routeIndex.current = nextIndex
-        pauseLeft.current = target.wait ?? 0
-      } else {
-        moving = true
-        const step = Math.min(distance, definition.speed * delta)
-        person.position.x += (dx / distance) * step
-        person.position.z += (dz / distance) * step
-        facing = Math.atan2(dx, dz)
-        gait.current += step * 9
-      }
-    }
+    const { moving, facing, step } = move(person, delta)
+    gait.current += step * 9
 
     // Always take the shortest turn, including across the -PI / PI boundary.
     const turn = Math.atan2(Math.sin(facing - person.rotation.y), Math.cos(facing - person.rotation.y))
@@ -146,19 +150,11 @@ function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: 
     person.position.y = THREE.MathUtils.damp(person.position.y, moving ? Math.abs(Math.sin(gait.current)) * 0.012 : 0, 10, delta)
   })
 
-  const start = definition.route[initialIndex].position
   const segments = palette.pixel ? 8 : 16
-  const looks = [
-    { skin: '#c99573', hair: '#33251f', trousers: '#384252', height: 1.02 },
-    { skin: '#82543e', hair: '#211d1b', trousers: '#363332', height: 0.96 },
-    { skin: '#e5b99a', hair: '#786252', trousers: '#404a43', height: 1.06 },
-    { skin: '#b77f5d', hair: '#29211d', trousers: '#34404d', height: 1 },
-    { skin: '#dbac89', hair: '#554039', trousers: '#3d3340', height: 0.94 },
-  ]
-  const look = looks[definition.offset % looks.length]
-  const hairstyle = definition.offset % 5
+  const look = LOOKS[appearance.look % LOOKS.length]
+  const hairstyle = appearance.look % LOOKS.length
   const skin = palette.pixel ? palette.skin : look.skin
-  const shirt = definition.color
+  const shirt = appearance.shirt
 
   function ellipsoid(position: [number, number, number], scale: [number, number, number], color: string) {
     return (
@@ -249,11 +245,58 @@ function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: 
           </group>
         </group>
       ))}
+      {marker && (
+        <mesh position={[0, 2.08, 0]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.075, 0.15, palette.pixel ? 4 : 12]} />
+          <meshBasicMaterial color={shirt} toneMapped={false} />
+        </mesh>
+      )}
     </group>
   )
+}
 
+function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: GalleryTheme }) {
+  const initialIndex = definition.offset % definition.route.length
+  const routeIndex = useRef(initialIndex)
+  const pauseLeft = useRef(definition.route[initialIndex].wait ?? 0)
+
+  function walkRoute(person: THREE.Group, delta: number): Motion {
+    if (pauseLeft.current > 0) {
+      pauseLeft.current = Math.max(0, pauseLeft.current - delta)
+      return { moving: false, facing: definition.route[routeIndex.current].face ?? person.rotation.y, step: 0 }
+    }
+    const nextIndex = (routeIndex.current + 1) % definition.route.length
+    const target = definition.route[nextIndex]
+    const dx = target.position[0] - person.position.x
+    const dz = target.position[1] - person.position.z
+    const distance = Math.hypot(dx, dz)
+    if (distance < 0.04) {
+      routeIndex.current = nextIndex
+      pauseLeft.current = target.wait ?? 0
+      return { moving: false, facing: person.rotation.y, step: 0 }
+    }
+    const step = Math.min(distance, definition.speed * delta)
+    person.position.x += (dx / distance) * step
+    person.position.z += (dz / distance) * step
+    return { moving: true, facing: Math.atan2(dx, dz), step }
+  }
+
+  return (
+    <Person
+      appearance={{ look: definition.offset, shirt: definition.color }}
+      theme={theme}
+      start={definition.route[initialIndex].position}
+      phase={definition.offset * 1.7}
+      move={walkRoute}
+    />
+  )
 }
 
 export function Visitors({ theme }: { theme: GalleryTheme }) {
-  return <group>{VISITORS.map((definition) => <Visitor key={definition.id} definition={definition} theme={theme} />)}</group>
+  // Real visitors take the scripted ones' place, so the room reads as busy
+  // as it really is once people show up (all five return in a crowd too big
+  // for live avatars).
+  const realVisitors = usePresenceStore((state) => (state.count ?? 0) > MAX_LIVE_VISITORS ? 0 : state.peers.length)
+  const scripted = VISITORS.slice(0, Math.max(0, VISITORS.length - realVisitors))
+  return <group>{scripted.map((definition) => <Visitor key={definition.id} definition={definition} theme={theme} />)}</group>
 }

@@ -5,6 +5,7 @@ import { Lighting } from './Lighting'
 import { Rooms } from './Rooms'
 import { galleryThemes, type GalleryTheme } from '../themes'
 import { Visitors } from './Visitors'
+import { RemoteVisitors } from './RemoteVisitors'
 
 export function World({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
   return (
@@ -16,6 +17,7 @@ export function World({ artworks, theme }: { artworks: Artwork[]; theme: Gallery
       </RigidBody>
       <Artworks artworks={artworks} theme={theme} />
       <Visitors theme={theme} />
+      <RemoteVisitors theme={theme} />
     </>
   )
 }

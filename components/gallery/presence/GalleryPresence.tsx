@@ -5,18 +5,34 @@ import { RealtimeClient, type RealtimeChannel } from '@supabase/supabase-js'
 import type { Artwork } from '@/data/artworks'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { useInteractionStore } from '../interaction/store'
-import { parseReaction, summarizePresence, type ReactionEmoji } from './protocol'
-import { usePresenceStore } from './store'
+import { usePlayerTrackerStore } from '../minimap/store'
+import {
+  MAX_LIVE_VISITORS, parsePose, parseReaction, poseMessage, shouldSendPose, summarizePresence,
+  type ReactionEmoji, type SentPose,
+} from './protocol'
+import { peerPoses, prunePeerPoses, recordPeerPose, usePresenceStore } from './store'
 
 // Every open /galeria-3d tab listens on one public Realtime channel, but only
 // tabs that have entered the exhibition and are in the foreground announce
 // themselves. Presence lives in Supabase's memory — no table, and the payload
 // is just which obra is open, so nothing about a visitor is sent or stored.
-// Reactions ride the same channel as broadcasts: delivered live, never kept.
-const TOPIC = 'galeria-3d'
+// Reactions and avatar positions ride the same channel as broadcasts:
+// delivered live, never kept.
+// Local dev shares the production Supabase project; a separate topic keeps
+// `next dev` sessions out of the real gallery's count and avatars.
+const TOPIC = process.env.NODE_ENV === 'production' ? 'galeria-3d' : 'galeria-3d-dev'
 const REACTION_COOLDOWN_MS = 600
+// Catches the spot where someone stopped between two throttled sends.
+const POSE_CHECK_MS = 500
 
-type Connection = { channel: RealtimeChannel | null; key: string; joined: boolean; inside: boolean }
+type Connection = {
+  channel: RealtimeChannel | null
+  key: string
+  joined: boolean
+  inside: boolean
+  lastPose: SentPose | null
+  seq: number
+}
 
 function isPresent({ channel, joined, inside }: Connection) {
   return Boolean(channel && joined && inside && document.visibilityState === 'visible')
@@ -24,12 +40,29 @@ function isPresent({ channel, joined, inside }: Connection) {
 
 function announce(connection: Connection) {
   if (!connection.channel || !connection.joined) return
-  if (isPresent(connection)) void connection.channel.track({ viewing: useInteractionStore.getState().openId })
-  else void connection.channel.untrack()
+  if (isPresent(connection)) {
+    void connection.channel.track({ viewing: useInteractionStore.getState().openId })
+    // Whoever sees us (re)appear needs our position right away.
+    connection.lastPose = null
+    sendPose(connection)
+  } else {
+    void connection.channel.untrack()
+  }
+}
+
+function sendPose(connection: Connection) {
+  if (!connection.channel || !isPresent(connection)) return
+  if ((usePresenceStore.getState().count ?? 0) > MAX_LIVE_VISITORS) return
+  const { x, z, heading } = usePlayerTrackerStore.getState()
+  const next = { x, z, h: heading, t: Date.now() }
+  if (!shouldSendPose(connection.lastPose, next)) return
+  connection.lastPose = next
+  const payload = poseMessage({ key: connection.key, seq: connection.seq++, x, z, h: heading })
+  void connection.channel.send({ type: 'broadcast', event: 'pose', payload })
 }
 
 export function GalleryPresence({ inside, artworks }: { inside: boolean; artworks: Artwork[] }) {
-  const connection = useRef<Connection>({ channel: null, key: '', joined: false, inside: false })
+  const connection = useRef<Connection>({ channel: null, key: '', joined: false, inside: false, lastPose: null, seq: 0 })
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -44,6 +77,7 @@ export function GalleryPresence({ inside, artworks }: { inside: boolean; artwork
     const client = new RealtimeClient(url.href, { params: { apikey: anonKey }, accessToken: async () => anonKey })
     const current = connection.current
     current.key = crypto.randomUUID()
+    current.seq = 0
     const channel = client.channel(TOPIC, { config: { presence: { key: current.key } } })
     current.channel = channel
 
@@ -58,11 +92,24 @@ export function GalleryPresence({ inside, artworks }: { inside: boolean; artwork
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        if (current.channel === channel) setSummary(summarizePresence(channel.presenceState(), current.key, artworkIds))
+        if (current.channel !== channel) return
+        const summary = summarizePresence(channel.presenceState(), current.key, artworkIds)
+        setSummary(summary)
+        prunePeerPoses(new Set(summary.peers), Date.now())
+      })
+      .on('presence', { event: 'join' }, ({ key }) => {
+        if (current.channel !== channel || key === current.key) return
+        // A newcomer only hears positions sent after they arrived.
+        current.lastPose = null
+        sendPose(current)
       })
       .on('broadcast', { event: 'reaction' }, ({ payload }) => {
         const reaction = parseReaction(payload, artworkIds)
         if (reaction && current.channel === channel) addReaction(reaction.artworkId, reaction.emoji)
+      })
+      .on('broadcast', { event: 'pose' }, ({ payload }) => {
+        const pose = parsePose(payload)
+        if (pose && pose.key !== current.key && current.channel === channel) recordPeerPose(pose, Date.now())
       })
       .subscribe((status) => {
         // A channel from a previous mount can still report CLOSED late.
@@ -80,9 +127,14 @@ export function GalleryPresence({ inside, artworks }: { inside: boolean; artwork
     const stopWatchingModal = useInteractionStore.subscribe((state, previous) => {
       if (state.openId !== previous.openId) announce(current)
     })
+    const stopWatchingPose = usePlayerTrackerStore.subscribe(() => sendPose(current))
+    const poseCheck = setInterval(() => sendPose(current), POSE_CHECK_MS)
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       stopWatchingModal()
+      stopWatchingPose()
+      clearInterval(poseCheck)
+      peerPoses.clear()
       current.channel = null
       current.joined = false
       setSummary(null)

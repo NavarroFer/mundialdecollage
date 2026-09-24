@@ -2,7 +2,9 @@
 
 import type { Artwork } from '@/data/artworks'
 import { usePlayerTrackerStore } from '../minimap/store'
-import { usePresenceStore } from '../presence/store'
+import { useEffect, useState } from 'react'
+import { MAX_LIVE_VISITORS } from '../presence/protocol'
+import { peerPoses, usePresenceStore } from '../presence/store'
 import { GALLERY_BOUNDS, walls } from '../world/roomsData'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
@@ -15,6 +17,11 @@ const PLAYER_DOT_RADIUS = 0.55
 const HEADING_LENGTH = 1.4
 
 const VIEWED_RADIUS = 0.75
+const PEER_DOT_RADIUS = 0.42
+// Other visitors' dots come from a non-React map; redraw this often.
+const PEER_REFRESH_MS = 250
+
+const noPeers: string[] = []
 
 const mapColors: Record<GalleryTheme, { floor: string; wall: string; player: string; stroke: string; live: string }> = {
   collage: { floor: '#9d7958', wall: '#f2e8d5', player: '#e4b84a', stroke: '#33271f', live: '#3ecf6e' },
@@ -27,6 +34,14 @@ export function Minimap({ theme, artworks }: { theme: GalleryTheme; artworks: Ar
   const z = usePlayerTrackerStore((state) => state.z)
   const heading = usePlayerTrackerStore((state) => state.heading)
   const viewers = usePresenceStore((state) => state.viewers)
+  const peers = usePresenceStore((state) => ((state.count ?? 0) > MAX_LIVE_VISITORS ? noPeers : state.peers))
+  const [, setRefresh] = useState(0)
+
+  useEffect(() => {
+    if (peers.length === 0) return
+    const id = setInterval(() => setRefresh((value) => value + 1), PEER_REFRESH_MS)
+    return () => clearInterval(id)
+  }, [peers.length])
 
   const tipX = x + Math.sin(heading) * HEADING_LENGTH
   const tipZ = z - Math.cos(heading) * HEADING_LENGTH
@@ -59,6 +74,12 @@ export function Minimap({ theme, artworks }: { theme: GalleryTheme; artworks: Ar
             className={styles.viewedMarker}
           />
         ))}
+        {peers.map((key) => {
+          const pose = peerPoses.get(key)
+          return pose ? (
+            <circle key={key} cx={pose.x} cy={pose.z} r={PEER_DOT_RADIUS} fill={colors.wall} stroke={colors.stroke} strokeWidth={0.15} />
+          ) : null
+        })}
         <line x1={x} y1={z} x2={tipX} y2={tipZ} stroke={colors.player} strokeWidth={0.35} strokeLinecap="round" />
         <circle cx={x} cy={z} r={PLAYER_DOT_RADIUS} fill={colors.player} stroke={colors.stroke} strokeWidth={0.15} />
       </svg>
