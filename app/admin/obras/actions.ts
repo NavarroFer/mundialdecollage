@@ -9,6 +9,7 @@ import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { reuseRegistroArtwork } from '@/lib/reuse-registro-artwork'
 import { normalizeArtistName } from '@/lib/name-format'
 import { guessCountryCodeFromName } from '@/lib/participants'
+import { provisionLegacyProfiles, publishPendingLegacySubmissions } from '@/lib/publish-legacy'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { ADMIN_EMAILS } from '@/lib/admin'
 
@@ -28,118 +29,26 @@ async function assertIsAdmin() {
   }
 }
 
-// A legacy_submissions row has no `profiles` row of its own (see
-// submission-types.ts), so publishing one to the real public site means
-// creating one on the fly: an auth user (so it has something profiles.id can
-// reference), a profiles row, and a selected artworks row, built from
-// whatever the legacy import captured (name, email, country_raw, the photo).
-// Only ever called for rows that aren't already claimed_by someone — a
-// self-registered or previously-provisioned row already has a real profile,
-// nothing to create.
-//
-// Sequential, not Promise.all: each row is its own auth-admin round trip,
-// and this runs inside a Server Action with a platform time limit. If a big
-// batch (e.g. "Seleccionar las 156 visibles" → "Estas participan") gets cut
-// off partway, that's fine to just resume — every row already written keeps
-// claimed_by set, so re-running the same selection skips those instantly
-// (the `alreadyClaimed` branch below) and continues with what's left.
-async function provisionLegacyProfiles(
-  items: { id: string; email: string; name: string | null; imageUrl: string; countryCode?: string }[],
-): Promise<{ profileIds: string[]; skipped: string[] }> {
-  if (items.length === 0) return { profileIds: [], skipped: [] }
-
-  // The one function in this flow that reaches for the service-role client —
-  // same boundary as fetchLegacyImagesBatch/retryLegacyImageFetch above, and
-  // for the same reason: it bypasses RLS entirely, so it has to gate itself
-  // rather than lean on a policy. Both of this function's callers
-  // (setSubmissionsVisibility, publishLegacySubmissionWithCountry) are
-  // exported Server Actions reachable directly, not just from an
-  // admin-gated page.
+// Every confirmed Registro obra goes public as soon as it has its photo —
+// there's no manual publish step anymore. Called after each admin action
+// that can complete that condition. Best-effort: a failure here leaves the
+// row for the next run (or the next Registro cron) instead of failing the
+// action that just succeeded.
+async function publishReadyLegacySubmissions() {
   await assertIsAdmin()
-
-  const admin = createAdminClient()
-  const profileIds: string[] = []
-  const skipped: string[] = []
-
-  // No admin.getUserByEmail() in this SDK — one paginated pass up front is
-  // cheaper than a lookup per row, and this only runs for rows about to be
-  // provisioned (typically a handful to a few dozen at a time).
-  const emailToUserId = new Map<string, string>()
-  for (let page = 1; ; page++) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
-    if (error || !data.users || data.users.length === 0) break
-    for (const u of data.users) {
-      if (u.email) emailToUserId.set(u.email.toLowerCase(), u.id)
-    }
-    if (data.users.length < 1000) break
+  try {
+    const { profileIds, skipped } = await publishPendingLegacySubmissions(createAdminClient())
+    if (skipped.length > 0) console.error('publishReadyLegacySubmissions: skipped', skipped)
+    if (profileIds.length > 0) revalidatePublicPages()
+  } catch (err) {
+    console.error('publishReadyLegacySubmissions failed', err)
   }
+}
 
-  for (const item of items) {
-    try {
-      const emailKey = item.email.toLowerCase()
-      let userId = emailToUserId.get(emailKey)
-
-      if (!userId) {
-        // email_confirm: true is what lets this same address later sign in
-        // for real with Google and land on this same account instead of
-        // colliding with it — Supabase only auto-links a new OAuth identity
-        // onto an existing user when that user's email is already
-        // confirmed.
-        const { data: created, error: createError } = await admin.auth.admin.createUser({
-          email: item.email,
-          email_confirm: true,
-          user_metadata: item.name ? { full_name: item.name } : undefined,
-        })
-        if (createError || !created.user) {
-          skipped.push(item.id)
-          continue
-        }
-        userId = created.user.id
-        emailToUserId.set(emailKey, userId)
-      }
-
-      // Creating a verified auth user already fires auth_link_registro.
-      // Reuse that same locked, idempotent linker for existing users and
-      // retries instead of inserting a second, untracked artwork here.
-      const { error: linkError } = await admin.rpc('link_registro_user', {
-        target_user: userId,
-      })
-      if (linkError) {
-        console.error('provisionLegacyProfiles: link failed', item.id, linkError)
-        skipped.push(item.id)
-        continue
-      }
-      const { data: linked, error: lookupError } = await admin.from('artworks')
-        .select('id')
-        .eq('legacy_submission_id', item.id)
-        .eq('profile_id', userId)
-        .is('archived_at', null)
-        .maybeSingle()
-      if (lookupError || !linked) {
-        skipped.push(item.id)
-        continue
-      }
-
-      // Preserve the country inferred by the admin flow when an older
-      // imported row has no normalized country_code for the linker to use.
-      if (item.countryCode) {
-        const { error: countryError } = await admin.from('profiles')
-          .update({ country_code: item.countryCode })
-          .eq('id', userId)
-          .is('country_code', null)
-        if (countryError) {
-          skipped.push(item.id)
-          continue
-        }
-      }
-      profileIds.push(userId)
-    } catch (err) {
-      console.error('provisionLegacyProfiles: failed for', item.id, err)
-      skipped.push(item.id)
-    }
-  }
-
-  return { profileIds, skipped }
+function revalidatePublicPages() {
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/participantes')
 }
 
 // The gallery's selection and the viewer both pass ids in the gallery's own
@@ -191,8 +100,9 @@ export async function setSubmissionsVisibility(
       }
       const countryCode = row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined
 
-      const { profileIds, skipped: rowSkipped } = await provisionLegacyProfiles([
-        { id: row.id, email: row.email, name: row.name, imageUrl: row.image_url, countryCode },
+      await assertIsAdmin()
+      const { profileIds, skipped: rowSkipped } = await provisionLegacyProfiles(createAdminClient(), [
+        { id: row.id, email: row.email, name: row.name, countryCode },
       ])
       profileIdsToUpdate.push(...profileIds)
       skipped = [...skipped, ...rowSkipped]
@@ -309,18 +219,11 @@ export async function importLegacySubmissions(formData: FormData) {
 }
 
 // The admin's pick of which of an artist's (possibly several) submitted
-// obras is "the" one that counts — /onboarding only ever prefills from a
-// `selected = true` row. Two sequential updates instead of one clever query:
-// this is low-volume admin-only traffic, not worth the complexity.
-//
-// `selected` alone used to also be what moved a row into the confirmed
-// gallery; promoteLegacySubmission below is now the separate, deliberate
-// second step for that (see supabase/migrations/20260921070000_legacy_
-// submissions_promoted.sql). A lone obra has nothing to decide between, so
-// it still promotes in this same click — the extra step only exists for
-// picking among several. Switching which candidate is selected in a
-// multi-obra group always resets promoted, so a previous promotion never
-// silently carries over to whichever candidate happens to be selected now.
+// obras is "the" one that counts. Every artist already gets one confirmed
+// automatically (supabase/migrations/20260923120000_auto_promote_legacy_
+// submissions.sql); this is the manual correction from the viewer, so the
+// new pick is confirmed in the same click. Two sequential updates instead of
+// one clever query: this is low-volume admin-only traffic.
 export async function selectLegacySubmission(formData: FormData) {
   const id = String(formData.get('id'))
 
@@ -334,12 +237,6 @@ export async function selectLegacySubmission(formData: FormData) {
     redirect(`/admin/obras?error=${encodeURIComponent(lookupError?.message ?? 'not_found')}`)
   }
 
-  const { count: siblingCount, error: countError } = await supabase
-    .from('legacy_submissions')
-    .select('id', { count: 'exact', head: true })
-    .eq('email', row.email)
-  if (countError) redirect(`/admin/obras?error=${encodeURIComponent(countError.message)}`)
-
   const { error: clearError } = await supabase
     .from('legacy_submissions')
     .update({ selected: false, promoted: false })
@@ -348,10 +245,11 @@ export async function selectLegacySubmission(formData: FormData) {
 
   const { error: selectError } = await supabase
     .from('legacy_submissions')
-    .update({ selected: true, promoted: siblingCount === 1 })
+    .update({ selected: true, promoted: true })
     .eq('id', id)
   if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
 
+  await publishReadyLegacySubmissions()
   revalidatePath('/admin/obras')
 }
 
@@ -387,20 +285,7 @@ export async function setLegacyImageManually(formData: FormData) {
     .eq('id', id)
   if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
 
-  revalidatePath('/admin/obras')
-}
-
-// The deliberate second step: moves an already-selected candidate into the
-// confirmed gallery. Only meaningful for a multi-obra group — a lone obra
-// promotes automatically inside selectLegacySubmission above and this
-// button never renders for it.
-export async function promoteLegacySubmission(formData: FormData) {
-  const id = String(formData.get('id'))
-
-  const supabase = await createClient()
-  const { error } = await supabase.from('legacy_submissions').update({ promoted: true }).eq('id', id)
-  if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
-
+  await publishReadyLegacySubmissions()
   revalidatePath('/admin/obras')
 }
 
@@ -504,6 +389,7 @@ export async function fetchLegacyImagesBatch(): Promise<{
   if (pendingError) console.error('fetchLegacyImagesBatch: failed to count pending', pendingError)
   if (failedError) console.error('fetchLegacyImagesBatch: failed to count failed', failedError)
 
+  if (succeeded > 0) await publishReadyLegacySubmissions()
   revalidatePath('/admin/obras')
   return {
     attempted: batch.length,
@@ -554,6 +440,7 @@ export async function retryLegacyImageFetch(formData: FormData) {
     redirect('/admin/obras?error=retry_failed')
   }
 
+  await publishReadyLegacySubmissions()
   revalidatePath('/admin/obras')
 }
 

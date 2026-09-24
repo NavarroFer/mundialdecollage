@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
     })
 
     const result = report.result as { inserted?: number; archived?: number } | undefined
-    const changed = (result?.inserted ?? 0) + (result?.archived ?? 0) + report.restore > 0
-    if (changed || report.images?.failed) await notify(summarize(report))
+    const changed = (result?.inserted ?? 0) + (result?.archived ?? 0) + report.restore + (report.published?.accounts ?? 0) > 0
+    if (changed || report.images?.failed || report.published?.skipped.length) await notify(summarize(report))
     return NextResponse.json(report)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
@@ -63,6 +63,7 @@ function summarize(report: RegistroSyncReport) {
     `Restauradas: ${report.restore}`,
     `Archivadas: ${result?.archived ?? 0}`,
     `Obras vinculadas a cuentas: ${result?.linked_artworks ?? 0}`,
+    `Publicadas automáticamente: ${report.published?.accounts ?? 0}${report.published?.skipped.length ? ` (${report.published.skipped.length} no se pudieron publicar, revisar en /admin/obras)` : ''}`,
     `Activas verificadas: ${report.verifiedActive}`,
     `Copia de recuperación: ${report.backupPath}`,
   ]

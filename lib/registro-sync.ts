@@ -3,6 +3,7 @@ import { parseRegistro, planRegistro, type RegistroCell } from '@/lib/registro'
 import { isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { reuseRegistroArtwork } from '@/lib/reuse-registro-artwork'
+import { publishPendingLegacySubmissions } from '@/lib/publish-legacy'
 
 // Shared by scripts/sync-registro.mts and the /api/cron/registro job so both
 // validate, back up, archive and fetch images exactly the same way.
@@ -50,6 +51,7 @@ export type RegistroSyncReport = {
   result?: unknown
   backupPath?: string
   images?: { pending: number; downloaded: number; failed: number; reused: number; deferred: number; failedRows: { id: string; name: string | null; drive_url: string }[] }
+  published?: { accounts: number; skipped: string[] }
   verifiedActive?: number
 }
 
@@ -102,6 +104,11 @@ export async function syncRegistro(db: SupabaseClient, rows: RegistroCell[][], o
     log({ imagesProcessed: Math.min(i + 4, pending.length), pendingTotal: pending.length, downloaded: images.downloaded, failed: images.failed, reused: images.reused })
   }
   report.images = images
+
+  // Every confirmed row with a photo goes public now; no manual publish step.
+  const { profileIds, skipped } = await publishPendingLegacySubmissions(db)
+  report.published = { accounts: profileIds.length, skipped }
+  log({ published: profileIds.length, publishSkipped: skipped })
 
   const { count, error: countError } = await db.from('legacy_submissions')
     .select('id', { count: 'exact', head: true }).is('archived_at', null)

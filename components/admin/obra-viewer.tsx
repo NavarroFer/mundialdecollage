@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import {
-  ArrowUp,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
@@ -26,7 +25,6 @@ import type { ArtworkSibling, LegacySibling, Submission } from '@/components/adm
 import {
   deleteArtwork,
   deleteLegacySubmission,
-  promoteLegacySubmission,
   retryLegacyImageFetch,
   selectArtwork,
   selectLegacySubmission,
@@ -372,14 +370,6 @@ function LegacyActions({
                   {sibling.selected ? 'Elegida' : 'Usar'}
                 </SubmitButton>
               </form>
-              {sibling.selected && !sibling.promoted && (
-                <form action={promoteLegacySubmission}>
-                  <input type="hidden" name="id" value={sibling.id} />
-                  <SubmitButton size="sm" variant="primary" className="h-auto px-1.5 py-0.5 text-[0.6rem]" pendingLabel="…">
-                    <ArrowUp className="h-3 w-3" />
-                  </SubmitButton>
-                </form>
-              )}
               <form action={deleteLegacySubmission}>
                 <input type="hidden" name="id" value={sibling.id} />
                 <SubmitButton
