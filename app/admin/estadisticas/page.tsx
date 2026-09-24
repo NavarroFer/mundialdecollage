@@ -64,9 +64,8 @@ export default async function EstadisticasPage() {
             ))}
           </ul>
           <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-            Fuente: <a href={stats.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">{stats.sheet}</a>,
-            con países del corte curado «{stats.countrySource}». Solo artistas que siguen en Registro.
-            «Canadá / Venezuela» cuenta como un artista. Este corte no se actualiza en vivo.
+            Fuente: columna País de <a href={stats.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">{stats.sheet}</a>.
+            Este corte no se actualiza en vivo.
           </p>
         </section>
 

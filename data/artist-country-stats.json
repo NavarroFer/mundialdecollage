@@ -1,44 +1,43 @@
 {
   "sourceUrl": "https://docs.google.com/spreadsheets/d/1OsmZcP9F4AwIZTJpLq-uzJ__Hv-D0MyoenELXFGqFxM/edit#gid=0",
   "sheet": "Registro",
-  "countrySource": "21/9",
-  "totalArtists": 218,
+  "totalArtists": 282,
   "countries": [
     {
       "country": "Argentina",
-      "count": 102
+      "count": 130
     },
     {
       "country": "España",
-      "count": 24
+      "count": 31
     },
     {
       "country": "México",
-      "count": 15
+      "count": 23
     },
     {
       "country": "Chile",
-      "count": 14
-    },
-    {
-      "country": "Colombia",
-      "count": 14
+      "count": 21
     },
     {
       "country": "Brasil",
-      "count": 11
+      "count": 18
+    },
+    {
+      "country": "Colombia",
+      "count": 16
     },
     {
       "country": "Venezuela",
-      "count": 7
+      "count": 10
     },
     {
       "country": "Italia",
-      "count": 6
+      "count": 7
     },
     {
       "country": "Uruguay",
-      "count": 5
+      "count": 6
     },
     {
       "country": "Francia",
@@ -49,11 +48,15 @@
       "count": 4
     },
     {
-      "country": "Sin país registrado",
+      "country": "Portugal",
       "count": 2
     },
     {
-      "country": "Canadá / Venezuela",
+      "country": "Canadá",
+      "count": 1
+    },
+    {
+      "country": "Costa Rica",
       "count": 1
     },
     {
@@ -78,10 +81,6 @@
     },
     {
       "country": "Polonia",
-      "count": 1
-    },
-    {
-      "country": "Portugal",
       "count": 1
     },
     {
