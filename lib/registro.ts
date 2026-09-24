@@ -1,6 +1,10 @@
 // Google Sheets' displayed filename is not its Drive URL. The connector
 // snapshot keeps both so importing a smart chip never loses the file ID.
 export type RegistroCell = { text: string; url?: string }
+
+// The curated, read-only source of truth; the Registro tab is canonical.
+export const REGISTRO_SHEET_ID = '1OsmZcP9F4AwIZTJpLq-uzJ__Hv-D0MyoenELXFGqFxM'
+export const REGISTRO_TAB = 'Registro'
 export type RegistroEntry = {
   name: string | null
   email: string
