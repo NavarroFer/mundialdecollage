@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, Hand, Mouse } from 'lucide-react'
 import { useInteractionStore } from '../interaction/store'
 import { useTouchStore } from '../mobile/touchStore'
-import { joystickStep, keyStep, TUTORIAL_STEPS, type TutorialStep } from '../tutorial/steps'
+import { createLookTracker, joystickStep, keyStep, TUTORIAL_STEPS, type TutorialStep } from '../tutorial/steps'
 import styles from '../gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 
@@ -34,12 +34,27 @@ const labels: Record<TutorialStep, string> = {
   left: 'Izquierda',
   right: 'Derecha',
   backward: 'Atrás',
+  look: 'Mirar alrededor',
   interact: 'Ver una obra',
 }
 
-const keys: Record<TutorialStep, string> = { forward: 'W', left: 'A', right: 'D', backward: 'S', interact: 'E' }
+const keys: Record<Exclude<TutorialStep, 'look'>, string> = { forward: 'W', left: 'A', right: 'D', backward: 'S', interact: 'E' }
+
+function stepText(step: TutorialStep, isTouchDevice: boolean) {
+  if (step === 'look') return isTouchDevice ? 'Arrastrá el dedo para mirar' : 'Mové el mouse para mirar'
+  if (step === 'interact') return isTouchDevice ? 'Acercate a una obra y tocá E' : 'Acercate a una obra y apretá E'
+  return labels[step]
+}
 
 function StepKey({ step, isTouchDevice }: { step: TutorialStep; isTouchDevice: boolean }): ReactNode {
+  if (step === 'look') {
+    const Icon = isTouchDevice ? Hand : Mouse
+    return (
+      <span className={styles.tutorialKey} aria-label={isTouchDevice ? 'Arrastrar' : 'Mouse'}>
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+    )
+  }
   if (isTouchDevice && step !== 'interact') {
     const Icon = joystickIcons[step]
     return (
@@ -72,14 +87,29 @@ export function ControlsTutorial({ active, isTouchDevice }: { active: boolean; i
       if (useInteractionStore.getState().openId) return
       complete(keyStep(event.code))
     }
+    // Mouse look only turns the camera while Pointer Lock holds the cursor.
+    const lookedAround = createLookTracker()
+    function handleMouseMove(event: MouseEvent) {
+      if (document.pointerLockElement && lookedAround(event.movementX, event.movementY)) complete('look')
+    }
     window.addEventListener('keydown', handleKeyDown)
-    const unsubscribeTouch = useTouchStore.subscribe((state) => complete(joystickStep(state.moveX, state.moveZ)))
+    window.addEventListener('mousemove', handleMouseMove)
+    const unsubscribeTouch = useTouchStore.subscribe((state, previous) => {
+      complete(joystickStep(state.moveX, state.moveZ))
+      // Look drags pile up until the next frame consumes them back to zero;
+      // each change away from zero is one drag's worth of pixels.
+      if (state.lookDeltaX === 0 && state.lookDeltaY === 0) return
+      const dx = state.lookDeltaX - previous.lookDeltaX
+      const dy = state.lookDeltaY - previous.lookDeltaY
+      if ((dx !== 0 || dy !== 0) && lookedAround(dx, dy)) complete('look')
+    })
     // Opening an obra is the real goal of the E step, whether by key or the mobile button.
     const unsubscribeInteraction = useInteractionStore.subscribe((state, previous) => {
       if (state.openId && !previous.openId) complete('interact')
     })
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('mousemove', handleMouseMove)
       unsubscribeTouch()
       unsubscribeInteraction()
     }
@@ -113,13 +143,7 @@ export function ControlsTutorial({ active, isTouchDevice }: { active: boolean; i
           return (
             <li key={step} className={cn(styles.tutorialStep, stepDone && styles.tutorialStepDone)}>
               <StepKey step={step} isTouchDevice={isTouchDevice} />
-              <span className="flex-1 font-semibold">
-                {step === 'interact'
-                  ? isTouchDevice
-                    ? 'Acercate a una obra y tocá E'
-                    : 'Acercate a una obra y apretá E'
-                  : labels[step]}
-              </span>
+              <span className="flex-1 font-semibold">{stepText(step, isTouchDevice)}</span>
               {stepDone && <Check className={cn(styles.tutorialCheck, 'h-4 w-4 shrink-0')} aria-label="Hecho" />}
             </li>
           )

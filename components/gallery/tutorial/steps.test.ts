@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { joystickStep, keyStep } from './steps'
+import { createLookTracker, joystickStep, keyStep } from './steps'
 
 describe('controls tutorial steps', () => {
   it('maps WASD and arrows to movement steps', () => {
@@ -21,5 +21,11 @@ describe('controls tutorial steps', () => {
     expect(joystickStep(-0.1, -0.8)).toBe('backward')
     expect(joystickStep(-0.7, 0.3)).toBe('left')
     expect(joystickStep(0.6, -0.4)).toBe('right')
+  })
+  it('counts looking around only after enough travel in any direction', () => {
+    const look = createLookTracker(100)
+    expect(look(30, 0)).toBe(false)
+    expect(look(-30, 20)).toBe(false)
+    expect(look(0, -20)).toBe(true)
   })
 })
