@@ -35,7 +35,7 @@ const INSTAGRAM_PROPIOS = ["tehacefaltacollage_", "tehacefaltacollage", "mundial
 const TAMANO_MINIMO_ADJUNTO_BYTES = 40 * 1024; // descarta logos de firmas
 const HILOS_POR_CORRIDA = 12;
 const LIMITE_CORRIDA_MS = 4.5 * 60 * 1000; // Apps Script corta a los 6 min
-const VERSION_EXTRACTOR = 2;
+const VERSION_EXTRACTOR = 3;
 const MODELO_CLAUDE = "claude-opus-5";
 const ZONA_HORARIA = "America/Argentina/Buenos_Aires";
 
@@ -594,6 +594,7 @@ function extraerDatos(ctx, entrada) {
     else if (!bruto && campo !== "nombre") resultado[campo] = ""; // Claude no lo encontró: no adivinar
     else resultado[campo] = reglas[campo];
   });
+  resultado.titulo = pulirTitulo(resultado.titulo, resultado.nombre);
   return resultado;
 }
 
@@ -700,6 +701,7 @@ function extraerConReglas(entrada) {
   reglasDeMensaje(asunto, asunto, acepta);
   acepta("nombre", entrada.remitenteNombre);
 
+  datos.titulo = pulirTitulo(datos.titulo, datos.nombre);
   // Último recurso para el título: el nombre del archivo, marcado para revisar.
   for (const archivo of entrada.adjuntos) {
     if (datos.titulo) break;
@@ -794,12 +796,15 @@ function extraerRespuestasAPlantilla(crudo) {
   const res = {};
   const lineas = String(crudo || "").split(/\r?\n/);
   lineas.forEach((linea, i) => {
-    const sinCita = linea.replace(/^[\s>]+/, "");
+    const sinCita = linea.replace(/^[\s>]+/, "").replace(/\*/g, "");
     const pregunta = PREGUNTAS_PLANTILLA.find(p => p[1].test(sinCita));
     if (!pregunta || res[pregunta[0]]) return;
-    const resto = sinCita.replace(/^\d\s*[.)\-]?\s*/, "").replace(pregunta[1], "").replace(/^[\s:=\-–—.]+/, "").trim();
+    // Solo lo que sigue a la pregunta: "Carlos, Argentino. Título de la obra: X"
+    // o "El título de la obra es X" dejan X.
+    const match = sinCita.match(pregunta[1]);
+    const resto = sinCita.slice(match.index + match[0].length).replace(/^[\s:=\-–—.·•]*(?:es\s+)?[\s:=\-–—]*/i, "").trim();
     if (resto) {
-      if (!/^>/.test(linea.trim())) res[pregunta[0]] = resto;
+      if (!/^>/.test(linea.trim())) res[pregunta[0]] = continuarValor(resto, lineas, i);
       return;
     }
     for (let j = i + 1; j < lineas.length && j <= i + 2; j++) {
@@ -839,9 +844,28 @@ function extraerEtiquetados(texto) {
     if (!campo) return;
     let valor = m[2].trim();
     if (!valor) valor = (lineas.slice(i + 1, i + 3).find(l => l.trim()) || "").trim();
-    (res[campo] = res[campo] || []).push(valor);
+    (res[campo] = res[campo] || []).push(continuarValor(valor, lineas, i));
   });
   return res;
+}
+
+// Un valor cortado por el fin de la línea ("Lágrimas de", "Pasado, presente
+// y", una comilla sin cerrar) sigue en la línea siguiente.
+function continuarValor(valor, lineas, i) {
+  let v = valor;
+  for (let j = i + 1; j < lineas.length && j <= i + 2 && pareceCortado(v); j++) {
+    const siguiente = lineas[j].replace(/\*/g, "").trim();
+    const etiqueta = siguiente.match(ETIQUETA_LINEA);
+    if (!siguiente || /^>/.test(siguiente) || (etiqueta && clasificarEtiqueta(etiqueta[1])) ||
+        campoDePlantilla(siguiente) || /^\d\s*[.)]/.test(siguiente)) break;
+    v = `${v} ${siguiente}`;
+  }
+  return v;
+}
+
+function pareceCortado(valor) {
+  return /\s(de|del|la|las|el|los|y|e|en|a|al|con|que|por|para|un|una|entre|sin|sobre|como|mi|su)$/i.test(valor) ||
+    (String(valor).match(/["“”]/g) || []).length % 2 === 1;
 }
 
 function extraerNumerados(texto) {
@@ -854,14 +878,30 @@ function extraerNumerados(texto) {
   return res;
 }
 
+// "Pedro Pérez - Raíces" → "Raíces". Un número en el nombre del archivo
+// (IMG_1234, fotos de WhatsApp, hashes) casi siempre significa que no es un
+// título.
+function pulirTitulo(titulo, nombre) {
+  const partes = normalizar(nombre).split(/\s+/).filter(p => p.length > 2);
+  if (!titulo || !partes.length) return titulo;
+  const separador = /\s*[-–—|,/]\s*/g;
+  let m;
+  while ((m = separador.exec(titulo))) {
+    const pieza = normalizar(titulo.slice(m.index + m[0].length).split(/[-–—|,/]/)[0]).split(/[^a-z0-9]+/);
+    if (m.index > 0 && pieza.some(p => partes.indexOf(p) >= 0)) return titulo.slice(0, m.index).trim();
+  }
+  return titulo;
+}
+
 function tituloDesdeArchivo(nombreArchivo, nombreArtista) {
-  const base = String(nombreArchivo || "").replace(/\.[a-z0-9]{2,5}$/i, "").replace(/_+/g, " ").trim();
-  if (/^(img|dsc|pxl|photo|foto|image|imagen|screenshot|captura|whatsapp|scan|esc[aá]ner|pro-|\d)/i.test(base.replace(/\s+/g, ""))) return "";
+  const base = String(nombreArchivo || "").replace(/\.[a-z0-9]{2,5}$/i, "").replace(/[_]+/g, " ").trim();
+  if (/\d/.test(base)) return "";
   const partesNombre = normalizar(nombreArtista).split(/\s+/).filter(p => p.length > 1);
+  const nombreJunto = partesNombre.join("");
   const palabras = base.split(/\s+/).filter(p => {
     const n = normalizar(p).replace(/[^a-z0-9]/g, "");
-    if (!n || partesNombre.indexOf(n) >= 0 || paisExacto(n)) return false;
-    return !/^(collage|obra|final|copia|copy|editado|edit|v\d+|\d+)$/.test(n);
+    if (!n || n === nombreJunto || partesNombre.indexOf(n) >= 0 || paisExacto(n)) return false;
+    return !/^(collage|obra|final|copia|copy|editado|edit|file|img|fb|page|foto|photo|image|imagen|scan|screenshot|captura|whatsapp)$/.test(n);
   });
   let titulo = palabras.join(" ").replace(/^[-–—\s]+|[-–—\s]+$/g, "").trim();
   if (!/[A-Za-zÀ-ÿ]{3,}/.test(titulo)) return "";
@@ -913,12 +953,21 @@ function limpiarCampo(campo, valor, desdeIA) {
   if (campo === "instagram") return normalizarInstagram(v);
   v = v.replace(/^["“«'‘]+|["”»'’]+$/g, "").trim();
   if (campo === "titulo") {
-    if (/^sin t[ií]tulo\.?$/i.test(v)) return "Sin título";
+    v = v.replace(/[\u200b-\u200d\ufeff]/g, "")
+      .replace(/^[\s:;,.·•\-–—_|/]+/, "") // ": Cuatrimestre", "· : Start your revolution"
+      .replace(/^obra\s*[:"“]\s*/i, ""); // 'Obra "Dreamland'
+    if (/^sin t[ií]tulo\W*$/i.test(v)) return "Sin título";
+    // Técnica, medidas, año o país pegados al título.
+    v = v.replace(/\s*\((?:collage|colagem|t[eé]cnica|digital|anal[oó]gic|mixt|\d{2,4}\s*[x×])[^)]*\)/gi, "");
+    v = v.split(/\s*(?:[.,;/|]|\s[-–—])\s*(?=(?:19|20)\d{2}\b|dimensi|medidas|t[eé]cnica|formato|collage\s+(?:anal|digit|mixt)|colagem|pa[ií]s\b|nombre\b|instagram|a[nñ]o\b)/i)[0];
     v = v.split(/\s+[—–-]\s+(?=(collage|t[eé]cnica|digital|anal[oó]gic|mixt|\d))/i)[0];
     v = v.replace(/,?\s*\d{2,5}\s*[x×]\s*\d{2,5}\s*(px|cm|mm)?\.?$/i, "");
     v = v.replace(/\s*\([^)]*$/, ""); // paréntesis sin cerrar
     v = v.replace(/\s*\((19|20)\d{2}\)\s*$/, ""); // año al final
-    return v.replace(/^["“«]+|["”»]+$/g, "").replace(/[.,;:]+$/, "").trim();
+    v = v.replace(/^["“«]+|["”»]+$/g, "");
+    if ((v.match(/"/g) || []).length % 2 === 1) v = v.replace(/"/g, "");
+    if (/[“”]/.test(v) && !(/“/.test(v) && /”/.test(v))) v = v.replace(/[“”]/g, "");
+    return v.replace(/[\s.,;:\/\\|\-–—]+$/, "").trim();
   }
   // nombre
   v = v.replace(/[,;:]+$/, "").replace(/([^\s.]{3,})\.$/, "$1").trim();
@@ -934,10 +983,10 @@ function esValido(campo, valor, fila, otros) {
   const v = String(valor || "").trim();
   if (!v || esPlaceholder(campo, v) || FRASES_PLANTILLA.test(v)) return false;
   if (campo === "nombre") {
-    if (v.length > 60 || v.split(/\s+/).length > 7) return false;
+    if (v.length > 60 || v.split(/\s+/).filter(w => /[A-Za-zÀ-ÿ]/.test(w)).length > 8) return false;
     if (/[:@<>]|https?:|www\.|\.com\b/i.test(v)) return false;
     if (!/\s/.test(v) && /[._\d]/.test(v)) return false; // parece un usuario o un email
-    if (/^(y|de|del|la|el|los|las|con|por|para)\s/i.test(v)) return false;
+    if (/^(y|e)\s|^de la obra\b/i.test(v)) return false; // "y apellido Ana"; "El Buque" sí es un nombre
     if (/mi nombre es|me llamo|les escribo|escribo desde|pesquisador|investigador|bolsista|profesor|docente|estudiante|licenciad|universidad|saludos|gracias|\bhola\b/i.test(v)) return false;
     if (paisExacto(v)) return false;
     // "Quedo atenta", "bolsista da Funadesp": palabras en minúscula que no
@@ -947,14 +996,21 @@ function esValido(campo, valor, fila, otros) {
   }
   if (campo === "pais") return v.split(/\s*\/\s*/).every(p => Boolean(paisCanonico(p)));
   if (campo === "titulo") {
-    if (v.length > 120) return false;
+    if (v.length > 120 || v.split(/\s+/).length > 15) return false;
     if (/https?:|www\.|\.com\b|\/\*|@/i.test(v)) return false;
     if (/^(de la obra|del? |t[ií]tulo\b|nombre\b|obra\s*:)/i.test(v)) return false;
-    if (/\([^)]*$/.test(v)) return false;
+    // ": Cuatrimestre", "m Egar F. I", "c.- …", "España. : Idalguía"
+    if (/^[:;,.·•\-–—*/]|^[b-df-hj-np-tv-xz]\s|\s:\s/.test(v) || /^[a-z][.)\-]{1,2}\s/i.test(v)) return false;
+    if (/\([^)]*$/.test(v) || pareceCortado(v)) return false; // "Lágrimas de", comillas sin cerrar
     if (/\d{2,5}\s*[x×]\s*\d{2,5}\s*(px|cm|mm)?/i.test(v) || /\s[—–-]\s*(collage|t[eé]cnica|digital|anal[oó]gic)/i.test(v)) return false;
+    // Nombres de archivo: hashes, "File 0000…", "Fb img".
+    if (/\b[0-9a-f]{8}-[0-9a-f]{4}-|\b[0-9a-f]{12,}\b|^(file|img|fb|page|image|imagen|foto|photo|dsc|screenshot)\b/i.test(v)) return false;
+    if (/mundial (internacional )?de collage/i.test(v) || esNombreDePais(v)) return false; // "México"
+    if ((v.match(/[A-Za-zÀ-ÿ]/g) || []).length < 2) return false;
     const nombre = String((otros && otros.nombre) || (fila && fila[COL.nombre - 1]) || "").trim();
-    if (nombre && normalizar(v).indexOf(normalizar(nombre)) === 0) return false;
-    return /[A-Za-zÀ-ÿ0-9]/.test(v);
+    const junto = texto => normalizar(texto).replace(/[^a-z0-9]/g, "");
+    if (nombre && junto(v).indexOf(junto(nombre)) === 0) return false; // "NoemiFortunato"
+    return true;
   }
   if (campo === "instagram") {
     if (!/^@[A-Za-z0-9._]{3,30}$/.test(v)) return false;
@@ -1054,6 +1110,10 @@ function indicePaises() {
 
 function claveDePais(texto) {
   return normalizar(texto).replace(/[’'().,;!¡]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function esNombreDePais(texto) {
+  return NOMBRES_PAISES.split("|").some(nombre => claveDePais(nombre) === claveDePais(texto));
 }
 
 function paisExacto(texto) {

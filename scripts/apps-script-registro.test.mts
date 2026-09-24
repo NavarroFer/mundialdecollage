@@ -204,6 +204,62 @@ Sueño de papel
   })
 })
 
+describe('Registro.gs: títulos que salieron mal en la primera reparación', () => {
+  const titulo = (cuerpo: string, extra: Parameters<typeof entrada>[1] = {}) => reglas([cuerpo], extra).titulo
+
+  it('toma solo lo que sigue a la pregunta de la plantilla', () => {
+    assert.equal(titulo('CArlos Daniel Ubertone, Argentino, viviendo en España. Título de la obra: "Idalguía del color"'), 'Idalguía del color')
+    assert.equal(titulo('a.- Nombre: Angélica Machuca\nc.- Título de la obra - "Te Observo"'), 'Te Observo')
+    assert.equal(titulo('El título de la obra es "Más allá de las miradas"'), 'Más allá de las miradas')
+    assert.equal(titulo('*Título de la obra*: Cuatrimestre'), 'Cuatrimestre')
+  })
+
+  it('une un título que sigue en la línea de abajo', () => {
+    assert.equal(titulo('Título de la obra: Lágrimas de\nlluvia\nPaís: Chile'), 'Lágrimas de lluvia')
+    assert.equal(titulo('Título: Pasado, presente y\nfuturo'), 'Pasado, presente y futuro')
+  })
+
+  it('separa técnica, medidas, año, país y el propio nombre del título', () => {
+    assert.equal(titulo('Título de la obra: Escombros recónditos.2025.Dimensiones: 50x70 cm'), 'Escombros recónditos')
+    assert.equal(titulo('Título: El gato negro siempre es el sospechoso, Pais Maracaibo- Venezuela'), 'El gato negro siempre es el sospechoso')
+    assert.equal(titulo('Título: Maria Metropolis. Collage analogico'), 'Maria Metropolis')
+    assert.equal(titulo('Título: Pachamama (collage digital)'), 'Pachamama')
+    assert.equal(titulo('Título: Insectos / Año 2026'), 'Insectos')
+    assert.equal(titulo('Título: Pele de Água - Colagem Analógica Original feita por mim'), 'Pele de Água')
+    assert.equal(titulo('Título: Metamorfosis-Virginia Conti-Arg', { remitente: 'Virginia Conti <vir@example.com>' }), 'Metamorfosis')
+    assert.equal(titulo('Título: Inhale-Exhale'), 'Inhale-Exhale')
+  })
+
+  it('no toma el nombre del concurso ni nombres de archivo como título', () => {
+    assert.equal(titulo('Les envío mi obra para "el Mundial Internacional de Collage"'), '')
+    for (const archivo of ['acd911d3-e958-49f3-810c-b6124d451b26.jpeg', 'file_00000000a52472468e368676a35ae784.png', 'FB_IMG_1695.jpg', 'colagem_page-0001.jpg']) {
+      assert.equal(titulo('Hola', { adjuntos: [archivo] }), '', archivo)
+    }
+    assert.equal(titulo('Hola', { remitente: 'Noemi Fortunato <n@example.com>', adjuntos: ['NoemiFortunato.jpg'] }), '')
+    assert.equal(titulo('Hola', { remitente: 'Andrea Trotta <a@example.com>', adjuntos: ['Contaminacion.png'] }), 'Contaminacion')
+  })
+
+  it('marca como inválidos los títulos basura que ya están en la planilla', () => {
+    const s = cargar()
+    const fila = ['Ana Pérez']
+    for (const malo of ['México', 'm Egar F. I', 'Escalante Romina, Argentina, : Argentina su icono y billetes', ': Flowers in you', 'Lágrimas de', 'Pasado, presente y', '"Un nuevo mundo: el arte como umbral de', 'Acd911d3-e958-49f3-810c-b6124d451b26', 'File 00000000a52472468e368676a35ae784', 'Fb img', 'el Mundial Internacional de Collage', 'c.- - "Te Observo"', 'Sin título"']) {
+      assert.equal(s.esValido('titulo', malo, fila), false, malo)
+    }
+    for (const bueno of ['Inhale-Exhale', 'Arte Não É Inerte', 'SOS Tierra! Ya es hora!', 'Bolivar; el renacer de los cimientos', 'A veces', 'Mu!', 'Cali', 'y ¿ Dónde estás?']) {
+      assert.equal(s.esValido('titulo', bueno, fila), true, bueno)
+    }
+    assert.equal(s.limpiarCampo('titulo', 'Obra "Dreamland'), 'Dreamland')
+    assert.equal(s.limpiarCampo('titulo', '\u200b: El despertar de Harry'), 'El despertar de Harry')
+  })
+
+  it('acepta nombres artísticos que empiezan con artículo o traen dos nombres', () => {
+    const s = cargar()
+    assert.equal(s.esValido('nombre', 'El Buque'), true)
+    assert.equal(s.esValido('nombre', 'La Negra Collage'), true)
+    assert.equal(s.esValido('nombre', 'Mónica René Arce Nuño // Sopita de Estrella'), true)
+  })
+})
+
 describe('Registro.gs: validación', () => {
   const s = cargar()
 

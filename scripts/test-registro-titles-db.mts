@@ -3,7 +3,11 @@
 // node --env-file=.env.local scripts/test-registro-titles-db.mts
 import { readFileSync } from 'node:fs'
 
-const migration = readFileSync('supabase/migrations/20260923130000_registro_titles.sql', 'utf8')
+const migration = [
+  '20260923130000_registro_titles.sql',
+  '20260924020000_relink_orphaned_registro_artworks.sql',
+  '20260924030000_registro_title_case.sql',
+].map((file) => readFileSync(`supabase/migrations/${file}`, 'utf8')).join('\n')
 const query = `BEGIN;
 ${migration}
 DO $$
@@ -97,9 +101,20 @@ BEGIN
   PERFORM public.sync_curated_registro(sin_titulos, true);
   IF (SELECT title FROM public.legacy_submissions WHERE id = a.legacy_id) IS DISTINCT FROM 'Otro título' THEN RAISE EXCEPTION 'Titles wiped by a snapshot without the column'; END IF;
 
-  -- 5. An artwork created from the sheet takes its title.
-  UPDATE public.artworks SET legacy_submission_id = NULL, image_url = 'https://example.invalid/probe.jpg', slug = slug || '-probe'
-    WHERE id = a.artwork_id;
+  -- 5. An automatic title that differs only in case still takes the sheet title.
+  UPDATE public.artworks SET title = lower('Obra de ' || (SELECT name FROM public.legacy_submissions WHERE id = c.legacy_id))
+    WHERE legacy_submission_id = c.legacy_id AND archived_at IS NULL;
+  SELECT jsonb_agg(CASE public.registro_drive_id(e->>'drive_url')
+      WHEN c_drive THEN e || jsonb_build_object('title', 'Título de C') ELSE e END)
+    INTO otra FROM jsonb_array_elements(otra) e;
+  PERFORM public.sync_curated_registro(otra, true);
+  IF EXISTS(SELECT 1 FROM public.artworks WHERE legacy_submission_id = c.legacy_id AND archived_at IS NULL AND title <> 'Título de C') THEN
+    RAISE EXCEPTION 'Case-different automatic title was not replaced';
+  END IF;
+
+  -- 6. An artwork created from the sheet takes its title. (Unlinking it
+  --    instead would make the linker relink the orphan, not create one.)
+  DELETE FROM public.artworks WHERE id = a.artwork_id;
   PERFORM public.link_registro_user(a.owner);
   SELECT id INTO nueva FROM public.artworks WHERE legacy_submission_id = a.legacy_id AND archived_at IS NULL;
   IF (SELECT title FROM public.artworks WHERE id = nueva) IS DISTINCT FROM 'Otro título' THEN RAISE EXCEPTION 'New artwork did not take the sheet title'; END IF;
