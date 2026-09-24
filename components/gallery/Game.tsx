@@ -8,6 +8,7 @@ import type { Artwork } from '@/data/artworks'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
 import { InteractionManager } from './interaction/InteractionManager'
 import { PlayerTracker } from './minimap/PlayerTracker'
+import { GalleryPresence } from './presence/GalleryPresence'
 import { TouchControls } from './mobile/TouchControls'
 import { TouchLookController } from './mobile/TouchLookController'
 import { Player } from './player/Player'
@@ -16,6 +17,7 @@ import { ArtworkModal } from './ui/ArtworkModal'
 import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusic'
 import { InteractionPrompt } from './ui/InteractionPrompt'
 import { Minimap } from './ui/Minimap'
+import { PresenceCounter } from './ui/PresenceCounter'
 import { StartScreen } from './ui/StartScreen'
 import { ThemePicker } from './ui/ThemePicker'
 import { useInteractionStore } from './interaction/store'
@@ -76,15 +78,18 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <PlayerTracker />
         </Canvas>
       </KeyboardControls>
+      <GalleryPresence inside={hasStarted} />
       {isTouchDevice && isActive && !openId && <TouchControls theme={theme} />}
       <BackgroundMusic ref={musicRef} theme={theme} />
       <Minimap theme={theme} />
+      {hasStarted && <PresenceCounter />}
       <InteractionPrompt theme={theme} />
       <ArtworkModal artworks={artworks} theme={theme} />
       {!openId && <ThemePicker theme={theme} onChange={setTheme} />}
       {!isActive && !openId && (
         <StartScreen
           label={hasStarted ? 'Click para continuar' : 'ENTRAR A LA EXPOSICIÓN'}
+          showPresence={!hasStarted}
           hint={
             isTouchDevice
               ? 'Joystick para moverte · Arrastrá para mirar · Botón E para ver una obra'

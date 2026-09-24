@@ -324,6 +324,33 @@
   box-shadow: var(--gallery-shadow);
 }
 
+.liveDot {
+  width: .5rem;
+  height: .5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #3ecf6e;
+  box-shadow: 0 0 0 0 rgba(62, 207, 110, .6);
+  animation: livePulse 2s ease-out infinite;
+}
+
+.windows98 .liveDot { border-radius: 0; background: #00ff00; }
+
+@keyframes livePulse {
+  70% { box-shadow: 0 0 0 .45rem rgba(62, 207, 110, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(62, 207, 110, 0); }
+}
+
+.presenceNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: .85rem;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
 .windows98 .hudButton { border: 2px solid; border-color: #fff #000 #000 #fff; }
 .garden .hudButton { border-color: rgba(255, 207, 69, .72); }
 .collage .hudButton { border-style: dashed; }
@@ -371,4 +398,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .themeOption { transition: none; }
+  .liveDot { animation: none; }
 }

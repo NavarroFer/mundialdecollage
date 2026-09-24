@@ -1,14 +1,17 @@
 'use client'
 
 import styles from '../gallery-theme.module.css'
+import { PresenceNote } from './PresenceCounter'
 
 type StartScreenProps = {
   label: string
   hint: string
+  /** Show how many people are inside — only meaningful before the first entry. */
+  showPresence: boolean
   onEnter: () => void
 }
 
-export function StartScreen({ label, hint, onEnter }: StartScreenProps) {
+export function StartScreen({ label, hint, showPresence, onEnter }: StartScreenProps) {
   return (
     <div className={`${styles.startScreen} animate-in fade-in absolute inset-0 z-30 flex items-center justify-center p-4 duration-300`}>
       <section className={styles.startPanel} aria-labelledby="gallery-start-title">
@@ -25,6 +28,7 @@ export function StartScreen({ label, hint, onEnter }: StartScreenProps) {
       >
         {label}
       </button>
+      {showPresence && <PresenceNote />}
       <p className={styles.hint}>{hint}</p>
       </section>
     </div>
