@@ -16,6 +16,7 @@ import { Player } from './player/Player'
 import { keyboardMap } from './player/controls'
 import { ArtworkModal } from './ui/ArtworkModal'
 import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusic'
+import { ControlsTutorial } from './ui/ControlsTutorial'
 import { InteractionPrompt } from './ui/InteractionPrompt'
 import { Minimap } from './ui/Minimap'
 import { PresenceCounter } from './ui/PresenceCounter'
@@ -121,6 +122,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       <BackgroundMusic ref={musicRef} theme={theme} />
       <Minimap theme={theme} artworks={artworks} />
       {hasStarted && <PresenceCounter />}
+      <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
       <InteractionPrompt theme={theme} />
       <ArtworkModal artworks={artworks} theme={theme} />
       {!openId && <ThemePicker theme={theme} onChange={setTheme} />}

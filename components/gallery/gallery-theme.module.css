@@ -324,6 +324,50 @@
   box-shadow: var(--gallery-shadow);
 }
 
+.tutorialStep {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  transition: opacity .25s ease;
+}
+
+.tutorialKey {
+  display: inline-flex;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: var(--gallery-radius);
+  font-family: inherit;
+  font-size: .72rem;
+  font-weight: 800;
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+
+.tutorialStepDone { opacity: .6; }
+.tutorialStepDone > span:nth-child(2) { text-decoration: line-through; }
+.tutorialStepDone .tutorialKey {
+  border-color: var(--gallery-accent);
+  color: var(--gallery-ink);
+  background: var(--gallery-accent);
+}
+
+.tutorialCheck {
+  color: var(--gallery-accent);
+  animation: tutorialPop .3s ease-out;
+}
+
+.windows98 .tutorialKey { border: 2px solid; border-color: #fff #000 #000 #fff; }
+.windows98 .tutorialStepDone .tutorialKey { color: #fff; }
+
+@keyframes tutorialPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
 .liveDot {
   width: .5rem;
   height: .5rem;
@@ -422,6 +466,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .themeOption { transition: none; }
-  .liveDot, .viewedMarker { animation: none; }
+  .liveDot, .viewedMarker, .tutorialCheck { animation: none; }
+  .tutorialStep, .tutorialKey { transition: none; }
   .floatingReaction { animation-duration: .01s; }
 }
