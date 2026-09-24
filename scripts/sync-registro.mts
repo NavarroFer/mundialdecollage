@@ -1,5 +1,5 @@
 // node --env-file=.env.local --import ./scripts/node-project-imports.mjs scripts/sync-registro.mts [snapshot.json] [--apply] [--allow-large-archive]
-// snapshot.json is the complete Registro A:D grid as {text,url}[][],
+// snapshot.json is the complete Registro A:E grid (E, the title, optional) as {text,url}[][],
 // including the header. Without it, the grid is read live from Google Sheets
 // (same path as the /api/cron/registro job). Native chips, never CSV.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'

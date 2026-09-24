@@ -10,6 +10,9 @@ export type RegistroEntry = {
   email: string
   drive_url: string
   country_raw: string | null
+  // Only present when the sheet has its "Titulo" column (E): an entry
+  // without the key leaves stored titles alone (see sync_curated_registro).
+  title?: string | null
 }
 
 export function driveFileId(value: string): string | null {
@@ -26,9 +29,10 @@ export function driveFileId(value: string): string | null {
 
 export function parseRegistro(rows: RegistroCell[][]): RegistroEntry[] {
   const header = rows[0]?.map((c) => c.text.trim())
-  if (header?.join('|') !== 'Nombre|País|Email|Obra (Foto en Drive)') {
+  if (header?.slice(0, 4).join('|') !== 'Nombre|País|Email|Obra (Foto en Drive)') {
     throw new Error('Cambió el encabezado de Registro; no se modificó la base.')
   }
+  const hasTitles = /^t[ií]tulo/i.test(header[4] ?? '')
   const seen = new Set<string>()
   const entries: RegistroEntry[] = []
   rows.slice(1).forEach((row, index) => {
@@ -46,6 +50,7 @@ export function parseRegistro(rows: RegistroCell[][]): RegistroEntry[] {
       email,
       drive_url: `https://drive.google.com/file/d/${id}/view`,
       country_raw: country && !['sin especificar', 'no especificado', 'no informado', 'a revisar', 's/d'].includes(country.toLowerCase()) ? country : null,
+      ...(hasTitles ? { title: row[4]?.text.trim() || null } : {}),
     })
   })
   if (!entries.length) throw new Error('Registro está vacío; no se modificó la base.')

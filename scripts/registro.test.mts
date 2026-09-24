@@ -37,6 +37,16 @@ describe('Registro curado', () => {
     assert.equal(driveFileId('https://evil.test/file/d/id/view'), null)
     assert.equal(driveFileId('https://drive.google.com/drive/folders/id'), null)
   })
+  it('lee el título de la columna E solo si la planilla la tiene', () => {
+    const conTitulo = [...header, { text: 'Titulo' }]
+    const [conDato, sinDato] = parseRegistro([conTitulo, [...row('first'), { text: ' Raíces ' }], [...row('second'), { text: '' }]])
+    assert.equal(conDato.title, 'Raíces')
+    assert.equal(sinDato.title, null)
+    // Sin la columna (una copia vieja de la planilla) no se envía la clave,
+    // así la base conserva los títulos que ya tiene.
+    assert.equal('title' in parseRegistro([header, row('first')])[0], false)
+    assert.equal('title' in parseRegistro([[...header, { text: 'Notas' }], [...row('first'), { text: 'x' }]])[0], false)
+  })
   it('restaura una obra reintroducida sin volver a insertarla', () => {
     assert.deepEqual(planRegistro(parseRegistro([header, row('first')]), [
       { id: 'old', drive_url: 'https://drive.google.com/file/d/first/view', archived_at: '2026-09-21' },

@@ -987,7 +987,7 @@ function capitalizar(texto) {
 }
 
 function normalizar(texto) {
-  return String(texto || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+  return String(texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function unicos(lista) {

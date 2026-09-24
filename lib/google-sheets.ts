@@ -39,8 +39,9 @@ type SheetsCell = {
   chipRuns?: { chip?: { richLinkProperties?: { uri?: string } } }[]
 }
 
-// Reads A:D of a tab as native grid data, never CSV: a Drive smart chip only
-// exposes its file link through chipRuns, which an export would drop.
+// Reads A:E of a tab (E is the artwork title) as native grid data, never
+// CSV: a Drive smart chip only exposes its file link through chipRuns, which
+// an export would drop.
 export async function readSheetGrid(spreadsheetId: string, tab: string): Promise<RegistroCell[][]> {
   const token = await getAccessToken()
   const get = async (fields: string, extra = '') => {
@@ -58,11 +59,11 @@ export async function readSheetGrid(spreadsheetId: string, tab: string): Promise
 
   const grid = await get(
     'sheets.data.rowData.values(formattedValue,hyperlink,chipRuns.chip.richLinkProperties.uri)',
-    `&includeGridData=true&ranges=${encodeURIComponent(`'${tab}'!A:D`)}`,
+    `&includeGridData=true&ranges=${encodeURIComponent(`'${tab}'!A:E`)}`,
   )
   const rowData: { values?: SheetsCell[] }[] = grid.sheets[0]?.data?.[0]?.rowData ?? []
   return rowData.map((row) =>
-    Array.from({ length: 4 }, (_, column) => {
+    Array.from({ length: 5 }, (_, column) => {
       const cell = row.values?.[column] ?? {}
       const chipUrl = cell.chipRuns?.find((run) => run.chip?.richLinkProperties?.uri)?.chip?.richLinkProperties?.uri
       return { text: cell.formattedValue ?? '', url: chipUrl ?? cell.hyperlink ?? '' }
