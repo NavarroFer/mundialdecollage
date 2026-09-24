@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
 import { ArtworkViewers } from './PresenceCounter'
@@ -15,10 +14,6 @@ import { cn } from '@/lib/utils'
 export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
   const openId = useInteractionStore((state) => state.openId)
   const artwork = artworks.find((item) => item.id === openId)
-
-  useEffect(() => {
-    if (openId && document.pointerLockElement) document.exitPointerLock()
-  }, [openId])
 
   if (!artwork) return null
 

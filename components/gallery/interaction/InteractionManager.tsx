@@ -40,13 +40,15 @@ export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
     useInteractionStore.getState().setTarget(nearestId)
   })
 
-  // Ignore gallery shortcuts while typing into the like form.
+  // Ignore gallery shortcuts while typing into the like form. Buttons don't
+  // count: the modal auto-focuses its first reaction button, and E has to
+  // keep closing it from there.
   useEffect(() => {
     return subscribeKeys(
       (state) => state.interact,
       (pressed) => {
         const element = document.activeElement
-        if (element instanceof HTMLElement && (element.matches('input, textarea, select, button') || element.isContentEditable)) return
+        if (element instanceof HTMLElement && (element.matches('input, textarea, select') || element.isContentEditable)) return
         if (pressed) useInteractionStore.getState().toggle()
       },
     )

@@ -1,6 +1,9 @@
 'use client'
 
+import type { ComponentRef, Ref } from 'react'
 import { PointerLockControls } from '@react-three/drei'
+
+export type FirstPersonCameraHandle = ComponentRef<typeof PointerLockControls>
 
 type FirstPersonCameraProps = {
   /** CSS selector for the element(s) whose click should engage pointer lock. */
@@ -9,12 +12,13 @@ type FirstPersonCameraProps = {
   pointerSpeed?: number
   onLock?: () => void
   onUnlock?: () => void
+  ref?: Ref<FirstPersonCameraHandle>
 }
 
 /**
  * Rotation only (mouse-look via Pointer Lock) — Player owns position/movement.
  * Kept separate so a future ThirdPersonCamera can swap in without touching Player.
  */
-export function FirstPersonCamera({ selector, pointerSpeed = 1, onLock, onUnlock }: FirstPersonCameraProps) {
-  return <PointerLockControls selector={selector} pointerSpeed={pointerSpeed} onLock={onLock} onUnlock={onUnlock} />
+export function FirstPersonCamera({ selector, pointerSpeed = 1, onLock, onUnlock, ref }: FirstPersonCameraProps) {
+  return <PointerLockControls ref={ref} selector={selector} pointerSpeed={pointerSpeed} onLock={onLock} onUnlock={onUnlock} />
 }
