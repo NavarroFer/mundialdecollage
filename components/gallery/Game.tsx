@@ -5,6 +5,7 @@ import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import type { Artwork } from '@/data/artworks'
+import { FloatingReactions } from './artwork/FloatingReactions'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
 import { InteractionManager } from './interaction/InteractionManager'
 import { PlayerTracker } from './minimap/PlayerTracker'
@@ -76,6 +77,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <TouchLookController active={isActive} />
           <InteractionManager artworks={artworks} />
           <PlayerTracker />
+          <FloatingReactions artworks={artworks} />
         </Canvas>
       </KeyboardControls>
       <GalleryPresence inside={hasStarted} artworks={artworks} />

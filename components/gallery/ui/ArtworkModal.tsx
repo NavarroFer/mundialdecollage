@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
 import { ArtworkViewers } from './PresenceCounter'
+import { LiveReactions } from './LiveReactions'
 import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
 import type { GalleryTheme } from '../themes'
@@ -44,6 +45,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           </p>
           <p className="text-base leading-relaxed text-ink/80">{artwork.description}</p>
           <ArtworkViewers artworkId={artwork.id} />
+          <LiveReactions artworkId={artwork.id} />
           <ArtworkLike key={artwork.id} slug={artwork.id} />
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             Cerrá esta ventana para seguir recorriendo

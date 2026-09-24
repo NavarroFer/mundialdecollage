@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Heart } from 'lucide-react'
 import { getArtworkLike, likeArtwork } from '@/app/galeria-3d/actions'
+import { usePresenceStore } from '../presence/store'
 
 export function ArtworkLike({ slug }: { slug: string }) {
   const [state, setState] = useState<{ count: number; liked: boolean; needsEmail: boolean } | null>(null)
@@ -35,6 +36,8 @@ export function ArtworkLike({ slug }: { slug: string }) {
       } else {
         setState((previous) => ({ count: (previous?.count ?? 0) + 1, liked: true, needsEmail: false }))
         setShowEmail(false)
+        // Everyone inside sees a heart rise from the obra.
+        usePresenceStore.getState().react?.(slug, '❤️')
         // Fetch the authoritative count: another tab may have already voted.
         const latest = await getArtworkLike(slug)
         if (latest.count !== undefined) setState({ count: latest.count, liked: latest.liked, needsEmail: latest.needsEmail })

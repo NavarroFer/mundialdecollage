@@ -29,3 +29,23 @@ export function summarizePresence(
   }
   return { count: keys.length, viewers, peers: peers.sort() }
 }
+
+// A fixed set, so reactions never need moderation.
+export const REACTIONS = [
+  { emoji: '❤️', label: 'Me encanta' },
+  { emoji: '👏', label: 'Aplausos' },
+  { emoji: '🔥', label: 'Fuego' },
+  { emoji: '✨', label: 'Brillante' },
+] as const
+
+export type ReactionEmoji = (typeof REACTIONS)[number]['emoji']
+
+const reactionEmojis = new Set<string>(REACTIONS.map((reaction) => reaction.emoji))
+
+export function parseReaction(payload: unknown, artworkIds: ReadonlySet<string>): { artworkId: string; emoji: ReactionEmoji } | null {
+  if (typeof payload !== 'object' || payload === null) return null
+  const { artworkId, emoji } = payload as Record<string, unknown>
+  if (typeof artworkId !== 'string' || !artworkIds.has(artworkId)) return null
+  if (typeof emoji !== 'string' || !reactionEmojis.has(emoji)) return null
+  return { artworkId, emoji: emoji as ReactionEmoji }
+}
