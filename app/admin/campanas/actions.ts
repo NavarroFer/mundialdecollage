@@ -13,11 +13,82 @@ import {
   getMailFromDomain,
 } from '@/lib/resend'
 import { site, getSiteUrl } from '@/lib/site'
-import { personalizeHtml } from '@/lib/email-blocks'
+import { isEmailDocument, personalizeHtml, renderEmailDocumentToHtml } from '@/lib/email-blocks'
+import {
+  applyEmailTexts,
+  contactLocale,
+  emailTextsFingerprint,
+  extractEmailTexts,
+  translatedLocales,
+  UNSUBSCRIBE_FOOTER,
+  type EmailTranslations,
+  type TranslatedLocale,
+} from '@/lib/email-translation'
+import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
+import { DEFAULT_LOCALE, isLocale, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-function withUnsubscribeFooter(bodyHtml: string, contactId: string) {
+function withUnsubscribeFooter(bodyHtml: string, contactId: string, locale: Locale) {
   const unsubscribeUrl = `${getSiteUrl()}/api/unsubscribe?id=${contactId}`
-  return `${bodyHtml}<hr style="margin-top:32px;border:none;border-top:1px solid #ddd" /><p style="margin-top:16px;font-size:12px;color:#888">¿No querés más estos mails? <a href="${unsubscribeUrl}">Darte de baja</a>.</p>`
+  const footer = UNSUBSCRIBE_FOOTER[locale]
+  return `${bodyHtml}<hr style="margin-top:32px;border:none;border-top:1px solid #ddd" /><p style="margin-top:16px;font-size:12px;color:#888">${footer.question} <a href="${unsubscribeUrl}">${footer.link}</a>.</p>`
+}
+
+// The translations this send can use. The template's own are reused while
+// the composer still has its exact wording; anything edited (or written from
+// scratch) is translated now, if the translator is set up. Raw-HTML emails
+// and a missing translator mean Spanish for everyone.
+async function translationsForSend(
+  supabase: SupabaseClient,
+  { templateId, subject, bodyJson, locales = TRANSLATED_LOCALES }: {
+    templateId: string | null
+    subject: string
+    bodyJson: unknown
+    locales?: readonly TranslatedLocale[]
+  },
+): Promise<{ translations: EmailTranslations; errors: string[] }> {
+  if (!isEmailDocument(bodyJson)) return { translations: {}, errors: [] }
+  const texts = extractEmailTexts(subject, bodyJson)
+
+  if (templateId) {
+    const { data: template } = await supabase
+      .from('templates')
+      .select('translations, translations_source')
+      .eq('id', templateId)
+      .maybeSingle()
+    if (template?.translations_source === emailTextsFingerprint(subject, bodyJson)) {
+      const complete = translatedLocales(template.translations as EmailTranslations, texts)
+      if (locales.every((locale) => complete.includes(locale))) {
+        return { translations: template.translations as EmailTranslations, errors: [] }
+      }
+    }
+  }
+
+  if (!isTranslatorConfigured) return { translations: {}, errors: [] }
+  try {
+    return await translateEmailTexts(texts, locales)
+  } catch (error) {
+    return { translations: {}, errors: [error instanceof Error ? error.message : String(error)] }
+  }
+}
+
+// The email as one locale receives it (memoized per locale by the caller):
+// the translated texts over the same blocks, or the Spanish original when
+// that language has no complete translation.
+function emailFor(
+  locale: Locale,
+  { subject, bodyHtml, bodyJson, translations }: {
+    subject: string
+    bodyHtml: string
+    bodyJson: unknown
+    translations: EmailTranslations
+  },
+): { locale: Locale; subject: string; html: string } {
+  const original = { locale: DEFAULT_LOCALE, subject, html: bodyHtml }
+  if (locale === 'es' || !isEmailDocument(bodyJson)) return original
+  if (!translatedLocales(translations, extractEmailTexts(subject, bodyJson)).includes(locale)) return original
+  const translated = applyEmailTexts(subject, bodyJson, translations[locale]!)
+  return { locale, subject: translated.subject, html: renderEmailDocumentToHtml(translated.doc) }
 }
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -51,14 +122,34 @@ export async function sendCampaign(formData: FormData) {
 
   const supabase = await createClient()
 
-  const { data: contacts } = await supabase
-    .from('contacts')
-    .select('id, email, name')
-    .eq('subscribed', true)
+  const [{ data: contacts }, { data: contactCountries }] = await Promise.all([
+    supabase.from('contacts').select('id, email, name').eq('subscribed', true),
+    supabase.rpc('contact_country_codes'),
+  ])
 
-  const recipients = contacts ?? []
+  const countryByContact = new Map(
+    ((contactCountries ?? []) as { contact_id: string; country_code: string | null }[]).map((row) => [
+      row.contact_id,
+      row.country_code,
+    ]),
+  )
+  const recipients = (contacts ?? []).map((contact) => ({
+    ...contact,
+    locale: contactLocale(countryByContact.get(contact.id)),
+  }))
   if (recipients.length === 0) {
     redirect('/admin/campanas/nueva?error=no_recipients')
+  }
+
+  const { translations, errors: translationErrors } = await translationsForSend(supabase, {
+    templateId,
+    subject,
+    bodyJson,
+  })
+  const emails = new Map<Locale, ReturnType<typeof emailFor>>()
+  const emailForContact = (locale: Locale) => {
+    if (!emails.has(locale)) emails.set(locale, emailFor(locale, { subject, bodyHtml, bodyJson, translations }))
+    return emails.get(locale)!
   }
 
   const { data: campaign, error: campaignError } = await supabase
@@ -68,6 +159,7 @@ export async function sendCampaign(formData: FormData) {
       subject,
       body_html: bodyHtml,
       body_json: bodyJson,
+      translations,
       status: 'sending',
       recipient_count: recipients.length,
     })
@@ -81,7 +173,9 @@ export async function sendCampaign(formData: FormData) {
   const resend = createResendClient()
   let sentCount = 0
   let failedCount = 0
-  let firstError: string | null = null
+  let firstError: string | null = translationErrors.length
+    ? `No se pudo traducir (esos contactos recibieron español): ${translationErrors.join('; ')}`
+    : null
 
   // A malformed address fails Resend's *entire* batch.send call, marking
   // every recipient in that batch as failed even though only one was bad.
@@ -98,6 +192,7 @@ export async function sendCampaign(formData: FormData) {
         campaign_id: campaign.id,
         contact_id: contact.id,
         email: contact.email,
+        locale: emailForContact(contact.locale).locale,
         status: 'failed',
         error: 'Formato de email inválido',
       })),
@@ -111,12 +206,15 @@ export async function sendCampaign(formData: FormData) {
     // failed. A try/catch here would never fire and was hiding failed sends
     // as "sent".
     const { data, error } = await resend.batch.send(
-      batch.map((contact) => ({
-        from: site.mailFrom,
-        to: contact.email,
-        subject,
-        html: withUnsubscribeFooter(personalizeHtml(bodyHtml, contact.name), contact.id),
-      })),
+      batch.map((contact) => {
+        const email = emailForContact(contact.locale)
+        return {
+          from: site.mailFrom,
+          to: contact.email,
+          subject: email.subject,
+          html: withUnsubscribeFooter(personalizeHtml(email.html, contact.name), contact.id, email.locale),
+        }
+      }),
     )
 
     if (error || !data) {
@@ -128,6 +226,7 @@ export async function sendCampaign(formData: FormData) {
           campaign_id: campaign.id,
           contact_id: contact.id,
           email: contact.email,
+          locale: emailForContact(contact.locale).locale,
           status: 'failed',
           error: message,
         })),
@@ -141,6 +240,7 @@ export async function sendCampaign(formData: FormData) {
         campaign_id: campaign.id,
         contact_id: contact.id,
         email: contact.email,
+        locale: emailForContact(contact.locale).locale,
         status: 'sent',
         sent_at: new Date().toISOString(),
         resend_email_id: data.data[i]?.id ?? null,
@@ -169,7 +269,11 @@ export async function sendCampaign(formData: FormData) {
 export async function sendTestEmail(formData: FormData) {
   const subject = String(formData.get('subject') ?? '').trim()
   const bodyHtml = String(formData.get('body_html') ?? '').trim()
+  const bodyJson = parseBodyJson(formData)
+  const templateId = String(formData.get('template_id') ?? '') || null
   const testEmail = String(formData.get('test_email') ?? '').trim()
+  const requestedLocale = String(formData.get('test_locale') ?? '')
+  const locale: Locale = isLocale(requestedLocale) ? requestedLocale : DEFAULT_LOCALE
 
   if (!subject || !bodyHtml || !testEmail) {
     redirect('/admin/campanas/nueva?error=missing_fields')
@@ -178,12 +282,23 @@ export async function sendTestEmail(formData: FormData) {
     redirect('/admin/campanas/nueva?error=resend_not_configured')
   }
 
+  // Only the one language being tested needs translating.
+  const { translations, errors } =
+    locale === 'es'
+      ? { translations: {}, errors: [] }
+      : await translationsForSend(await createClient(), { templateId, subject, bodyJson, locales: [locale] })
+  const email = emailFor(locale, { subject, bodyHtml, bodyJson, translations })
+  if (email.locale !== locale) {
+    const reason = errors.length ? errors.join('; ') : 'no hay traducción disponible'
+    redirect(`/admin/campanas/nueva?error=${encodeURIComponent(`No se pudo probar en ese idioma: ${reason}`)}`)
+  }
+
   const resend = createResendClient()
   const { error } = await resend.emails.send({
     from: site.mailFrom,
     to: testEmail,
-    subject: `[PRUEBA] ${subject}`,
-    html: withUnsubscribeFooter(personalizeHtml(bodyHtml, null), 'prueba'),
+    subject: `[PRUEBA] ${email.subject}`,
+    html: withUnsubscribeFooter(personalizeHtml(email.html, null), 'prueba', email.locale),
   })
 
   if (error) {

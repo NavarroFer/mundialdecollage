@@ -4,18 +4,21 @@ import { SubmitArtworkCta } from '@/components/submit-artwork-cta'
 import { Countdown } from '@/components/countdown'
 import { FadeIn } from '@/components/fade-in'
 import { site } from '@/lib/site'
+import { getI18n } from '@/lib/i18n/server'
+import { fmt, formatDayMonth } from '@/lib/i18n/format'
 
-export function HeroSection() {
+export async function HeroSection() {
+  const { locale, m } = await getI18n()
   return (
     <section id="top" className="bg-grain relative overflow-hidden pt-16 pb-24 sm:pt-24 sm:pb-32">
       <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <FadeIn>
           <span className="torn-strip inline-block -rotate-2 bg-collage-blue px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase sm:text-sm">
-            Convocatoria abierta
+            {m.hero.badge}
           </span>
         </FadeIn>
 
-        <h1 className="sr-only">Mundial Internacional de Collage</h1>
+        <h1 className="sr-only">{m.meta.title}</h1>
       </div>
 
       {/* decorative dots, echoing the flyers' color-block circles. FadeIn
@@ -74,8 +77,7 @@ export function HeroSection() {
       <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <FadeIn delay={200}>
           <p className="mx-auto mt-7 max-w-xl text-lg text-muted-foreground sm:text-xl">
-            El Mundial ya está sucediendo y queremos que tu obra sea parte. Jurado
-            internacional, Gran Muestra Online y Revista 1ª Edición de Collage.
+            {m.hero.intro}
           </p>
         </FadeIn>
 
@@ -88,7 +90,7 @@ export function HeroSection() {
 
         <FadeIn delay={400}>
           <p className="mt-6 text-sm text-muted-foreground">
-            Hasta el {site.deadlineLabel} ·{' '}
+            {fmt(m.hero.until, { date: formatDayMonth(locale, site.deadlineISO) })} ·{' '}
             <a href={`mailto:${site.email}`} className="font-medium text-ink underline underline-offset-4">
               {site.email}
             </a>

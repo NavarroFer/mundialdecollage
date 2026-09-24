@@ -98,6 +98,11 @@
     font-family: var(--font-display);
   }
 
+  /* Anton has no Cyrillic glyphs (see app/layout.tsx). */
+  :lang(ru) .font-display {
+    font-family: var(--font-display-cyrillic), var(--font-display);
+  }
+
   /* Torn-paper edge, both sides — the flat/vector collage motif reused across sections. */
   .torn-strip {
     clip-path: polygon(

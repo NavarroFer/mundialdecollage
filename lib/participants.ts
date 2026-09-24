@@ -49,23 +49,35 @@ export function countryCodeToFlag(countryCode: string) {
     .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
 }
 
-// Resolves country names ("Argentina") from the runtime's own locale data, so
-// there's no hardcoded country list to keep in sync here.
-const regionNames =
-  typeof Intl !== 'undefined' && 'DisplayNames' in Intl
-    ? new Intl.DisplayNames(['es'], { type: 'region' })
-    : undefined
+// The techniques the onboarding form offers. Stored as these Spanish values;
+// each dictionary's common.techniques holds the label to show.
+export const TECHNIQUES = ['Analógica', 'Mixta', 'Digital'] as const
 
-// Converts an ISO 3166-1 alpha-2 code ("AR") into its Spanish display name
-// ("Argentina"). Falls back to the raw code if the runtime can't resolve it
+// Resolves country names ("Argentina") from the runtime's own locale data, so
+// there's no hardcoded country list to keep in sync here. One formatter per
+// language, built on first use.
+const regionNamesByLocale = new Map<string, Intl.DisplayNames | undefined>()
+function regionNames(locale: string) {
+  if (!regionNamesByLocale.has(locale)) {
+    regionNamesByLocale.set(
+      locale,
+      typeof Intl !== 'undefined' && 'DisplayNames' in Intl ? new Intl.DisplayNames([locale], { type: 'region' }) : undefined,
+    )
+  }
+  return regionNamesByLocale.get(locale)
+}
+
+// Converts an ISO 3166-1 alpha-2 code ("AR") into its display name in
+// `locale` — Spanish ("Argentina") unless the reader's language is passed.
+// Falls back to the raw code if the runtime can't resolve it
 // — Intl.DisplayNames.of() *throws* (not just returns undefined) for a code
 // that isn't well-formed (empty, one letter, three letters), so this needs a
 // try/catch, not just `??`. country_code is normally constrained by the
 // onboarding form's <select>, but this keeps a stray/malformed value from
 // crashing the whole page instead of just showing the raw code.
-export function countryCodeToName(countryCode: string) {
+export function countryCodeToName(countryCode: string, locale = 'es') {
   try {
-    return regionNames?.of(countryCode.toUpperCase()) ?? countryCode.toUpperCase()
+    return regionNames(locale)?.of(countryCode.toUpperCase()) ?? countryCode.toUpperCase()
   } catch {
     return countryCode.toUpperCase()
   }

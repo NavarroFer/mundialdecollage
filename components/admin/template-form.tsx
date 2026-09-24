@@ -5,12 +5,16 @@ import { Save } from 'lucide-react'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { EmailBlockEditor } from '@/components/admin/email-block-editor'
 import { createDefaultEmailDocument, renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
+import { TRANSLATED_LOCALES } from '@/lib/i18n/locales'
 
 export function TemplateForm({
   action,
   defaultValues,
+  translates = false,
 }: {
   action: (formData: FormData) => void
+  // Whether saving also translates it (lib/email-translator.ts is configured).
+  translates?: boolean
   defaultValues?: {
     id?: string
     name: string
@@ -93,7 +97,14 @@ export function TemplateForm({
           Se agrega automáticamente un link de baja al final de cada envío — no hace falta escribirlo acá.
         </p>
 
-        <SubmitButton className="gap-2" pendingLabel="Guardando…">
+        {translates && !isLegacyHtml && (
+          <p className="text-xs text-muted-foreground">
+            Al guardar, se traduce sola a {TRANSLATED_LOCALES.length} idiomas y cada contacto la recibe en el de su país.
+            Si solo cambiás imágenes o links, las traducciones se mantienen.
+          </p>
+        )}
+
+        <SubmitButton className="gap-2" pendingLabel={translates && !isLegacyHtml ? 'Guardando y traduciendo…' : 'Guardando…'}>
           <Save className="h-4 w-4" />
           Guardar plantilla
         </SubmitButton>

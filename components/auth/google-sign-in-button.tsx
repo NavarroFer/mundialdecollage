@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/lib/i18n/client'
 
 function GoogleIcon() {
   return (
@@ -27,8 +28,11 @@ function GoogleIcon() {
   )
 }
 
-export function GoogleSignInButton({ next = '/onboarding' }: { next?: string }) {
+// `compact` shows just the Google mark on phones (label kept for screen
+// readers), so the header fits next to the language switcher.
+export function GoogleSignInButton({ next = '/onboarding', compact = false }: { next?: string; compact?: boolean }) {
   const [loading, setLoading] = useState(false)
+  const { m } = useI18n()
 
   async function handleClick() {
     setLoading(true)
@@ -42,7 +46,7 @@ export function GoogleSignInButton({ next = '/onboarding' }: { next?: string }) 
   return (
     <Button variant="outline" size="sm" onClick={handleClick} disabled={loading} className="gap-2">
       <GoogleIcon />
-      {loading ? 'Ingresando…' : 'Ingresar con Google'}
+      <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{loading ? m.auth.signingIn : m.auth.signIn}</span>
     </Button>
   )
 }

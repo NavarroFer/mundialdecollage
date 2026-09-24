@@ -6,15 +6,17 @@ import { ObrasCollage } from '@/components/obras-collage'
 import { InstagramIconLink } from '@/components/instagram-icon-link'
 import { countryCodeToFlag, getParticipants } from '@/lib/participants'
 import { getDailyExhibition } from '@/lib/gallery-artworks'
+import { getI18n } from '@/lib/i18n/server'
 
 // Teaser only — capped so the homepage doesn't grow an unbounded pill wall
 // as submissions come in. /participantes has search/filter for the full list.
 const HOMEPAGE_LIMIT = 40
 
 export async function ParticipantsSection() {
-  const [participants, collageFinalists] = await Promise.all([
+  const [participants, collageFinalists, { m }] = await Promise.all([
     getParticipants({ limit: HOMEPAGE_LIMIT }),
     getDailyExhibition(),
+    getI18n(),
   ])
 
   return (
@@ -22,10 +24,10 @@ export async function ParticipantsSection() {
       <div className="mx-auto max-w-4xl px-5 sm:px-8">
         <FadeIn>
           <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-red uppercase">
-            Participantes
+            {m.participants.eyebrow}
           </p>
           <h2 className="font-display mt-3 text-center text-3xl tracking-tight uppercase sm:text-4xl">
-            Ya se están sumando
+            {m.participants.title}
           </h2>
         </FadeIn>
       </div>
@@ -39,16 +41,16 @@ export async function ParticipantsSection() {
       <FadeIn delay={150}>
         <div className="mx-auto mt-8 max-w-xl px-5 text-center sm:px-8">
           <p className="mb-4 text-sm font-bold tracking-[0.15em] text-collage-red uppercase">
-            El arte también se juega
+            {m.participants.playEyebrow}
           </p>
           <Button asChild size="lg" variant="primary" className="h-auto min-h-14 whitespace-normal py-4">
             <Link href="/galeria-3d" prefetch={false}>
               <Gamepad2 className="size-5" aria-hidden="true" />
-              Jugá y explorá la muestra en 3D
+              {m.participants.playCta}
             </Link>
           </Button>
           <p className="mt-4 text-sm text-muted-foreground">
-            Una muestra distinta cada día. Entrá gratis, recorré la galería y descubrí las obras.
+            {m.participants.playSub}
           </p>
         </div>
       </FadeIn>
@@ -70,7 +72,7 @@ export async function ParticipantsSection() {
             </ul>
           ) : (
             <p className="mt-8 text-center text-muted-foreground">
-              Todavía no hay obras confirmadas — la tuya puede ser la primera acá.
+              {m.participants.empty}
             </p>
           )}
         </FadeIn>
@@ -81,7 +83,7 @@ export async function ParticipantsSection() {
               href="/participantes"
               className="text-sm font-semibold text-collage-blue underline underline-offset-4 hover:text-collage-blue/80"
             >
-              Ver todos los participantes →
+              {m.participants.viewAll}
             </Link>
           </div>
         </FadeIn>

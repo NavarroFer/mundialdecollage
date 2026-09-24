@@ -5,14 +5,17 @@ import Link from 'next/link'
 import { DepthCarousel } from '@/components/depth-carousel'
 import { countryCodeToFlag } from '@/lib/participants'
 import type { Finalist } from '@/lib/finalists'
+import { useI18n } from '@/lib/i18n/client'
+import { fmt } from '@/lib/i18n/format'
 
 export function ObrasCarousel({ finalists }: { finalists: Finalist[] }) {
   const [active, setActive] = useState(0)
+  const { m } = useI18n()
   const current = finalists[active]
 
   const items = finalists.map((f) => ({
     image: f.imageUrl,
-    alt: `${f.artworkTitle}, de ${f.name}`,
+    alt: fmt(m.common.artworkBy, { title: f.artworkTitle, name: f.name }),
   }))
 
   return (

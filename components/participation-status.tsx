@@ -7,8 +7,9 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
-import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
+import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { completeMissingDetails } from '@/app/onboarding/actions'
+import { getI18n } from '@/lib/i18n/server'
 
 // Shown right under the hero for a returning, already-submitted artist —
 // "cuando esté logueado cada artista, que diga 'Ya estás participando' y les
@@ -19,6 +20,7 @@ import { completeMissingDetails } from '@/app/onboarding/actions'
 export async function ParticipationStatus() {
   if (!isSupabaseConfigured) return null
 
+  const { locale, m } = await getI18n()
   const supabase = await createClient()
   const {
     data: { user },
@@ -57,8 +59,8 @@ export async function ParticipationStatus() {
   const needsCountry = !profile.country_code
   const countries = needsCountry
     ? getAllCountryCodes()
-        .map((code) => ({ code, name: countryCodeToName(code) }))
-        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((code) => ({ code, name: countryCodeToName(code, locale) }))
+        .sort((a, b) => a.name.localeCompare(b.name, locale))
     : []
 
   return (
@@ -78,7 +80,7 @@ export async function ParticipationStatus() {
             <div className="flex-1 text-center sm:text-left">
               <span className="torn-strip inline-flex -rotate-1 items-center gap-1.5 bg-collage-blue px-4 py-1.5 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Ya estás participando
+                {m.status.badge}
               </span>
 
               <h2 className="font-display mt-4 text-2xl tracking-tight text-ink uppercase sm:text-3xl">
@@ -86,7 +88,7 @@ export async function ParticipationStatus() {
               </h2>
 
               <p className="mt-2 text-muted-foreground">
-                Tu obra ya forma parte del Mundial de Collage.
+                {m.status.body}
               </p>
 
               {needsCountry && (
@@ -95,7 +97,7 @@ export async function ParticipationStatus() {
                   className="mt-4 rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4 text-left"
                 >
                   <p className="text-sm font-medium text-ink">
-                    Nos falta tu país para mostrar tu obra en el mapa y el directorio.
+                    {m.status.needCountry}
                   </p>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <CountrySelect name="country_code" countries={countries} required />
@@ -104,13 +106,15 @@ export async function ParticipationStatus() {
                       defaultValue=""
                       className="mt-1.5 rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5 text-sm text-ink outline-none focus:border-collage-blue sm:mt-0"
                     >
-                      <option value="">Técnica (opcional)</option>
-                      <option value="Analógica">Analógica</option>
-                      <option value="Mixta">Mixta</option>
-                      <option value="Digital">Digital</option>
+                      <option value="">{m.status.techniqueOptional}</option>
+                      {TECHNIQUES.map((technique) => (
+                        <option key={technique} value={technique}>
+                          {m.common.techniques[technique] ?? technique}
+                        </option>
+                      ))}
                     </select>
-                    <SubmitButton pendingLabel="Guardando…" className="sm:mt-0">
-                      Guardar
+                    <SubmitButton pendingLabel={m.common.saving} className="sm:mt-0">
+                      {m.common.save}
                     </SubmitButton>
                   </div>
                 </form>
@@ -119,13 +123,13 @@ export async function ParticipationStatus() {
               <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
                 <Link href={`/obras/${artwork.slug}`}>
                   <Button variant="outline" className="gap-2">
-                    Ver mi obra
+                    {m.common.viewMyArtwork}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href="/onboarding?another=1">
                   <Button variant="outline" className="gap-2">
-                    Enviar otra obra
+                    {m.common.sendAnother}
                   </Button>
                 </Link>
               </div>

@@ -10,10 +10,12 @@ import { useInteractionStore } from '../interaction/store'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/client'
 
 export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
   const openId = useInteractionStore((state) => state.openId)
   const artwork = artworks.find((item) => item.id === openId)
+  const { m } = useI18n()
 
   if (!artwork) return null
 
@@ -43,7 +45,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           <LiveReactions artworkId={artwork.id} />
           <ArtworkLike key={artwork.id} slug={artwork.id} />
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            Cerrá esta ventana para seguir recorriendo
+            {m.gallery.closeToContinue}
           </p>
         </div>
       </DialogContent>

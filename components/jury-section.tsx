@@ -1,7 +1,9 @@
 import { Globe2, Sparkles } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
+import { getI18n } from '@/lib/i18n/server'
 
-export function JurySection() {
+export async function JurySection() {
+  const { m } = await getI18n()
   return (
     <section className="bg-grain relative overflow-hidden border-t-2 border-ink/10 bg-collage-blue py-20 text-primary-foreground sm:py-28">
       <Globe2
@@ -12,39 +14,37 @@ export function JurySection() {
       <div className="relative mx-auto grid max-w-6xl gap-12 px-5 sm:px-8 md:grid-cols-2 md:items-center">
         <FadeIn direction="right">
           <p className="text-sm font-bold tracking-[0.25em] text-collage-yellow uppercase">
-            Jurado internacional
+            {m.jury.eyebrow}
           </p>
           <h2 className="font-display mt-3 text-3xl leading-[1.05] tracking-tight uppercase sm:text-4xl">
-            Artistas de renombre
+            {m.jury.title1}
             <br />
-            forman parte del jurado
+            {m.jury.title2}
           </h2>
           <p className="mt-5 max-w-md text-primary-foreground/75">
-            Un jurado con trayectoria internacional va a evaluar cada obra recibida.
-            Muy pronto anunciamos quiénes lo integran.
+            {m.jury.body}
           </p>
         </FadeIn>
 
         <FadeIn direction="left" delay={150}>
           <div className="ml-auto w-full max-w-sm rounded-2xl border-2 border-primary-foreground/20 bg-primary-foreground/10 p-8 text-center backdrop-blur-sm">
             <Sparkles className="mx-auto h-8 w-8 text-collage-yellow" strokeWidth={1.5} />
-            <p className="font-display mt-4 text-2xl tracking-wide uppercase">Premios</p>
+            <p className="font-display mt-4 text-2xl tracking-wide uppercase">{m.jury.prizes}</p>
             <div className="mt-5 space-y-4 text-left">
               <div>
                 <p className="font-display text-lg tracking-wide text-collage-yellow uppercase">
-                  Gran Muestra Online
+                  {m.jury.showTitle}
                 </p>
                 <p className="mt-1 text-sm text-primary-foreground/70">
-                  Todas las obras seleccionadas por el jurado forman parte de la muestra oficial.
+                  {m.jury.showBody}
                 </p>
               </div>
               <div>
                 <p className="font-display text-lg tracking-wide text-collage-yellow uppercase">
-                  Revista — 1ª edición de Collage
+                  {m.jury.magazineTitle}
                 </p>
                 <p className="mt-1 text-sm text-primary-foreground/70">
-                  Las mejores 30 obras se publican en la primera edición de la revista del Mundial
-                  de Collage.
+                  {m.jury.magazineBody}
                 </p>
               </div>
             </div>

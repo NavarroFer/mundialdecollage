@@ -1,10 +1,16 @@
 import Link from 'next/link'
-import { Plus, Pencil, Trash2, Copy } from 'lucide-react'
+import { Plus, Pencil, Trash2, Copy, Languages } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { SubmitButton } from '@/components/admin/submit-button'
-import { deleteTemplate, duplicateTemplate } from './actions'
+import { TranslationBadge } from '@/components/admin/translation-badge'
+import { translationState } from '@/lib/email-translation'
+import { isTranslatorConfigured } from '@/lib/email-translator'
+import { deleteTemplate, duplicateTemplate, translateTemplate } from './actions'
+
+// Translating a template into eight languages takes a little while.
+export const maxDuration = 120
 
 export default async function PlantillasPage({
   searchParams,
@@ -15,10 +21,10 @@ export default async function PlantillasPage({
   const supabase = await createClient()
   const { data: templates } = await supabase
     .from('templates')
-    .select('id, name, subject, updated_at')
+    .select('id, name, subject, updated_at, body_json, translations, translations_source')
     .order('updated_at', { ascending: false })
 
-  const list = templates ?? []
+  const list = (templates ?? []).map((t) => ({ ...t, translation: translationState(t) }))
 
   return (
     <div>
@@ -35,6 +41,13 @@ export default async function PlantillasPage({
         }
       />
 
+      {!isTranslatorConfigured && (
+        <p className="mt-4 rounded-xl border-2 border-collage-yellow/50 bg-collage-yellow/15 px-4 py-3 text-sm text-ink">
+          Las plantillas se traducen solas al guardarlas una vez que esté configurada ANTHROPIC_API_KEY en Vercel.
+          Mientras tanto, las que no tengan traducción se envían en español a todos.
+        </p>
+      )}
+
       {error && (
         <p className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-4 py-3 text-sm text-ink">
           {error}
@@ -50,11 +63,23 @@ export default async function PlantillasPage({
             key={t.id}
             className="flex items-center justify-between rounded-2xl border-2 border-ink/10 bg-card px-5 py-4"
           >
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold text-ink">{t.name}</p>
               <p className="text-sm text-muted-foreground">{t.subject}</p>
+              <div className="mt-2">
+                <TranslationBadge status={t.translation.status} locales={t.translation.locales} />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {isTranslatorConfigured && (t.translation.status === 'untranslated' || t.translation.status === 'outdated') && (
+                <form action={translateTemplate}>
+                  <input type="hidden" name="id" value={t.id} />
+                  <SubmitButton size="sm" variant="outline" className="gap-1.5" pendingLabel="Traduciendo…">
+                    <Languages className="h-3.5 w-3.5" />
+                    Traducir
+                  </SubmitButton>
+                </form>
+              )}
               <Link href={`/admin/plantillas/${t.id}`}>
                 <Button size="sm" variant="outline" className="gap-1.5">
                   <Pencil className="h-3.5 w-3.5" />

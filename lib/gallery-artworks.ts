@@ -1,6 +1,9 @@
 import { getFinalists, countryCodeToName, type Finalist } from '@/lib/finalists'
 import { site } from '@/lib/site'
 import { gallerySlots, type Artwork } from '@/data/artworks'
+import { MESSAGES } from '@/lib/i18n/messages'
+import { fmt } from '@/lib/i18n/format'
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 
 const EDITION_YEAR = new Date(site.deadlineISO).getFullYear()
 
@@ -31,11 +34,14 @@ function goldenShuffle<T>(items: T[], seed: number): T[] {
     .map((entry) => entry.item)
 }
 
-function describeArtwork(finalist: Finalist): string {
+function describeArtwork(finalist: Finalist, locale: Locale): string {
+  const m = MESSAGES[locale]
   const parts: string[] = []
-  if (finalist.technique) parts.push(`Técnica ${finalist.technique.toLowerCase()}`)
-  parts.push(countryCodeToName(finalist.countryCode))
-  return `${parts.join(' — ')}. Obra oficial del Mundial de Collage ${EDITION_YEAR}.`
+  if (finalist.technique) {
+    parts.push(fmt(m.gallery.artworkTechnique, { technique: m.common.techniques[finalist.technique] ?? finalist.technique }))
+  }
+  parts.push(countryCodeToName(finalist.countryCode, locale))
+  return `${parts.join(' — ')}. ${fmt(m.gallery.artworkOfficial, { year: EDITION_YEAR })}`
 }
 
 // A fresh random-but-stable-for-today selection of real, published obras,
@@ -49,7 +55,7 @@ export async function getDailyExhibition(): Promise<Finalist[]> {
   return goldenShuffle(ordered, dailySeed()).slice(0, gallerySlots.length)
 }
 
-export async function getGalleryArtworks(): Promise<Artwork[]> {
+export async function getGalleryArtworks(locale: Locale = DEFAULT_LOCALE): Promise<Artwork[]> {
   const selected = await getDailyExhibition()
 
   return selected.map((finalist, index) => {
@@ -61,7 +67,7 @@ export async function getGalleryArtworks(): Promise<Artwork[]> {
       countryCode: finalist.countryCode,
       year: EDITION_YEAR,
       image: finalist.imageUrl,
-      description: describeArtwork(finalist),
+      description: describeArtwork(finalist, locale),
       ...slot,
     }
   })

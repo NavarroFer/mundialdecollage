@@ -9,14 +9,17 @@ import { OnboardingForm } from './onboarding-form'
 import { completeOnboarding } from './actions'
 import { ArtistConfirmation } from './artist-confirmation'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
+import { getI18n } from '@/lib/i18n/server'
+import { fmt } from '@/lib/i18n/format'
+import type { Messages } from '@/lib/i18n/messages'
 
-function LoadingProblem() {
+function LoadingProblem({ m }: { m: Messages }) {
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
       <div className="max-w-lg rounded-2xl bg-card p-8 text-center">
-        <h1 className="font-display text-3xl">No pudimos recuperar tu envío</h1>
-        <p className="my-4 text-muted-foreground">Probá de nuevo en un momento. No hace falta que cargues tus datos ni tu obra otra vez.</p>
-        <Link href="/onboarding" className="inline-flex min-h-11 items-center font-semibold text-collage-blue underline">Volver a intentar</Link>
+        <h1 className="font-display text-3xl">{m.onboarding.loadingProblemTitle}</h1>
+        <p className="my-4 text-muted-foreground">{m.onboarding.loadingProblemBody}</p>
+        <Link href="/onboarding" className="inline-flex min-h-11 items-center font-semibold text-collage-blue underline">{m.onboarding.retry}</Link>
       </div>
     </main>
   )
@@ -29,6 +32,7 @@ export default async function OnboardingPage({
 }) {
   if (!isSupabaseConfigured) redirect('/')
 
+  const { m } = await getI18n()
   const supabase = await createClient()
   const {
     data: { user },
@@ -37,8 +41,8 @@ export default async function OnboardingPage({
     return (
       <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
         <div className="w-full max-w-lg rounded-2xl bg-card p-8 text-center">
-          <h1 className="font-display text-3xl uppercase">Enviá tu obra</h1>
-          <p className="my-6 text-muted-foreground">Ingresá con Google para continuar. Vamos a completar el formulario con los datos que ya tengamos de vos.</p>
+          <h1 className="font-display text-3xl uppercase">{m.onboarding.signInTitle}</h1>
+          <p className="my-6 text-muted-foreground">{m.onboarding.signInBody}</p>
           <GoogleSignInButton next="/onboarding" />
         </div>
       </main>
@@ -57,7 +61,7 @@ export default async function OnboardingPage({
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profileError) return <LoadingProblem />
+  if (profileError) return <LoadingProblem m={m} />
 
   // Provisioned artists already own an artwork. Review that row instead of
   // creating a second submission just because this is their first Google login.
@@ -71,16 +75,16 @@ export default async function OnboardingPage({
       .limit(1)
       .maybeSingle()
 
-    if (artworkError) return <LoadingProblem />
+    if (artworkError) return <LoadingProblem m={m} />
 
     if (artwork) {
       const name = profile?.name || user.user_metadata?.full_name || ''
       return (
         <main className="bg-grain min-h-screen px-5 py-12 sm:py-16">
           <div className="mx-auto w-full max-w-lg">
-            <p className="text-center text-sm font-bold tracking-widest text-collage-blue uppercase">Qué bueno encontrarte acá</p>
-            <h1 className="font-display mt-3 text-center text-3xl text-ink sm:text-4xl">{name ? `¡Hola, ${name}!` : '¡Bienvenido al Mundial!'}</h1>
-            <p className="mt-4 text-center text-muted-foreground">Tu obra ya está acá. Reunimos tus datos para que no tengas que cargarlos de nuevo. Revisá que esté todo bien y confirmá cuando quieras.</p>
+            <p className="text-center text-sm font-bold tracking-widest text-collage-blue uppercase">{m.onboarding.welcomeEyebrow}</p>
+            <h1 className="font-display mt-3 text-center text-3xl text-ink sm:text-4xl">{name ? fmt(m.onboarding.helloName, { name }) : m.onboarding.welcome}</h1>
+            <p className="mt-4 text-center text-muted-foreground">{m.onboarding.existingBody}</p>
             <ArtistConfirmation name={name} countryCode={profile?.country_code || ''} email={user.email || ''} artwork={artwork} />
           </div>
         </main>
@@ -117,7 +121,7 @@ export default async function OnboardingPage({
       .eq('selected', true)
       .maybeSingle()
 
-    if (legacyError) return <LoadingProblem />
+    if (legacyError) return <LoadingProblem m={m} />
 
     if (legacy) {
       hasLegacyMatch = true
@@ -175,15 +179,17 @@ export default async function OnboardingPage({
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-lg">
         <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">
-          {hasLegacyMatch ? 'Qué bueno encontrarte acá' : 'Anotá tu obra'}
+          {hasLegacyMatch ? m.onboarding.welcomeEyebrow : m.onboarding.formEyebrow}
         </p>
         <h1 className="font-display mt-3 text-center text-3xl tracking-tight text-ink uppercase sm:text-4xl">
-          {hasLegacyMatch ? `¡Hola${suggestedName ? `, ${suggestedName}` : ''}!` : 'Sumate al Mundial'}
+          {hasLegacyMatch
+            ? suggestedName
+              ? fmt(m.onboarding.helloName, { name: suggestedName })
+              : m.onboarding.hello
+            : m.onboarding.formTitle}
         </h1>
         <p className="mx-auto mt-3 max-w-sm text-center text-muted-foreground">
-          {hasLegacyMatch
-            ? 'Encontramos tu envío y reunimos lo que ya nos compartiste. Revisá tus datos y completá solo lo que falta para confirmar tu participación.'
-            : 'Contanos quién sos y subí tu collage para participar del Mundial.'}
+          {hasLegacyMatch ? m.onboarding.legacyBody : m.onboarding.formBody}
         </p>
 
         <OnboardingForm

@@ -3,6 +3,7 @@
 import { usePresenceStore } from '../presence/store'
 import { insideLabel, viewersLabel, waitingLabel } from '../presence/labels'
 import styles from '../gallery-theme.module.css'
+import { useI18n } from '@/lib/i18n/client'
 
 // Both read the store directly so a join/leave re-renders only this text, not
 // Game and the 3D scene under it. Hidden, never guessed, while the live count
@@ -10,22 +11,24 @@ import styles from '../gallery-theme.module.css'
 
 export function PresenceCounter() {
   const count = usePresenceStore((state) => state.count)
+  const { locale, m } = useI18n()
   if (count === null) return null
 
   return (
     <div
-      title="Personas recorriendo la galería en este momento"
+      title={m.gallery.presenceTitle}
       className={`${styles.hudPanel} animate-in fade-in pointer-events-none absolute top-16 left-4 z-20 flex h-9 items-center gap-2 px-3 text-xs font-semibold duration-300`}
     >
       <span className={styles.liveDot} aria-hidden="true" />
-      {insideLabel(count)}
+      {insideLabel(count, locale, m.gallery.presence)}
     </div>
   )
 }
 
 export function PresenceNote() {
   const count = usePresenceStore((state) => state.count)
-  const label = count === null ? null : waitingLabel(count)
+  const { locale, m } = useI18n()
+  const label = count === null ? null : waitingLabel(count, locale, m.gallery.presence)
   if (!label) return null
 
   return (
@@ -38,7 +41,8 @@ export function PresenceNote() {
 
 export function ArtworkViewers({ artworkId }: { artworkId: string }) {
   const others = usePresenceStore((state) => state.viewers[artworkId] ?? 0)
-  const label = viewersLabel(others)
+  const { locale, m } = useI18n()
+  const label = viewersLabel(others, locale, m.gallery.presence)
   if (!label) return null
 
   return (

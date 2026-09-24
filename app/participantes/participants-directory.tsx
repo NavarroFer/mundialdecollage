@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName, type Participant } from '@/lib/participants'
 import { InstagramIconLink } from '@/components/instagram-icon-link'
+import { useI18n } from '@/lib/i18n/client'
+import { fmt } from '@/lib/i18n/format'
 
 function chipClass(active: boolean) {
   return cn(
@@ -18,6 +20,9 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
   const [query, setQuery] = useState('')
   const [countryFilter, setCountryFilter] = useState<string | null>(null)
   const [techniqueFilter, setTechniqueFilter] = useState<string | null>(null)
+  const { locale, m } = useI18n()
+  const countryName = (code: string) => countryCodeToName(code, locale)
+  const techniqueName = (technique: string) => m.common.techniques[technique] ?? technique
 
   const countries = useMemo(() => {
     const counts = new Map<string, number>()
@@ -26,8 +31,10 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
     }
     return Array.from(counts.entries())
       .map(([countryCode, count]) => ({ countryCode, count }))
-      .sort((a, b) => countryCodeToName(a.countryCode).localeCompare(countryCodeToName(b.countryCode)))
-  }, [participants])
+      .sort((a, b) => countryName(a.countryCode).localeCompare(countryName(b.countryCode), locale))
+    // countryName only changes with locale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participants, locale])
 
   const techniques = useMemo(() => {
     const counts = new Map<string, number>()
@@ -58,14 +65,14 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Buscar por nombre..."
-        aria-label="Buscar participante por nombre"
+        placeholder={m.participantsPage.searchPlaceholder}
+        aria-label={m.participantsPage.searchLabel}
         className="w-full rounded-full border-2 border-ink/10 bg-card px-5 py-3 text-sm text-ink placeholder:text-muted-foreground focus:border-collage-blue focus:outline-none"
       />
 
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setCountryFilter(null)} className={chipClass(countryFilter === null)}>
-          Todos los países ({participants.length})
+          {fmt(m.participantsPage.allCountries, { count: participants.length })}
         </button>
         {countries.map(({ countryCode, count }) => (
           <button
@@ -74,7 +81,7 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
             onClick={() => setCountryFilter(countryCode)}
             className={chipClass(countryFilter === countryCode)}
           >
-            {countryCodeToFlag(countryCode)} {countryCodeToName(countryCode)} — {count}
+            {countryCodeToFlag(countryCode)} {countryName(countryCode)} — {count}
           </button>
         ))}
       </div>
@@ -86,7 +93,7 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
             onClick={() => setTechniqueFilter(null)}
             className={chipClass(techniqueFilter === null)}
           >
-            Todas las técnicas
+            {m.participantsPage.allTechniques}
           </button>
           {techniques.map(({ technique, count }) => (
             <button
@@ -95,7 +102,7 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
               onClick={() => setTechniqueFilter(technique)}
               className={chipClass(techniqueFilter === technique)}
             >
-              {technique} — {count}
+              {techniqueName(technique)} — {count}
             </button>
           ))}
         </div>
@@ -110,14 +117,14 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
             >
               <span aria-hidden>{countryCodeToFlag(p.countryCode)}</span>
               {p.name}
-              <span className="text-muted-foreground">· {countryCodeToName(p.countryCode)}</span>
+              <span className="text-muted-foreground">· {countryName(p.countryCode)}</span>
               {p.instagram && <InstagramIconLink href={p.instagram} name={p.name} />}
             </li>
           ))}
         </ul>
       ) : (
         <p className="text-center text-muted-foreground">
-          No encontramos participantes con esos filtros.
+          {m.participantsPage.noResults}
         </p>
       )}
     </div>

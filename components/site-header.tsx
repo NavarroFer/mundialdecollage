@@ -8,16 +8,20 @@ import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { getI18n } from '@/lib/i18n/server'
+import { fmt } from '@/lib/i18n/format'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 async function AuthSlot() {
   if (!isSupabaseConfigured) return null
 
+  const { m } = await getI18n()
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return <GoogleSignInButton />
+  if (!user) return <GoogleSignInButton compact />
 
   const firstName = (user.user_metadata?.full_name as string | undefined)?.split(' ')[0]
   const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
@@ -37,11 +41,11 @@ async function AuthSlot() {
   return (
     <div className="hidden items-center gap-3 sm:flex">
       <span className="flex items-center gap-1.5 text-sm font-medium text-ink/70">
-        Hola{firstName ? `, ${firstName}` : ''}
+        {firstName ? fmt(m.header.helloName, { name: firstName }) : m.header.hello}
         {isParticipating && (
           <CheckCircle2
             className="h-4 w-4 text-collage-blue"
-            aria-label="Ya estás participando"
+            aria-label={m.header.participating}
           />
         )}
       </span>
@@ -49,7 +53,7 @@ async function AuthSlot() {
         <Link href="/admin">
           <Button size="sm" variant="outline" className="gap-1.5">
             <ShieldCheck className="h-4 w-4" />
-            Panel admin
+            {m.header.adminPanel}
           </Button>
         </Link>
       )}
@@ -58,7 +62,8 @@ async function AuthSlot() {
   )
 }
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const { m } = await getI18n()
   return (
     <header className="sticky top-0 z-50 border-b-2 border-ink/10 bg-paper/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
@@ -73,15 +78,15 @@ export function SiteHeader() {
           />
         </a>
 
-        <nav className="flex items-center gap-6 text-sm font-semibold text-ink/70" aria-label="Navegación principal">
+        <nav className="flex items-center gap-6 text-sm font-semibold text-ink/70" aria-label={m.header.nav}>
           <a href="#como-participar" className="hidden transition-colors duration-300 hover:text-ink md:block">
-            Cómo participar
+            {m.header.howTo}
           </a>
           <a href="#taller" className="hidden transition-colors duration-300 hover:text-ink md:block">
-            Taller
+            {m.header.workshop}
           </a>
           <a href="#participantes" className="hidden transition-colors duration-300 hover:text-ink md:block">
-            Participantes
+            {m.header.participants}
           </a>
           <Link
             href="/galeria-3d"
@@ -90,16 +95,17 @@ export function SiteHeader() {
             className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap text-collage-blue hover:opacity-80"
           >
             <Boxes className="h-4 w-4" aria-hidden="true" />
-            Galería 3D
-            <span className="sr-only"> (se abre en una pestaña nueva)</span>
+            {m.header.gallery3d}
+            <span className="sr-only"> {m.common.opensInNewTab}</span>
           </Link>
         </nav>
 
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           <AuthSlot />
           <a href={`mailto:${site.email}`}>
             <Button size="sm" className="hidden sm:inline-flex">
-              Participar
+              {m.header.participate}
             </Button>
           </a>
         </div>

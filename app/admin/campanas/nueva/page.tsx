@@ -5,6 +5,12 @@ import { isResendConfigured, getDomainStatus } from '@/lib/resend'
 import { CampaignComposer } from '@/components/admin/campaign-composer'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { sendCampaign, sendTestEmail, enableOpenTracking } from '../actions'
+import { isTranslatorConfigured } from '@/lib/email-translator'
+import { contactLocale } from '@/lib/email-translation'
+import { LOCALES, type Locale } from '@/lib/i18n/locales'
+
+// A send may first translate the email into eight languages.
+export const maxDuration = 300
 
 const errorMessages: Record<string, string> = {
   missing_fields: 'Completá asunto y cuerpo.',
@@ -31,11 +37,26 @@ export default async function NuevaCampanaPage({
   const { error, test_sent: testSent, tracking_enabled: trackingEnabled } = await searchParams
   const supabase = await createClient()
 
-  const [{ data: templates }, { count }, domainStatus] = await Promise.all([
-    supabase.from('templates').select('id, name, subject, body_html, body_json').order('name'),
-    supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('subscribed', true),
+  const [{ data: templates }, { data: subscribed }, { data: contactCountries }, domainStatus] = await Promise.all([
+    supabase
+      .from('templates')
+      .select('id, name, subject, body_html, body_json, translations, translations_source')
+      .order('name'),
+    supabase.from('contacts').select('id').eq('subscribed', true),
+    supabase.rpc('contact_country_codes'),
     getDomainStatus(),
   ])
+  const count = subscribed?.length ?? 0
+
+  // How many subscribed contacts read each language, by their country.
+  const countryByContact = new Map(
+    ((contactCountries ?? []) as { contact_id: string; country_code: string | null }[]).map((row) => [
+      row.contact_id,
+      row.country_code,
+    ]),
+  )
+  const localeCounts = Object.fromEntries(LOCALES.map((locale) => [locale, 0])) as Record<Locale, number>
+  for (const { id } of subscribed ?? []) localeCounts[contactLocale(countryByContact.get(id))] += 1
 
   return (
     <div>
@@ -99,14 +120,16 @@ export default async function NuevaCampanaPage({
         </p>
       )}
 
-      <p className="mt-4 text-sm text-muted-foreground">{count ?? 0} contactos suscriptos van a recibir este mail.</p>
+      <p className="mt-4 text-sm text-muted-foreground">{count} contactos suscriptos van a recibir este mail.</p>
 
       <div className="mt-6">
         <CampaignComposer
           action={sendCampaign}
           testAction={sendTestEmail}
           templates={templates ?? []}
-          recipientCount={count ?? 0}
+          recipientCount={count}
+          localeCounts={localeCounts}
+          translatorConfigured={isTranslatorConfigured}
         />
       </div>
     </div>

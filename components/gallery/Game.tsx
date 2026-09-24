@@ -27,6 +27,7 @@ import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/client'
 
 // Doesn't change over a session, so no subscription is needed — just a
 // client-only snapshot read via useSyncExternalStore (SSR-safe, and no
@@ -38,6 +39,7 @@ const getServerSnapshot = () => false
 export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const [locked, setLocked] = useState(false)
+  const { m } = useI18n()
   const [hasStarted, setHasStarted] = useState(false)
   const [theme, setTheme] = useState<GalleryTheme>('collage')
   const openId = useInteractionStore((state) => state.openId)
@@ -128,13 +130,9 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       {!openId && <ThemePicker theme={theme} onChange={setTheme} />}
       {!isActive && !openId && !resuming && (
         <StartScreen
-          label={hasStarted ? 'Click para continuar' : 'ENTRAR A LA EXPOSICIÓN'}
+          label={hasStarted ? m.gallery.resume : m.gallery.enter}
           showPresence={!hasStarted}
-          hint={
-            isTouchDevice
-              ? 'Joystick para moverte · Arrastrá para mirar · Botón E para ver una obra'
-              : 'WASD para moverte · Shift para correr · Mantené Control (Ctrl) para agacharte · Mouse para mirar · E para ver una obra'
-          }
+          hint={isTouchDevice ? m.gallery.hintTouch : m.gallery.hintDesktop}
           onEnter={handleEnter}
         />
       )}

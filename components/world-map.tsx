@@ -9,6 +9,8 @@ import type { Finalist } from '@/lib/finalists'
 import rawWorldTopology from '@/lib/data/world-countries-110m.json'
 import { isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
+import { useI18n } from '@/lib/i18n/client'
+import { fmt, plural } from '@/lib/i18n/format'
 
 // world-atlas ships this as a TopoJSON Topology, which react-simple-maps
 // handles at runtime (it converts to GeoJSON via topojson-client), but its
@@ -23,6 +25,8 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
   const containerRef = useRef<HTMLDivElement>(null)
   const [tooltip, setTooltip] = useState<Tooltip | null>(null)
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null)
+  const { locale, m } = useI18n()
+  const countryName = (code: string) => countryCodeToName(code, locale)
 
   const countsByCode = new Map(breakdown.map((b) => [b.countryCode, b.count]))
   const maxCount = breakdown.reduce((max, b) => Math.max(max, b.count), 1)
@@ -78,7 +82,7 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
                   onKeyDown={(evt) => code && handleCountryKeyDown(evt, code)}
                   tabIndex={hasArtworks ? 0 : -1}
                   role={hasArtworks ? 'button' : undefined}
-                  aria-label={hasArtworks && code ? `Ver obras de ${countryCodeToName(code)}` : undefined}
+                  aria-label={hasArtworks && code ? fmt(m.map.viewCountry, { country: countryName(code) }) : undefined}
                   aria-pressed={hasArtworks ? isSelected : undefined}
                   className="outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:opacity-60"
                   style={{
@@ -103,7 +107,7 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
           <span className="mr-1" aria-hidden>
             {countryCodeToFlag(tooltip.countryCode)}
           </span>
-          {countryCodeToName(tooltip.countryCode)} · {tooltip.count}
+          {countryName(tooltip.countryCode)} · {tooltip.count}
         </div>
       )}
 
@@ -114,25 +118,25 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
           aria-labelledby={`country-artworks-${selectedCountryCode}`}
         >
           <p className="sr-only" role="status">
-            Se mostraron {selectedArtworks.length} obras de {countryCodeToName(selectedCountryCode)}.
+            {plural(locale, selectedArtworks.length, m.map.shown, { country: countryName(selectedCountryCode) })}
           </p>
           <div className="flex items-start justify-between gap-4 px-2 sm:px-5">
             <div>
               <p className="text-sm font-bold tracking-[0.2em] text-collage-red uppercase">
-                {countryCodeToFlag(selectedCountryCode)} {countryCodeToName(selectedCountryCode)}
+                {countryCodeToFlag(selectedCountryCode)} {countryName(selectedCountryCode)}
               </p>
               <h3
                 id={`country-artworks-${selectedCountryCode}`}
                 className="font-display mt-2 text-3xl uppercase text-ink sm:text-4xl"
               >
-                {selectedArtworks.length} {selectedArtworks.length === 1 ? 'obra' : 'obras'}
+                {plural(locale, selectedArtworks.length, m.map.artworks)}
               </h3>
             </div>
             <button
               type="button"
               onClick={() => setSelectedCountryCode(null)}
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border-2 border-ink/15 bg-background text-ink transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"
-              aria-label="Cerrar obras del país"
+              aria-label={m.map.close}
             >
               <X className="size-5" aria-hidden="true" />
             </button>
@@ -144,10 +148,10 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
               finalists={selectedArtworks}
               animateEntrance
               showHint={false}
-              ariaLabel={`Obras de ${countryCodeToName(selectedCountryCode)}`}
+              ariaLabel={fmt(m.map.countryArtworks, { country: countryName(selectedCountryCode) })}
             />
           ) : (
-            <p className="mt-6 text-muted-foreground">Todavía no hay obras publicadas de este país.</p>
+            <p className="mt-6 text-muted-foreground">{m.map.none}</p>
           )}
         </div>
       )}

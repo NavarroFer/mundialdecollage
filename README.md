@@ -41,6 +41,12 @@ RESEND_API_KEY=
 # NEXT_PUBLIC_MP_PUBLIC_KEY=
 # MERCADOPAGO_WEBHOOK_SECRET=
 
+# Anthropic (Claude) — https://platform.claude.com/settings/keys. Traduce
+# solas las plantillas de mail a los 8 idiomas del sitio al guardarlas (ver
+# lib/email-translator.ts). Sin esto, las plantillas se guardan igual y las
+# que no tengan traducción se envían en español a todos.
+# ANTHROPIC_API_KEY=
+
 # Microsoft Clarity — https://clarity.microsoft.com, creá un proyecto para el
 # dominio del sitio y copiá el Project ID (Settings > Setup). Sin esto no se
 # inyecta ningún script (ver components/clarity.tsx). Da heatmaps de clicks,
@@ -67,6 +73,25 @@ Secrets and variables → Actions):
 
 El project ref ya está hardcodeado en el workflow
 (`jgneduoejygbqtwarynr`) porque no es un dato sensible.
+
+## Idiomas
+
+El sitio público está en español, inglés, portugués, italiano, francés,
+alemán, ruso, polaco e indonesio (los idiomas de los países participantes).
+Cada visitante lo ve en el idioma de su navegador; si no es uno de esos, en
+el de su país (Vercel geolocaliza la IP) y si no, en español. El selector del
+header/footer guarda la elección en una cookie, y un link con `?lang=it` (o
+`en`, `pt`, …) abre el sitio directamente en ese idioma.
+
+- **Textos**: [lib/i18n/messages/](lib/i18n/messages/) — `es.ts` es la fuente y
+  el resto se tipan contra ese archivo, así que una clave faltante rompe el build.
+- **Qué idioma por país**: [lib/i18n/locales.ts](lib/i18n/locales.ts).
+- Quedan solo en español: el panel admin, las páginas del taller (presencial en
+  Mar del Plata, pago en pesos), los Términos/Privacidad (con un aviso en el
+  idioma del lector) y el PDF de bases.
+- **Mails**: cada plantilla se traduce sola al guardarla (requiere
+  `ANTHROPIC_API_KEY`) y al enviar una campaña cada contacto recibe la versión
+  del idioma de su país (sacado de su perfil o del Registro; sin país, español).
 
 ## Editar contenido
 

@@ -8,7 +8,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { normalizeLikeEmail, readGalleryIdentity, signGalleryIdentity } from '@/lib/gallery-identity'
 
 const COOKIE = 'gallery-voter'
-const unavailable = 'No pudimos cargar los likes. Intentá de nuevo en un momento.'
+// Error codes, not sentences: ArtworkLike shows them in the reader's language.
+const unavailable = 'unavailable'
 
 async function getIdentity() {
   const client = await createClient()
@@ -40,14 +41,14 @@ export async function likeArtwork(slug: string, submittedEmail?: string) {
   if (typeof slug !== 'string' || slug.length > 300) return { error: unavailable }
   try {
     const email = await getIdentity() ?? normalizeLikeEmail(submittedEmail)
-    if (!email) return { error: 'Ingresá un mail válido para guardar tu like.', needsEmail: true }
+    if (!email) return { error: 'email_required', needsEmail: true }
     const { error } = await createAdminClient().rpc('like_gallery_artwork', { artwork_slug: slug, voter_email: email })
-    if (error) return { error: 'No pudimos guardar tu like. Intentá de nuevo.' }
+    if (error) return { error: 'save_failed' }
     ;(await cookies()).set(COOKIE, signGalleryIdentity(email, process.env.SUPABASE_SERVICE_ROLE_KEY), {
       httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 365 * 86400,
     })
     return { liked: true }
   } catch {
-    return { error: 'No pudimos guardar tu like. Intentá de nuevo.' }
+    return { error: 'save_failed' }
   }
 }

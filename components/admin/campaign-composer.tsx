@@ -1,12 +1,65 @@
 'use client'
 
 import { useState } from 'react'
-import { Send, FlaskConical } from 'lucide-react'
+import { Send, FlaskConical, Languages } from 'lucide-react'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { EmailBlockEditor } from '@/components/admin/email-block-editor'
 import { renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
+import { translationState, type EmailTranslations } from '@/lib/email-translation'
+import { LOCALE_INFO, LOCALES, type Locale } from '@/lib/i18n/locales'
 
-type Template = { id: string; name: string; subject: string; body_html: string; body_json: EmailDocument | null }
+type Template = {
+  id: string
+  name: string
+  subject: string
+  body_html: string
+  body_json: EmailDocument | null
+  translations: EmailTranslations | null
+  translations_source: string | null
+}
+
+// Who gets which language: each contact reads their country's language when
+// this email has it, Spanish otherwise.
+function LanguagePlan({
+  localeCounts,
+  translatedInto,
+  willTranslate,
+  isHtml,
+}: {
+  localeCounts: Record<Locale, number>
+  translatedInto: Locale[] | null
+  willTranslate: boolean
+  isHtml: boolean
+}) {
+  const available = new Set<Locale>(['es', ...(translatedInto ?? [])])
+  const counts = new Map<Locale, number>()
+  for (const locale of LOCALES) {
+    const target = willTranslate || available.has(locale) ? locale : 'es'
+    counts.set(target, (counts.get(target) ?? 0) + localeCounts[locale])
+  }
+  const rows = LOCALES.filter((locale) => (counts.get(locale) ?? 0) > 0)
+
+  return (
+    <div className="rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-3 text-sm text-ink">
+      <p className="flex items-center gap-1.5 font-semibold">
+        <Languages className="h-4 w-4 text-collage-blue" aria-hidden="true" />
+        {isHtml
+          ? 'Este mail está en HTML: se envía en español a todos.'
+          : translatedInto
+            ? 'Se envía traducido: cada contacto lo recibe en el idioma de su país.'
+            : willTranslate
+              ? 'Se traduce al enviar (tarda unos segundos más) y cada contacto lo recibe en el idioma de su país.'
+              : 'Sin traducción: se envía en español a todos.'}
+      </p>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        {rows.map((locale) => `${LOCALE_INFO[locale].nameEs} ${counts.get(locale)}`).join(' · ')}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        El país sale del perfil del artista o del Registro; sin país, reciben español.
+      </p>
+    </div>
+  )
+}
 
 const EMPTY_DOC: EmailDocument = { blocks: [] }
 
@@ -15,11 +68,15 @@ export function CampaignComposer({
   testAction,
   templates,
   recipientCount,
+  localeCounts,
+  translatorConfigured,
 }: {
   action: (formData: FormData) => void
   testAction: (formData: FormData) => void
   templates: Template[]
   recipientCount: number
+  localeCounts: Record<Locale, number>
+  translatorConfigured: boolean
 }) {
   const [templateId, setTemplateId] = useState('')
   const [subject, setSubject] = useState('')
@@ -28,11 +85,24 @@ export function CampaignComposer({
   // there's no lossless way to turn arbitrary saved HTML into blocks.
   const [legacyHtml, setLegacyHtml] = useState<string | null>(null)
   const [testEmail, setTestEmail] = useState('fernando.navarro.mdp@gmail.com')
+  const [testLocale, setTestLocale] = useState<Locale>('es')
 
   const bodyHtml = legacyHtml ?? renderEmailDocumentToHtml(doc)
   // renderEmailDocumentToHtml always wraps in the outer table, so `bodyHtml`
   // itself is never empty even with zero blocks — check the actual content.
   const hasContent = legacyHtml !== null ? legacyHtml.trim().length > 0 : doc.blocks.length > 0
+
+  // The chosen template's translations still apply only while its wording
+  // hasn't been edited here (see translationState).
+  const template = templates.find((t) => t.id === templateId)
+  const translation = translationState({
+    subject,
+    body_json: legacyHtml !== null ? null : doc,
+    translations: template?.translations,
+    translations_source: template?.translations_source,
+  })
+  const translatedInto = translation.status === 'translated' ? translation.locales : null
+  const willTranslate = !translatedInto && translation.status !== 'html' && translatorConfigured
 
   function applyTemplate(id: string) {
     setTemplateId(id)
@@ -129,11 +199,20 @@ export function CampaignComposer({
           Se agrega automáticamente un link de baja al final — no hace falta escribirlo.
         </p>
 
+        {hasContent && (
+          <LanguagePlan
+            localeCounts={localeCounts}
+            translatedInto={translatedInto}
+            willTranslate={willTranslate}
+            isHtml={translation.status === 'html'}
+          />
+        )}
+
         <SubmitButton
           disabled={recipientCount === 0 || !subject || !hasContent}
           size="lg"
           className="gap-2 bg-collage-red text-primary-foreground hover:bg-collage-red/90"
-          pendingLabel="Enviando…"
+          pendingLabel={willTranslate ? 'Traduciendo y enviando…' : 'Enviando…'}
         >
           <Send className="h-4 w-4" />
           Enviar a {recipientCount} contactos
@@ -161,7 +240,26 @@ export function CampaignComposer({
         </p>
         <input type="hidden" name="subject" value={subject} />
         <input type="hidden" name="body_html" value={bodyHtml} />
+        {legacyHtml === null && <input type="hidden" name="body_json" value={JSON.stringify(doc)} />}
+        <input type="hidden" name="template_id" value={templateId} />
         <div className="flex flex-wrap items-center gap-2">
+          <label className="sr-only" htmlFor="test_locale">
+            Idioma de la prueba
+          </label>
+          <select
+            id="test_locale"
+            name="test_locale"
+            value={testLocale}
+            onChange={(e) => setTestLocale(e.target.value as Locale)}
+            disabled={legacyHtml !== null}
+            className="rounded-xl border-2 border-ink/15 bg-background px-3 py-2 text-sm text-ink"
+          >
+            {LOCALES.map((locale) => (
+              <option key={locale} value={locale}>
+                {LOCALE_INFO[locale].nameEs}
+              </option>
+            ))}
+          </select>
           <input
             type="email"
             name="test_email"

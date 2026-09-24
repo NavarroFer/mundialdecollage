@@ -2,38 +2,26 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { site } from '@/lib/site'
+import { getI18n } from '@/lib/i18n/server'
 
-const steps = [
-  {
-    number: '01',
-    color: 'bg-collage-blue',
-    title: 'Creá tu collage',
-    description: 'Tiene que ser una obra original y propia, en la técnica que quieras.',
-  },
-  {
-    number: '02',
-    color: 'bg-collage-red',
-    title: 'Elegí cómo enviarla',
-    description: 'Podés cargar la imagen directamente en la web o mandarla por email.',
-  },
-  {
-    number: '03',
-    color: 'bg-collage-yellow',
-    title: 'Completá tus datos',
-    description: 'Sumá tu nombre, país y el título de la obra. Si elegís email, incluí todo en el mismo mensaje.',
-  },
+const stepStyles = [
+  { number: '01', color: 'bg-collage-blue' },
+  { number: '02', color: 'bg-collage-red' },
+  { number: '03', color: 'bg-collage-yellow' },
 ]
 
-export function HowToSection() {
+export async function HowToSection() {
+  const { m } = await getI18n()
+  const steps = stepStyles.map((style, i) => ({ ...style, ...m.howTo.steps[i] }))
   return (
     <section id="como-participar" className="border-t-2 border-ink/10 bg-card py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
         <FadeIn>
           <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-red uppercase">
-            Cómo participar
+            {m.howTo.eyebrow}
           </p>
           <h2 className="font-display mt-3 text-center text-3xl tracking-tight uppercase sm:text-4xl">
-            Mandá tu obra en 3 pasos
+            {m.howTo.title}
           </h2>
         </FadeIn>
 
@@ -58,20 +46,17 @@ export function HowToSection() {
         <FadeIn delay={400}>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button asChild size="lg" variant="primary">
-              <Link href="/onboarding">Registrarme y cargar mi obra</Link>
+              <Link href="/onboarding">{m.howTo.register}</Link>
             </Button>
             <a
               href={`mailto:${site.email}`}
               className="inline-flex min-h-11 items-center text-sm font-semibold text-ink underline underline-offset-4"
             >
-              Enviar mi obra por email
+              {m.howTo.byEmail}
             </a>
           </div>
           <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-muted-foreground">
-            ¿Para qué pedimos &quot;Iniciar sesión con Google&quot;? La usamos para
-            identificarte cuando subís tu obra al Mundial Internacional de Collage o
-            te anotás al taller, así podés hacer seguimiento de tu participación sin
-            crear una cuenta nueva.
+            {m.howTo.googleWhy}
           </p>
         </FadeIn>
       </div>

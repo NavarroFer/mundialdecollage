@@ -1,9 +1,10 @@
 import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { WorldMap } from '@/components/world-map-lazy'
-import { countryCodeToFlag, guessCountryCodeFromName } from '@/lib/participants'
+import { countryCodeToFlag, countryCodeToName, guessCountryCodeFromName } from '@/lib/participants'
 import { getFinalists } from '@/lib/finalists'
 import stats from '@/data/artist-country-stats.json'
+import { getI18n } from '@/lib/i18n/server'
 
 type CountryCount = { country: string; countryCode?: string; count: number }
 
@@ -17,7 +18,7 @@ const breakdown: CountryCount[] = stats.countries.map(({ country, count }) => ({
 }))
 
 export async function MapSection() {
-  const artworks = await getFinalists()
+  const [artworks, { locale, m }] = await Promise.all([getFinalists(), getI18n()])
 
   return (
     <section
@@ -32,14 +33,14 @@ export async function MapSection() {
       <div className="relative mx-auto max-w-2xl px-5 sm:px-8">
         <FadeIn>
           <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">
-            Mapa del Mundial
+            {m.map.eyebrow}
           </p>
         </FadeIn>
 
         <FadeIn delay={100}>
           <p className="font-display mt-5 rotate-1 text-center text-3xl tracking-tight text-ink uppercase sm:text-4xl">
             <span className="torn-strip inline-block bg-collage-yellow px-4 py-1">
-              De dónde viene la comunidad
+              {m.map.title}
             </span>
           </p>
         </FadeIn>
@@ -55,8 +56,7 @@ export async function MapSection() {
               artworks={artworks}
             />
             <p className="mt-4 text-center text-sm text-muted-foreground">
-              Cada país se pinta más oscuro cuanto más collages recibió. Tocá un país
-              para desplegar sus obras.
+              {m.map.legend}
             </p>
           </div>
         </FadeIn>
@@ -80,7 +80,8 @@ export async function MapSection() {
                         {countryCodeToFlag(countryCode)}
                       </span>
                     )}
-                    {country}
+                    {/* Registro's labels are Spanish; recognisable countries get the reader's name for them. */}
+                    {countryCode ? countryCodeToName(countryCode, locale) : country}
                   </span>
                   <span className="rounded-full bg-collage-blue px-3 py-1 text-sm font-bold text-primary-foreground">
                     {count}
@@ -90,8 +91,7 @@ export async function MapSection() {
             </ul>
           ) : (
             <p className="mt-8 text-center text-muted-foreground">
-              El mapa se arma solo a medida que lleguen las primeras obras — todavía no
-              hay ninguna.
+              {m.map.empty}
             </p>
           )}
         </FadeIn>

@@ -51,9 +51,16 @@ let blockCounter = 0
 // foreign key). Exported so the editor can mint one too (e.g. when
 // duplicating a block) without reaching for Date.now()/Math.random() inside
 // a component, which the react-hooks purity lint rule flags.
+//
+// The counter restarts on every page load while saved documents keep their
+// old ids, so a random per-load prefix keeps a new block from reusing the id
+// of one already in the document (translations are keyed by block id — see
+// lib/email-translation.ts).
+const sessionPrefix = Math.random().toString(36).slice(2, 7)
+
 export function nextBlockId() {
   blockCounter += 1
-  return `block-${blockCounter}`
+  return `block-${sessionPrefix}${blockCounter}`
 }
 
 export function createBlock(type: EmailBlockType): EmailBlock {

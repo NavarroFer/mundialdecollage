@@ -3,6 +3,8 @@ import { ArrowLeft, Download } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { site } from '@/lib/site'
+import { getI18n } from '@/lib/i18n/server'
+import { LegalLanguageNotice } from '@/components/legal-language-notice'
 
 export const metadata = {
   title: 'Términos y Condiciones | Mundial de Collage',
@@ -23,19 +25,22 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export default function TerminosYCondicionesPage() {
+export default async function TerminosYCondicionesPage() {
+  const { m } = await getI18n()
   return (
     <>
       <SiteHeader />
-      <main className="bg-background py-16 sm:py-24">
+      <main lang="es" className="bg-background py-16 sm:py-24">
         <div className="mx-auto max-w-3xl px-5 sm:px-8">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
+            {m.common.backHome}
           </Link>
+
+          <LegalLanguageNotice />
 
           <h1 className="font-display mt-6 text-3xl leading-[1.05] tracking-tight text-ink uppercase sm:text-5xl">
             Términos y Condiciones

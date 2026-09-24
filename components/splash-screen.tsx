@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { SubmissionPopup } from '@/components/submission-popup'
+import { useI18n } from '@/lib/i18n/client'
 
 // Once-per-tab flag — a fresh visit gets the intro, but a reload or
 // back-navigation within the same session shouldn't replay it.
@@ -19,6 +20,7 @@ export function SplashScreen() {
   const [show, setShow] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const dismissedRef = useRef(false)
+  const { m } = useI18n()
 
   useEffect(() => {
     function checkAndShow() {
@@ -106,7 +108,7 @@ export function SplashScreen() {
         onClick={dismiss}
         className="absolute right-5 bottom-6 text-sm text-ink/60 underline-offset-4 hover:text-ink hover:underline sm:right-8"
       >
-        Saltar
+        {m.splash.skip}
       </button>
     </div>
   )

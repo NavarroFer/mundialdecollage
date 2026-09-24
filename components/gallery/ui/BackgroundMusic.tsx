@@ -4,6 +4,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { Volume2, VolumeX } from 'lucide-react'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
+import { useI18n } from '@/lib/i18n/client'
 
 export type BackgroundMusicHandle = {
   /** Safe to call more than once — a no-op while already playing. */
@@ -23,6 +24,7 @@ const DEFAULT_VOLUME = 0.35
 export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: GalleryTheme }>(function BackgroundMusic({ theme: _theme }, ref) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [muted, setMuted] = useState(false)
+  const { m } = useI18n()
 
   // `volume` isn't a real HTML attribute (React's audio/video typings don't
   // expose it as a prop) — it only exists as a DOM property, set here once.
@@ -42,7 +44,7 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
       <button
         type="button"
         onClick={() => setMuted((prev) => !prev)}
-        aria-label={muted ? 'Activar música' : 'Silenciar música'}
+        aria-label={muted ? m.gallery.musicOn : m.gallery.musicOff}
         className={`${styles.hudButton} animate-in fade-in absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center duration-300 transition-transform hover:scale-105`}
       >
         {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}

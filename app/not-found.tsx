@@ -4,8 +4,10 @@ import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { site } from '@/lib/site'
+import { getI18n } from '@/lib/i18n/server'
 
-export default function NotFound() {
+export default async function NotFound() {
+  const { m } = await getI18n()
   return (
     <>
       <SiteHeader />
@@ -24,7 +26,7 @@ export default function NotFound() {
 
           <div className="relative mx-auto max-w-2xl px-5 text-center sm:px-8">
             <span className="torn-strip inline-block -rotate-2 bg-collage-blue px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase sm:text-sm">
-              Página no encontrada
+              {m.notFound.badge}
             </span>
 
             <h1 className="font-display mt-8 text-7xl leading-[0.9] tracking-tight text-ink uppercase sm:text-8xl md:text-9xl">
@@ -34,20 +36,19 @@ export default function NotFound() {
             </h1>
 
             <p className="mx-auto mt-7 max-w-md text-lg text-muted-foreground sm:text-xl">
-              Este recorte se perdió del collage. Puede que el enlace esté roto o que la
-              página se haya movido.
+              {m.notFound.body}
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link href="/">
                 <Button size="lg" className="gap-2">
                   <ArrowLeft className="h-5 w-5" />
-                  Volver al inicio
+                  {m.common.backHome}
                 </Button>
               </Link>
               <a href={`mailto:${site.email}`}>
                 <Button size="lg" variant="outline">
-                  Escribinos
+                  {m.notFound.writeUs}
                 </Button>
               </a>
             </div>

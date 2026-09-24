@@ -7,6 +7,11 @@ import { useTouchStore } from '../mobile/touchStore'
 import { createLookTracker, joystickStep, keyStep, TUTORIAL_STEPS, type TutorialStep } from '../tutorial/steps'
 import styles from '../gallery-theme.module.css'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/lib/i18n/client'
+import { fmt } from '@/lib/i18n/format'
+import type { ClientMessages } from '@/lib/i18n/messages/client'
+
+type TutorialMessages = ClientMessages['gallery']['tutorial']
 
 const STORAGE_KEY = 'mdc-gallery-tutorial-done'
 // Long enough to read "¡Listo!" before the panel goes away.
@@ -29,28 +34,19 @@ function markSeen() {
 
 const joystickIcons = { forward: ArrowUp, left: ArrowLeft, right: ArrowRight, backward: ArrowDown }
 
-const labels: Record<TutorialStep, string> = {
-  forward: 'Adelante',
-  left: 'Izquierda',
-  right: 'Derecha',
-  backward: 'Atrás',
-  look: 'Mirar alrededor',
-  interact: 'Ver una obra',
-}
-
 const keys: Record<Exclude<TutorialStep, 'look'>, string> = { forward: 'W', left: 'A', right: 'D', backward: 'S', interact: 'E' }
 
-function stepText(step: TutorialStep, isTouchDevice: boolean) {
-  if (step === 'look') return isTouchDevice ? 'Arrastrá el dedo para mirar' : 'Mové el mouse para mirar'
-  if (step === 'interact') return isTouchDevice ? 'Acercate a una obra y tocá E' : 'Acercate a una obra y apretá E'
-  return labels[step]
+function stepText(step: TutorialStep, isTouchDevice: boolean, t: TutorialMessages) {
+  if (step === 'look') return isTouchDevice ? t.lookTouch : t.lookMouse
+  if (step === 'interact') return isTouchDevice ? t.interactTouch : t.interactKey
+  return t.steps[step]
 }
 
-function StepKey({ step, isTouchDevice }: { step: TutorialStep; isTouchDevice: boolean }): ReactNode {
+function StepKey({ step, isTouchDevice, t }: { step: TutorialStep; isTouchDevice: boolean; t: TutorialMessages }): ReactNode {
   if (step === 'look') {
     const Icon = isTouchDevice ? Hand : Mouse
     return (
-      <span className={styles.tutorialKey} aria-label={isTouchDevice ? 'Arrastrar' : 'Mouse'}>
+      <span className={styles.tutorialKey} aria-label={isTouchDevice ? t.drag : t.mouse}>
         <Icon className="h-3.5 w-3.5" />
       </span>
     )
@@ -58,7 +54,7 @@ function StepKey({ step, isTouchDevice }: { step: TutorialStep; isTouchDevice: b
   if (isTouchDevice && step !== 'interact') {
     const Icon = joystickIcons[step]
     return (
-      <span className={cn(styles.tutorialKey, 'rounded-full')} aria-label={`Joystick hacia ${labels[step].toLowerCase()}`}>
+      <span className={cn(styles.tutorialKey, 'rounded-full')} aria-label={fmt(t.joystick, { direction: t.steps[step] })}>
         <Icon className="h-3.5 w-3.5" />
       </span>
     )
@@ -71,6 +67,7 @@ export function ControlsTutorial({ active, isTouchDevice }: { active: boolean; i
   const openId = useInteractionStore((state) => state.openId)
   const [done, setDone] = useState<ReadonlySet<TutorialStep>>(() => new Set())
   const [dismissed, setDismissed] = useState(false)
+  const t = useI18n().m.gallery.tutorial
 
   const tracking = active && !seenBefore && !dismissed
   const allDone = done.size === TUTORIAL_STEPS.length
@@ -130,11 +127,11 @@ export function ControlsTutorial({ active, isTouchDevice }: { active: boolean; i
 
   return (
     <section
-      aria-label="Tutorial de controles"
+      aria-label={t.label}
       className={`${styles.hudPanel} animate-in fade-in slide-in-from-left-2 pointer-events-none absolute top-28 left-4 z-20 w-56 px-3 py-2.5 text-xs duration-300`}
     >
       <header className="mb-2 flex items-center justify-between font-extrabold tracking-[0.14em] uppercase">
-        <span>{allDone ? '¡Listo! Buen recorrido' : 'Controles'}</span>
+        <span>{allDone ? t.done : t.title}</span>
         {!allDone && <span className="opacity-60">{done.size}/{TUTORIAL_STEPS.length}</span>}
       </header>
       <ul className="space-y-1.5">
@@ -142,9 +139,9 @@ export function ControlsTutorial({ active, isTouchDevice }: { active: boolean; i
           const stepDone = done.has(step)
           return (
             <li key={step} className={cn(styles.tutorialStep, stepDone && styles.tutorialStepDone)}>
-              <StepKey step={step} isTouchDevice={isTouchDevice} />
-              <span className="flex-1 font-semibold">{stepText(step, isTouchDevice)}</span>
-              {stepDone && <Check className={cn(styles.tutorialCheck, 'h-4 w-4 shrink-0')} aria-label="Hecho" />}
+              <StepKey step={step} isTouchDevice={isTouchDevice} t={t} />
+              <span className="flex-1 font-semibold">{stepText(step, isTouchDevice, t)}</span>
+              {stepDone && <Check className={cn(styles.tutorialCheck, 'h-4 w-4 shrink-0')} aria-label={t.check} />}
             </li>
           )
         })}

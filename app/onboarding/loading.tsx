@@ -1,10 +1,12 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { getI18n } from '@/lib/i18n/server'
 
-export default function Loading() {
+export default async function Loading() {
+  const { m } = await getI18n()
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-lg">
-        <p role="status" className="mb-6 text-center text-sm text-muted-foreground">Estamos preparando tu bienvenida y buscando los datos de tu envío…</p>
+        <p role="status" className="mb-6 text-center text-sm text-muted-foreground">{m.onboarding.loading}</p>
         <Skeleton className="mx-auto h-3 w-40" />
         <Skeleton className="mx-auto mt-3 h-9 w-64" />
         <Skeleton className="mx-auto mt-3 h-4 w-full max-w-sm" />

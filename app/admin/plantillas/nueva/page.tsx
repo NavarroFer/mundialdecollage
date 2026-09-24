@@ -3,6 +3,10 @@ import { ArrowLeft } from 'lucide-react'
 import { TemplateForm } from '@/components/admin/template-form'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { createTemplate } from '../actions'
+import { isTranslatorConfigured } from '@/lib/email-translator'
+
+// Saving translates the template into eight languages, which takes a little while.
+export const maxDuration = 120
 
 export default async function NuevaPlantillaPage({
   searchParams,
@@ -27,7 +31,7 @@ export default async function NuevaPlantillaPage({
         </p>
       )}
       <div className="mt-8">
-        <TemplateForm action={createTemplate} />
+        <TemplateForm action={createTemplate} translates={isTranslatorConfigured} />
       </div>
     </div>
   )

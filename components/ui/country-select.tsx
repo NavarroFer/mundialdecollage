@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag } from '@/lib/participants'
+import { useI18n } from '@/lib/i18n/client'
 
 type Country = { code: string; name: string }
 
@@ -13,7 +14,7 @@ export function CountrySelect({
   countries,
   defaultValue = '',
   required,
-  placeholder = 'Elegí tu país',
+  placeholder,
 }: {
   id?: string
   name: string
@@ -23,6 +24,7 @@ export function CountrySelect({
   placeholder?: string
 }) {
   const [open, setOpen] = useState(false)
+  const { m } = useI18n()
   const [query, setQuery] = useState('')
   const [value, setValue] = useState(defaultValue)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -78,7 +80,7 @@ export function CountrySelect({
             {selected.name}
           </span>
         ) : (
-          <span className="text-muted-foreground">{placeholder}</span>
+          <span className="text-muted-foreground">{placeholder ?? m.countrySelect.placeholder}</span>
         )}
         <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} />
       </button>
@@ -91,13 +93,13 @@ export function CountrySelect({
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar país…"
+              placeholder={m.countrySelect.search}
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
           <ul role="listbox" className="max-h-56 overflow-y-auto py-1">
             {filtered.length === 0 && (
-              <li className="px-4 py-2.5 text-sm text-muted-foreground">No encontré ese país.</li>
+              <li className="px-4 py-2.5 text-sm text-muted-foreground">{m.countrySelect.notFound}</li>
             )}
             {filtered.map((c) => (
               <li key={c.code}>

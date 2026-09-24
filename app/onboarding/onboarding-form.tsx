@@ -6,20 +6,10 @@ import { Loader2 } from 'lucide-react'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { Button } from '@/components/ui/button'
 import { CountrySelect } from '@/components/ui/country-select'
-import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
+import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
+import { useI18n } from '@/lib/i18n/client'
 import { createClient } from '@/lib/supabase/client'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
-
-const errorMessages: Record<string, string> = {
-  missing_fields: 'Completá nombre, país y título de la obra para seguir.',
-  missing_image: 'Subí una imagen de tu obra para seguir.',
-  invalid_image: 'El archivo tiene que ser una imagen (JPG, PNG, WEBP o GIF).',
-  image_too_large: 'La imagen pesa más de 15MB — probá con una versión más liviana.',
-  invalid_instagram: 'Ese usuario de Instagram no parece válido — probá solo con el @usuario.',
-  invalid_website: 'Ese sitio web no parece una URL válida (tiene que empezar con http:// o https://).',
-  upload_failed: 'Algo falló al subir la imagen. Probá de nuevo.',
-  save_failed: 'Algo falló al guardar. Probá de nuevo.',
-}
 
 const inputClass =
   'mt-1.5 w-full rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5 text-sm outline-none focus:border-collage-blue'
@@ -71,13 +61,15 @@ export function OnboardingForm({
   const [clientError, setClientError] = useState<string | null>(null)
   const [pickedFileName, setPickedFileName] = useState<string | null>(null)
   const hasImagePrefill = Boolean(prefillImageUrl && prefillImagePath)
+  const { locale, m } = useI18n()
+  const errorMessages = m.onboarding.errors
 
   const countries = useMemo(
     () =>
       getAllCountryCodes()
-        .map((code) => ({ code, name: countryCodeToName(code) }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [],
+        .map((code) => ({ code, name: countryCodeToName(code, locale) }))
+        .sort((a, b) => a.name.localeCompare(b.name, locale)),
+    [locale],
   )
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -147,13 +139,13 @@ export function OnboardingForm({
 
       {hasLegacyMatch && (
         <div className="rounded-xl bg-collage-blue/5 p-4">
-          <p className="font-semibold text-collage-blue">Ya empezamos por vos</p>
+          <p className="font-semibold text-collage-blue">{m.onboarding.startedForYou}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {hasImagePrefill ? 'Esta es la obra que nos enviaste. No hace falta volver a subirla.' : 'Encontramos tu envío, pero no pudimos recuperar la imagen. Podés volver a cargarla abajo.'}
+            {hasImagePrefill ? m.onboarding.legacyImageFound : m.onboarding.legacyImageMissing}
           </p>
           {hasImagePrefill && (
             <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-lg bg-paper">
-              <Image src={prefillImageUrl!} alt="La obra que nos enviaste" fill sizes="(max-width: 640px) 100vw, 448px" className="object-contain p-2" priority />
+              <Image src={prefillImageUrl!} alt={m.onboarding.legacyImageAlt} fill sizes="(max-width: 640px) 100vw, 448px" className="object-contain p-2" priority />
             </div>
           )}
         </div>
@@ -161,16 +153,16 @@ export function OnboardingForm({
 
       {email && (
         <div className="rounded-lg bg-paper p-3">
-          <p className="text-sm text-muted-foreground">Email de tu cuenta Google</p>
+          <p className="text-sm text-muted-foreground">{m.onboarding.accountEmail}</p>
           <p className="break-all text-sm font-semibold">{email}</p>
-          <p className="mt-1 text-xs text-muted-foreground">No se muestra en tu ficha pública. Si enviaste tu obra con otro email, ingresá con esa cuenta para que podamos reconocerla.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{m.onboarding.emailNote}</p>
           <SignOutButton />
         </div>
       )}
 
       <div>
         <label htmlFor="name" className="text-sm font-semibold text-ink">
-          Nombre
+          {m.onboarding.name}
         </label>
         <input
           id="name"
@@ -178,14 +170,14 @@ export function OnboardingForm({
           type="text"
           required
           defaultValue={defaultName}
-          placeholder="Tu nombre"
+          placeholder={m.onboarding.namePlaceholder}
           className={inputClass}
         />
       </div>
 
       <div>
         <label htmlFor="country_code" className="text-sm font-semibold text-ink">
-          País
+          {m.onboarding.country}
         </label>
         <CountrySelect
           id="country_code"
@@ -198,33 +190,35 @@ export function OnboardingForm({
 
       <div>
         <label htmlFor="technique" className="text-sm font-semibold text-ink">
-          Técnica <span className="font-normal text-muted-foreground">(opcional)</span>
+          {m.onboarding.technique} <span className="font-normal text-muted-foreground">{m.common.optional}</span>
         </label>
         <select id="technique" name="technique" defaultValue="" className={inputClass}>
-          <option value="">Preferís no decir</option>
-          <option value="Analógica">Analógica</option>
-          <option value="Mixta">Mixta</option>
-          <option value="Digital">Digital</option>
+          <option value="">{m.onboarding.techniqueNone}</option>
+          {TECHNIQUES.map((technique) => (
+            <option key={technique} value={technique}>
+              {m.common.techniques[technique] ?? technique}
+            </option>
+          ))}
         </select>
       </div>
 
       <div>
         <label htmlFor="artwork_title" className="text-sm font-semibold text-ink">
-          Título de la obra
+          {m.onboarding.artworkTitle}
         </label>
         <input
           id="artwork_title"
           name="artwork_title"
           type="text"
           required
-          placeholder="Nombre de tu collage"
+          placeholder={m.onboarding.artworkTitlePlaceholder}
           className={inputClass}
         />
       </div>
 
       <div>
         <label htmlFor="artwork_image" className="text-sm font-semibold text-ink">
-          {hasImagePrefill ? 'Cambiar imagen (opcional)' : 'Imagen de la obra'}
+          {hasImagePrefill ? `${m.onboarding.changeImage} ${m.common.optional}` : m.onboarding.artworkImage}
         </label>
 
         {hasImagePrefill && !pickedFileName && !hasLegacyMatch && (
@@ -232,14 +226,14 @@ export function OnboardingForm({
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-ink/10 bg-muted">
               <Image
                 src={prefillImageUrl!}
-                alt="Obra que nos enviaste antes"
+                alt={m.onboarding.previousImageAlt}
                 fill
                 sizes="56px"
                 className="object-cover"
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Ya tenemos esta imagen. Subí un archivo nuevo solo si querés reemplazarla.
+              {m.onboarding.previousImageNote}
             </p>
           </div>
         )}
@@ -257,21 +251,21 @@ export function OnboardingForm({
 
       <div>
         <label htmlFor="instagram" className="text-sm font-semibold text-ink">
-          Instagram <span className="font-normal text-muted-foreground">(opcional)</span>
+          Instagram <span className="font-normal text-muted-foreground">{m.common.optional}</span>
         </label>
         <input
           defaultValue={defaultInstagram}
           id="instagram"
           name="instagram"
           type="text"
-          placeholder="@tu.usuario"
+          placeholder={m.onboarding.instagramPlaceholder}
           className={inputClass}
         />
       </div>
 
       <div>
         <label htmlFor="website" className="text-sm font-semibold text-ink">
-          Sitio web <span className="font-normal text-muted-foreground">(opcional)</span>
+          {m.common.website} <span className="font-normal text-muted-foreground">{m.common.optional}</span>
         </label>
         <input
           defaultValue={defaultWebsite}
@@ -285,7 +279,13 @@ export function OnboardingForm({
 
       <Button type="submit" size="lg" disabled={uploading || pending} className="w-full">
         {uploading || pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        {uploading ? 'Subiendo imagen…' : pending ? 'Confirmando…' : hasLegacyMatch ? 'Confirmar mi participación' : 'Enviar mi obra'}
+        {uploading
+          ? m.onboarding.uploading
+          : pending
+            ? m.common.confirming
+            : hasLegacyMatch
+              ? m.onboarding.confirmParticipation
+              : m.onboarding.submit}
       </Button>
     </form>
   )

@@ -35,17 +35,17 @@ beforeEach(() => {
 describe('artist confirmation', () => {
   it('requires a current session before accessing artist data', async () => {
     mocks.getUser.mockResolvedValue({ data: { user: null } })
-    expect(await confirmArtistDetails('', details())).toContain('sesión terminó')
+    expect(await confirmArtistDetails('', details())).toBe('session')
     expect(mocks.from).not.toHaveBeenCalled()
   })
   it('validates the country before saving', async () => {
-    expect(await confirmArtistDetails('', details('INVALID'))).toContain('elegí tu país')
+    expect(await confirmArtistDetails('', details('INVALID'))).toBe('missing')
     expect(mocks.from).not.toHaveBeenCalled()
   })
   it('refuses an artwork that does not belong to this artist', async () => {
     const artwork = query(null)
     mocks.from.mockReturnValue(artwork)
-    expect(await confirmArtistDetails('', details())).toContain('esta cuenta')
+    expect(await confirmArtistDetails('', details())).toBe('not_found')
     expect(artwork.eq).toHaveBeenCalledWith('profile_id', 'artist-1')
     expect(artwork.update).not.toHaveBeenCalled()
     expect(mocks.redirect).not.toHaveBeenCalled()
@@ -64,7 +64,7 @@ describe('artist confirmation', () => {
   })
   it('keeps the artist on the confirmation form if saving fails', async () => {
     mocks.from.mockImplementation(table => table === 'artworks' ? query({ id: 'artwork-1' }) : query(null, { message: 'offline' }))
-    expect(await confirmArtistDetails('', details())).toContain('probá confirmar de nuevo')
+    expect(await confirmArtistDetails('', details())).toBe('save_failed')
     expect(mocks.redirect).not.toHaveBeenCalled()
   })
 })

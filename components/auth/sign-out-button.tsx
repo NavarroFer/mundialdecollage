@@ -3,9 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/lib/i18n/client'
 
 export function SignOutButton() {
   const router = useRouter()
+  const { m } = useI18n()
 
   async function handleClick() {
     const supabase = createClient()
@@ -15,7 +17,7 @@ export function SignOutButton() {
 
   return (
     <Button type="button" variant="ghost" size="sm" onClick={handleClick}>
-      Salir
+      {m.auth.signOut}
     </Button>
   )
 }

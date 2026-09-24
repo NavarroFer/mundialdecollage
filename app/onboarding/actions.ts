@@ -187,26 +187,28 @@ export async function completeOnboarding(formData: FormData) {
 
 // Confirmation edits only the signed-in artist's profile. The artwork stays
 // intact: publication and curation remain under the existing admin policies.
+// Returns an error code ('' on success, which redirects instead) that
+// ArtistConfirmation shows in the reader's language (confirmation.errors).
 export async function confirmArtistDetails(_previous: string, formData: FormData): Promise<string> {
-  if (!isSupabaseConfigured) return 'No pudimos conectar. Probá de nuevo en unos minutos.'
+  if (!isSupabaseConfigured) return 'unavailable'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return 'Tu sesión terminó. Volvé a ingresar con Google para confirmar.'
+  if (!user) return 'session'
 
   const name = String(formData.get('name') ?? '').trim()
   const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
   const artworkId = String(formData.get('artwork_id') ?? '')
   if (!name || !getAllCountryCodes().includes(countryCode)) {
-    return 'Completá tu nombre y elegí tu país para confirmar.'
+    return 'missing'
   }
   const { data: artwork, error: artworkError } = await supabase.from('artworks')
     .select('id, slug').eq('id', artworkId).eq('profile_id', user.id).maybeSingle()
-  if (artworkError || !artwork) return 'No pudimos encontrar tu obra en esta cuenta. Volvé a ingresar para revisar tu envío.'
+  if (artworkError || !artwork) return 'not_found'
 
   const { data: profile, error: profileError } = await supabase.from('profiles')
     .update({ name, country_code: countryCode })
     .eq('id', user.id).select('id').maybeSingle()
-  if (profileError || !profile) return 'No pudimos guardar los cambios. Tus datos siguen acá; probá confirmar de nuevo.'
+  if (profileError || !profile) return 'save_failed'
 
   revalidatePath('/')
   revalidatePath('/participantes')
