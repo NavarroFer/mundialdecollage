@@ -196,6 +196,12 @@ Sueño de papel
     assert.equal(reglas(['Hola'], { adjuntos: ['IMG_3044.jpeg'] }).titulo, '')
   })
 
+  it('toma un @usuario solo si es del artista, no una mención a otra cuenta', () => {
+    assert.equal(reglas(['Hola! Gracias @otra.cuenta por la difusión']).instagram, '')
+    assert.equal(reglas(['Les mando mi obra.\n@juan.collage']).instagram, '@juan.collage')
+    assert.equal(reglas(['Me encuentran en Instagram como @juan.collage']).instagram, '@juan.collage')
+  })
+
   it('usa el asunto cuando el cuerpo no trae el dato', () => {
     const datos = reglas(['Adjunto mi obra.'], { asunto: 'Postulación - Lucía Gómez - Argentina - Raíces' })
     assert.equal(datos.nombre, 'Lucía Gómez')

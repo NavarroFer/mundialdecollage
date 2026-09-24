@@ -9,6 +9,8 @@ export type Participant = {
   countryCode: string
   // Not every submission records a technique, so keep this optional.
   technique?: string
+  // Full profile URL, when the artist has one on file.
+  instagram?: string
 }
 
 // Every *curated and published* submission (see app/admin/obras/ — an admin
@@ -20,7 +22,7 @@ export async function getParticipants(options?: { limit?: number }): Promise<Par
 
   let query = createPublicClient()
     .from('artworks')
-    .select('technique, profiles!inner(name, country_code)')
+    .select('technique, profiles!inner(name, country_code, instagram)')
     .eq('is_selected', true)
     .order('created_at', { ascending: false })
 
@@ -29,13 +31,14 @@ export async function getParticipants(options?: { limit?: number }): Promise<Par
   const { data } = await query
   return ((data ?? []) as unknown as Array<{
     technique: string | null
-    profiles: { name: string | null; country_code: string | null } | null
+    profiles: { name: string | null; country_code: string | null; instagram: string | null } | null
   }>)
     .filter((row) => row.profiles?.name && row.profiles?.country_code)
     .map((row) => ({
       name: row.profiles!.name as string,
       countryCode: row.profiles!.country_code as string,
       technique: row.technique ?? undefined,
+      instagram: row.profiles!.instagram ?? undefined,
     }))
 }
 

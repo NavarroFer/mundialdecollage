@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
+import { instagramHandle } from '@/lib/instagram'
 import { deleteSubmissions, setSubmissionsVisibility } from '@/app/admin/obras/actions'
 import { ObraViewer } from '@/components/admin/obra-viewer'
 import type { Submission } from '@/components/admin/submission-types'
@@ -264,6 +265,9 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                     {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span>} {s.name}
                   </p>
                   {s.artworkTitle && <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>}
+                  {s.instagram && (
+                    <p className="truncate text-xs text-collage-red">@{instagramHandle(s.instagram) ?? s.instagram}</p>
+                  )}
                 </button>
 
                 <div className="absolute top-2 right-2 flex items-center gap-1.5">

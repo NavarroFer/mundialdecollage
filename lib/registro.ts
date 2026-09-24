@@ -1,3 +1,5 @@
+import { instagramHandle } from '@/lib/instagram'
+
 // Google Sheets' displayed filename is not its Drive URL. The connector
 // snapshot keeps both so importing a smart chip never loses the file ID.
 export type RegistroCell = { text: string; url?: string }
@@ -13,6 +15,15 @@ export type RegistroEntry = {
   // Only present when the sheet has its "Titulo" column (E): an entry
   // without the key leaves stored titles alone (see sync_curated_registro).
   title?: string | null
+  // Same for the "Instagram" column (F): the bare handle.
+  instagram?: string | null
+}
+
+// Only a value written as "@handle" or a profile link counts: older imports
+// left titles and notes in this column.
+function registroInstagram(value: string | undefined): string | null {
+  const raw = value?.trim() ?? ''
+  return /^@|instagram\.com\//i.test(raw) ? instagramHandle(raw) : null
 }
 
 export function driveFileId(value: string): string | null {
@@ -33,6 +44,7 @@ export function parseRegistro(rows: RegistroCell[][]): RegistroEntry[] {
     throw new Error('Cambió el encabezado de Registro; no se modificó la base.')
   }
   const hasTitles = /^t[ií]tulo/i.test(header[4] ?? '')
+  const hasInstagram = /instagram/i.test(header[5] ?? '')
   const seen = new Set<string>()
   const entries: RegistroEntry[] = []
   rows.slice(1).forEach((row, index) => {
@@ -51,6 +63,7 @@ export function parseRegistro(rows: RegistroCell[][]): RegistroEntry[] {
       drive_url: `https://drive.google.com/file/d/${id}/view`,
       country_raw: country && !['sin especificar', 'no especificado', 'no informado', 'a revisar', 's/d'].includes(country.toLowerCase()) ? country : null,
       ...(hasTitles ? { title: row[4]?.text.trim() || null } : {}),
+      ...(hasInstagram ? { instagram: registroInstagram(row[5]?.text) } : {}),
     })
   })
   if (!entries.length) throw new Error('Registro está vacío; no se modificó la base.')

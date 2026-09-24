@@ -35,7 +35,7 @@ const INSTAGRAM_PROPIOS = ["tehacefaltacollage_", "tehacefaltacollage", "mundial
 const TAMANO_MINIMO_ADJUNTO_BYTES = 40 * 1024; // descarta logos de firmas
 const HILOS_POR_CORRIDA = 12;
 const LIMITE_CORRIDA_MS = 4.5 * 60 * 1000; // Apps Script corta a los 6 min
-const VERSION_EXTRACTOR = 4;
+const VERSION_EXTRACTOR = 5;
 const MODELO_CLAUDE = "claude-opus-5";
 const ZONA_HORARIA = "America/Argentina/Buenos_Aires";
 
@@ -778,10 +778,17 @@ function reglasDeMensaje(texto, crudo, acepta) {
     if (m) acepta("titulo", m[1]);
   });
 
-  // 9. Instagram suelto: link al perfil o "@usuario".
+  // 9. Instagram suelto: link al perfil, o "@usuario" solo en su línea o
+  //    junto a "Instagram"/"IG". Una mención a otra cuenta ("gracias
+  //    @fulano") no es la del artista, y el sitio la publica.
   const perfil = texto.match(/instagram\.com\/(?!p\/|reels?\/|stories\/|explore\/|tv\/)([A-Za-z0-9._]{2,30})/i);
   if (perfil) acepta("instagram", perfil[1]);
-  (texto.match(/(?:^|[\s(])@[A-Za-z0-9._]{3,30}/g) || []).forEach(m => acepta("instagram", m.replace(/^[\s(]+/, "")));
+  lineas.forEach(l => {
+    const solo = l.match(/^@([A-Za-z0-9._]{3,30})[.!]?$/);
+    const conEtiqueta = /instagram|\binsta\b|\big\b|redes/i.test(l) && l.match(/(?:^|[\s(:])@([A-Za-z0-9._]{3,30})/);
+    const m = solo || conEtiqueta;
+    if (m) acepta("instagram", m[1]);
+  });
 }
 
 const PREGUNTAS_PLANTILLA = [

@@ -9,6 +9,7 @@ import { LegacyImageSync } from '@/components/admin/legacy-image-sync'
 import { LegacyImageUpload } from '@/components/admin/legacy-image-upload'
 import { NameCleanup, type NameCleanupItem } from '@/components/admin/name-cleanup'
 import { normalizeArtistName } from '@/lib/name-format'
+import { instagramUrl } from '@/lib/instagram'
 import {
   deleteArtwork,
   deleteLegacySubmission,
@@ -30,6 +31,7 @@ type ArtworkRow = {
     country_code: string | null
     is_public: boolean
     onboarded_at: string | null
+    instagram: string | null
   } | null
 }
 
@@ -48,7 +50,7 @@ export default async function ObrasPage({
   const { data: artworkData } = await supabase
     .from('artworks')
     .select(
-      'id, profile_id, slug, title, image_url, technique, is_selected, profiles!inner(name, country_code, is_public, onboarded_at)',
+      'id, profile_id, slug, title, image_url, technique, is_selected, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
     )
     .is('archived_at', null)
     .order('created_at', { ascending: true })
@@ -79,6 +81,7 @@ export default async function ObrasPage({
         source: 'real' as const,
         onboardedAt: profile.onboarded_at ?? '',
         artworkId: selected.id,
+        instagram: profile.instagram ?? undefined,
         siblings:
           rows.length > 1
             ? rows.map((r) => ({ id: r.id, title: r.title, imageUrl: r.image_url, isSelected: r.is_selected }))
@@ -101,7 +104,7 @@ export default async function ObrasPage({
   const { data: legacyData } = await supabase
     .from('legacy_submissions')
     .select(
-      'id, email, name, drive_url, country_raw, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at',
+      'id, email, name, drive_url, country_raw, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram',
     )
     .is('archived_at', null)
     .order('email', { ascending: true })
@@ -178,6 +181,7 @@ export default async function ObrasPage({
         legacyId: row.id,
         email: row.email,
         imageFetchFailedAt: row.image_fetch_failed_at,
+        instagram: row.instagram ? instagramUrl(row.instagram) : undefined,
         legacySiblings:
           groupRows.length > 1
             ? groupRows.map((r) => ({

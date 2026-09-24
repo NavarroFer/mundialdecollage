@@ -9,6 +9,7 @@ import {
   ExternalLink,
   EyeOff,
   ImageOff,
+  Instagram,
   Loader2,
   Megaphone,
   RefreshCw,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag } from '@/lib/participants'
+import { instagramHandle } from '@/lib/instagram'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/admin/submit-button'
@@ -147,6 +149,17 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
                   {renderedItem.artworkTitle && renderedItem.technique && ' · '}
                   {renderedItem.technique}
                 </p>
+              )}
+              {renderedItem.instagram && (
+                <a
+                  href={renderedItem.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-collage-red hover:underline"
+                >
+                  <Instagram className="h-4 w-4" />
+                  @{instagramHandle(renderedItem.instagram) ?? renderedItem.instagram}
+                </a>
               )}
 
               <div className="mt-4 flex flex-wrap items-center gap-2">

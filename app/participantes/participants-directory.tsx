@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName, type Participant } from '@/lib/participants'
+import { InstagramIconLink } from '@/components/instagram-icon-link'
 
 function chipClass(active: boolean) {
   return cn(
@@ -110,6 +111,7 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
               <span aria-hidden>{countryCodeToFlag(p.countryCode)}</span>
               {p.name}
               <span className="text-muted-foreground">· {countryCodeToName(p.countryCode)}</span>
+              {p.instagram && <InstagramIconLink href={p.instagram} name={p.name} />}
             </li>
           ))}
         </ul>

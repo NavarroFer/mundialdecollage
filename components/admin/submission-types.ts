@@ -32,6 +32,8 @@ export type Submission = {
   countryCode?: string
   technique?: string
   artworkTitle?: string
+  // Full profile URL (profiles.instagram, or built from the Registro handle).
+  instagram?: string
   imageUrl: string
   // Only ever set for a `source: 'legacy'` row — the site-stored imageUrl is
   // a resized copy (see lib/legacy-submissions.ts's storeLegacyArtworkGlobally),

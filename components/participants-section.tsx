@@ -3,6 +3,7 @@ import { Gamepad2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { ObrasCollage } from '@/components/obras-collage'
+import { InstagramIconLink } from '@/components/instagram-icon-link'
 import { countryCodeToFlag, getParticipants } from '@/lib/participants'
 import { getDailyExhibition } from '@/lib/gallery-artworks'
 
@@ -63,6 +64,7 @@ export async function ParticipantsSection() {
                 >
                   <span aria-hidden>{countryCodeToFlag(p.countryCode)}</span>
                   {p.name}
+                  {p.instagram && <InstagramIconLink href={p.instagram} name={p.name} />}
                 </li>
               ))}
             </ul>

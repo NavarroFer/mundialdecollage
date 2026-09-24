@@ -47,6 +47,19 @@ describe('Registro curado', () => {
     assert.equal('title' in parseRegistro([header, row('first')])[0], false)
     assert.equal('title' in parseRegistro([[...header, { text: 'Notas' }], [...row('first'), { text: 'x' }]])[0], false)
   })
+  it('lee el Instagram de la columna F solo si está escrito como usuario o link', () => {
+    const encabezado = [...header, { text: 'Titulo' }, { text: 'Instagram' }]
+    const conIg = (id: string, ig: string) => [...row(id), { text: '' }, { text: ig }]
+    const [arroba, link, plano, provisorio, nuestro] = parseRegistro([encabezado,
+      conIg('a', '@lu.gomez'), conIg('b', 'https://www.instagram.com/ana.collage?igsh=x'),
+      conIg('c', 'Souvenir'), conIg('d', 'No informado'), conIg('e', '@tehacefaltacollage_')])
+    assert.equal(arroba.instagram, 'lu.gomez')
+    assert.equal(link.instagram, 'ana.collage')
+    assert.equal(plano.instagram, null) // un título que quedó en la columna
+    assert.equal(provisorio.instagram, null)
+    assert.equal(nuestro.instagram, null)
+    assert.equal('instagram' in parseRegistro([header, row('first')])[0], false)
+  })
   it('restaura una obra reintroducida sin volver a insertarla', () => {
     assert.deepEqual(planRegistro(parseRegistro([header, row('first')]), [
       { id: 'old', drive_url: 'https://drive.google.com/file/d/first/view', archived_at: '2026-09-21' },
