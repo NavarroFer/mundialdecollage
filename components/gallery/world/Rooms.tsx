@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTexture } from '@react-three/drei'
 import { SRGBColorSpace, type Texture } from 'three'
 import {
@@ -7,10 +8,12 @@ import {
   GALLERY_BOUNDS,
   WALL_HEIGHT,
   WALL_THICKNESS,
+  ceilingAroundSkylights,
   doorways,
   walls,
   type WallSegment,
 } from './roomsData'
+import { plankTexture } from './architectureTextures'
 import { galleryThemes, type GalleryTheme } from '../themes'
 
 const [minX, minZ, maxX, maxZ] = GALLERY_BOUNDS
@@ -277,24 +280,36 @@ function GardenDetails() {
   )
 }
 
+const PLANK_TILE_METERS = 4
+const CEILING_PANELS = ceilingAroundSkylights()
+
+function Ceiling({ color, skylights }: { color: string; skylights: boolean }) {
+  const panels: [number, number, number, number][] = skylights ? CEILING_PANELS : [GALLERY_BOUNDS]
+  return panels.map(([x0, z0, x1, z1]) => (
+    <mesh key={`${x0} ${z0}`} position={[(x0 + x1) / 2, WALL_HEIGHT, (z0 + z1) / 2]} rotation={[Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[x1 - x0, z1 - z0]} />
+      <meshStandardMaterial color={color} roughness={0.9} />
+    </mesh>
+  ))
+}
+
 export function Rooms({ theme }: { theme: GalleryTheme }) {
   const palette = galleryThemes[theme].room
+  const architecture = galleryThemes[theme].architecture
+  const planks = useMemo(() => {
+    if (!architecture?.planks) return null
+    const texture = plankTexture(palette.floor, PLANK_TILE_METERS)
+    texture.repeat.set(floorWidth / PLANK_TILE_METERS, floorDepth / PLANK_TILE_METERS)
+    return texture
+  }, [architecture, palette.floor])
   return (
     <group>
       <mesh position={[floorCenter[0], 0, floorCenter[1]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[floorWidth, floorDepth]} />
-        <meshStandardMaterial color={palette.floor} roughness={theme === 'garden' ? 0.95 : 0.6} />
+        <meshStandardMaterial color={planks ? '#ffffff' : palette.floor} map={planks} roughness={theme === 'garden' ? 0.95 : planks ? 0.5 : 0.6} />
       </mesh>
 
-      {theme !== 'garden' && (
-        <mesh
-          position={[floorCenter[0], WALL_HEIGHT, floorCenter[1]]}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <planeGeometry args={[floorWidth, floorDepth]} />
-          <meshStandardMaterial color={palette.ceiling} roughness={0.9} />
-        </mesh>
-      )}
+      {theme !== 'garden' && <Ceiling color={palette.ceiling} skylights={Boolean(architecture?.skylight)} />}
 
       {walls.map((wall) => (
         <mesh key={wall.id} position={wall.position} castShadow receiveShadow>

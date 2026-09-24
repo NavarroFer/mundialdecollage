@@ -8,6 +8,9 @@ export const DOOR_WIDTH = 2.4
 export const DOOR_HEIGHT = 2.6
 export const BASEBOARD_HEIGHT = 0.14
 
+/** Each room's glass ceiling, centered, leaving a band of plain ceiling around it; the glass sits `well` above the ceiling. */
+export const SKYLIGHT = { width: 9.4, depth: 7.4, well: 0.75 }
+
 export type RoomDef = {
   id: string
   name: string
@@ -86,3 +89,21 @@ export const doorways: Doorway[] = [
   { id: 'door-1-2', center: [-6, 0, 0], axis: 'z' },
   { id: 'door-2-3', center: [6, 0, 0], axis: 'z' },
 ]
+
+/** The ceiling around the skylights, as [minX, minZ, maxX, maxZ] rectangles. */
+export function ceilingAroundSkylights(): [number, number, number, number][] {
+  const [minX, minZ, maxX, maxZ] = GALLERY_BOUNDS
+  const halfDepth = SKYLIGHT.depth / 2
+  const openings = rooms.map(({ bounds }) => (bounds[0] + bounds[2]) / 2).sort((a, b) => a - b)
+  const panels: [number, number, number, number][] = [
+    [minX, minZ, maxX, -halfDepth],
+    [minX, halfDepth, maxX, maxZ],
+  ]
+  let x = minX
+  for (const center of openings) {
+    panels.push([x, -halfDepth, center - SKYLIGHT.width / 2, halfDepth])
+    x = center + SKYLIGHT.width / 2
+  }
+  panels.push([x, -halfDepth, maxX, halfDepth])
+  return panels
+}
