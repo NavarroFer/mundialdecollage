@@ -6,7 +6,9 @@ import type { EmailTexts, EmailTranslations, TranslatedLocale } from '@/lib/emai
 // they just stay Spanish-only and the admin panel says so.
 export const isTranslatorConfigured = Boolean(process.env.ANTHROPIC_API_KEY)
 
-const MODEL = 'claude-opus-5'
+// Short newsletter texts don't need the top model; Sonnet keeps each
+// translation at a few cents.
+const MODEL = 'claude-sonnet-5'
 
 // How the contest is called on the public site in each language (see
 // lib/i18n/messages), so mails and site match.
@@ -55,11 +57,9 @@ Return every key you receive, each with its translated text.`
 
 async function translateInto(client: Anthropic, locale: TranslatedLocale, texts: EmailTexts): Promise<EmailTexts> {
   const items = Object.entries(texts).map(([key, text]) => ({ key, text }))
-  const response = await client.beta.messages.create({
+  const response = await client.messages.create({
     model: MODEL,
     max_tokens: 16000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
     system: systemPrompt(locale),
     output_config: {
       effort: 'medium',
