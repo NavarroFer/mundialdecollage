@@ -972,7 +972,7 @@ function limpiarCampo(campo, valor, desdeIA) {
     if (/^sin t[ií]tulo\W*$/i.test(v)) return "Sin título";
     // Técnica, medidas, año o país pegados al título.
     v = v.replace(/\s*\((?:collage|colagem|t[eé]cnica|digital|anal[oó]gic|mixt|\d{2,4}\s*[x×])[^)]*\)/gi, "");
-    v = v.split(/\s*(?:[.,;/|]|\s[-–—])\s*(?=(?:19|20)\d{2}\b|dimensi|medidas|t[eé]cnica|formato|collage\s+(?:anal|digit|mixt)|colagem|pa[ií]s\b|nombre\b|instagram|a[nñ]o\b)/i)[0];
+    v = v.split(/\s*(?:[.,;/|]|\s[-–—])\s*(?=(?:19|20)\d{2}\b|dimensi|medidas|t[eé]cnica|formato|collage\s+(?:anal|digit|mixt)|colagem|pa[ií]s\b|nombre\b|instagram|a[nñ]o\b|pertenec|(?:parte )?de (?:la|mi) serie)/i)[0];
     v = v.split(/\s+[—–-]\s+(?=(collage|t[eé]cnica|digital|anal[oó]gic|mixt|\d))/i)[0];
     v = v.replace(/,?\s*\d{2,5}\s*[x×]\s*\d{2,5}\s*(px|cm|mm)?\.?$/i, "");
     v = v.replace(/\s*\([^)]*$/, ""); // paréntesis sin cerrar

@@ -7,10 +7,12 @@ const LOWERCASE_PARTICLES = new Set([
   'di', 'du', 'van', 'von', 'der', 'den', 'ter', 'ten', 'y', 'e',
 ])
 
+// The first letter, even after an opening parenthesis, quote or "¿":
+// "(robi)" -> "(Robi)".
 function capitalizeSegment(segment: string): string {
   if (!segment) return segment
   const lower = segment.toLocaleLowerCase('es')
-  return lower.charAt(0).toLocaleUpperCase('es') + lower.slice(1)
+  return lower.replace(/^(\P{L}*)(\p{L})/u, (_, lead: string, letter: string) => lead + letter.toLocaleUpperCase('es'))
 }
 
 // Capitalizes each hyphen/apostrophe-separated piece of a word, e.g.

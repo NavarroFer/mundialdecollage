@@ -14,6 +14,11 @@ describe('normalizeArtistName', () => {
     expect(normalizeArtistName('JuAn PErez')).toBe('Juan Perez')
   })
 
+  it('capitalizes a nickname in parentheses', () => {
+    expect(normalizeArtistName('Roxana Bidoglio (robi)')).toBe('Roxana Bidoglio (Robi)')
+    expect(normalizeArtistName('lilian sofia fuentes (bruma)')).toBe('Lilian Sofia Fuentes (Bruma)')
+  })
+
   it('preserves accents while fixing case', () => {
     expect(normalizeArtistName('SOFÍA RAMÍREZ')).toBe('Sofía Ramírez')
   })
