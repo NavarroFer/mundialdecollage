@@ -341,6 +341,16 @@
   100% { box-shadow: 0 0 0 0 rgba(62, 207, 110, 0); }
 }
 
+.viewedMarker {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: viewedPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes viewedPulse {
+  50% { transform: scale(1.35); opacity: .45; }
+}
+
 .presenceNote {
   display: flex;
   align-items: center;
@@ -398,5 +408,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .themeOption { transition: none; }
-  .liveDot { animation: none; }
+  .liveDot, .viewedMarker { animation: none; }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { usePresenceStore } from '../presence/store'
-import { insideLabel, waitingLabel } from '../presence/labels'
+import { insideLabel, viewersLabel, waitingLabel } from '../presence/labels'
 import styles from '../gallery-theme.module.css'
 
 // Both read the store directly so a join/leave re-renders only this text, not
@@ -30,6 +30,19 @@ export function PresenceNote() {
 
   return (
     <p className={styles.presenceNote}>
+      <span className={styles.liveDot} aria-hidden="true" />
+      {label}
+    </p>
+  )
+}
+
+export function ArtworkViewers({ artworkId }: { artworkId: string }) {
+  const others = usePresenceStore((state) => state.viewers[artworkId] ?? 0)
+  const label = viewersLabel(others)
+  if (!label) return null
+
+  return (
+    <p className="flex items-center gap-2 text-sm font-semibold text-ink/80">
       <span className={styles.liveDot} aria-hidden="true" />
       {label}
     </p>

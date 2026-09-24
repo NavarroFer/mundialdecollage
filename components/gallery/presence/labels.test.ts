@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { insideLabel, waitingLabel } from './labels'
+import { insideLabel, viewersLabel, waitingLabel } from './labels'
 
 describe('gallery presence labels', () => {
   it('tells a lone visitor they are the only one inside', () => {
@@ -16,5 +16,10 @@ describe('gallery presence labels', () => {
   it('uses singular and plural for the people already inside', () => {
     expect(waitingLabel(1)).toBe('Ahora hay 1 persona recorriendo la exposición')
     expect(waitingLabel(7)).toBe('Ahora hay 7 personas recorriendo la exposición')
+  })
+  it('describes who else has the same obra open', () => {
+    expect(viewersLabel(0)).toBeNull()
+    expect(viewersLabel(1)).toBe('Otra persona está viendo esta obra ahora')
+    expect(viewersLabel(3)).toBe('3 personas más están viendo esta obra ahora')
   })
 })

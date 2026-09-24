@@ -4,6 +4,14 @@ export function insideLabel(count: number): string {
   return count <= 1 ? 'Solo vos en la galería' : `${count} personas en la galería`
 }
 
+// Other visitors with the same artwork open — never counts the viewer.
+export function viewersLabel(others: number): string | null {
+  if (others <= 0) return null
+  return others === 1
+    ? 'Otra persona está viendo esta obra ahora'
+    : `${others} personas más están viendo esta obra ahora`
+}
+
 // Before entering, the viewer isn't counted yet: every person here is someone
 // else. Nothing is shown for an empty room rather than advertising it.
 export function waitingLabel(count: number): string | null {

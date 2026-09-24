@@ -78,10 +78,10 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <PlayerTracker />
         </Canvas>
       </KeyboardControls>
-      <GalleryPresence inside={hasStarted} />
+      <GalleryPresence inside={hasStarted} artworks={artworks} />
       {isTouchDevice && isActive && !openId && <TouchControls theme={theme} />}
       <BackgroundMusic ref={musicRef} theme={theme} />
-      <Minimap theme={theme} />
+      <Minimap theme={theme} artworks={artworks} />
       {hasStarted && <PresenceCounter />}
       <InteractionPrompt theme={theme} />
       <ArtworkModal artworks={artworks} theme={theme} />
