@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import type { GalleryTheme } from '../themes'
 import { appearanceFor, MAX_LIVE_VISITORS } from '../presence/protocol'
 import { peerPoses, usePresenceStore } from '../presence/store'
-import { LOOK_COUNT, Person, type Motion } from './Visitors'
+import { LOOK_COUNT, Person, type Motion } from './people/Person'
 
 // Farther than this from the last known spot (a reload, a missed stretch of
 // messages) and the avatar jumps there instead of gliding through walls.

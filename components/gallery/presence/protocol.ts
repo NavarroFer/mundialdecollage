@@ -109,7 +109,8 @@ export function parsePose(payload: unknown): Pose | null {
   }
 }
 
-const SHIRTS = ['#d45b45', '#4c76b8', '#d6a62e', '#6f8d63', '#8d63a8', '#2f8f8a', '#c2577f', '#e07b39']
+// Clothing tones rather than primaries, still distinct enough to tell markers apart.
+const SHIRTS = ['#8fb3d9', '#b5553c', '#6b7c4b', '#34496e', '#7b2d3b', '#c99a3a', '#5f8f86', '#5e3b2a']
 
 /** A stable look per visitor, so the same person doesn't change clothes. */
 export function appearanceFor(key: string, looks: number): { look: number; shirt: string } {
