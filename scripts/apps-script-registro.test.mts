@@ -189,10 +189,10 @@ Sueño de papel
     assert.equal(datos.nombre, 'Carlos Zulietti')
   })
 
-  it('usa el nombre del archivo como último recurso y lo marca', () => {
+  it('con el nombre del archivo solo sugiere un título, no lo escribe', () => {
     const datos = reglas(['Hola, les mando mi collage.'], { remitente: 'Andrea Trotta <andrea@example.com>', adjuntos: ['Andrea Trotta - Contaminacion.png'] })
-    assert.equal(datos.titulo, 'Contaminacion')
-    assert.equal(datos.dudas, 'Título tomado del nombre del archivo')
+    assert.equal(datos.titulo, '')
+    assert.equal(datos.dudas, 'Posible título (del nombre del archivo): Contaminacion')
     assert.equal(reglas(['Hola'], { adjuntos: ['IMG_3044.jpeg'] }).titulo, '')
   })
 
@@ -236,7 +236,7 @@ describe('Registro.gs: títulos que salieron mal en la primera reparación', () 
       assert.equal(titulo('Hola', { adjuntos: [archivo] }), '', archivo)
     }
     assert.equal(titulo('Hola', { remitente: 'Noemi Fortunato <n@example.com>', adjuntos: ['NoemiFortunato.jpg'] }), '')
-    assert.equal(titulo('Hola', { remitente: 'Andrea Trotta <a@example.com>', adjuntos: ['Contaminacion.png'] }), 'Contaminacion')
+    assert.equal(reglas(['Hola'], { remitente: 'Andrea Trotta <a@example.com>', adjuntos: ['Contaminacion.png'] }).dudas, 'Posible título (del nombre del archivo): Contaminacion')
   })
 
   it('marca como inválidos los títulos basura que ya están en la planilla', () => {
@@ -401,6 +401,18 @@ describe('Registro.gs: reparación idempotente de filas', () => {
     props.setProperty('reparar:ronda', '1')
     s.repararRegistro_(ctx, Date.now())
     assert.equal(celda(hoja, 2, 1), 'Eli Ramponi')
+  })
+})
+
+describe('Registro.gs: títulos tomados del nombre del archivo', () => {
+  it('los pasa a sugerencia en filas de versiones anteriores', () => {
+    const h = hilo('h9', 'Obra', [mensaje('Amapola Saball <amapola@example.com>', 'Hola, les mando mi collage.', '2026-09-20T10:00:00Z', [{ nombre: 'Collage Amapola portafolio.png' }])])
+    const meta = JSON.stringify({ ver: '2.0r', auto: { nombre: 'Amapola Saball', pais: 'Chile', titulo: 'Portafolio', instagram: '' }, hilo: 'h9' })
+    const hoja = new Hoja([ENCABEZADO, ['Amapola Saball', 'Chile', 'amapola@example.com', 'https://drive.google.com/file/d/AMA/view', 'Portafolio', '', 'https://mail.google.com/mail/u/0/#all/h9', '', 'Título tomado del nombre del archivo', meta]])
+    const s = cargar({ GmailApp: gmail([h]) })
+    s.repararRegistro_({ hojaRegistro: hoja, props: propiedades(), claveClaude: null }, Date.now())
+    assert.equal(hoja.filas[1][4], '')
+    assert.match(hoja.filas[1][8], /Posible título \(del nombre del archivo\): Portafolio/)
   })
 })
 

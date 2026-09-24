@@ -35,7 +35,7 @@ const INSTAGRAM_PROPIOS = ["tehacefaltacollage_", "tehacefaltacollage", "mundial
 const TAMANO_MINIMO_ADJUNTO_BYTES = 40 * 1024; // descarta logos de firmas
 const HILOS_POR_CORRIDA = 12;
 const LIMITE_CORRIDA_MS = 4.5 * 60 * 1000; // Apps Script corta a los 6 min
-const VERSION_EXTRACTOR = 3;
+const VERSION_EXTRACTOR = 4;
 const MODELO_CLAUDE = "claude-opus-5";
 const ZONA_HORARIA = "America/Argentina/Buenos_Aires";
 
@@ -452,6 +452,8 @@ function repararFila(ctx, numFila, actual, meta, pendientes, version) {
     } else {
       meta.hilo = fuente.hiloId;
       datos = extraerDatos(ctx, armarEntrada(fuente.remitente, fuente.asunto, fuente.mensajes, fuente.adjuntos));
+      // Versiones anteriores escribían como título el nombre del archivo.
+      const tituloDelArchivo = /tomado del nombre del archivo/i.test(String(actual[COL.revisar - 1] || ""));
       CAMPOS.forEach(campo => {
         const valor = String(fila[COL[campo] - 1] || "").trim();
         const propuesto = datos[campo] || "";
@@ -464,6 +466,7 @@ function repararFila(ctx, numFila, actual, meta, pendientes, version) {
         // columna de Instagram): esos se vacían.
         let nuevo = propuesto;
         if (!nuevo && (campo === "nombre" || campo === "pais" || esPlaceholder(campo, valor) || esAceptable(campo, valor, fila))) nuevo = valor;
+        if (!propuesto && campo === "titulo" && tituloDelArchivo) nuevo = "";
         if (nuevo !== valor) escribir(COL[campo], nuevo);
         meta.auto[campo] = nuevo;
       });
@@ -702,11 +705,14 @@ function extraerConReglas(entrada) {
   acepta("nombre", entrada.remitenteNombre);
 
   datos.titulo = pulirTitulo(datos.titulo, datos.nombre);
-  // Último recurso para el título: el nombre del archivo, marcado para revisar.
+  // El nombre del archivo es solo una suposición: no se escribe como título,
+  // queda como sugerencia en "Revisar".
   for (const archivo of entrada.adjuntos) {
     if (datos.titulo) break;
-    if (acepta("titulo", tituloDesdeArchivo(archivo, datos.nombre || entrada.remitenteNombre))) {
-      datos.dudas = "Título tomado del nombre del archivo";
+    const posible = limpiarCampo("titulo", tituloDesdeArchivo(archivo, datos.nombre || entrada.remitenteNombre));
+    if (posible && esValido("titulo", posible, null, datos)) {
+      datos.dudas = `Posible título (del nombre del archivo): ${posible}`;
+      break;
     }
   }
   return datos;
