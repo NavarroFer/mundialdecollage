@@ -1,11 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { addArtworkComment, getArtworkComments, type GalleryComment } from '@/app/galeria-3d/actions'
+import { addArtworkComment, type GalleryComment } from '@/app/galeria-3d/actions'
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { clearCommentDraft, galleryReturnPath, readCommentDraft, saveCommentDraft } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
 import { useInteractionStore } from '../interaction/store'
+import { forgetArtworkSocial } from './artworkSocial'
 import { useI18n } from '@/lib/i18n/client'
 
 const MAX_LENGTH = 500
@@ -15,14 +16,14 @@ type CommentsState = { comments: GalleryComment[]; signedIn: boolean }
 // Approved comments on this obra, plus the viewer's own still waiting for
 // moderation (/admin/comentarios). Writing one needs a Google account: a
 // signed-out visitor's draft is kept across the sign-in round trip and sent
-// automatically once they're back (lib/gallery-return.ts).
-export function ArtworkComments({ slug }: { slug: string }) {
-  const [state, setState] = useState<CommentsState | null>(null)
+// automatically once they're back (lib/gallery-return.ts). `initial` comes
+// from the modal's single likes+comments fetch (artworkSocial.ts).
+export function ArtworkComments({ slug, initial }: { slug: string; initial: CommentsState }) {
+  const [state, setState] = useState<CommentsState>(initial)
   const [draft, setDraft] = useState(() => readCommentDraft(slug))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [retry, setRetry] = useState(0)
   const busyRef = useRef(false)
   const { locale, m } = useI18n()
   const t = m.gallery.comments
@@ -57,6 +58,7 @@ export function ArtworkComments({ slug }: { slug: string }) {
         setState({ ...current, comments: [...current.comments, result.comment] })
         setDraft('')
         clearCommentDraft(slug)
+        forgetArtworkSocial(slug)
         setNotice(t.sent)
         track('comment_sent')
       } else if (result.error === 'sign_in_required') {
@@ -74,24 +76,14 @@ export function ArtworkComments({ slug }: { slug: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, signIn])
 
+  // Back from Google with a comment drafted for this obra: send it.
   useEffect(() => {
-    let active = true
-    getArtworkComments(slug).then((result) => {
-      if (!active) return
-      if (!('comments' in result)) {
-        setError(t.unavailable)
-        return
-      }
-      setState(result)
-      // Back from Google with a comment drafted for this obra: send it.
-      if (!useInteractionStore.getState().consumeIntent(slug, 'comment')) return
-      const saved = readCommentDraft(slug)
-      if (result.signedIn && saved.trim()) void send(result, saved)
-    }).catch(() => { if (active) setError(t.unavailable) })
-    return () => { active = false }
-    // t only changes with the language, which reloads the page.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, retry, send])
+    if (!useInteractionStore.getState().consumeIntent(slug, 'comment')) return
+    const saved = readCommentDraft(slug)
+    // Resuming an action from before the sign-in round trip, once per return.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (initial.signedIn && saved.trim()) void send(initial, saved)
+  }, [slug, initial, send])
 
   const dateFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
 
@@ -99,8 +91,8 @@ export function ArtworkComments({ slug }: { slug: string }) {
     <section aria-labelledby={headingId} className="mt-2 space-y-3 border-t border-ink/10 pt-4">
       <h3 id={headingId} className="text-sm font-bold tracking-wide text-ink uppercase">{t.title}</h3>
 
-      {state && state.comments.length === 0 && <p className="text-sm text-muted-foreground">{t.none}</p>}
-      {state && state.comments.length > 0 && (
+      {state.comments.length === 0 && <p className="text-sm text-muted-foreground">{t.none}</p>}
+      {state.comments.length > 0 && (
         <ul className="space-y-3">
           {state.comments.map((comment) => (
             <li key={comment.id} className="text-sm">
@@ -116,29 +108,23 @@ export function ArtworkComments({ slug }: { slug: string }) {
         </ul>
       )}
 
-      {state && (
-        <form onSubmit={(event) => { event.preventDefault(); void send(state, draft) }} className="space-y-2">
-          <label htmlFor={fieldId} className="sr-only">{t.placeholder}</label>
-          <textarea id={fieldId} value={draft} onChange={(event) => setDraft(event.target.value)}
-            maxLength={MAX_LENGTH} rows={3} placeholder={t.placeholder} disabled={busy}
-            className="w-full resize-none rounded-lg border border-ink/20 bg-paper px-3 py-2 text-sm" />
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-muted-foreground">{t.moderationNote}</p>
-            <button type="submit" disabled={busy || !draft.trim()}
-              className="inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-paper disabled:opacity-60">
-              {!state.signedIn && <GoogleIcon />}
-              {busy ? (state.signedIn ? t.sending : m.auth.signingIn) : state.signedIn ? t.send : t.signInToComment}
-            </button>
-          </div>
-        </form>
-      )}
+      <form onSubmit={(event) => { event.preventDefault(); void send(state, draft) }} className="space-y-2">
+        <label htmlFor={fieldId} className="sr-only">{t.placeholder}</label>
+        <textarea id={fieldId} value={draft} onChange={(event) => setDraft(event.target.value)}
+          maxLength={MAX_LENGTH} rows={3} placeholder={t.placeholder} disabled={busy}
+          className="w-full resize-none rounded-lg border border-ink/20 bg-paper px-3 py-2 text-sm" />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">{t.moderationNote}</p>
+          <button type="submit" disabled={busy || !draft.trim()}
+            className="inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-paper disabled:opacity-60">
+            {!state.signedIn && <GoogleIcon />}
+            {busy ? (state.signedIn ? t.sending : m.auth.signingIn) : state.signedIn ? t.send : t.signInToComment}
+          </button>
+        </div>
+      </form>
 
       {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
-      {error && (
-        <p role="alert" className="text-sm text-red-700">
-          {error} {!state && <button type="button" className="underline" onClick={() => { setError(''); setRetry((value) => value + 1) }}>{m.gallery.like.retry}</button>}
-        </p>
-      )}
+      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
     </section>
   )
 }

@@ -36,17 +36,25 @@ async function publicArtworkId(slug: string): Promise<string | null> {
   return error || !data ? null : data.id
 }
 
-export async function getArtworkLike(slug: string) {
+type AdminClient = ReturnType<typeof createAdminClient>
+type LikeState = { count: number; liked: boolean; signedIn: boolean }
+
+async function likeState(admin: AdminClient, artworkId: string, email: string | null): Promise<LikeState | null> {
+  const [total, own] = await Promise.all([
+    admin.from('artwork_likes').select('*', { count: 'exact', head: true }).eq('artwork_id', artworkId),
+    email ? admin.from('artwork_likes').select('artwork_id').eq('artwork_id', artworkId).eq('email', email).maybeSingle() : null,
+  ])
+  if (total.error || own?.error) return null
+  return { count: total.count ?? 0, liked: Boolean(own?.data), signedIn: Boolean(email) }
+}
+
+export async function getArtworkLike(slug: string): Promise<LikeState | { error: string }> {
   if (!isConfigured() || !validSlug(slug)) return { error: unavailable }
   try {
     const artworkId = await publicArtworkId(slug)
     if (!artworkId) return { error: unavailable }
-    const email = normalizeLikeEmail((await getSessionUser())?.email)
-    const admin = createAdminClient()
-    const total = await admin.from('artwork_likes').select('*', { count: 'exact', head: true }).eq('artwork_id', artworkId)
-    const own = email ? await admin.from('artwork_likes').select('artwork_id').eq('artwork_id', artworkId).eq('email', email).maybeSingle() : null
-    if (total.error || own?.error) return { error: unavailable }
-    return { count: total.count ?? 0, liked: Boolean(own?.data), signedIn: Boolean(email) }
+    const like = await likeState(createAdminClient(), artworkId, normalizeLikeEmail((await getSessionUser())?.email))
+    return like ?? { error: unavailable }
   } catch {
     return { error: unavailable }
   }
@@ -80,27 +88,41 @@ function toComment(row: CommentRow): GalleryComment {
   return { id: row.id, author: row.author_name, body: row.body, createdAt: row.created_at, pending: row.status === 'pending' }
 }
 
+type CommentsState = { comments: GalleryComment[]; signedIn: boolean }
+
 // Approved comments, plus the viewer's own that are still waiting for review.
-export async function getArtworkComments(slug: string): Promise<{ comments: GalleryComment[]; signedIn: boolean } | { error: string }> {
+async function commentsState(admin: AdminClient, artworkId: string, user: User | null): Promise<CommentsState | null> {
+  const columns = 'id, author_name, body, created_at, status'
+  const [approved, own] = await Promise.all([
+    admin.from('artwork_comments').select(columns).eq('artwork_id', artworkId).eq('status', 'approved')
+      .order('created_at', { ascending: true }).limit(100),
+    user
+      ? admin.from('artwork_comments').select(columns).eq('artwork_id', artworkId).eq('user_id', user.id).eq('status', 'pending')
+      : Promise.resolve({ data: [] as CommentRow[], error: null }),
+  ])
+  if (approved.error || own.error) return null
+  const comments = [...(approved.data ?? []), ...(own.data ?? [])]
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
+    .map(toComment)
+  return { comments, signedIn: Boolean(user) }
+}
+
+export type ArtworkSocial = { like: LikeState; comments: CommentsState }
+
+// Everything the obra's modal needs in one round trip, so likes and comments
+// arrive together (and the gallery can fetch it before E is pressed).
+export async function getArtworkSocial(slug: string): Promise<ArtworkSocial | { error: string }> {
   if (!isConfigured() || !validSlug(slug)) return { error: unavailable }
   try {
-    const artworkId = await publicArtworkId(slug)
+    const [artworkId, user] = await Promise.all([publicArtworkId(slug), getSessionUser()])
     if (!artworkId) return { error: unavailable }
-    const user = await getSessionUser()
     const admin = createAdminClient()
-    const columns = 'id, author_name, body, created_at, status'
-    const [approved, own] = await Promise.all([
-      admin.from('artwork_comments').select(columns).eq('artwork_id', artworkId).eq('status', 'approved')
-        .order('created_at', { ascending: true }).limit(100),
-      user
-        ? admin.from('artwork_comments').select(columns).eq('artwork_id', artworkId).eq('user_id', user.id).eq('status', 'pending')
-        : Promise.resolve({ data: [] as CommentRow[], error: null }),
+    const [like, comments] = await Promise.all([
+      likeState(admin, artworkId, normalizeLikeEmail(user?.email)),
+      commentsState(admin, artworkId, user),
     ])
-    if (approved.error || own.error) return { error: unavailable }
-    const comments = [...(approved.data ?? []), ...(own.data ?? [])]
-      .sort((a, b) => a.created_at.localeCompare(b.created_at))
-      .map(toComment)
-    return { comments, signedIn: Boolean(user) }
+    if (!like || !comments) return { error: unavailable }
+    return { like, comments }
   } catch {
     return { error: unavailable }
   }

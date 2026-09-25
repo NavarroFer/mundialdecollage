@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
@@ -10,12 +10,17 @@ import { ArtworkComments } from './ArtworkComments'
 import { ArtworkShare } from './ArtworkShare'
 import { ArtworkViewers } from './PresenceCounter'
 import { LiveReactions } from './LiveReactions'
+import { loadArtworkSocial, peekArtworkSocial, type SocialResult } from './artworkSocial'
 import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
+
+// How long the player has to keep looking at an obra before its likes and
+// comments are fetched: skips the ones they only sweep past.
+const PREFETCH_DWELL_MS = 250
 
 export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
   const openId = useInteractionStore((state) => state.openId)
@@ -25,6 +30,21 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
   useEffect(() => {
     if (openId) track('artwork_open')
   }, [openId])
+
+  // Fetch while the visitor walks up to the obra, so E opens it complete.
+  useEffect(() => {
+    let timer: number | undefined
+    const unsubscribe = useInteractionStore.subscribe((state, previous) => {
+      if (state.targetId === previous.targetId) return
+      window.clearTimeout(timer)
+      const id = state.targetId
+      if (id) timer = window.setTimeout(() => void loadArtworkSocial(id), PREFETCH_DWELL_MS)
+    })
+    return () => {
+      unsubscribe()
+      window.clearTimeout(timer)
+    }
+  }, [])
 
   if (!artwork) return null
 
@@ -52,9 +72,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           <p className="text-base leading-relaxed text-ink/80">{artwork.description}</p>
           <ArtworkViewers artworkId={artwork.id} />
           <LiveReactions artworkId={artwork.id} />
-          <ArtworkLike key={artwork.id} slug={artwork.id} />
-          <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
-          <ArtworkComments key={`comments-${artwork.id}`} slug={artwork.id} />
+          <ArtworkSocialPanel key={artwork.id} artwork={artwork} />
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {m.gallery.closeToContinue}
           </p>
@@ -62,5 +80,53 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+const pulse = 'animate-pulse rounded-full bg-ink/10 motion-reduce:animate-none'
+
+// Likes and comments share one request and appear in the same frame, over
+// placeholders the size of what replaces them so nothing below jumps.
+function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
+  const [result, setResult] = useState<SocialResult | undefined>(() => peekArtworkSocial(artwork.id))
+  // Already fetched (the usual case): it opens with the modal, no fade of its own.
+  const [instant] = useState(() => result !== undefined)
+  const [attempt, setAttempt] = useState(0)
+  const { m } = useI18n()
+
+  useEffect(() => {
+    let active = true
+    loadArtworkSocial(artwork.id).then((next) => { if (active) setResult(next) })
+    return () => { active = false }
+  }, [artwork.id, attempt])
+
+  const social = result && !('error' in result) ? result : undefined
+  const failed = result !== undefined && !social
+  const reveal = cn(!instant && 'animate-in fade-in duration-300 motion-reduce:animate-none')
+
+  return (
+    <>
+      {social ? (
+        <div className={reveal}><ArtworkLike slug={artwork.id} initial={social.like} /></div>
+      ) : failed ? (
+        <p role="alert" className="mt-3 text-sm text-red-700">
+          {m.gallery.like.unavailable}{' '}
+          <button type="button" className="underline" onClick={() => { setResult(undefined); setAttempt((value) => value + 1) }}>
+            {m.gallery.like.retry}
+          </button>
+        </p>
+      ) : (
+        <div aria-hidden="true" className={cn(pulse, 'mt-3 h-12 w-36')} />
+      )}
+      <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
+      {social ? (
+        <div className={reveal}><ArtworkComments slug={artwork.id} initial={social.comments} /></div>
+      ) : !failed && (
+        <div aria-hidden="true" className="mt-2 space-y-3 border-t border-ink/10 pt-4">
+          <div className={cn(pulse, 'h-4 w-28')} />
+          <div className={cn(pulse, 'h-20 w-full rounded-lg')} />
+        </div>
+      )}
+    </>
   )
 }
