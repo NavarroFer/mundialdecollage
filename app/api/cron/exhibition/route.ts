@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createResendClient, isResendConfigured } from '@/lib/resend'
-import { isEmailDocument, personalizeHtml, renderEmailDocumentToHtml } from '@/lib/email-blocks'
+import { isEmailDocument, personalizeHtml } from '@/lib/email-blocks'
 import {
   emailFor,
   emailTextsFingerprint,
@@ -14,29 +14,18 @@ import {
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
 import {
-  createExhibitionEmailDocument,
-  EXHIBITION_DEFAULT_SUBJECT,
-  EXHIBITION_TEMPLATE_KEY,
-  EXHIBITION_TEMPLATE_NAME,
+  ensureExhibitionTemplate,
   fillArtworkTitle,
   planExhibitionMails,
   type ExhibitionQueueRow,
   type ExhibitionRecipient,
+  type ExhibitionTemplate,
 } from '@/lib/exhibition-mail'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { site } from '@/lib/site'
 import type { Locale } from '@/lib/i18n/locales'
 
 export const maxDuration = 120
-
-type Template = {
-  id: string
-  subject: string
-  body_html: string
-  body_json: unknown
-  translations: EmailTranslations | null
-  translations_source: string | null
-}
 
 // Vercel Cron calls this at 12:05 UTC (09:05 Argentina, right after the
 // exhibition rotates) with `Authorization: Bearer $CRON_SECRET`. Safe to run
@@ -80,7 +69,7 @@ export async function GET(request: NextRequest) {
     let firstError: string | null = null
 
     if (recipients.length > 0) {
-      const template = await loadTemplate(db)
+      const template = await ensureExhibitionTemplate(db)
       const translations = await translationsFor(db, template, recipients.map((r) => r.locale))
       const emails = new Map<Locale, ReturnType<typeof emailFor>>()
       const emailForLocale = (locale: Locale) => {
@@ -148,33 +137,11 @@ async function claim(db: SupabaseClient, recipients: ExhibitionRecipient[]) {
   return claimed
 }
 
-// The stored template, or the default one saved on the first run so it
-// shows up (and can be edited) in /admin/plantillas.
-async function loadTemplate(db: SupabaseClient): Promise<Template> {
-  const columns = 'id, subject, body_html, body_json, translations, translations_source'
-  const { data: existing } = await db.from('templates').select(columns).eq('system_key', EXHIBITION_TEMPLATE_KEY).maybeSingle()
-  if (existing) return existing as Template
-
-  const doc = createExhibitionEmailDocument()
-  const { data, error } = await db.from('templates')
-    .insert({
-      name: EXHIBITION_TEMPLATE_NAME,
-      system_key: EXHIBITION_TEMPLATE_KEY,
-      subject: EXHIBITION_DEFAULT_SUBJECT,
-      body_json: doc,
-      body_html: renderEmailDocumentToHtml(doc),
-    })
-    .select(columns)
-    .single()
-  if (error || !data) throw new Error(`No se pudo crear la plantilla: ${error?.message}`)
-  return data as Template
-}
-
 // Translations for today's languages: the template's own while they match
 // its wording, the missing ones translated now and saved back onto the
 // template so tomorrow reuses them. A language that can't be translated
 // goes out in Spanish, same as campaigns.
-async function translationsFor(db: SupabaseClient, template: Template, locales: Locale[]): Promise<EmailTranslations> {
+async function translationsFor(db: SupabaseClient, template: ExhibitionTemplate, locales: Locale[]): Promise<EmailTranslations> {
   if (!isEmailDocument(template.body_json)) return {}
   const texts = extractEmailTexts(template.subject, template.body_json)
   const fingerprint = emailTextsFingerprint(template.subject, template.body_json)

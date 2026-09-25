@@ -7,6 +7,7 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { TranslationBadge } from '@/components/admin/translation-badge'
 import { translationState } from '@/lib/email-translation'
 import { isTranslatorConfigured } from '@/lib/email-translator'
+import { ensureExhibitionTemplate } from '@/lib/exhibition-mail'
 import { deleteTemplate, duplicateTemplate, translateTemplate } from './actions'
 
 // Translating a template into eight languages takes a little while.
@@ -19,9 +20,12 @@ export default async function PlantillasPage({
 }) {
   const { error } = await searchParams
   const supabase = await createClient()
+  // The daily museum mail's template is created on first sight, so it can be
+  // reviewed and edited before the cron ever sends it.
+  await ensureExhibitionTemplate(supabase).catch((err) => console.error('ensureExhibitionTemplate failed:', err))
   const { data: templates } = await supabase
     .from('templates')
-    .select('id, name, subject, updated_at, body_json, translations, translations_source')
+    .select('id, name, subject, updated_at, body_json, translations, translations_source, system_key')
     .order('updated_at', { ascending: false })
 
   const list = (templates ?? []).map((t) => ({ ...t, translation: translationState(t) }))
@@ -66,6 +70,12 @@ export default async function PlantillasPage({
             <div className="min-w-0">
               <p className="font-semibold text-ink">{t.name}</p>
               <p className="text-sm text-muted-foreground">{t.subject}</p>
+              {t.system_key && (
+                <p className="mt-1 text-sm text-ink">
+                  Se envía sola todos los días a las 9 h a los artistas que exponen ese día en la Galería 3D.
+                  Usá {'{{nombre}}'} y {'{{obra}}'} para el nombre y el título de la obra.
+                </p>
+              )}
               <div className="mt-2">
                 <TranslationBadge status={t.translation.status} locales={t.translation.locales} />
               </div>
@@ -93,18 +103,20 @@ export default async function PlantillasPage({
                   Duplicar
                 </SubmitButton>
               </form>
-              <form action={deleteTemplate}>
-                <input type="hidden" name="id" value={t.id} />
-                <SubmitButton
-                  size="sm"
-                  variant="ghost"
-                  className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
-                  pendingLabel="Borrando…"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Borrar
-                </SubmitButton>
-              </form>
+              {!t.system_key && (
+                <form action={deleteTemplate}>
+                  <input type="hidden" name="id" value={t.id} />
+                  <SubmitButton
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
+                    pendingLabel="Borrando…"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Borrar
+                  </SubmitButton>
+                </form>
+              )}
             </div>
           </div>
         ))}

@@ -4,8 +4,9 @@
 // 20260925120000_exhibition_days.sql). The wording lives in a regular
 // template (found by EXHIBITION_TEMPLATE_KEY), so it can be edited — and
 // gets translated — from /admin/plantillas like any other.
-import { nextBlockId, type EmailDocument } from '@/lib/email-blocks'
-import { contactLocale } from '@/lib/email-translation'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { nextBlockId, renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
+import { contactLocale, type EmailTranslations } from '@/lib/email-translation'
 import { isValidEmail } from '@/lib/resend'
 import { getSiteUrl } from '@/lib/site'
 import type { Locale } from '@/lib/i18n/locales'
@@ -39,6 +40,44 @@ export function createExhibitionEmailDocument(siteUrl = getSiteUrl()): EmailDocu
       { id: nextBlockId(), type: 'text', text: 'Mundial Internacional de Collage', align: 'center' },
     ],
   }
+}
+
+export type ExhibitionTemplate = {
+  id: string
+  subject: string
+  body_html: string
+  body_json: unknown
+  translations: EmailTranslations | null
+  translations_source: string | null
+}
+
+// The stored template, created with the default wording if it isn't there
+// yet — called by /admin/plantillas (so it can be reviewed before the first
+// send) and by the cron. Works with an admin session or the service role.
+export async function ensureExhibitionTemplate(db: SupabaseClient): Promise<ExhibitionTemplate> {
+  const columns = 'id, subject, body_html, body_json, translations, translations_source'
+  const find = () => db.from('templates').select(columns).eq('system_key', EXHIBITION_TEMPLATE_KEY).maybeSingle()
+
+  const { data: existing } = await find()
+  if (existing) return existing as ExhibitionTemplate
+
+  const doc = createExhibitionEmailDocument()
+  const { data, error } = await db.from('templates')
+    .insert({
+      name: EXHIBITION_TEMPLATE_NAME,
+      system_key: EXHIBITION_TEMPLATE_KEY,
+      subject: EXHIBITION_DEFAULT_SUBJECT,
+      body_json: doc,
+      body_html: renderEmailDocumentToHtml(doc),
+    })
+    .select(columns)
+    .single()
+  if (data) return data as ExhibitionTemplate
+
+  // Someone else created it between the lookup and the insert (unique key).
+  const { data: raced } = await find()
+  if (raced) return raced as ExhibitionTemplate
+  throw new Error(`No se pudo crear la plantilla: ${error?.message}`)
 }
 
 function escapeHtml(value: string) {
