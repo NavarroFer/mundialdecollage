@@ -93,14 +93,18 @@ export async function translateEmailTexts(
   texts: EmailTexts,
   locales: readonly TranslatedLocale[] = TRANSLATED_LOCALES,
 ): Promise<{ translations: EmailTranslations; errors: string[] }> {
-  const client = new Anthropic()
+  // A key that isn't scoped to a workspace must name one on every request
+  // (the API answers 400 otherwise); a workspace-scoped key needs nothing.
+  const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID
+  const client = new Anthropic(workspaceId ? { defaultHeaders: { 'anthropic-workspace-id': workspaceId } } : {})
   const results = await Promise.allSettled(locales.map((locale) => translateInto(client, locale, texts)))
 
   const translations: EmailTranslations = {}
-  const errors: string[] = []
+  const errors = new Set<string>()
   results.forEach((result, index) => {
     if (result.status === 'fulfilled') translations[locales[index]] = result.value
-    else errors.push(result.reason instanceof Error ? result.reason.message : String(result.reason))
+    else errors.add(result.reason instanceof Error ? result.reason.message : String(result.reason))
   })
-  return { translations, errors }
+  // One bad key fails every language with the same message — report it once.
+  return { translations, errors: [...errors] }
 }
