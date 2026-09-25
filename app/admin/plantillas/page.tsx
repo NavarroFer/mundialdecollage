@@ -7,7 +7,7 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { TranslationBadge } from '@/components/admin/translation-badge'
 import { translationState } from '@/lib/email-translation'
 import { isTranslatorConfigured } from '@/lib/email-translator'
-import { ensureExhibitionTemplate } from '@/lib/exhibition-mail'
+import { ensureSystemTemplate, isSystemTemplateKey, SYSTEM_TEMPLATES } from '@/lib/system-templates'
 import { deleteTemplate, duplicateTemplate, translateTemplate } from './actions'
 
 // Translating a template into eight languages takes a little while.
@@ -20,9 +20,11 @@ export default async function PlantillasPage({
 }) {
   const { error } = await searchParams
   const supabase = await createClient()
-  // The daily museum mail's template is created on first sight, so it can be
-  // reviewed and edited before the cron ever sends it.
-  await ensureExhibitionTemplate(supabase).catch((err) => console.error('ensureExhibitionTemplate failed:', err))
+  // The automatic mails' templates are created on first sight, so they can
+  // be reviewed and edited before the cron ever sends them.
+  await Promise.all(Object.keys(SYSTEM_TEMPLATES).map((key) =>
+    isSystemTemplateKey(key) && ensureSystemTemplate(supabase, key).catch((err) => console.error(`ensureSystemTemplate(${key}) failed:`, err)),
+  ))
   const { data: templates } = await supabase
     .from('templates')
     .select('id, name, subject, updated_at, body_json, translations, translations_source, system_key')
@@ -70,11 +72,8 @@ export default async function PlantillasPage({
             <div className="min-w-0">
               <p className="font-semibold text-ink">{t.name}</p>
               <p className="text-sm text-muted-foreground">{t.subject}</p>
-              {t.system_key && (
-                <p className="mt-1 text-sm text-ink">
-                  Se envía sola todos los días a las 9 h a los artistas que exponen ese día en la Galería 3D.
-                  Usá {'{{nombre}}'} y {'{{obra}}'} para el nombre y el título de la obra.
-                </p>
+              {isSystemTemplateKey(t.system_key) && (
+                <p className="mt-1 text-sm text-ink">{SYSTEM_TEMPLATES[t.system_key].description}</p>
               )}
               <div className="mt-2">
                 <TranslationBadge status={t.translation.status} locales={t.translation.locales} />

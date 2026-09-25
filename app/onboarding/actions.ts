@@ -7,6 +7,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { slugify } from '@/lib/slug'
 import { getAllCountryCodes } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
+import { trackServer } from '@/lib/track-server'
 
 // Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
 // so this also doubles as XSS defense — only ever accept http(s), never
@@ -182,6 +183,7 @@ export async function completeOnboarding(formData: FormData) {
     }
   }
 
+  if (isFirstSubmission) await trackServer('signup_done', user.id)
   redirect('/onboarding/confirmado')
 }
 
@@ -214,6 +216,7 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
   revalidatePath('/participantes')
   revalidatePath('/edicion-2026')
   revalidatePath(`/obras/${artwork.slug}`)
+  await trackServer('signup_done', user.id)
   redirect('/onboarding/confirmado')
 }
 

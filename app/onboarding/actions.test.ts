@@ -10,6 +10,7 @@ vi.mock('@/lib/supabase/config', () => ({ isSupabaseConfigured: true }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: mocks.from }) }))
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }))
 vi.mock('next/navigation', () => ({ redirect: mocks.redirect }))
+vi.mock('@/lib/track-server', () => ({ trackServer: async () => {} }))
 import { confirmArtistDetails } from './actions'
 
 function query(data: unknown, error: unknown = null) {

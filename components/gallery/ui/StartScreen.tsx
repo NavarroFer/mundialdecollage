@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { track } from '@/lib/track'
 import styles from '../gallery-theme.module.css'
 import { PresenceNote } from './PresenceCounter'
 import { useI18n } from '@/lib/i18n/client'
@@ -35,7 +36,7 @@ export function StartScreen({ label, hint, showPresence, onEnter }: StartScreenP
       <p className={styles.hint}>{hint}</p>
       {/* The way back to the rest of the Mundial — signed-in visitors who
           haven't finished signing up get asked to there (ParticipationStatus). */}
-      <Link href="/" className="mt-4 inline-block text-sm font-semibold underline opacity-80 hover:opacity-100">
+      <Link href="/" onClick={() => track('home_from_gallery')} className="mt-4 inline-block text-sm font-semibold underline opacity-80 hover:opacity-100">
         {m.gallery.homeLink}
       </Link>
       </section>

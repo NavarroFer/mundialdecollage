@@ -1,131 +1,121 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createResendClient, isResendConfigured } from '@/lib/resend'
-import { isEmailDocument, personalizeHtml } from '@/lib/email-blocks'
+import { createResendClient, isResendConfigured, RESEND_BATCH_SIZE } from '@/lib/resend'
+import { personalizeHtml } from '@/lib/email-blocks'
+import { withUnsubscribeFooter } from '@/lib/email-translation'
 import {
-  emailFor,
-  emailTextsFingerprint,
-  extractEmailTexts,
-  translatedLocales,
-  withUnsubscribeFooter,
-  type EmailTranslations,
-  type TranslatedLocale,
-} from '@/lib/email-translation'
-import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
-import {
-  ensureExhibitionTemplate,
   fillArtworkTitle,
   planExhibitionMails,
   type ExhibitionQueueRow,
   type ExhibitionRecipient,
-  type ExhibitionTemplate,
 } from '@/lib/exhibition-mail'
+import { digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
+import { ensureSystemTemplate, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
 import { ADMIN_EMAILS } from '@/lib/admin'
-import { site } from '@/lib/site'
-import type { Locale } from '@/lib/i18n/locales'
+import { getSiteUrl, site } from '@/lib/site'
 
-export const maxDuration = 120
+export const maxDuration = 300
 
 // Vercel Cron calls this at 12:05 UTC (09:05 Argentina, right after the
-// exhibition rotates) with `Authorization: Bearer $CRON_SECRET`. Safe to run
-// again: only rows not yet handled get a mail. `?dry=1` shows who would get
-// it without sending anything.
+// exhibition rotates) with `Authorization: Bearer $CRON_SECRET`. Three
+// independent jobs, so one failing doesn't stop the others:
+//   1. "hoy tu obra está en el museo" to today's 20 artists,
+//   2. "así le fue a tu obra" to artists with likes/comments yesterday,
+//   3. a reminder to the admins when comments are waiting for moderation.
+// Safe to run again: every mail is claimed in the database before it's
+// sent. `?dry=1` shows who would get what without sending anything.
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET
   if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
   const dryRun = request.nextUrl.searchParams.get('dry') === '1'
+  const db = createAdminClient()
+  const report: Record<string, unknown> = { dryRun }
+  const problems: string[] = []
 
-  try {
-    const db = createAdminClient()
-    const { error: lineupError } = await db.rpc('ensure_exhibition_today')
-    if (lineupError) throw new Error(`No se pudo armar la muestra de hoy: ${lineupError.message}`)
+  const jobs: [string, string, () => Promise<{ result: unknown; problem?: string }>][] = [
+    ['museum', 'Aviso "hoy tu obra está en el museo"', () => sendMuseumNotices(db, dryRun)],
+    ['digest', 'Aviso "así le fue a tu obra"', () => sendArtistDigests(db, dryRun)],
+    ['pendingComments', 'Recordatorio de comentarios', () => remindPendingComments(db, dryRun)],
+  ]
+  for (const [key, label, job] of jobs) {
+    try {
+      const { result, problem } = await job()
+      report[key] = result
+      if (problem) problems.push(`${label}: ${problem}`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(`${key} failed`, message)
+      report[key] = { error: message }
+      problems.push(`${label} no salió: ${message}`)
+    }
+  }
 
-    const { data: queue, error: queueError } = await db.rpc('exhibition_mail_queue')
-    if (queueError) throw new Error(`No se pudo leer a quién avisar: ${queueError.message}`)
+  if (problems.length && !dryRun) await notifyAdmins('Mundial de Collage · Avisos diarios con problemas', problems.join('\n\n'))
+  return NextResponse.json(report, { status: problems.length ? 500 : 200 })
+}
 
-    const { send, skip } = planExhibitionMails((queue ?? []) as ExhibitionQueueRow[])
-    if (dryRun) {
-      return NextResponse.json({
-        dryRun: true,
+async function sendMuseumNotices(db: SupabaseClient, dryRun: boolean) {
+  const { error: lineupError } = await db.rpc('ensure_exhibition_today')
+  if (lineupError) throw new Error(`No se pudo armar la muestra de hoy: ${lineupError.message}`)
+
+  const { data: queue, error: queueError } = await db.rpc('exhibition_mail_queue')
+  if (queueError) throw new Error(`No se pudo leer a quién avisar: ${queueError.message}`)
+
+  const { send, skip } = planExhibitionMails((queue ?? []) as ExhibitionQueueRow[])
+  if (dryRun) {
+    return {
+      result: {
         send: send.map((r) => ({ email: r.email, name: r.artist_name, obra: r.artwork_title, locale: r.locale })),
         skip: skip.map(({ row, reason }) => ({ email: row.email, obra: row.artwork_title, reason })),
-      })
+      },
     }
-    if (!isResendConfigured) throw new Error('Resend no está configurado')
-
-    const now = new Date().toISOString()
-    for (const { row, reason } of skip) {
-      await db.from('exhibition_days')
-        .update({ notify_status: 'skipped', notify_error: reason, notified_at: now })
-        .eq('day', row.day).eq('slot', row.slot).is('notify_status', null)
-    }
-
-    const recipients = await claim(db, send)
-    let sent = 0
-    let failed = 0
-    let firstError: string | null = null
-
-    if (recipients.length > 0) {
-      const template = await ensureExhibitionTemplate(db)
-      const translations = await translationsFor(db, template, recipients.map((r) => r.locale))
-      const emails = new Map<Locale, ReturnType<typeof emailFor>>()
-      const emailForLocale = (locale: Locale) => {
-        if (!emails.has(locale)) {
-          emails.set(locale, emailFor(locale, {
-            subject: template.subject,
-            bodyHtml: template.body_html,
-            bodyJson: template.body_json,
-            translations,
-          }))
-        }
-        return emails.get(locale)!
-      }
-
-      // Resend's SDK resolves to { data, error } instead of throwing (see
-      // app/admin/campanas/actions.ts); 20 mails fit in one batch call.
-      const { data, error } = await createResendClient().batch.send(recipients.map((r) => {
-        const email = emailForLocale(r.locale)
-        const html = fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title)
-        return {
-          from: site.mailFrom,
-          to: r.email,
-          subject: email.subject,
-          html: withUnsubscribeFooter(html, r.contact_id, email.locale),
-        }
-      }))
-
-      for (const [i, r] of recipients.entries()) {
-        const update = error || !data
-          ? { notify_status: 'failed', notify_error: error?.message ?? 'Error desconocido' }
-          : { notify_status: 'sent', notify_error: null, resend_email_id: data.data[i]?.id ?? null }
-        await db.from('exhibition_days')
-          .update({ ...update, notified_at: new Date().toISOString() })
-          .eq('day', r.day).eq('slot', r.slot)
-      }
-      if (error || !data) {
-        failed = recipients.length
-        firstError = error?.message ?? 'Error desconocido'
-      } else {
-        sent = recipients.length
-      }
-    }
-
-    if (failed) await notifyAdmins(`El aviso "hoy tu obra está en el museo" falló para ${failed} artistas: ${firstError}`)
-    return NextResponse.json({ sent, failed, skipped: skip.length })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error('exhibition mail failed', message)
-    await notifyAdmins(`El aviso "hoy tu obra está en el museo" no salió.\n\n${message}`)
-    return NextResponse.json({ error: message }, { status: 500 })
   }
+  if (!isResendConfigured) throw new Error('Resend no está configurado')
+
+  const now = new Date().toISOString()
+  for (const { row, reason } of skip) {
+    await db.from('exhibition_days')
+      .update({ notify_status: 'skipped', notify_error: reason, notified_at: now })
+      .eq('day', row.day).eq('slot', row.slot).is('notify_status', null)
+  }
+
+  const recipients = await claimExhibitionRows(db, send)
+  if (recipients.length === 0) return { result: { sent: 0, failed: 0, skipped: skip.length } }
+
+  const template = await ensureSystemTemplate(db, 'museo_hoy')
+  const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
+
+  // Resend's SDK resolves to { data, error } instead of throwing (see
+  // app/admin/campanas/actions.ts); 20 mails fit in one batch call.
+  const { data, error } = await createResendClient().batch.send(recipients.map((r) => {
+    const email = renderSystemEmail(template, r.locale, translations)
+    const html = fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title)
+    return { from: site.mailFrom, to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
+  }))
+
+  for (const [i, r] of recipients.entries()) {
+    const update = error || !data
+      ? { notify_status: 'failed', notify_error: error?.message ?? 'Error desconocido' }
+      : { notify_status: 'sent', notify_error: null, resend_email_id: data.data[i]?.id ?? null }
+    await db.from('exhibition_days')
+      .update({ ...update, notified_at: new Date().toISOString() })
+      .eq('day', r.day).eq('slot', r.slot)
+  }
+  if (error || !data) {
+    return {
+      result: { sent: 0, failed: recipients.length, skipped: skip.length },
+      problem: `falló para ${recipients.length} artistas: ${error?.message ?? 'Error desconocido'}`,
+    }
+  }
+  return { result: { sent: recipients.length, failed: 0, skipped: skip.length } }
 }
 
 // Flips each row to 'sending' only if nobody else did first, so an
 // overlapping run can't mail the same artist twice.
-async function claim(db: SupabaseClient, recipients: ExhibitionRecipient[]) {
+async function claimExhibitionRows(db: SupabaseClient, recipients: ExhibitionRecipient[]) {
   const claimed: ExhibitionRecipient[] = []
   for (const r of recipients) {
     const { data } = await db.from('exhibition_days')
@@ -137,40 +127,99 @@ async function claim(db: SupabaseClient, recipients: ExhibitionRecipient[]) {
   return claimed
 }
 
-// Translations for today's languages: the template's own while they match
-// its wording, the missing ones translated now and saved back onto the
-// template so tomorrow reuses them. A language that can't be translated
-// goes out in Spanish, same as campaigns.
-async function translationsFor(db: SupabaseClient, template: ExhibitionTemplate, locales: Locale[]): Promise<EmailTranslations> {
-  if (!isEmailDocument(template.body_json)) return {}
-  const texts = extractEmailTexts(template.subject, template.body_json)
-  const fingerprint = emailTextsFingerprint(template.subject, template.body_json)
-  const current = template.translations_source === fingerprint ? template.translations ?? {} : {}
-  const complete = translatedLocales(current, texts)
-  const missing = [...new Set(locales)].filter(
-    (locale): locale is TranslatedLocale => locale !== 'es' && !complete.includes(locale as TranslatedLocale),
-  )
-  if (missing.length === 0 || !isTranslatorConfigured) return current
+async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
+  const { start, end, day } = digestWindow()
+  const { data, error: activityError } = await db.rpc('artist_activity_digest', {
+    window_start: start.toISOString(),
+    window_end: end.toISOString(),
+  })
+  if (activityError) throw new Error(`No se pudo leer la actividad: ${activityError.message}`)
 
-  try {
-    const { translations: fresh, errors } = await translateEmailTexts(texts, missing)
-    if (errors.length) console.error('exhibition mail translation errors', errors)
-    const merged = { ...current, ...fresh }
-    await db.from('templates').update({ translations: merged, translations_source: fingerprint }).eq('id', template.id)
-    return merged
-  } catch (error) {
-    console.error('exhibition mail translation failed', error)
-    return current
+  // bigint columns can come back as strings; comments as JSON.
+  const rows = ((data ?? []) as DigestRow[]).map((row) => ({
+    ...row,
+    likes_window: Number(row.likes_window),
+    likes_total: Number(row.likes_total),
+    comments: Array.isArray(row.comments) ? row.comments : [],
+  }))
+  const { send, skip } = planArtistDigests(rows)
+  if (dryRun) {
+    return {
+      result: {
+        day,
+        send: send.map((r) => ({ email: r.email, obra: r.artwork_title, likes: r.likes_window, comments: r.comments.length, locale: r.locale })),
+        skip: skip.map(({ row, reason }) => ({ email: row.email, obra: row.artwork_title, reason })),
+      },
+    }
+  }
+  if (!isResendConfigured) throw new Error('Resend no está configurado')
+
+  if (skip.length) {
+    await db.from('artist_digests').upsert(
+      skip.map(({ row, reason }) => ({ profile_id: row.profile_id, day, status: 'skipped', error: reason })),
+      { onConflict: 'profile_id,day', ignoreDuplicates: true },
+    )
+  }
+  // Claim: only rows this run inserted come back, so a second run sends nothing twice.
+  const { data: claimed, error: claimError } = send.length
+    ? await db.from('artist_digests')
+      .upsert(send.map((r) => ({ profile_id: r.profile_id, day, status: 'sending' })), { onConflict: 'profile_id,day', ignoreDuplicates: true })
+      .select('profile_id')
+    : { data: [], error: null }
+  if (claimError) throw new Error(`No se pudo registrar el envío: ${claimError.message}`)
+  const claimedIds = new Set((claimed ?? []).map((c: { profile_id: string }) => c.profile_id))
+  const recipients = send.filter((r) => claimedIds.has(r.profile_id))
+  if (recipients.length === 0) return { result: { day, sent: 0, failed: 0, skipped: skip.length } }
+
+  const template = await ensureSystemTemplate(db, 'novedades_obra')
+  const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
+
+  let sent = 0
+  let failed = 0
+  let firstError: string | null = null
+  for (let i = 0; i < recipients.length; i += RESEND_BATCH_SIZE) {
+    const batch = recipients.slice(i, i + RESEND_BATCH_SIZE)
+    const { data: result, error } = await createResendClient().batch.send(batch.map((r) => {
+      const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
+      const html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title), r)
+      return { from: site.mailFrom, to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
+    }))
+    for (const [j, r] of batch.entries()) {
+      const update = error || !result
+        ? { status: 'failed', error: error?.message ?? 'Error desconocido' }
+        : { status: 'sent', error: null, resend_email_id: result.data[j]?.id ?? null }
+      await db.from('artist_digests').update(update).eq('profile_id', r.profile_id).eq('day', day)
+    }
+    if (error || !result) {
+      failed += batch.length
+      firstError ??= error?.message ?? 'Error desconocido'
+    } else {
+      sent += batch.length
+    }
+  }
+  return {
+    result: { day, sent, failed, skipped: skip.length },
+    problem: failed ? `falló para ${failed} artistas: ${firstError}` : undefined,
   }
 }
 
-async function notifyAdmins(text: string) {
+// Comments sit unpublished until an admin approves them; a daily nudge keeps
+// visitors from waiting days to see theirs.
+async function remindPendingComments(db: SupabaseClient, dryRun: boolean) {
+  const { count, error } = await db.from('artwork_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+  if (error) throw new Error(error.message)
+  const pending = count ?? 0
+  if (pending > 0 && !dryRun) {
+    await notifyAdmins(
+      `Mundial de Collage · ${pending} ${pending === 1 ? 'comentario' : 'comentarios'} para moderar`,
+      `Hay ${pending} ${pending === 1 ? 'comentario esperando' : 'comentarios esperando'} aprobación en la Galería 3D. Quien lo escribió lo ve como pendiente hasta que lo aprobás.\n\n${getSiteUrl()}/admin/comentarios`,
+    )
+  }
+  return { result: { pending } }
+}
+
+async function notifyAdmins(subject: string, text: string) {
   if (!isResendConfigured) return
-  const { error } = await createResendClient().emails.send({
-    from: site.mailFrom,
-    to: ADMIN_EMAILS,
-    subject: 'Mundial de Collage · Aviso diario del museo',
-    text,
-  })
+  const { error } = await createResendClient().emails.send({ from: site.mailFrom, to: ADMIN_EMAILS, subject, text })
   if (error) console.error('exhibition notify failed', error)
 }

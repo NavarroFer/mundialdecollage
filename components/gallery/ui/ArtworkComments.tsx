@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { addArtworkComment, getArtworkComments, type GalleryComment } from '@/app/galeria-3d/actions'
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { clearCommentDraft, galleryReturnPath, readCommentDraft, saveCommentDraft } from '@/lib/gallery-return'
+import { track } from '@/lib/track'
 import { useInteractionStore } from '../interaction/store'
 import { useI18n } from '@/lib/i18n/client'
 
@@ -32,6 +33,7 @@ export function ArtworkComments({ slug }: { slug: string }) {
   const fieldId = useId()
 
   const signIn = useCallback(async (text: string) => {
+    track('sign_in_start')
     saveCommentDraft(slug, text)
     setBusy(true)
     await startGoogleSignIn(galleryReturnPath({ slug, intent: 'comment' }))
@@ -56,6 +58,7 @@ export function ArtworkComments({ slug }: { slug: string }) {
         setDraft('')
         clearCommentDraft(slug)
         setNotice(t.sent)
+        track('comment_sent')
       } else if (result.error === 'sign_in_required') {
         return signIn(body)
       } else {

@@ -29,6 +29,7 @@ import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
 import { readGalleryReturn } from '@/lib/gallery-return'
+import { track } from '@/lib/track'
 
 // Doesn't change over a session, so no subscription is needed — just a
 // client-only snapshot read via useSyncExternalStore (SSR-safe, and no
@@ -88,13 +89,16 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   // parameters so a reload doesn't repeat it. An obra no longer on the walls
   // (the day rotated meanwhile) is just skipped.
   useEffect(() => {
+    track('gallery_view')
     const pending = readGalleryReturn(window.location.search)
     if (!pending) return
     window.history.replaceState(null, '', window.location.pathname)
+    track('sign_in_return')
     if (artworks.some((artwork) => artwork.id === pending.slug)) useInteractionStore.getState().resume(pending)
   }, [artworks])
 
   function handleEnter() {
+    if (!hasStarted) track('gallery_enter')
     setHasStarted(true)
     musicRef.current?.play()
   }

@@ -5,6 +5,7 @@ import { Heart } from 'lucide-react'
 import { getArtworkLike, likeArtwork } from '@/app/galeria-3d/actions'
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { galleryReturnPath } from '@/lib/gallery-return'
+import { track } from '@/lib/track'
 import { useInteractionStore } from '../interaction/store'
 import { usePresenceStore } from '../presence/store'
 import { useI18n } from '@/lib/i18n/client'
@@ -29,6 +30,7 @@ export function ArtworkLike({ slug }: { slug: string }) {
   // Likes need a Google account; the visitor comes back to this same obra
   // and the like finishes on its own (see the load effect below).
   const signIn = useCallback(async () => {
+    track('sign_in_start')
     setRedirecting(true)
     await startGoogleSignIn(galleryReturnPath({ slug, intent: 'like' }))
   }, [slug])
@@ -53,6 +55,7 @@ export function ArtworkLike({ slug }: { slug: string }) {
         return
       }
       setState({ ...current, count: current.count + 1, liked: true })
+      track('like_saved')
       // Everyone inside sees a heart rise from the obra.
       usePresenceStore.getState().react?.(slug, '❤️')
       // Fetch the authoritative count: another tab may have already voted.
@@ -88,7 +91,7 @@ export function ArtworkLike({ slug }: { slug: string }) {
 
   return (
     <div className="mt-3 space-y-3">
-      <button type="button" onClick={() => state && void save(state)} disabled={!state || busy || redirecting || state.liked}
+      <button type="button" onClick={() => { if (!state) return; track('like_click'); void save(state) }} disabled={!state || busy || redirecting || state.liked}
         aria-pressed={state?.liked ?? false} aria-expanded={state && !state.signedIn ? askSignIn : undefined}
         className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-5 py-3 font-semibold disabled:opacity-60">
         <Heart className="h-5 w-5" fill={state?.liked || askSignIn ? 'currentColor' : 'none'} aria-hidden="true" />

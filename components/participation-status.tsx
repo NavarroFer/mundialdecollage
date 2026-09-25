@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
+import { TrackedLink, TrackView } from '@/components/track'
 import { CountrySelect } from '@/components/ui/country-select'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { createClient } from '@/lib/supabase/server'
@@ -103,12 +104,13 @@ export async function ParticipationStatus() {
                 <div className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/5 p-4 text-left">
                   <p className="font-semibold text-ink">{m.status.confirmTitle}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{m.status.confirmBody}</p>
-                  <Link href="/onboarding" className="mt-3 inline-block">
+                  <TrackView event="signup_prompt_view" />
+                  <TrackedLink href="/onboarding" event="signup_prompt_click" className="mt-3 inline-block">
                     <Button className="gap-2">
                       {m.status.confirmCta}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
-                  </Link>
+                  </TrackedLink>
                 </div>
               )}
 
@@ -176,12 +178,13 @@ function FinishSignUp({ m }: { m: Messages }) {
             </span>
             <h2 className="font-display mt-4 text-2xl tracking-tight text-ink uppercase sm:text-3xl">{m.status.joinTitle}</h2>
             <p className="mt-2 max-w-2xl text-muted-foreground">{m.status.joinBody}</p>
-            <Link href="/onboarding" className="mt-5 inline-block">
+            <TrackView event="signup_prompt_view" />
+            <TrackedLink href="/onboarding" event="signup_prompt_click" className="mt-5 inline-block">
               <Button className="gap-2">
                 {m.status.joinCta}
                 <ArrowRight className="h-4 w-4" />
               </Button>
-            </Link>
+            </TrackedLink>
           </div>
         </FadeIn>
       </div>

@@ -2,6 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect } from 'react'
+import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
 import { ArtworkComments } from './ArtworkComments'
@@ -18,6 +20,10 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
   const openId = useInteractionStore((state) => state.openId)
   const artwork = artworks.find((item) => item.id === openId)
   const { m } = useI18n()
+
+  useEffect(() => {
+    if (openId) track('artwork_open')
+  }, [openId])
 
   if (!artwork) return null
 
@@ -50,7 +56,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {m.gallery.closeToContinue}
           </p>
-          <Link href="/" className="text-sm font-semibold underline">{m.gallery.homeLink}</Link>
+          <Link href="/" onClick={() => track('home_from_gallery')} className="text-sm font-semibold underline">{m.gallery.homeLink}</Link>
         </div>
       </DialogContent>
     </Dialog>

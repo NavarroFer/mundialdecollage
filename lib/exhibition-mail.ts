@@ -1,104 +1,29 @@
 // The daily "hoy tu obra está en el museo" mail: every morning at 09:00
 // Argentina, app/api/cron/exhibition writes to the artists of the 20 obras
 // hanging in the 3D gallery that day (supabase/migrations/
-// 20260925120000_exhibition_days.sql). The wording lives in a regular
-// template (found by EXHIBITION_TEMPLATE_KEY), so it can be edited — and
-// gets translated — from /admin/plantillas like any other.
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { nextBlockId, renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
-import { contactLocale, type EmailTranslations } from '@/lib/email-translation'
+// 20260925120000_exhibition_days.sql). Its wording is the `museo_hoy`
+// system template (lib/system-templates.ts), editable from /admin/plantillas.
+import { contactLocale } from '@/lib/email-translation'
 import { isValidEmail } from '@/lib/resend'
-import { getSiteUrl } from '@/lib/site'
+import { fillTextTag } from '@/lib/system-templates'
 import type { Locale } from '@/lib/i18n/locales'
 
-export const EXHIBITION_TEMPLATE_KEY = 'museo_hoy'
-export const EXHIBITION_TEMPLATE_NAME = 'Aviso diario: tu obra está en el museo'
-export const EXHIBITION_DEFAULT_SUBJECT = 'Hoy tu obra está en el museo del Mundial de Collage'
-
-// First version of the template, stored the first time the cron runs; from
-// then on the stored one (and any edits to it) is what goes out.
-export function createExhibitionEmailDocument(siteUrl = getSiteUrl()): EmailDocument {
-  return {
-    blocks: [
-      { id: nextBlockId(), type: 'image', url: `${siteUrl}/logo.png`, alt: 'Mundial de Collage', link: siteUrl, widthPct: 40 },
-      { id: nextBlockId(), type: 'spacer', size: 'sm' },
-      { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}}, hoy tu obra está en el museo', align: 'left', size: 'md' },
-      {
-        id: nextBlockId(),
-        type: 'text',
-        text: 'Todos los días colgamos 20 obras del Mundial Internacional de Collage en nuestra Galería 3D, y hoy «{{obra}}» es una de ellas.',
-        align: 'left',
-      },
-      {
-        id: nextBlockId(),
-        type: 'image',
-        url: `${siteUrl}/email/galeria-3d.jpg`,
-        alt: 'Una sala de la Galería 3D del Mundial de Collage, con obras colgadas y visitantes recorriéndola',
-        link: `${siteUrl}/galeria-3d`,
-        widthPct: 100,
-      },
-      {
-        id: nextBlockId(),
-        type: 'text',
-        text: 'Entrá desde el navegador, recorré las salas y buscala en la pared. Sacale una captura y compartila: mañana a las 9 la muestra cambia.',
-        align: 'left',
-      },
-      { id: nextBlockId(), type: 'button', text: 'Visitar el museo', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'red' },
-      { id: nextBlockId(), type: 'divider' },
-      { id: nextBlockId(), type: 'text', text: 'Mundial Internacional de Collage', align: 'center' },
-    ],
-  }
-}
-
-export type ExhibitionTemplate = {
-  id: string
-  subject: string
-  body_html: string
-  body_json: unknown
-  translations: EmailTranslations | null
-  translations_source: string | null
-}
-
-// The stored template, created with the default wording if it isn't there
-// yet — called by /admin/plantillas (so it can be reviewed before the first
-// send) and by the cron. Works with an admin session or the service role.
-export async function ensureExhibitionTemplate(db: SupabaseClient): Promise<ExhibitionTemplate> {
-  const columns = 'id, subject, body_html, body_json, translations, translations_source'
-  const find = () => db.from('templates').select(columns).eq('system_key', EXHIBITION_TEMPLATE_KEY).maybeSingle()
-
-  const { data: existing } = await find()
-  if (existing) return existing as ExhibitionTemplate
-
-  const doc = createExhibitionEmailDocument()
-  const { data, error } = await db.from('templates')
-    .insert({
-      name: EXHIBITION_TEMPLATE_NAME,
-      system_key: EXHIBITION_TEMPLATE_KEY,
-      subject: EXHIBITION_DEFAULT_SUBJECT,
-      body_json: doc,
-      body_html: renderEmailDocumentToHtml(doc),
-    })
-    .select(columns)
-    .single()
-  if (data) return data as ExhibitionTemplate
-
-  // Someone else created it between the lookup and the insert (unique key).
-  const { data: raced } = await find()
-  if (raced) return raced as ExhibitionTemplate
-  throw new Error(`No se pudo crear la plantilla: ${error?.message}`)
-}
-
-function escapeHtml(value: string) {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-const OBRA_TOKEN = /\{\{\s*obra\s*\}\}/gi
-
-// {{obra}} → the artwork's title. A replacer function for the same reason as
-// personalizeHtml: a title with "$&" in it must come out literal.
+/** {{obra}} → the artwork's title, escaped. */
 export function fillArtworkTitle(html: string, title: string): string {
-  const escaped = escapeHtml(title.trim())
-  return html.replace(OBRA_TOKEN, () => escaped)
+  return fillTextTag(html, 'obra', title.trim())
+}
+
+/**
+ * Why an artist can't get an automatic mail, or null if they can: only to a
+ * valid address that's in `contacts` and still subscribed (so the footer's
+ * unsubscribe link works and opting out is respected).
+ */
+export function unreachableReason(row: { email: string | null; contact_id: string | null; subscribed: boolean | null }): string | null {
+  if (!row.email) return 'La obra no tiene email'
+  if (!isValidEmail(row.email)) return 'Formato de email inválido'
+  if (!row.contact_id) return 'El email no está en contactos'
+  if (!row.subscribed) return 'Se dio de baja'
+  return null
 }
 
 /** One row of exhibition_mail_queue() (see the migration). */
@@ -135,12 +60,8 @@ export function planExhibitionMails(rows: ExhibitionQueueRow[]): {
   for (const row of rows) {
     const reason =
       row.sent_before ? 'Ya se le avisó por esta obra'
-      : !row.email ? 'La obra no tiene email'
-      : !isValidEmail(row.email) ? 'Formato de email inválido'
-      : !row.contact_id ? 'El email no está en contactos'
-      : !row.subscribed ? 'Se dio de baja'
-      : seen.has(row.email) ? 'Ya recibe hoy el aviso por otra obra'
-      : null
+      : unreachableReason(row)
+      ?? (seen.has(row.email!) ? 'Ya recibe hoy el aviso por otra obra' : null)
     if (reason) {
       skip.push({ row, reason })
       continue
