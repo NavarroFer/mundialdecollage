@@ -31,6 +31,14 @@ export function createExhibitionEmailDocument(siteUrl = getSiteUrl()): EmailDocu
       },
       {
         id: nextBlockId(),
+        type: 'image',
+        url: `${siteUrl}/email/galeria-3d.jpg`,
+        alt: 'Una sala de la Galería 3D del Mundial de Collage, con obras colgadas y visitantes recorriéndola',
+        link: `${siteUrl}/galeria-3d`,
+        widthPct: 100,
+      },
+      {
+        id: nextBlockId(),
         type: 'text',
         text: 'Entrá desde el navegador, recorré las salas y buscala en la pared. Sacale una captura y compartila: mañana a las 9 la muestra cambia.',
         align: 'left',
