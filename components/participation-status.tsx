@@ -10,13 +10,14 @@ import { ADMIN_EMAILS } from '@/lib/admin'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { completeMissingDetails } from '@/app/onboarding/actions'
 import { getI18n } from '@/lib/i18n/server'
+import type { Messages } from '@/lib/i18n/messages'
 
-// Shown right under the hero for a returning, already-submitted artist —
-// "cuando esté logueado cada artista, que diga 'Ya estás participando' y les
-// muestre su obra." Renders nothing for logged-out visitors, admins (they
-// never submit an artwork, see lib/admin.ts), and logged-in users who
-// haven't finished onboarding yet — that "you haven't submitted" case is
-// intentionally out of scope here.
+// Shown right under the hero to anyone signed in (admins excepted — they
+// never submit an artwork, see lib/admin.ts). A returning, already-submitted
+// artist sees "Ya estás participando" with their obra — and, if Registro
+// loaded it for them, a prompt to confirm their details. Someone who signed
+// in without finishing (e.g. with Google, to like an obra in the 3D gallery)
+// is asked to finish their sign-up instead. Logged-out visitors see nothing.
 export async function ParticipationStatus() {
   if (!isSupabaseConfigured) return null
 
@@ -28,13 +29,15 @@ export async function ParticipationStatus() {
   if (!user) return null
   if (ADMIN_EMAILS.includes(user.email ?? '')) return null
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('onboarded_at, country_code')
+    .select('onboarded_at, country_code, details_confirmed_at')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (!profile?.onboarded_at) return null
+  // A read error must not look like "never signed up" and nag a real artist.
+  if (profileError) return null
+  if (!profile?.onboarded_at) return <FinishSignUp m={m} />
 
   // The artwork this artist is currently represented by — see
   // supabase/migrations/20260921040000_artworks.sql. Not necessarily set:
@@ -45,7 +48,7 @@ export async function ParticipationStatus() {
   // defensive "don't show a broken card" behavior.
   const { data: artwork } = await supabase
     .from('artworks')
-    .select('title, slug, image_url, technique')
+    .select('title, slug, image_url, technique, legacy_submission_id')
     .eq('profile_id', user.id)
     .eq('is_selected', true)
     .maybeSingle()
@@ -56,7 +59,12 @@ export async function ParticipationStatus() {
   // free-text import couldn't guess one) rather than block on it — this is
   // where that gets asked for real, along with técnica since the legacy
   // import never captured that either. See completeMissingDetails.
-  const needsCountry = !profile.country_code
+  // Registro loaded this obra and its details for them (legacy_submission_id)
+  // — until they confirm name and country themselves (confirmArtistDetails),
+  // ask them to. That review covers the country too, so it replaces the
+  // country form below.
+  const needsConfirmation = Boolean(artwork.legacy_submission_id) && !profile.details_confirmed_at
+  const needsCountry = !needsConfirmation && !profile.country_code
   const countries = needsCountry
     ? getAllCountryCodes()
         .map((code) => ({ code, name: countryCodeToName(code, locale) }))
@@ -90,6 +98,19 @@ export async function ParticipationStatus() {
               <p className="mt-2 text-muted-foreground">
                 {m.status.body}
               </p>
+
+              {needsConfirmation && (
+                <div className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/5 p-4 text-left">
+                  <p className="font-semibold text-ink">{m.status.confirmTitle}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{m.status.confirmBody}</p>
+                  <Link href="/onboarding" className="mt-3 inline-block">
+                    <Button className="gap-2">
+                      {m.status.confirmCta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
               {needsCountry && (
                 <form
@@ -134,6 +155,33 @@ export async function ParticipationStatus() {
                 </Link>
               </div>
             </div>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  )
+}
+
+// Signed in (e.g. with Google from the 3D gallery) but never submitted: the
+// onboarding page takes it from here — it also recognizes an artist whose
+// obra was already sent in some other way and only asks them to confirm.
+function FinishSignUp({ m }: { m: Messages }) {
+  return (
+    <section className="border-t-2 border-ink/10 bg-background py-14 sm:py-20">
+      <div className="mx-auto max-w-4xl px-5 sm:px-8">
+        <FadeIn>
+          <div className="rounded-2xl border-2 border-ink/10 bg-card p-6 text-center sm:p-8 sm:text-left">
+            <span className="torn-strip inline-flex -rotate-1 items-center gap-1.5 bg-collage-red px-4 py-1.5 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
+              {m.status.finishBadge}
+            </span>
+            <h2 className="font-display mt-4 text-2xl tracking-tight text-ink uppercase sm:text-3xl">{m.status.joinTitle}</h2>
+            <p className="mt-2 max-w-2xl text-muted-foreground">{m.status.joinBody}</p>
+            <Link href="/onboarding" className="mt-5 inline-block">
+              <Button className="gap-2">
+                {m.status.joinCta}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </FadeIn>
       </div>

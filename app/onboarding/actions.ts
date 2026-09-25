@@ -206,7 +206,7 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
   if (artworkError || !artwork) return 'not_found'
 
   const { data: profile, error: profileError } = await supabase.from('profiles')
-    .update({ name, country_code: countryCode })
+    .update({ name, country_code: countryCode, details_confirmed_at: new Date().toISOString() })
     .eq('id', user.id).select('id').maybeSingle()
   if (profileError || !profile) return 'save_failed'
 

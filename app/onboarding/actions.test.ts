@@ -57,7 +57,7 @@ describe('artist confirmation', () => {
     for (let attempt = 0; attempt < 2; attempt++) {
       await expect(confirmArtistDetails('', details())).rejects.toThrow('redirect:/onboarding/confirmado')
     }
-    expect(profile.update).toHaveBeenCalledWith({ name: 'Ana Collage', country_code: 'AR' })
+    expect(profile.update).toHaveBeenCalledWith({ name: 'Ana Collage', country_code: 'AR', details_confirmed_at: expect.any(String) })
     expect(profile.eq).toHaveBeenCalledWith('id', 'artist-1')
     expect(artwork.update).not.toHaveBeenCalled()
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/obras/ana-collage')

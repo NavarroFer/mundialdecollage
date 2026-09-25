@@ -28,6 +28,18 @@ function GoogleIcon() {
   )
 }
 
+// Sends the visitor to Google; /auth/callback brings them back to `next`.
+// Exported for flows that sign in from their own button (the gallery's
+// like and comment, see lib/gallery-return.ts).
+export async function startGoogleSignIn(next: string) {
+  await createClient().auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+  })
+}
+
+export { GoogleIcon }
+
 // `compact` shows just the Google mark on phones (label kept for screen
 // readers), so the header fits next to the language switcher.
 export function GoogleSignInButton({ next = '/onboarding', compact = false }: { next?: string; compact?: boolean }) {
@@ -36,11 +48,7 @@ export function GoogleSignInButton({ next = '/onboarding', compact = false }: { 
 
   async function handleClick() {
     setLoading(true)
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
-    })
+    await startGoogleSignIn(next)
   }
 
   return (

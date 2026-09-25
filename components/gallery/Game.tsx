@@ -28,6 +28,7 @@ import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
+import { readGalleryReturn } from '@/lib/gallery-return'
 
 // Doesn't change over a session, so no subscription is needed — just a
 // client-only snapshot read via useSyncExternalStore (SSR-safe, and no
@@ -81,6 +82,17 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       document.removeEventListener('pointerlockerror', stopResuming)
     }
   }, [isTouchDevice])
+
+  // Back from signing in with Google to like or comment: reopen that obra so
+  // ArtworkLike / ArtworkComments can finish the action, and drop the
+  // parameters so a reload doesn't repeat it. An obra no longer on the walls
+  // (the day rotated meanwhile) is just skipped.
+  useEffect(() => {
+    const pending = readGalleryReturn(window.location.search)
+    if (!pending) return
+    window.history.replaceState(null, '', window.location.pathname)
+    if (artworks.some((artwork) => artwork.id === pending.slug)) useInteractionStore.getState().resume(pending)
+  }, [artworks])
 
   function handleEnter() {
     setHasStarted(true)

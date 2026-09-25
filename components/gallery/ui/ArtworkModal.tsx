@@ -1,8 +1,10 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
+import { ArtworkComments } from './ArtworkComments'
 import { ArtworkViewers } from './PresenceCounter'
 import { LiveReactions } from './LiveReactions'
 import type { Artwork } from '@/data/artworks'
@@ -44,9 +46,11 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           <ArtworkViewers artworkId={artwork.id} />
           <LiveReactions artworkId={artwork.id} />
           <ArtworkLike key={artwork.id} slug={artwork.id} />
+          <ArtworkComments key={`comments-${artwork.id}`} slug={artwork.id} />
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {m.gallery.closeToContinue}
           </p>
+          <Link href="/" className="text-sm font-semibold underline">{m.gallery.homeLink}</Link>
         </div>
       </DialogContent>
     </Dialog>
