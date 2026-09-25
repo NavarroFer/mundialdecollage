@@ -7,6 +7,7 @@ import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
 import { ArtworkComments } from './ArtworkComments'
+import { ArtworkShare } from './ArtworkShare'
 import { ArtworkViewers } from './PresenceCounter'
 import { LiveReactions } from './LiveReactions'
 import type { Artwork } from '@/data/artworks'
@@ -52,6 +53,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           <ArtworkViewers artworkId={artwork.id} />
           <LiveReactions artworkId={artwork.id} />
           <ArtworkLike key={artwork.id} slug={artwork.id} />
+          <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
           <ArtworkComments key={`comments-${artwork.id}`} slug={artwork.id} />
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {m.gallery.closeToContinue}

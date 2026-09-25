@@ -40,7 +40,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
     name: 'Aviso diario: tu obra está en el museo',
     subject: 'Hoy tu obra está en el museo del Mundial de Collage',
     description:
-      'Se envía sola todos los días a las 9 h a los artistas que exponen ese día en la Galería 3D. Usá {{nombre}} y {{obra}} para el nombre y el título de la obra.',
+      'Se envía sola todos los días a las 9 h a los artistas que exponen ese día en la Galería 3D. Usá {{nombre}} y {{obra}} para el nombre y el título de la obra, y {{link_obra}} como link de un botón para que abra su obra directo en la galería.',
     createDocument: (siteUrl) => ({
       blocks: [
         logo(siteUrl),
@@ -63,10 +63,10 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         {
           id: nextBlockId(),
           type: 'text',
-          text: 'Entrá desde el navegador, recorré las salas y buscala en la pared. Sacale una captura y compartila: mañana a las 9 la muestra cambia.',
+          text: 'El botón de abajo abre tu obra directo en la galería. Compartí ese link con tu gente para que la vean y le dejen su like: mañana a las 9 la muestra cambia.',
           align: 'left',
         },
-        { id: nextBlockId(), type: 'button', text: 'Visitar el museo', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'red' },
+        { id: nextBlockId(), type: 'button', text: 'Ver mi obra en el museo', url: '{{link_obra}}', align: 'left', color: 'red' },
         ...footer(),
       ],
     }),

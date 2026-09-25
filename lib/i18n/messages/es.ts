@@ -285,6 +285,11 @@ const es = {
     artworkOfficial: 'Obra oficial del Mundial de Collage {year}.',
     closeToContinue: 'Cerrá esta ventana para seguir recorriendo',
     homeLink: 'Ir al inicio del Mundial',
+    share: {
+      button: 'Compartir esta obra',
+      copied: '¡Link copiado!',
+      text: '«{title}», de {artist}, está hoy en el museo del Mundial de Collage.',
+    },
     reactLive: 'Reaccioná en vivo',
     reactions: ['Me encanta', 'Aplausos', 'Fuego', 'Brillante'],
     musicOn: 'Activar música',

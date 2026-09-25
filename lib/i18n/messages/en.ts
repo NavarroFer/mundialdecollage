@@ -282,6 +282,11 @@ const en: Messages = {
     artworkOfficial: 'Official artwork of the {year} Collage World Cup.',
     closeToContinue: 'Close this window to keep exploring',
     homeLink: 'Go to the Collage World Cup home page',
+    share: {
+      button: 'Share this artwork',
+      copied: 'Link copied!',
+      text: '"{title}" by {artist} is in the Collage World Cup museum today.',
+    },
     reactLive: 'React live',
     reactions: ['Love it', 'Applause', 'Fire', 'Brilliant'],
     musicOn: 'Turn music on',

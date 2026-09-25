@@ -11,7 +11,8 @@ import {
   type ExhibitionRecipient,
 } from '@/lib/exhibition-mail'
 import { digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
-import { ensureSystemTemplate, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
+import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
+import { galleryArtworkPath } from '@/lib/gallery-return'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { getSiteUrl, site } from '@/lib/site'
 
@@ -92,7 +93,11 @@ async function sendMuseumNotices(db: SupabaseClient, dryRun: boolean) {
   // app/admin/campanas/actions.ts); 20 mails fit in one batch call.
   const { data, error } = await createResendClient().batch.send(recipients.map((r) => {
     const email = renderSystemEmail(template, r.locale, translations)
-    const html = fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title)
+    const html = fillTextTag(
+      fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title),
+      'link_obra',
+      `${getSiteUrl()}${galleryArtworkPath(r.artwork_slug)}`,
+    )
     return { from: site.mailFrom, to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
   }))
 

@@ -33,3 +33,6 @@ next-env.d.ts
 
 # supabase CLI local cache
 supabase/.temp/
+
+# Codex local config (may hold secrets, e.g. the Mercado Pago token)
+.codex/

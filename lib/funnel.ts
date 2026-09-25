@@ -5,6 +5,7 @@
 // where people drop off before building the monthly plan on top of it.
 export const FUNNEL_STEPS = [
   { name: 'gallery_view', label: 'Abrieron la galería' },
+  { name: 'shared_link_open', label: 'Llegaron por el link de una obra (compartido o del mail)' },
   { name: 'gallery_enter', label: 'Entraron a recorrerla' },
   { name: 'artwork_open', label: 'Abrieron una obra' },
   { name: 'like_click', label: 'Tocaron «Me gusta»' },
@@ -12,6 +13,7 @@ export const FUNNEL_STEPS = [
   { name: 'sign_in_return', label: 'Volvieron logueados a la obra' },
   { name: 'like_saved', label: 'Dejaron un like' },
   { name: 'comment_sent', label: 'Escribieron un comentario' },
+  { name: 'share_click', label: 'Compartieron una obra' },
   { name: 'home_from_gallery', label: 'Fueron de la galería al inicio' },
   { name: 'signup_prompt_view', label: 'Vieron «Terminá tu inscripción» o «Confirmá tus datos»' },
   { name: 'signup_prompt_click', label: 'Tocaron para terminar o confirmar' },

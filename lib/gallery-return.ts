@@ -13,6 +13,18 @@ export function galleryReturnPath({ slug, intent }: GalleryReturn): string {
   return `/galeria-3d?${new URLSearchParams({ obra: slug, accion: intent })}`
 }
 
+/** Link that opens one obra in the gallery — to share, and in the museum mail. */
+export function galleryArtworkPath(slug: string): string {
+  return `/galeria-3d?${new URLSearchParams({ obra: slug })}`
+}
+
+/** The obra a shared link points at (no pending action attached). */
+export function readSharedArtwork(search: string): string | null {
+  const params = new URLSearchParams(search)
+  const slug = params.get('obra')
+  return slug && slug.length <= 300 && !params.has('accion') ? slug : null
+}
+
 export function readGalleryReturn(search: string): GalleryReturn | null {
   const params = new URLSearchParams(search)
   const slug = params.get('obra')

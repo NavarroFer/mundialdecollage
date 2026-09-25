@@ -87,11 +87,13 @@ export default async function PoliticaDePrivacidadPage() {
                 nombre, email y los datos de pago necesarios para procesar tu inscripción.
               </li>
               <li>
-                <span className="font-semibold text-foreground">Likes en la galería:</span>{' '}
-                tu email y las obras que te gustan, para guardar un único like por mail y
-                obra y enviarte novedades del Mundial. No necesitás crear una cuenta.
-                Recordamos tu mail mediante una cookie durante un año para que no tengas
-                que ingresarlo cada vez. Podés darte de baja de las novedades cuando quieras.
+                <span className="font-semibold text-foreground">Likes y comentarios en la galería:</span>{' '}
+                para dar like o comentar ingresás con tu cuenta de Google. Guardamos tu
+                email, las obras que te gustan y los comentarios que escribas. Los
+                comentarios se publican con tu nombre después de que los revisamos; tu
+                email nunca se muestra. Al dar like te sumamos a las novedades del
+                Mundial por email; podés darte de baja cuando quieras. Los likes y
+                comentarios que recibe una obra se le cuentan a su artista por email.
               </li>
               <li>
                 <span className="font-semibold text-foreground">Uso del Sitio:</span>{' '}
@@ -134,6 +136,11 @@ export default async function PoliticaDePrivacidadPage() {
                 <span className="font-semibold text-foreground">Resend</span> — envío de
                 emails y novedades.
               </li>
+              <li>
+                <span className="font-semibold text-foreground">Microsoft Clarity</span> —
+                estadísticas de uso del Sitio (clics, desplazamiento y grabaciones
+                anónimas de la navegación) para mejorarlo.
+              </li>
             </ul>
           </Section>
 
@@ -161,8 +168,12 @@ export default async function PoliticaDePrivacidadPage() {
 
           <Section title="Cookies">
             <p>
-              El Sitio usa únicamente las cookies técnicas necesarias para mantener tu
-              sesión iniciada. No usamos cookies de seguimiento publicitario.
+              El Sitio usa cookies para mantener tu sesión iniciada y recordar el idioma
+              que elegiste. También guarda un identificador anónimo al azar (sin tu
+              nombre ni tu email) para contar cuántas personas recorren la galería y
+              llegan a cada paso de la inscripción, y Microsoft Clarity usa sus propias
+              cookies para las estadísticas de uso. No usamos cookies de seguimiento
+              publicitario.
             </p>
           </Section>
 

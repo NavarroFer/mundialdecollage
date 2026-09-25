@@ -281,6 +281,11 @@ const pt: Messages = {
     artworkOfficial: 'Obra oficial do Mundial de Colagem {year}.',
     closeToContinue: 'Feche esta janela para continuar o passeio',
     homeLink: 'Ir para o início do Mundial de Colagem',
+    share: {
+      button: 'Compartilhar esta obra',
+      copied: 'Link copiado!',
+      text: '"{title}", de {artist}, está hoje no museu do Mundial de Colagem.',
+    },
     reactLive: 'Reaja ao vivo',
     reactions: ['Amei', 'Aplausos', 'Fogo', 'Brilhante'],
     musicOn: 'Ligar música',

@@ -28,7 +28,7 @@ import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
-import { readGalleryReturn } from '@/lib/gallery-return'
+import { readGalleryReturn, readSharedArtwork } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
 
 // Doesn't change over a session, so no subscription is needed — just a
@@ -90,6 +90,20 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   // (the day rotated meanwhile) is just skipped.
   useEffect(() => {
     track('gallery_view')
+    // A shared link to one obra (or the one in the museum mail): open it if
+    // it's on the walls today, else show its own page — it's still an obra
+    // of the Mundial, just not hanging right now.
+    const shared = readSharedArtwork(window.location.search)
+    if (shared) {
+      track('shared_link_open')
+      if (artworks.some((artwork) => artwork.id === shared)) {
+        window.history.replaceState(null, '', window.location.pathname)
+        useInteractionStore.getState().open(shared)
+      } else {
+        window.location.replace(`/obras/${encodeURIComponent(shared)}`)
+      }
+      return
+    }
     const pending = readGalleryReturn(window.location.search)
     if (!pending) return
     window.history.replaceState(null, '', window.location.pathname)

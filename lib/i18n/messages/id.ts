@@ -281,6 +281,11 @@ const id: Messages = {
     artworkOfficial: 'Karya resmi Piala Dunia Kolase {year}.',
     closeToContinue: 'Tutup jendela ini untuk melanjutkan tur',
     homeLink: 'Ke beranda Piala Dunia Kolase',
+    share: {
+      button: 'Bagikan karya ini',
+      copied: 'Tautan disalin!',
+      text: '"{title}" karya {artist} hari ini dipamerkan di museum Piala Dunia Kolase.',
+    },
     reactLive: 'Beri reaksi langsung',
     reactions: ['Suka sekali', 'Tepuk tangan', 'Keren', 'Cemerlang'],
     musicOn: 'Nyalakan musik',

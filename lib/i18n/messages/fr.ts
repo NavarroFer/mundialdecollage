@@ -281,6 +281,11 @@ const fr: Messages = {
     artworkOfficial: 'Œuvre officielle du Mondial du Collage {year}.',
     closeToContinue: 'Ferme cette fenêtre pour continuer la visite',
     homeLink: "Aller à l'accueil du Mondial du Collage",
+    share: {
+      button: 'Partager cette œuvre',
+      copied: 'Lien copié !',
+      text: "« {title} » de {artist} est aujourd'hui au musée du Mondial du Collage.",
+    },
     reactLive: 'Réagis en direct',
     reactions: ["J'adore", 'Bravo', 'Feu', 'Brillant'],
     musicOn: 'Activer la musique',

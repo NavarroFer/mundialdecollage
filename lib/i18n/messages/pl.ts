@@ -286,6 +286,11 @@ const pl: Messages = {
     artworkOfficial: 'Oficjalna praca Mistrzostw Świata w Kolażu {year}.',
     closeToContinue: 'Zamknij to okno, aby zwiedzać dalej',
     homeLink: 'Przejdź na stronę główną Mistrzostw Świata w Kolażu',
+    share: {
+      button: 'Udostępnij tę pracę',
+      copied: 'Link skopiowany!',
+      text: '„{title}” autorstwa {artist} jest dziś w muzeum Mistrzostw Świata w Kolażu.',
+    },
     reactLive: 'Reaguj na żywo',
     reactions: ['Uwielbiam', 'Brawo', 'Ogień', 'Genialne'],
     musicOn: 'Włącz muzykę',

@@ -281,6 +281,11 @@ const de: Messages = {
     artworkOfficial: 'Offizielles Werk der Collage-WM {year}.',
     closeToContinue: 'Schließ dieses Fenster, um weiterzugehen',
     homeLink: 'Zur Startseite der Collage-WM',
+    share: {
+      button: 'Dieses Werk teilen',
+      copied: 'Link kopiert!',
+      text: '„{title}“ von {artist} hängt heute im Museum der Collage-WM.',
+    },
     reactLive: 'Live reagieren',
     reactions: ['Liebe ich', 'Applaus', 'Feuer', 'Brillant'],
     musicOn: 'Musik einschalten',

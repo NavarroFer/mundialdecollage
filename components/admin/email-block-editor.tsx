@@ -420,9 +420,13 @@ function BlockFields({ block, onChange }: { block: EmailBlock; onChange: (patch:
             </div>
             <div>
               <label className={labelClass}>Link</label>
+              {/* Text, not type="url": the automatic mails put a per-artist
+                  link here as a tag ({{link_obra}}, lib/system-templates.ts),
+                  which the browser's URL validation would refuse to save. */}
               <input
-                type="url"
-                placeholder="https://…"
+                type="text"
+                inputMode="url"
+                placeholder="https://… o {{link_obra}}"
                 value={block.url}
                 onChange={(e) => onChange({ url: e.target.value })}
                 className={inputClass}
