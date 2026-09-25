@@ -343,3 +343,128 @@ export async function enableOpenTracking() {
   revalidatePath('/admin/campanas/nueva')
   redirect('/admin/campanas/nueva?tracking_enabled=1')
 }
+
+// Re-sends a campaign to the recipients whose send failed (a Resend error,
+// e.g. the daily quota running out halfway through), with the same subject,
+// body and translations it went out with. Retried rows are updated in place,
+// so the campaign keeps one campaign_sends row per recipient. Contacts that
+// were deleted, unsubscribed since, or have a malformed address stay failed.
+export async function retryFailedSends(formData: FormData) {
+  const campaignId = String(formData.get('campaign_id') ?? '')
+  if (!campaignId) redirect('/admin/campanas')
+  if (!isResendConfigured) {
+    redirect(`/admin/campanas?error=${encodeURIComponent('Resend no está configurado')}`)
+  }
+
+  const supabase = await createClient()
+
+  // Flipping to 'sending' only if it isn't already doubles as a lock: a
+  // second click (or tab) finds no row to claim instead of re-sending twice.
+  const { data: campaign } = await supabase
+    .from('campaigns')
+    .update({ status: 'sending' })
+    .eq('id', campaignId)
+    .neq('status', 'sending')
+    .gt('failed_count', 0)
+    .select('id, subject, body_html, body_json, translations, recipient_count, sent_count, failed_count')
+    .maybeSingle()
+
+  if (!campaign) {
+    redirect(`/admin/campanas?error=${encodeURIComponent('Esa campaña ya se está enviando o no tiene fallidos')}`)
+  }
+
+  let retriedCount = 0
+  let stillFailedCount = 0
+  let skippedCount = 0
+  let firstError: string | null = null
+
+  try {
+    const { data: failedSends } = await supabase
+      .from('campaign_sends')
+      .select('id, email, locale, contact:contacts(id, name, subscribed)')
+      .eq('campaign_id', campaign.id)
+      .eq('status', 'failed')
+
+    const retryable = ((failedSends ?? []) as unknown as {
+      id: string
+      email: string
+      locale: string | null
+      contact: { id: string; name: string | null; subscribed: boolean } | null
+    }[]).filter((send) => send.contact?.subscribed && isValidEmail(send.email))
+    skippedCount = (failedSends?.length ?? 0) - retryable.length
+
+    const translations = (campaign.translations ?? {}) as EmailTranslations
+    const emails = new Map<Locale, ReturnType<typeof emailFor>>()
+    const emailForLocale = (raw: string | null) => {
+      const locale = raw && isLocale(raw) ? raw : DEFAULT_LOCALE
+      if (!emails.has(locale)) {
+        emails.set(
+          locale,
+          emailFor(locale, {
+            subject: campaign.subject,
+            bodyHtml: campaign.body_html,
+            bodyJson: campaign.body_json,
+            translations,
+          }),
+        )
+      }
+      return emails.get(locale)!
+    }
+
+    const resend = createResendClient()
+    for (const batch of chunk(retryable, RESEND_BATCH_SIZE)) {
+      const { data, error } = await resend.batch.send(
+        batch.map((send) => {
+          const email = emailForLocale(send.locale)
+          return {
+            from: site.mailFrom,
+            to: send.email,
+            subject: email.subject,
+            html: withUnsubscribeFooter(personalizeHtml(email.html, send.contact!.name), send.contact!.id, email.locale),
+          }
+        }),
+      )
+
+      if (error || !data) {
+        stillFailedCount += batch.length
+        const message = error?.message ?? 'Error desconocido'
+        firstError ??= message
+        await supabase.from('campaign_sends').upsert(
+          batch.map((send) => ({ id: send.id, campaign_id: campaign.id, email: send.email, error: message })),
+        )
+        continue
+      }
+
+      retriedCount += batch.length
+      const sentAt = new Date().toISOString()
+      await supabase.from('campaign_sends').upsert(
+        batch.map((send, i) => ({
+          id: send.id,
+          campaign_id: campaign.id,
+          email: send.email,
+          locale: emailForLocale(send.locale).locale,
+          status: 'sent',
+          error: null,
+          sent_at: sentAt,
+          resend_email_id: data.data[i]?.id ?? null,
+        })),
+      )
+    }
+  } finally {
+    const failedCount = campaign.failed_count - retriedCount
+    await supabase
+      .from('campaigns')
+      .update({
+        status: failedCount === campaign.recipient_count ? 'failed' : 'sent',
+        sent_count: campaign.sent_count + retriedCount,
+        failed_count: failedCount,
+      })
+      .eq('id', campaign.id)
+  }
+
+  revalidatePath('/admin/campanas')
+  const errorParam = firstError ? `&error=${encodeURIComponent(firstError)}` : ''
+  redirect(
+    `/admin/campanas?retried=${retriedCount}&failed=${stillFailedCount}&skipped=${skippedCount}${errorParam}`,
+  )
+}

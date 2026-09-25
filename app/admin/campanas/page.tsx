@@ -1,8 +1,10 @@
 import Link from 'next/link'
-import { Circle, CircleAlert, CircleCheck, Loader2, Plus } from 'lucide-react'
+import { Circle, CircleAlert, CircleCheck, Loader2, Plus, RotateCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { SubmitButton } from '@/components/admin/submit-button'
+import { retryFailedSends } from './actions'
 
 const STATUS: Record<string, { label: string; icon: typeof Circle; className: string; spin?: boolean }> = {
   draft: { label: 'Borrador', icon: Circle, className: 'bg-ink/10 text-muted-foreground' },
@@ -14,9 +16,9 @@ const STATUS: Record<string, { label: string; icon: typeof Circle; className: st
 export default async function CampanasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; failed?: string; error?: string }>
+  searchParams: Promise<{ sent?: string; retried?: string; skipped?: string; failed?: string; error?: string }>
 }) {
-  const { sent, failed, error } = await searchParams
+  const { sent, retried, skipped, failed, error } = await searchParams
   const supabase = await createClient()
   const { data: campaigns } = await supabase
     .from('campaigns')
@@ -57,6 +59,24 @@ export default async function CampanasPage({
         </p>
       )}
 
+      {!sent && (retried || error) && (
+        <p
+          className={`mt-4 rounded-xl border-2 px-4 py-3 text-sm text-ink ${
+            !retried || Number(retried) === 0
+              ? 'border-collage-red/30 bg-collage-red/10'
+              : 'border-collage-blue/30 bg-collage-blue/10'
+          }`}
+        >
+          {retried &&
+            `Reenviada a ${retried} de los que fallaron${Number(failed) > 0 ? ` (${failed} volvieron a fallar)` : ''}${
+              Number(skipped) > 0 ? ` · ${skipped} salteados (dados de baja, borrados o con email inválido)` : ''
+            }.`}
+          {error && (
+            <span className={retried ? 'mt-1 block text-xs text-muted-foreground' : ''}>Error: {error}</span>
+          )}
+        </p>
+      )}
+
       <div className="mt-8 space-y-3">
         {list.length === 0 && <p className="text-muted-foreground">Todavía no mandaste ninguna campaña.</p>}
         {list.map((c) => {
@@ -84,6 +104,15 @@ export default async function CampanasPage({
                 {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
                 {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
               </p>
+              {c.failed_count > 0 && c.status !== 'sending' && (
+                <form action={retryFailedSends} className="mt-3">
+                  <input type="hidden" name="campaign_id" value={c.id} />
+                  <SubmitButton size="sm" variant="outline" className="gap-1.5" pendingLabel="Reenviando…">
+                    <RotateCw className="h-3.5 w-3.5" />
+                    Reenviar a los {c.failed_count} que fallaron
+                  </SubmitButton>
+                </form>
+              )}
             </div>
           )
         })}
