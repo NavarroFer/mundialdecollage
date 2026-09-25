@@ -15,6 +15,9 @@ type LikeState = { count: number; liked: boolean; signedIn: boolean }
 export function ArtworkLike({ slug }: { slug: string }) {
   const [state, setState] = useState<LikeState | null>(null)
   const [busy, setBusy] = useState(false)
+  // A signed-out visitor pressed the heart: offer Google right under it.
+  const [askSignIn, setAskSignIn] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
   const [error, setError] = useState('')
   const [retry, setRetry] = useState(0)
   const { locale, m } = useI18n()
@@ -24,21 +27,27 @@ export function ArtworkLike({ slug }: { slug: string }) {
   const busyRef = useRef(false)
 
   // Likes need a Google account; the visitor comes back to this same obra
-  // and the like finishes on its own (see the effect below).
+  // and the like finishes on its own (see the load effect below).
   const signIn = useCallback(async () => {
-    setBusy(true)
+    setRedirecting(true)
     await startGoogleSignIn(galleryReturnPath({ slug, intent: 'like' }))
   }, [slug])
 
   const save = useCallback(async (current: LikeState) => {
     if (busyRef.current || current.liked) return
-    if (!current.signedIn) return signIn()
+    if (!current.signedIn) {
+      setAskSignIn(true)
+      return
+    }
     busyRef.current = true
     setBusy(true)
     setError('')
     try {
       const result = await likeArtwork(slug)
-      if (result.error === 'sign_in_required') return signIn()
+      if (result.error === 'sign_in_required') {
+        setAskSignIn(true)
+        return
+      }
       if (result.error) {
         setError(errorText[result.error] ?? t.saveFailed)
         return
@@ -57,7 +66,7 @@ export function ArtworkLike({ slug }: { slug: string }) {
     }
     // errorText/t only change with the language, which reloads the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, signIn])
+  }, [slug])
 
   useEffect(() => {
     let active = true
@@ -77,21 +86,27 @@ export function ArtworkLike({ slug }: { slug: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, retry, save])
 
-  const signedOut = state && !state.signedIn
-
   return (
     <div className="mt-3 space-y-3">
-      <button type="button" onClick={() => state && void save(state)} disabled={!state || busy || state.liked}
-        aria-pressed={state?.liked ?? false}
+      <button type="button" onClick={() => state && void save(state)} disabled={!state || busy || redirecting || state.liked}
+        aria-pressed={state?.liked ?? false} aria-expanded={state && !state.signedIn ? askSignIn : undefined}
         className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-5 py-3 font-semibold disabled:opacity-60">
-        {signedOut ? <GoogleIcon /> : <Heart className="h-5 w-5" fill={state?.liked ? 'currentColor' : 'none'} aria-hidden="true" />}
-        {busy ? (signedOut ? m.auth.signingIn : t.saving) : state?.liked ? t.liked : signedOut ? t.signIn : t.like}
+        <Heart className="h-5 w-5" fill={state?.liked || askSignIn ? 'currentColor' : 'none'} aria-hidden="true" />
+        {busy ? t.saving : state?.liked ? t.liked : t.like}
         {state && <span aria-label={plural(locale, state.count, t.count)}>· {state.count}</span>}
       </button>
-      {signedOut && (
-        <p className="text-xs text-muted-foreground">
-          {t.signInNote} <a href="/politica-de-privacidad" target="_blank" rel="noreferrer" className="underline">{t.privacy}</a>
-        </p>
+      {askSignIn && !state?.liked && (
+        <div className="space-y-2 rounded-xl border border-ink/15 p-4">
+          <p className="text-sm font-semibold">{t.signIn}</p>
+          <button type="button" onClick={() => void signIn()} disabled={redirecting} autoFocus
+            className="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60">
+            <GoogleIcon />
+            {redirecting ? m.auth.signingIn : m.auth.signIn}
+          </button>
+          <p className="text-xs text-muted-foreground">
+            {t.signInNote} <a href="/politica-de-privacidad" target="_blank" rel="noreferrer" className="underline">{t.privacy}</a>
+          </p>
+        </div>
       )}
       {state?.signedIn && !state.liked && <p className="text-xs text-muted-foreground">{t.newsletter}</p>}
       {error && <p role="alert" className="text-sm text-red-700">{error} {!state && <button className="underline" onClick={() => { setError(''); setRetry((value) => value + 1) }}>{t.retry}</button>}</p>}
