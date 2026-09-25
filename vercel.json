@@ -1,5 +1,12 @@
 {
   "crons": [
-    { "path": "/api/cron/registro", "schedule": "0 12 * * *" }
+    {
+      "path": "/api/cron/registro",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/exhibition",
+      "schedule": "5 12 * * *"
+    }
   ]
 }

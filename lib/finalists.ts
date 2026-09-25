@@ -76,6 +76,25 @@ export async function getFinalists(): Promise<Finalist[]> {
     .filter((f): f is Finalist => f !== undefined)
 }
 
+// The public finalists among these artwork ids, keyed by id — RLS drops any
+// that are no longer selected/published. Used for the daily exhibition
+// (lib/gallery-artworks.ts), which stores artwork ids.
+export async function getFinalistsByIds(ids: string[]): Promise<Map<string, Finalist>> {
+  if (!isSupabaseConfigured || ids.length === 0) return new Map()
+
+  const { data } = await createPublicClient()
+    .from('artworks')
+    .select(`id, ${SELECT_COLUMNS}`)
+    .in('id', ids)
+
+  const found = new Map<string, Finalist>()
+  for (const row of (data ?? []) as unknown as (FinalistRow & { id: string })[]) {
+    const finalist = rowToFinalist(row)
+    if (finalist) found.set(row.id, finalist)
+  }
+  return found
+}
+
 // Session-aware client here, unlike getFinalists() above — this lets an
 // artist open their own direct /obras/[slug] link and see it before it's
 // been curated/published ("total la van a ver solo ellos"). RLS combines

@@ -1,4 +1,6 @@
-import { getFinalists, countryCodeToName, type Finalist } from '@/lib/finalists'
+import { getFinalists, getFinalistsByIds, countryCodeToName, type Finalist } from '@/lib/finalists'
+import { createPublicClient } from '@/lib/supabase/public'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { site } from '@/lib/site'
 import { gallerySlots, type Artwork } from '@/data/artworks'
 import { MESSAGES } from '@/lib/i18n/messages'
@@ -13,10 +15,14 @@ const EDITION_YEAR = new Date(site.deadlineISO).getFullYear()
 // deterministic from the seed alone (no state to store or cron to run).
 const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949
 
-// One stable seed per calendar day (UTC) — same visitors see the same 20
-// obras all day, and the selection rotates on its own at midnight.
+// The exhibition day starts at 09:00 in Argentina (UTC-3, no DST), i.e.
+// 12:00 UTC — so the obras change in the morning, not at 21:00 local.
+const ROTATION_OFFSET_MS = 12 * 60 * 60 * 1000
+
+// One stable seed per exhibition day — same visitors see the same 20 obras
+// all day, and the selection rotates on its own at 09:00 Argentina.
 function dailySeed(date = new Date()): number {
-  const isoDay = date.toISOString().slice(0, 10)
+  const isoDay = new Date(date.getTime() - ROTATION_OFFSET_MS).toISOString().slice(0, 10)
   let hash = 0
   for (let i = 0; i < isoDay.length; i++) {
     hash = (hash * 31 + isoDay.charCodeAt(i)) >>> 0
@@ -44,11 +50,30 @@ function describeArtwork(finalist: Finalist, locale: Locale): string {
   return `${parts.join(' — ')}. ${fmt(m.gallery.artworkOfficial, { year: EDITION_YEAR })}`
 }
 
-// A fresh random-but-stable-for-today selection of real, published obras,
-// placed into the 3D gallery's wall slots. Re-runs on every request (the
-// page that calls this is already force-dynamic), so it needs no background
-// job to "rotate" — the date itself is the trigger.
+// Today's stored lineup (supabase/migrations/20260925120000_exhibition_days.sql):
+// no obra repeats until every published one has had its day. The first call
+// of the day creates it. Empty when the table isn't there yet (migrations
+// deploy separately from the app) or the call fails.
+async function getStoredExhibition(): Promise<Finalist[]> {
+  if (!isSupabaseConfigured) return []
+  const { data, error } = await createPublicClient().rpc('ensure_exhibition_today')
+  if (error || !data?.length) {
+    if (error) console.error('ensure_exhibition_today failed:', error.message)
+    return []
+  }
+  const ids = (data as { slot: number; artwork_id: string }[]).map((row) => row.artwork_id)
+  const finalists = await getFinalistsByIds(ids)
+  return ids.flatMap((id) => finalists.get(id) ?? []).slice(0, gallerySlots.length)
+}
+
+// Today's obras, placed into the 3D gallery's wall slots and shown on the
+// home. Re-runs on every request (both pages are force-dynamic), so the
+// rotation needs no job of its own. Falls back to the stateless daily
+// shuffle below (which can repeat obras) when there is no stored lineup.
 export async function getDailyExhibition(): Promise<Finalist[]> {
+  const stored = await getStoredExhibition()
+  if (stored.length) return stored
+
   const finalists = await getFinalists()
   // Stable input order keeps both pages aligned even when creation dates tie.
   const ordered = [...finalists].sort((a, b) => a.slug.localeCompare(b.slug))

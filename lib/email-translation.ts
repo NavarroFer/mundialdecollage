@@ -4,7 +4,8 @@
 // Spanish original, so one template holds every language as a map of
 // "which text" → "translated text" per locale.
 // Pure (no server or DOM APIs): the campaign composer uses it in the browser too.
-import { isEmailDocument, type EmailBlock, type EmailDocument } from '@/lib/email-blocks'
+import { isEmailDocument, renderEmailDocumentToHtml, type EmailBlock, type EmailDocument } from '@/lib/email-blocks'
+import { getSiteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, localeForCountry, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
 
 export type TranslatedLocale = (typeof TRANSLATED_LOCALES)[number]
@@ -105,8 +106,9 @@ export function contactLocale(countryCode: string | null | undefined): Locale {
   return localeForCountry(countryCode) ?? DEFAULT_LOCALE
 }
 
-// The unsubscribe footer every campaign mail ends with (see
-// app/admin/campanas/actions.ts), in each recipient's language.
+// The unsubscribe footer every campaign mail ends with (campaigns in
+// app/admin/campanas/actions.ts, the daily museum mail in
+// app/api/cron/exhibition), in each recipient's language.
 export const UNSUBSCRIBE_FOOTER: Record<Locale, { question: string; link: string }> = {
   es: { question: '¿No querés más estos mails?', link: 'Darte de baja' },
   en: { question: "Don't want these emails anymore?", link: 'Unsubscribe' },
@@ -117,4 +119,29 @@ export const UNSUBSCRIBE_FOOTER: Record<Locale, { question: string; link: string
   ru: { question: 'Больше не хотите получать эти письма?', link: 'Отписаться' },
   pl: { question: 'Nie chcesz już otrzymywać tych wiadomości?', link: 'Wypisz się' },
   id: { question: 'Tidak ingin menerima email ini lagi?', link: 'Berhenti berlangganan' },
+}
+
+export function withUnsubscribeFooter(bodyHtml: string, contactId: string, locale: Locale) {
+  const unsubscribeUrl = `${getSiteUrl()}/api/unsubscribe?id=${contactId}`
+  const footer = UNSUBSCRIBE_FOOTER[locale]
+  return `${bodyHtml}<hr style="margin-top:32px;border:none;border-top:1px solid #ddd" /><p style="margin-top:16px;font-size:12px;color:#888">${footer.question} <a href="${unsubscribeUrl}">${footer.link}</a>.</p>`
+}
+
+// The email as one locale receives it (memoized per locale by the caller):
+// the translated texts over the same blocks, or the Spanish original when
+// that language has no complete translation.
+export function emailFor(
+  locale: Locale,
+  { subject, bodyHtml, bodyJson, translations }: {
+    subject: string
+    bodyHtml: string
+    bodyJson: unknown
+    translations: EmailTranslations
+  },
+): { locale: Locale; subject: string; html: string } {
+  const original = { locale: DEFAULT_LOCALE, subject, html: bodyHtml }
+  if (locale === 'es' || !isEmailDocument(bodyJson)) return original
+  if (!translatedLocales(translations, extractEmailTexts(subject, bodyJson)).includes(locale)) return original
+  const translated = applyEmailTexts(subject, bodyJson, translations[locale]!)
+  return { locale, subject: translated.subject, html: renderEmailDocumentToHtml(translated.doc) }
 }

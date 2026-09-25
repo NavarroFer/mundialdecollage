@@ -12,27 +12,21 @@ import {
   RESEND_BATCH_SIZE,
   getMailFromDomain,
 } from '@/lib/resend'
-import { site, getSiteUrl } from '@/lib/site'
-import { isEmailDocument, personalizeHtml, renderEmailDocumentToHtml } from '@/lib/email-blocks'
+import { site } from '@/lib/site'
+import { isEmailDocument, personalizeHtml } from '@/lib/email-blocks'
 import {
-  applyEmailTexts,
   contactLocale,
+  emailFor,
   emailTextsFingerprint,
   extractEmailTexts,
   translatedLocales,
-  UNSUBSCRIBE_FOOTER,
+  withUnsubscribeFooter,
   type EmailTranslations,
   type TranslatedLocale,
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
 import { DEFAULT_LOCALE, isLocale, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
 import type { SupabaseClient } from '@supabase/supabase-js'
-
-function withUnsubscribeFooter(bodyHtml: string, contactId: string, locale: Locale) {
-  const unsubscribeUrl = `${getSiteUrl()}/api/unsubscribe?id=${contactId}`
-  const footer = UNSUBSCRIBE_FOOTER[locale]
-  return `${bodyHtml}<hr style="margin-top:32px;border:none;border-top:1px solid #ddd" /><p style="margin-top:16px;font-size:12px;color:#888">${footer.question} <a href="${unsubscribeUrl}">${footer.link}</a>.</p>`
-}
 
 // The translations this send can use. The template's own are reused while
 // the composer still has its exact wording; anything edited (or written from
@@ -70,25 +64,6 @@ async function translationsForSend(
   } catch (error) {
     return { translations: {}, errors: [error instanceof Error ? error.message : String(error)] }
   }
-}
-
-// The email as one locale receives it (memoized per locale by the caller):
-// the translated texts over the same blocks, or the Spanish original when
-// that language has no complete translation.
-function emailFor(
-  locale: Locale,
-  { subject, bodyHtml, bodyJson, translations }: {
-    subject: string
-    bodyHtml: string
-    bodyJson: unknown
-    translations: EmailTranslations
-  },
-): { locale: Locale; subject: string; html: string } {
-  const original = { locale: DEFAULT_LOCALE, subject, html: bodyHtml }
-  if (locale === 'es' || !isEmailDocument(bodyJson)) return original
-  if (!translatedLocales(translations, extractEmailTexts(subject, bodyJson)).includes(locale)) return original
-  const translated = applyEmailTexts(subject, bodyJson, translations[locale]!)
-  return { locale, subject: translated.subject, html: renderEmailDocumentToHtml(translated.doc) }
 }
 
 function chunk<T>(items: T[], size: number): T[][] {
