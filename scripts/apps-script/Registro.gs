@@ -47,7 +47,7 @@ const EXTENSIONES_VALIDAS = [".jpg", ".jpeg", ".png", ".heic", ".heif", ".pdf", 
 
 // Columnas de Registro (1-based). A–E las lee el sitio: no cambiar su orden.
 const COL = { nombre: 1, pais: 2, email: 3, obra: 4, titulo: 5, instagram: 6, correo: 7, fecha: 8, revisar: 9, meta: 10 };
-const ENCABEZADOS_EXTRA = { 5: "Titulo", 6: "Instagram", 7: "Correo", 8: "Fecha", 9: "Revisar", 10: "Datos del script (no editar)" };
+const ENCABEZADOS = { 1: "Nombre", 2: "País", 3: "Email", 4: "Obra (Foto en Drive)", 5: "Titulo", 6: "Instagram", 7: "Correo", 8: "Fecha", 9: "Revisar", 10: "Datos del script (no editar)" };
 const CAMPOS = ["nombre", "pais", "titulo", "instagram"];
 const ETIQUETAS_CAMPO = { nombre: "nombre", pais: "país", titulo: "título", instagram: "Instagram" };
 const PLACEHOLDERS = {
@@ -188,9 +188,9 @@ function abrirContexto(simular) {
 function asegurarEncabezados(hoja) {
   if (hoja.getMaxColumns() < COL.meta) hoja.insertColumnsAfter(hoja.getMaxColumns(), COL.meta - hoja.getMaxColumns());
   const actuales = hoja.getRange(1, 1, 1, COL.meta).getValues()[0];
-  Object.keys(ENCABEZADOS_EXTRA).forEach(col => {
+  Object.keys(ENCABEZADOS).forEach(col => {
     const actual = String(actuales[col - 1] || "").trim();
-    if (!actual || /^columna \d+$/i.test(actual)) hoja.getRange(1, Number(col)).setValue(ENCABEZADOS_EXTRA[col]);
+    if (!actual || /^columna \d+$/i.test(actual)) hoja.getRange(1, Number(col)).setValue(ENCABEZADOS[col]);
   });
   if (!hoja.isColumnHiddenByUser(COL.meta)) hoja.hideColumns(COL.meta);
 }

@@ -38,9 +38,18 @@ export function driveFileId(value: string): string | null {
   }
 }
 
+const REGISTRO_HEADER = ['Nombre', 'País', 'Email', 'Obra (Foto en Drive)']
+
+// Turning the range into a Sheets table renames empty or replaced header
+// cells to "Columna N". That placeholder still marks the right position, so
+// only a different name (a reordered or swapped column) stops the sync.
+function isRegistroHeader(header: string[]) {
+  return REGISTRO_HEADER.every((name, i) => header[i] === name || new RegExp(`^colum(na|n) ${i + 1}$`, 'i').test(header[i] ?? ''))
+}
+
 export function parseRegistro(rows: RegistroCell[][]): RegistroEntry[] {
   const header = rows[0]?.map((c) => c.text.trim())
-  if (header?.slice(0, 4).join('|') !== 'Nombre|País|Email|Obra (Foto en Drive)') {
+  if (!header || !isRegistroHeader(header)) {
     throw new Error('Cambió el encabezado de Registro; no se modificó la base.')
   }
   const hasTitles = /^t[ií]tulo/i.test(header[4] ?? '')

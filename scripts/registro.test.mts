@@ -33,6 +33,12 @@ describe('Registro curado', () => {
     assert.throws(() => parseRegistro([header]))
     assert.throws(() => parseRegistro([header, row('first'), row('first')]))
   })
+  it('acepta el encabezado "Columna N" de una tabla de Sheets, no uno cambiado', () => {
+    const tabla = [{ text: 'Columna 1' }, ...header.slice(1)]
+    assert.equal(parseRegistro([tabla, row('first')]).length, 1)
+    assert.throws(() => parseRegistro([[{ text: 'Columna 2' }, ...header.slice(1)], row('first')]), /encabezado/)
+    assert.throws(() => parseRegistro([[header[1], header[0], ...header.slice(2)], row('first')]), /encabezado/)
+  })
   it('rechaza dominios ajenos y carpetas', () => {
     assert.equal(driveFileId('https://evil.test/file/d/id/view'), null)
     assert.equal(driveFileId('https://drive.google.com/drive/folders/id'), null)
