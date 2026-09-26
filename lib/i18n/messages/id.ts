@@ -15,6 +15,7 @@ const id: Messages = {
   },
   common: {
     backHome: 'Kembali ke beranda',
+    noData: 'Tidak ada data',
     optional: '(opsional)',
     opensInNewTab: '(terbuka di tab baru)',
     save: 'Simpan',
@@ -72,6 +73,9 @@ const id: Messages = {
     confirmTitle: 'Konfirmasi datamu',
     confirmBody: 'Kami memuat karyamu dari pendaftaran. Periksa apakah nama dan negaramu sudah benar untuk menyelesaikan pendaftaran.',
     confirmCta: 'Periksa dan konfirmasi',
+    titleMissingTitle: 'Judul karyamu belum ada',
+    titleMissingBody: 'Tulis judulnya agar karyamu tampil lengkap di galeri dan pencarian.',
+    titleMissingCta: 'Lengkapi dataku',
     joinTitle: 'Selesaikan pendaftaranmu',
     joinBody: 'Kamu sudah masuk dengan Google. Jika kamu seniman, kirim karyamu dan ikuti Piala Dunia Kolase.',
     joinCta: 'Kirim karyaku',
@@ -260,6 +264,8 @@ const id: Messages = {
   },
   confirmation: {
     haveArtwork: 'Karyamu sudah kami terima',
+    artworkTitle: 'Judul karya',
+    titleMissing: 'Karyamu belum punya judul. Tulis judulnya agar tampil di galeri.',
     noReupload: 'Kamu tidak perlu mengunggahnya lagi.',
     yourDetails: 'Datamu',
     artistName: 'Nama seniman atau nama lengkap',
@@ -270,6 +276,7 @@ const id: Messages = {
     notThisOne: 'Bukan karya ini yang ingin kamu ajukan?',
     otherAccount: 'Masuk dengan akun lain?',
     errors: {
+      missing_title: 'Tulis judul karyamu untuk mengonfirmasi.',
       unavailable: 'Kami tidak dapat terhubung. Coba lagi dalam beberapa menit.',
       session: 'Sesimu telah berakhir. Masuk lagi dengan Google untuk mengonfirmasi.',
       missing: 'Isi namamu dan pilih negaramu untuk mengonfirmasi.',

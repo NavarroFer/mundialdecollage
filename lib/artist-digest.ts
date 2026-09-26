@@ -32,7 +32,7 @@ export type DigestRow = {
   email: string | null
   contact_id: string | null
   subscribed: boolean | null
-  artwork_title: string
+  artwork_title: string | null
   artwork_slug: string
   likes_window: number
   likes_total: number

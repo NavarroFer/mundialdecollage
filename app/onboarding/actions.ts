@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { slugify } from '@/lib/slug'
 import { getAllCountryCodes } from '@/lib/participants'
@@ -200,12 +201,23 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
   const name = String(formData.get('name') ?? '').trim()
   const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
   const artworkId = String(formData.get('artwork_id') ?? '')
+  const title = String(formData.get('title') ?? '').trim().slice(0, 200)
   if (!name || !getAllCountryCodes().includes(countryCode)) {
     return 'missing'
   }
+  if (!title) return 'missing_title'
   const { data: artwork, error: artworkError } = await supabase.from('artworks')
-    .select('id, slug').eq('id', artworkId).eq('profile_id', user.id).maybeSingle()
+    .select('id, slug, title').eq('id', artworkId).eq('profile_id', user.id).maybeSingle()
   if (artworkError || !artwork) return 'not_found'
+
+  // artworks has no UPDATE grant for artists; the select above already
+  // proved this obra is theirs. A title written here is never replaced by
+  // the Registro sync (it only follows titles that still match the sheet).
+  if (title !== artwork.title) {
+    const { error: titleError } = await createAdminClient().from('artworks')
+      .update({ title }).eq('id', artwork.id).eq('profile_id', user.id)
+    if (titleError) return 'save_failed'
+  }
 
   const { data: profile, error: profileError } = await supabase.from('profiles')
     .update({ name, country_code: countryCode, details_confirmed_at: new Date().toISOString() })

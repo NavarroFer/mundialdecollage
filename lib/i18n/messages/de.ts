@@ -15,6 +15,7 @@ const de: Messages = {
   },
   common: {
     backHome: 'Zur Startseite',
+    noData: 'Keine Angaben',
     optional: '(optional)',
     opensInNewTab: '(öffnet in einem neuen Tab)',
     save: 'Speichern',
@@ -72,6 +73,9 @@ const de: Messages = {
     confirmTitle: 'Bestätige deine Daten',
     confirmBody: 'Wir haben dein Werk aus der Anmeldung übernommen. Prüf, ob Name und Land stimmen, um deine Teilnahme abzuschließen.',
     confirmCta: 'Prüfen und bestätigen',
+    titleMissingTitle: 'Der Titel deines Werks fehlt',
+    titleMissingBody: 'Schreib ihn, damit dein Werk vollständig in der Galerie und in der Suche erscheint.',
+    titleMissingCta: 'Meine Angaben ergänzen',
     joinTitle: 'Schließ deine Anmeldung ab',
     joinBody: 'Du bist mit Google angemeldet. Wenn du Künstler:in bist, schick dein Werk und mach bei der Collage-WM mit.',
     joinCta: 'Mein Werk senden',
@@ -260,6 +264,8 @@ const de: Messages = {
   },
   confirmation: {
     haveArtwork: 'Wir haben dein Werk schon',
+    artworkTitle: 'Titel des Werks',
+    titleMissing: 'Dein Werk hat noch keinen Titel. Schreib ihn, damit er in der Galerie erscheint.',
     noReupload: 'Du musst es nicht noch einmal hochladen.',
     yourDetails: 'Deine Daten',
     artistName: 'Künstlername oder vollständiger Name',
@@ -270,6 +276,7 @@ const de: Messages = {
     notThisOne: 'Ist das nicht das Werk, das du einreichen willst?',
     otherAccount: 'Mit einem anderen Konto angemeldet?',
     errors: {
+      missing_title: 'Schreib den Titel deines Werks, um zu bestätigen.',
       unavailable: 'Keine Verbindung möglich. Versuch es in ein paar Minuten noch einmal.',
       session: 'Deine Sitzung ist abgelaufen. Melde dich erneut mit Google an, um zu bestätigen.',
       missing: 'Gib deinen Namen an und wähle dein Land, um zu bestätigen.',

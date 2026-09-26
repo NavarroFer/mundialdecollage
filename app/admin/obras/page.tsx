@@ -66,7 +66,7 @@ export default async function ObrasPage({
     .map(([profileId, rows]) => {
       const selected = rows.find((r) => r.is_selected)
       const profile = selected?.profiles
-      if (!selected || !profile?.name || !profile.country_code || !selected.title || !selected.image_url) {
+      if (!selected || !profile?.name || !profile.country_code || !selected.image_url) {
         return null
       }
       return {
@@ -74,7 +74,7 @@ export default async function ObrasPage({
         name: profile.name,
         countryCode: profile.country_code,
         technique: selected.technique ?? undefined,
-        artworkTitle: selected.title,
+        artworkTitle: selected.title ?? undefined,
         imageUrl: selected.image_url,
         isPublic: profile.is_public,
         artworkCount: rows.length,
@@ -335,7 +335,7 @@ export default async function ObrasPage({
                           )}
                         </div>
                         <p className="mt-1.5 truncate text-sm font-semibold text-ink">
-                          {row.title ?? 'Sin título'}
+                          {row.title ?? 'Sin datos'}
                         </p>
                         <div className="mt-1.5 flex items-center gap-2">
                           <form action={selectArtwork}>

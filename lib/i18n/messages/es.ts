@@ -16,6 +16,7 @@ const es = {
   },
   common: {
     backHome: 'Volver al inicio',
+    noData: 'Sin datos',
     optional: '(opcional)',
     opensInNewTab: '(se abre en una pestaña nueva)',
     save: 'Guardar',
@@ -73,6 +74,9 @@ const es = {
     confirmTitle: 'Confirmá tus datos',
     confirmBody: 'Cargamos tu obra desde el registro. Revisá que tu nombre y tu país estén bien para terminar tu inscripción.',
     confirmCta: 'Revisar y confirmar',
+    titleMissingTitle: 'Falta el título de tu obra',
+    titleMissingBody: 'Escribilo para que tu obra se vea completa en la galería y en el buscador.',
+    titleMissingCta: 'Completar mis datos',
     joinTitle: 'Terminá tu inscripción',
     joinBody: 'Ya entraste con tu cuenta de Google. Si sos artista, mandá tu obra y participá del Mundial de Collage.',
     joinCta: 'Enviar mi obra',
@@ -262,6 +266,8 @@ const es = {
   },
   confirmation: {
     haveArtwork: 'Ya tenemos tu obra',
+    artworkTitle: 'Título de la obra',
+    titleMissing: 'Tu obra todavía no tiene título. Escribilo para que se vea en la galería.',
     noReupload: 'No hace falta que vuelvas a subirla.',
     yourDetails: 'Tus datos',
     artistName: 'Nombre artístico o nombre completo',
@@ -272,6 +278,7 @@ const es = {
     notThisOne: '¿Esta no es la obra que querés presentar?',
     otherAccount: '¿Ingresaste con otra cuenta?',
     errors: {
+      missing_title: 'Escribí el título de tu obra para confirmar.',
       unavailable: 'No pudimos conectar. Probá de nuevo en unos minutos.',
       session: 'Tu sesión terminó. Volvé a ingresar con Google para confirmar.',
       missing: 'Completá tu nombre y elegí tu país para confirmar.',

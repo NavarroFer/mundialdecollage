@@ -134,7 +134,7 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
                     onPointerEnter={() => setActive(index)}
                     className={`flex min-h-12 flex-col justify-center px-5 py-2 ${index === active ? 'bg-collage-blue/10' : ''}`}
                   >
-                    <span className="font-semibold text-ink">{entry.title}</span>
+                    <span className="font-semibold text-ink">{entry.title ?? m.common.noData}</span>
                     <span className="text-sm text-muted-foreground">
                       <span aria-hidden>{countryCodeToFlag(entry.countryCode)}</span> {entry.name} · {countryCodeToName(entry.countryCode, locale)}
                     </span>

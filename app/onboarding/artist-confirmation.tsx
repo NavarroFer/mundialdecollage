@@ -15,10 +15,11 @@ export function ArtistConfirmation({ name, countryCode, email, artwork }: {
   name: string
   countryCode: string
   email: string
-  artwork: { id: string; title: string; image_url: string }
+  artwork: { id: string; title: string | null; image_url: string }
 }) {
   const [editedName, setEditedName] = useState(name)
-  const [editing, setEditing] = useState(!name || !countryCode)
+  const [editedTitle, setEditedTitle] = useState(artwork.title ?? '')
+  const [editing, setEditing] = useState(!name || !countryCode || !artwork.title)
   const [error, action, pending] = useActionState(confirmArtistDetails, '')
   const { locale, m } = useI18n()
   const countries = useMemo(
@@ -33,18 +34,23 @@ export function ArtistConfirmation({ name, countryCode, email, artwork }: {
     <form action={action} className="mt-8 overflow-hidden rounded-2xl border-2 border-ink/10 bg-card shadow-sm">
       <input type="hidden" name="artwork_id" value={artwork.id} />
       <div className="relative aspect-[4/3] bg-paper">
-        <Image src={artwork.image_url} alt={artwork.title} fill sizes="(max-width: 640px) 100vw, 512px" className="object-contain p-4" priority />
+        <Image src={artwork.image_url} alt={artwork.title ?? m.common.noData} fill sizes="(max-width: 640px) 100vw, 512px" className="object-contain p-4" priority />
       </div>
       <div className="space-y-6 p-6 sm:p-8">
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold text-collage-blue"><CheckCircle2 className="size-4" aria-hidden="true" />{m.confirmation.haveArtwork}</p>
-          <h2 className="mt-2 text-xl font-semibold text-ink">{artwork.title}</h2>
+          <h2 className="mt-2 text-xl font-semibold text-ink">{artwork.title ?? m.common.noData}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{m.confirmation.noReupload}</p>
         </div>
         <div>
           <h3 className="font-semibold text-ink">{m.confirmation.yourDetails}</h3>
           {editing ? (
             <div className="mt-3 space-y-4">
+              <div>
+                <label htmlFor="artwork-title" className="text-sm font-medium">{m.confirmation.artworkTitle}</label>
+                <input id="artwork-title" name="title" value={editedTitle} onChange={event => setEditedTitle(event.target.value)} required maxLength={200} className="mt-1.5 w-full rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5" />
+                {!artwork.title && <p className="mt-2 text-sm text-muted-foreground">{m.confirmation.titleMissing}</p>}
+              </div>
               <div>
                 <label htmlFor="artist-name" className="text-sm font-medium">{m.confirmation.artistName}</label>
                 <input id="artist-name" name="name" value={editedName} onChange={event => setEditedName(event.target.value)} required className="mt-1.5 w-full rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5" />
@@ -58,8 +64,10 @@ export function ArtistConfirmation({ name, countryCode, email, artwork }: {
           ) : (
             <>
               <input type="hidden" name="name" value={name} />
+              <input type="hidden" name="title" value={artwork.title ?? ''} />
               <input type="hidden" name="country_code" value={countryCode} />
               <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 text-sm">
+                <dt className="text-muted-foreground">{m.confirmation.artworkTitle}</dt><dd className="break-words font-medium">{artwork.title}</dd>
                 <dt className="text-muted-foreground">{m.onboarding.name}</dt><dd className="break-words font-medium">{name}</dd>
                 <dt className="text-muted-foreground">{m.onboarding.country}</dt><dd className="font-medium">{countryCodeToName(countryCode, locale)}</dd>
               </dl>

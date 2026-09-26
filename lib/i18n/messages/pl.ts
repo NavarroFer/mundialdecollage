@@ -15,6 +15,7 @@ const pl: Messages = {
   },
   common: {
     backHome: 'Wróć na stronę główną',
+    noData: 'Brak danych',
     optional: '(opcjonalnie)',
     opensInNewTab: '(otwiera się w nowej karcie)',
     save: 'Zapisz',
@@ -72,6 +73,9 @@ const pl: Messages = {
     confirmTitle: 'Potwierdź swoje dane',
     confirmBody: 'Twoją pracę wczytaliśmy z rejestracji. Sprawdź, czy imię i kraj się zgadzają, aby dokończyć zgłoszenie.',
     confirmCta: 'Sprawdź i potwierdź',
+    titleMissingTitle: 'Brakuje tytułu twojej pracy',
+    titleMissingBody: 'Wpisz go, aby twoja praca była w pełni widoczna w galerii i w wyszukiwarce.',
+    titleMissingCta: 'Uzupełnij moje dane',
     joinTitle: 'Dokończ zgłoszenie',
     joinBody: 'Zalogowano Cię przez Google. Jeśli tworzysz kolaże, wyślij swoją pracę i weź udział w Mistrzostwach Świata w Kolażu.',
     joinCta: 'Wyślij moją pracę',
@@ -265,6 +269,8 @@ const pl: Messages = {
   },
   confirmation: {
     haveArtwork: 'Mamy już Twoją pracę',
+    artworkTitle: 'Tytuł pracy',
+    titleMissing: 'Twoja praca nie ma jeszcze tytułu. Wpisz go, aby pojawił się w galerii.',
     noReupload: 'Nie musisz jej ponownie przesyłać.',
     yourDetails: 'Twoje dane',
     artistName: 'Pseudonim artystyczny lub imię i nazwisko',
@@ -275,6 +281,7 @@ const pl: Messages = {
     notThisOne: 'To nie ta praca, którą chcesz zgłosić?',
     otherAccount: 'Zalogowano innym kontem?',
     errors: {
+      missing_title: 'Wpisz tytuł swojej pracy, aby potwierdzić.',
       unavailable: 'Nie udało się połączyć. Spróbuj ponownie za kilka minut.',
       session: 'Sesja wygasła. Zaloguj się ponownie przez Google, aby potwierdzić.',
       missing: 'Podaj imię i wybierz kraj, aby potwierdzić.',

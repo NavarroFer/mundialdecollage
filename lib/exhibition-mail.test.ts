@@ -42,6 +42,8 @@ describe('planExhibitionMails', () => {
 
 describe('fillArtworkTitle', () => {
   it('fills {{obra}} literally and escaped', () => {
-    expect(fillArtworkTitle('hoy «{{ obra }}» cuelga', 'Luz & $& <sombra>')).toBe('hoy «Luz &amp; $&amp; &lt;sombra&gt;» cuelga')
+    expect(fillArtworkTitle('hoy «{{ obra }}» cuelga', 'Luz & $& <sombra>', 'es')).toBe('hoy «Luz &amp; $&amp; &lt;sombra&gt;» cuelga')
+    expect(fillArtworkTitle('«{{obra}}»', null, 'es')).toBe('«Sin datos»')
+    expect(fillArtworkTitle('«{{obra}}»', '  ', 'en')).toBe('«No data»')
   })
 })

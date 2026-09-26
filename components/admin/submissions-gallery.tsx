@@ -264,7 +264,9 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                   <p className="mt-1.5 truncate text-sm font-semibold text-ink">
                     {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span>} {s.name}
                   </p>
-                  {s.artworkTitle && <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>}
+                  {s.artworkTitle
+                    ? <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>
+                    : s.source === 'real' && <p className="truncate text-xs text-collage-red">Sin datos (título)</p>}
                   {s.instagram && (
                     <p className="truncate text-xs text-collage-red">@{instagramHandle(s.instagram) ?? s.instagram}</p>
                   )}

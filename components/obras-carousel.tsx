@@ -15,7 +15,7 @@ export function ObrasCarousel({ finalists }: { finalists: Finalist[] }) {
 
   const items = finalists.map((f) => ({
     image: f.imageUrl,
-    alt: fmt(m.common.artworkBy, { title: f.artworkTitle, name: f.name }),
+    alt: fmt(m.common.artworkBy, { title: f.artworkTitle ?? m.common.noData, name: f.name }),
   }))
 
   return (
@@ -38,7 +38,7 @@ export function ObrasCarousel({ finalists }: { finalists: Finalist[] }) {
               <span aria-hidden>{countryCodeToFlag(current.countryCode)}</span>
               {current.name}
             </p>
-            <p className="mt-1 text-sm text-ink/80 italic group-hover:underline">{current.artworkTitle}</p>
+            <p className="mt-1 text-sm text-ink/80 italic group-hover:underline">{current.artworkTitle ?? m.common.noData}</p>
           </Link>
         </div>
       )}

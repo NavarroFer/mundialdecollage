@@ -15,6 +15,7 @@ const it: Messages = {
   },
   common: {
     backHome: 'Torna alla home',
+    noData: 'Nessun dato',
     optional: '(facoltativo)',
     opensInNewTab: '(si apre in una nuova scheda)',
     save: 'Salva',
@@ -72,6 +73,9 @@ const it: Messages = {
     confirmTitle: 'Conferma i tuoi dati',
     confirmBody: "Abbiamo caricato la tua opera dall'iscrizione. Controlla che nome e paese siano corretti per completare l'iscrizione.",
     confirmCta: 'Controlla e conferma',
+    titleMissingTitle: 'Manca il titolo della tua opera',
+    titleMissingBody: 'Scrivilo perché la tua opera compaia completa nella galleria e nella ricerca.',
+    titleMissingCta: 'Completa i miei dati',
     joinTitle: "Completa l'iscrizione",
     joinBody: "Hai già effettuato l'accesso con Google. Se sei un artista, invia la tua opera e partecipa al Mondiale di Collage.",
     joinCta: 'Invia la mia opera',
@@ -260,6 +264,8 @@ const it: Messages = {
   },
   confirmation: {
     haveArtwork: 'Abbiamo già la tua opera',
+    artworkTitle: 'Titolo dell’opera',
+    titleMissing: 'La tua opera non ha ancora un titolo. Scrivilo perché compaia nella galleria.',
     noReupload: 'Non serve caricarla di nuovo.',
     yourDetails: 'I tuoi dati',
     artistName: "Nome d'arte o nome completo",
@@ -270,6 +276,7 @@ const it: Messages = {
     notThisOne: "Non è questa l'opera che vuoi presentare?",
     otherAccount: "Hai effettuato l'accesso con un altro account?",
     errors: {
+      missing_title: 'Scrivi il titolo della tua opera per confermare.',
       unavailable: 'Non riusciamo a connetterci. Riprova tra qualche minuto.',
       session: 'La tua sessione è scaduta. Accedi di nuovo con Google per confermare.',
       missing: 'Inserisci il tuo nome e scegli il tuo paese per confermare.',

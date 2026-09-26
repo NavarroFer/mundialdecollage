@@ -64,7 +64,10 @@ export async function ParticipationStatus() {
   // — until they confirm name and country themselves (confirmArtistDetails),
   // ask them to. That review covers the country too, so it replaces the
   // country form below.
-  const needsConfirmation = Boolean(artwork.legacy_submission_id) && !profile.details_confirmed_at
+  // An obra without a title (the sheet had none, or had a wrong one) is
+  // completed from the same review page.
+  const needsTitle = !artwork.title?.trim()
+  const needsConfirmation = needsTitle || (Boolean(artwork.legacy_submission_id) && !profile.details_confirmed_at)
   const needsCountry = !needsConfirmation && !profile.country_code
   const countries = needsCountry
     ? getAllCountryCodes()
@@ -81,7 +84,7 @@ export async function ParticipationStatus() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={artwork.image_url}
-                alt={artwork.title}
+                alt={artwork.title ?? m.common.noData}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -93,7 +96,7 @@ export async function ParticipationStatus() {
               </span>
 
               <h2 className="font-display mt-4 text-2xl tracking-tight text-ink uppercase sm:text-3xl">
-                {artwork.title}
+                {artwork.title ?? m.common.noData}
               </h2>
 
               <p className="mt-2 text-muted-foreground">
@@ -102,12 +105,12 @@ export async function ParticipationStatus() {
 
               {needsConfirmation && (
                 <div className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/5 p-4 text-left">
-                  <p className="font-semibold text-ink">{m.status.confirmTitle}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{m.status.confirmBody}</p>
+                  <p className="font-semibold text-ink">{needsTitle ? m.status.titleMissingTitle : m.status.confirmTitle}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{needsTitle ? m.status.titleMissingBody : m.status.confirmBody}</p>
                   <TrackView event="signup_prompt_view" />
                   <TrackedLink href="/onboarding" event="signup_prompt_click" className="mt-3 inline-block">
                     <Button className="gap-2">
-                      {m.status.confirmCta}
+                      {needsTitle ? m.status.titleMissingCta : m.status.confirmCta}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </TrackedLink>

@@ -18,7 +18,9 @@ export type Finalist = {
   slug: string
   name: string
   countryCode: string
-  artworkTitle: string
+  // Empty when nobody has given the obra a real title yet; shown as
+  // m.common.noData until the artist writes it (see confirmArtistDetails).
+  artworkTitle: string | null
   technique?: string
   imageUrl: string
   instagram?: string
@@ -42,14 +44,14 @@ type FinalistRow = {
 
 function rowToFinalist(row: FinalistRow): Finalist | undefined {
   const profile = row.profiles
-  if (!row.slug || !row.title || !row.image_url || !profile?.name || !profile.country_code) {
+  if (!row.slug || !row.image_url || !profile?.name || !profile.country_code) {
     return undefined
   }
   return {
     slug: row.slug,
     name: profile.name,
     countryCode: profile.country_code,
-    artworkTitle: row.title,
+    artworkTitle: row.title?.trim() || null,
     technique: row.technique ?? undefined,
     imageUrl: row.image_url,
     instagram: profile.instagram ?? undefined,

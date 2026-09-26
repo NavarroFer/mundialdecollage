@@ -7,10 +7,11 @@ import { contactLocale } from '@/lib/email-translation'
 import { isValidEmail } from '@/lib/resend'
 import { fillTextTag } from '@/lib/system-templates'
 import type { Locale } from '@/lib/i18n/locales'
+import { MESSAGES } from '@/lib/i18n/messages'
 
-/** {{obra}} → the artwork's title, escaped. */
-export function fillArtworkTitle(html: string, title: string): string {
-  return fillTextTag(html, 'obra', title.trim())
+/** {{obra}} → the artwork's title, escaped; "Sin datos" (in the mail's language) when it has none. */
+export function fillArtworkTitle(html: string, title: string | null, locale: Locale): string {
+  return fillTextTag(html, 'obra', title?.trim() || MESSAGES[locale].common.noData)
 }
 
 /**
@@ -31,7 +32,7 @@ export type ExhibitionQueueRow = {
   day: string
   slot: number
   artwork_id: string
-  artwork_title: string
+  artwork_title: string | null
   artwork_slug: string
   artist_name: string | null
   country_code: string | null

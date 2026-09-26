@@ -117,7 +117,7 @@ export function ArtworkEditForm({ item }: { item: Submission }) {
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-xs font-semibold text-ink">
           Título
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Vacío: se muestra «Sin datos»" className={inputClass} />
         </label>
         <label className="block text-xs font-semibold text-ink">
           Técnica

@@ -94,7 +94,7 @@ async function sendMuseumNotices(db: SupabaseClient, dryRun: boolean) {
   const { data, error } = await createResendClient().batch.send(recipients.map((r) => {
     const email = renderSystemEmail(template, r.locale, translations)
     const html = fillTextTag(
-      fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title),
+      fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale),
       'link_obra',
       `${getSiteUrl()}${galleryArtworkPath(r.artwork_slug)}`,
     )
@@ -186,7 +186,7 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
     const batch = recipients.slice(i, i + RESEND_BATCH_SIZE)
     const { data: result, error } = await createResendClient().batch.send(batch.map((r) => {
       const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
-      const html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title), r)
+      const html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
       return { from: site.mailFrom, to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
     }))
     for (const [j, r] of batch.entries()) {

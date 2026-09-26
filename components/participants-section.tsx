@@ -59,9 +59,11 @@ export async function ParticipantsSection() {
         <FadeIn delay={150}>
           {participants.length > 0 ? (
             <ul className="flex flex-wrap justify-center gap-3">
-              {participants.map((p) => (
+              {/* Names can repeat (the same artist on two accounts), so the
+                  key includes the position, like /participantes does. */}
+              {participants.map((p, i) => (
                 <li
-                  key={p.name}
+                  key={`${p.name}-${p.countryCode}-${i}`}
                   className="flex items-center gap-2 rounded-full border-2 border-ink/10 bg-card px-4 py-2 text-sm font-medium text-ink"
                 >
                   <span aria-hidden>{countryCodeToFlag(p.countryCode)}</span>

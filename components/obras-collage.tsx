@@ -41,7 +41,7 @@ export function ObrasCollage({
             <Link
               href={`/obras/${artwork.slug}`}
               className="obras-collage__window"
-              aria-label={fmt(m.collage.viewArtwork, { title: artwork.artworkTitle, name: artwork.name })}
+              aria-label={fmt(m.collage.viewArtwork, { title: artwork.artworkTitle ?? m.common.noData, name: artwork.name })}
             >
               <span className="obras-collage__bar" aria-hidden="true">
                 <span className="obras-collage__flag">{countryCodeToFlag(artwork.countryCode)}</span>
@@ -52,14 +52,14 @@ export function ObrasCollage({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={artwork.imageUrl}
-                alt={artwork.artworkTitle}
+                alt={artwork.artworkTitle ?? m.common.noData}
                 width={400}
                 height={440}
                 loading="lazy"
                 decoding="async"
                 className="obras-collage__image"
               />
-              <span className="obras-collage__caption">{artwork.artworkTitle}</span>
+              <span className="obras-collage__caption">{artwork.artworkTitle ?? m.common.noData}</span>
             </Link>
           </li>
         ))}

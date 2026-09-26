@@ -3,7 +3,8 @@
 // so each keystroke answers instantly instead of waiting on a request.
 export type SearchEntry = {
   slug: string
-  title: string
+  // Empty when the obra has no title yet (shown as m.common.noData).
+  title: string | null
   name: string
   countryCode: string
 }
@@ -29,7 +30,7 @@ export function searchArtworks(
 
   const ranked: { entry: SearchEntry; score: number }[] = []
   for (const entry of entries) {
-    const title = normalizeSearch(entry.title)
+    const title = normalizeSearch(entry.title ?? '')
     const name = normalizeSearch(entry.name)
     const haystack = `${title} ${name} ${normalizeSearch(countryName(entry.countryCode))} ${entry.countryCode.toLowerCase()}`
     if (!words.every((word) => haystack.includes(word))) continue

@@ -18,7 +18,7 @@ type CommentRow = {
   author_email: string | null
   body: string
   created_at: string
-  artworks: { title: string; slug: string; image_url: string } | null
+  artworks: { title: string | null; slug: string; image_url: string } | null
 }
 
 const dateFormat = new Intl.DateTimeFormat('es-AR', {
@@ -92,7 +92,7 @@ export default async function ComentariosPage({
             {comment.artworks && (
               <Link href={`/obras/${comment.artworks.slug}`} target="_blank" className="shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={comment.artworks.image_url} alt={comment.artworks.title}
+                <img src={comment.artworks.image_url} alt={comment.artworks.title ?? 'Sin datos'}
                   className="h-16 w-16 rounded-lg border-2 border-ink/10 object-cover sm:h-20 sm:w-20" />
               </Link>
             )}
@@ -102,7 +102,7 @@ export default async function ComentariosPage({
                 {comment.author_email && <> · {comment.author_email}</>}
                 {' · '}
                 {dateFormat.format(new Date(comment.created_at))}
-                {comment.artworks && <> · en «{comment.artworks.title}»</>}
+                {comment.artworks && <> · en «{comment.artworks.title ?? 'Sin datos'}»</>}
               </p>
               <p className="mt-2 whitespace-pre-line break-words text-ink">{comment.body}</p>
               <div className="mt-3 flex flex-wrap gap-2">

@@ -15,6 +15,7 @@ const en: Messages = {
   },
   common: {
     backHome: 'Back to home',
+    noData: 'No data',
     optional: '(optional)',
     opensInNewTab: '(opens in a new tab)',
     save: 'Save',
@@ -72,6 +73,9 @@ const en: Messages = {
     confirmTitle: 'Confirm your details',
     confirmBody: 'We loaded your artwork from the registration. Check that your name and country are right to complete your entry.',
     confirmCta: 'Review and confirm',
+    titleMissingTitle: 'Your artwork’s title is missing',
+    titleMissingBody: 'Write it so your artwork shows complete in the gallery and the search.',
+    titleMissingCta: 'Complete my details',
     joinTitle: 'Complete your entry',
     joinBody: "You're signed in with Google. If you're an artist, send your artwork and take part in the Collage World Cup.",
     joinCta: 'Send my artwork',
@@ -260,6 +264,8 @@ const en: Messages = {
   },
   confirmation: {
     haveArtwork: 'We already have your artwork',
+    artworkTitle: 'Artwork title',
+    titleMissing: 'Your artwork has no title yet. Write it so it shows in the gallery.',
     noReupload: "You don't need to upload it again.",
     yourDetails: 'Your details',
     artistName: 'Artist name or full name',
@@ -270,6 +276,7 @@ const en: Messages = {
     notThisOne: "Isn't this the artwork you want to submit?",
     otherAccount: 'Signed in with a different account?',
     errors: {
+      missing_title: 'Write your artwork’s title to confirm.',
       unavailable: "We couldn't connect. Please try again in a few minutes.",
       session: 'Your session has ended. Sign in with Google again to confirm.',
       missing: 'Fill in your name and choose your country to confirm.',

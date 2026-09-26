@@ -16,11 +16,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const [finalist, { locale, m }] = await Promise.all([getFinalistBySlug(slug), getI18n()])
   if (!finalist) return {}
+  const title = finalist.artworkTitle ?? m.common.noData
 
   return {
-    title: `${finalist.artworkTitle} — ${finalist.name} | Mundial de Collage`,
+    title: `${title} — ${finalist.name} | Mundial de Collage`,
     description: fmt(m.meta.artworkDescription, {
-      title: finalist.artworkTitle,
+      title,
       name: finalist.name,
       country: countryCodeToName(finalist.countryCode, locale),
     }),
@@ -32,6 +33,7 @@ export default async function ObraPage({ params }: { params: Promise<{ slug: str
   const [finalist, { locale, m }] = await Promise.all([getFinalistBySlug(slug), getI18n()])
 
   if (!finalist) notFound()
+  const title = finalist.artworkTitle ?? m.common.noData
 
   return (
     <>
@@ -50,7 +52,7 @@ export default async function ObraPage({ params }: { params: Promise<{ slug: str
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={finalist.imageUrl}
-              alt={fmt(m.common.artworkBy, { title: finalist.artworkTitle, name: finalist.name })}
+              alt={fmt(m.common.artworkBy, { title, name: finalist.name })}
               className="w-full object-cover"
             />
           </div>
@@ -60,7 +62,7 @@ export default async function ObraPage({ params }: { params: Promise<{ slug: str
               {finalist.technique && (m.common.techniques[finalist.technique] ?? finalist.technique)}
             </p>
             <h1 className="font-display mt-2 text-3xl tracking-tight text-ink uppercase sm:text-5xl">
-              {finalist.artworkTitle}
+              {title}
             </h1>
 
             <p className="mt-5 flex items-center gap-2 text-lg font-semibold text-ink">

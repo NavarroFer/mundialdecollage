@@ -525,12 +525,12 @@ export async function updateArtwork(input: {
 }): Promise<{ error?: string }> {
   await assertIsAdmin()
 
-  const title = input.title.trim()
-  if (!title) return { error: 'El título no puede quedar vacío.' }
+  // Empty is allowed: the site shows "Sin datos" and asks the artist for it.
+  const title = input.title.trim() || null
   if (input.technique && !ARTWORK_TECHNIQUES.has(input.technique)) return { error: 'Técnica inválida.' }
 
   const admin = createAdminClient()
-  const update: { title: string; technique: string | null; image_url?: string } = {
+  const update: { title: string | null; technique: string | null; image_url?: string } = {
     title,
     technique: input.technique || null,
   }

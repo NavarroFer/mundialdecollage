@@ -5,12 +5,14 @@ const mocks = vi.hoisted(() => ({
   from: vi.fn(),
   revalidatePath: vi.fn(),
   redirect: vi.fn((path: string) => { throw new Error(`redirect:${path}`) }),
+  adminFrom: vi.fn(),
 }))
 vi.mock('@/lib/supabase/config', () => ({ isSupabaseConfigured: true }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: mocks.from }) }))
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }))
 vi.mock('next/navigation', () => ({ redirect: mocks.redirect }))
 vi.mock('@/lib/track-server', () => ({ trackServer: async () => {} }))
+vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ from: mocks.adminFrom }) }))
 import { confirmArtistDetails } from './actions'
 
 function query(data: unknown, error: unknown = null) {
@@ -20,8 +22,9 @@ function query(data: unknown, error: unknown = null) {
   chain.update.mockReturnValue(chain)
   return chain
 }
-function details(country = 'AR') {
+function details(country = 'AR', title = ' Raíces ') {
   const form = new FormData()
+  form.set('title', title)
   form.set('name', '  Ana Collage  ')
   form.set('country_code', country)
   form.set('artwork_id', 'artwork-1')
@@ -52,7 +55,7 @@ describe('artist confirmation', () => {
     expect(mocks.redirect).not.toHaveBeenCalled()
   })
   it('confirms repeatedly without inserting or modifying an artwork', async () => {
-    const artwork = query({ id: 'artwork-1', slug: 'ana-collage' })
+    const artwork = query({ id: 'artwork-1', slug: 'ana-collage', title: 'Raíces' })
     const profile = query({ id: 'artist-1' })
     mocks.from.mockImplementation(table => table === 'artworks' ? artwork : profile)
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -61,10 +64,25 @@ describe('artist confirmation', () => {
     expect(profile.update).toHaveBeenCalledWith({ name: 'Ana Collage', country_code: 'AR', details_confirmed_at: expect.any(String) })
     expect(profile.eq).toHaveBeenCalledWith('id', 'artist-1')
     expect(artwork.update).not.toHaveBeenCalled()
+    expect(mocks.adminFrom).not.toHaveBeenCalled()
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/obras/ana-collage')
   })
+  it('asks for the title before saving anything', async () => {
+    expect(await confirmArtistDetails('', details('AR', '   '))).toBe('missing_title')
+    expect(mocks.from).not.toHaveBeenCalled()
+  })
+  it('saves the title an obra without one gets from its artist', async () => {
+    const artwork = query({ id: 'artwork-1', slug: 'ana-collage', title: null })
+    const adminArtwork = query(null)
+    mocks.from.mockImplementation(table => table === 'artworks' ? artwork : query({ id: 'artist-1' }))
+    mocks.adminFrom.mockReturnValue(adminArtwork)
+    await expect(confirmArtistDetails('', details())).rejects.toThrow('redirect:/onboarding/confirmado')
+    expect(mocks.adminFrom).toHaveBeenCalledWith('artworks')
+    expect(adminArtwork.update).toHaveBeenCalledWith({ title: 'Raíces' })
+    expect(adminArtwork.eq).toHaveBeenCalledWith('profile_id', 'artist-1')
+  })
   it('keeps the artist on the confirmation form if saving fails', async () => {
-    mocks.from.mockImplementation(table => table === 'artworks' ? query({ id: 'artwork-1' }) : query(null, { message: 'offline' }))
+    mocks.from.mockImplementation(table => table === 'artworks' ? query({ id: 'artwork-1', title: 'Raíces' }) : query(null, { message: 'offline' }))
     expect(await confirmArtistDetails('', details())).toBe('save_failed')
     expect(mocks.redirect).not.toHaveBeenCalled()
   })
