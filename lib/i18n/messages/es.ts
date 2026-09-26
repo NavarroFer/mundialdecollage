@@ -321,8 +321,10 @@ const es = {
     pendingBody: 'Apenas Mercado Pago lo acredite vas a poder postular hasta {limit} obras. Puede tardar unos minutos.',
     paymentFailed: 'El pago no se completó. Podés intentarlo de nuevo cuando quieras.',
     paymentThanks: '¡Gracias! Tu pago quedó acreditado. Ya podés postular hasta {limit} obras.',
-    onboardingFirst: 'Participás gratis con 1 obra. Si más adelante querés postular más, podés hacerlo con un pago único.',
-    onboardingAnother: 'Podés tener varias obras cargadas, pero gratis participa una sola: cuando subas esta, elegís cuál. Para postular hasta {limit} obras hay un pago único de {ars} ({usd}).',
+    onboardingNote: 'Podés cargar varias obras, pero gratis participa una sola: después de enviarlas elegís cuál. Para postular hasta {limit} obras hay un pago único de {ars} ({usd}).',
+    artworkNumber: 'Obra {number}',
+    addArtwork: 'Agregar otra obra',
+    removeArtwork: 'Quitar',
     chooseAmong: 'Elegir entre mis obras',
     errors: {
       none: 'Elegí al menos una obra.',

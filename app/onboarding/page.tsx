@@ -215,7 +215,9 @@ export default async function OnboardingPage({
           email={user.email || ''}
           prefillImageUrl={legacyImagePreview?.publicUrl}
           prefillImagePath={legacyImagePreview?.path}
-          entriesNote={artworkCount > 0 ? 'another' : 'first'}
+          entriesNote
+          maxArtworks={site.entries.maxStored - artworkCount}
+          another={Boolean(another)}
         />
       </div>
     </main>

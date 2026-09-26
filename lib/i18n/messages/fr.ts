@@ -318,8 +318,10 @@ const fr: Messages = {
     pendingBody: "Dès que Mercado Pago le confirme, tu pourras présenter jusqu'à {limit} œuvres. Cela peut prendre quelques minutes.",
     paymentFailed: "Le paiement n'a pas abouti. Tu peux réessayer quand tu veux.",
     paymentThanks: "Merci ! Ton paiement est confirmé. Tu peux maintenant présenter jusqu'à {limit} œuvres.",
-    onboardingFirst: "Tu participes gratuitement avec 1 œuvre. Si tu veux en présenter d'autres plus tard, tu peux le faire avec un paiement unique.",
-    onboardingAnother: "Tu peux garder plusieurs œuvres, mais une seule participe gratuitement : une fois celle-ci envoyée, tu choisis laquelle. Pour présenter jusqu'à {limit} œuvres, il y a un paiement unique de {ars} ({usd}).",
+    onboardingNote: "Tu peux envoyer plusieurs œuvres, mais une seule participe gratuitement : après les avoir envoyées, tu choisis laquelle. Pour présenter jusqu'à {limit} œuvres, il y a un paiement unique de {ars} ({usd}).",
+    artworkNumber: 'Œuvre {number}',
+    addArtwork: 'Ajouter une autre œuvre',
+    removeArtwork: 'Retirer',
     chooseAmong: 'Choisir parmi mes œuvres',
     errors: {
       none: 'Choisis au moins une œuvre.',

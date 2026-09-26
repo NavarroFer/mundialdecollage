@@ -318,8 +318,10 @@ const pt: Messages = {
     pendingBody: 'Assim que o Mercado Pago confirmar, você poderá inscrever até {limit} obras. Pode levar alguns minutos.',
     paymentFailed: 'O pagamento não foi concluído. Você pode tentar de novo quando quiser.',
     paymentThanks: 'Obrigado! Seu pagamento foi confirmado. Agora você pode inscrever até {limit} obras.',
-    onboardingFirst: 'Você participa gratuitamente com 1 obra. Se depois quiser inscrever mais, pode fazer isso com um pagamento único.',
-    onboardingAnother: 'Você pode ter várias obras cadastradas, mas só uma participa gratuitamente: ao enviar esta, você escolhe qual. Para inscrever até {limit} obras há um pagamento único de {ars} ({usd}).',
+    onboardingNote: 'Você pode enviar várias obras, mas só uma participa gratuitamente: depois de enviá-las, você escolhe qual. Para inscrever até {limit} obras há um pagamento único de {ars} ({usd}).',
+    artworkNumber: 'Obra {number}',
+    addArtwork: 'Adicionar outra obra',
+    removeArtwork: 'Remover',
     chooseAmong: 'Escolher entre minhas obras',
     errors: {
       none: 'Escolha pelo menos uma obra.',

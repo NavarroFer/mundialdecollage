@@ -319,8 +319,10 @@ const en: Messages = {
     pendingBody: "As soon as Mercado Pago confirms it you'll be able to enter up to {limit} artworks. It can take a few minutes.",
     paymentFailed: "The payment didn't go through. You can try again whenever you like.",
     paymentThanks: 'Thank you! Your payment went through. You can now enter up to {limit} artworks.',
-    onboardingFirst: 'You take part for free with 1 artwork. If you want to enter more later, you can with a one-time payment.',
-    onboardingAnother: 'You can keep several artworks here, but only one takes part for free: once this one is uploaded, you choose which. Entering up to {limit} artworks takes a one-time payment of {ars} ({usd}).',
+    onboardingNote: 'You can upload several artworks, but only one takes part for free: after sending them you choose which. Entering up to {limit} artworks takes a one-time payment of {ars} ({usd}).',
+    artworkNumber: 'Artwork {number}',
+    addArtwork: 'Add another artwork',
+    removeArtwork: 'Remove',
     chooseAmong: 'Choose among my artworks',
     errors: {
       none: 'Choose at least one artwork.',

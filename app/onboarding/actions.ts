@@ -62,30 +62,35 @@ export async function completeOnboarding(formData: FormData) {
 
   const name = String(formData.get('name') ?? '').trim()
   const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
-  const technique = String(formData.get('technique') ?? '').trim()
-  const artworkTitle = String(formData.get('artwork_title') ?? '').trim()
   const instagramInput = String(formData.get('instagram') ?? '').trim()
   const websiteInput = String(formData.get('website') ?? '').trim()
-  // The image itself is uploaded client-side straight to Supabase Storage
+  // One entry per obra, in the order the form lists them: an artist can send
+  // several at once and then choose which takes part (lib/entries.ts). The
+  // images themselves are uploaded client-side straight to Supabase Storage
   // (see onboarding-form.tsx) — Vercel's Server Action body limit (~4.5MB)
   // sits well under the photos people actually submit. This action only
-  // gets the resulting storage path back.
-  const imagePath = String(formData.get('artwork_image_path') ?? '').trim()
+  // gets the resulting storage paths back.
+  const titles = formData.getAll('artwork_title').map((value) => String(value).trim())
+  const techniques = formData.getAll('technique').map((value) => String(value).trim())
+  const imagePaths = formData.getAll('artwork_image_path').map((value) => String(value).trim())
+  // Errors send a resubmission back to the same "another obra" form.
+  const errorUrl = (code: string) =>
+    formData.get('another') ? `/onboarding?another=1&error=${code}` : `/onboarding?error=${code}`
 
-  if (!name || !countryCode || !artworkTitle) {
-    redirect('/onboarding?error=missing_fields')
+  if (!name || !countryCode || titles.length === 0 || titles.some((title) => !title)) {
+    redirect(errorUrl('missing_fields'))
   }
-  if (!imagePath) {
-    redirect('/onboarding?error=missing_image')
+  if (imagePaths.length !== titles.length || imagePaths.some((path) => !path)) {
+    redirect(errorUrl('missing_image'))
   }
 
   const instagram = instagramInput ? normalizeInstagram(instagramInput) : null
   if (instagramInput && !instagram) {
-    redirect('/onboarding?error=invalid_instagram')
+    redirect(errorUrl('invalid_instagram'))
   }
   const website = websiteInput ? normalizeWebsite(websiteInput) : null
   if (websiteInput && !website) {
-    redirect('/onboarding?error=invalid_website')
+    redirect(errorUrl('invalid_website'))
   }
 
   const supabase = await createClient()
@@ -96,10 +101,10 @@ export async function completeOnboarding(formData: FormData) {
 
   // A profile with onboarded_at already set has submitted before — this is
   // a resubmission (see the "Enviar otra obra" link on ParticipationStatus).
-  // Its artwork lands as a new, unselected artworks row and the artist
-  // chooses on /onboarding/obras which obra takes part (one for free, more
-  // after paying — lib/entries.ts); a first-ever submission has nothing to
-  // choose against, so it auto-selects.
+  // New obras land as unselected artworks rows and the artist chooses on
+  // /onboarding/obras which obra takes part (one for free, more after
+  // paying — lib/entries.ts). A first-ever submission's first obra
+  // auto-selects, so even an artist who never chooses takes part.
   const { data: existingProfile } = await supabase
     .from('profiles')
     .select('onboarded_at')
@@ -109,42 +114,38 @@ export async function completeOnboarding(formData: FormData) {
 
   // Artists can keep several obras and choose which take part, but not
   // upload without limit (site.entries.maxStored).
-  if (!isFirstSubmission) {
-    const { count } = await supabase
-      .from('artworks')
-      .select('id', { count: 'exact', head: true })
-      .eq('profile_id', user.id)
-      .is('archived_at', null)
-      .is('duplicate_of', null)
-    if ((count ?? 0) >= site.entries.maxStored) redirect('/onboarding/obras')
-  }
+  const { count: existingCount } = await supabase
+    .from('artworks')
+    .select('id', { count: 'exact', head: true })
+    .eq('profile_id', user.id)
+    .is('archived_at', null)
+    .is('duplicate_of', null)
+  const totalArtworks = (existingCount ?? 0) + titles.length
+  if (totalArtworks > site.entries.maxStored) redirect(errorUrl('too_many_artworks'))
 
   // The upload RLS policy already confines writes to `${uid}/...`, but the
-  // path arrives here as plain form data — re-check it wasn't tampered with
+  // paths arrive here as plain form data — re-check none was tampered with
   // before we treat it as this user's own file.
-  const [folder, filename] = imagePath.split('/')
-  const extension = filename?.split('.').pop()?.toLowerCase()
-  if (folder !== user.id || !filename || !extension || !ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
-    redirect('/onboarding?error=invalid_image')
+  const publicUrls: string[] = []
+  for (const imagePath of imagePaths) {
+    const [folder, filename] = imagePath.split('/')
+    const extension = filename?.split('.').pop()?.toLowerCase()
+    if (folder !== user.id || !filename || !extension || !ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
+      redirect(errorUrl('invalid_image'))
+    }
+
+    const { data: existingFiles } = await supabase.storage.from('artworks').list(folder, {
+      search: filename,
+    })
+    if (!existingFiles?.some((file) => file.name === filename)) {
+      redirect(errorUrl('upload_failed'))
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('artworks').getPublicUrl(imagePath)
+    publicUrls.push(publicUrl)
   }
-
-  const { data: existingFiles } = await supabase.storage.from('artworks').list(folder, {
-    search: filename,
-  })
-  if (!existingFiles?.some((file) => file.name === filename)) {
-    redirect('/onboarding?error=upload_failed')
-  }
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from('artworks').getPublicUrl(imagePath)
-
-  // slugify() strips anything outside [a-z0-9] — a name/title with no Latin
-  // characters at all (a real possibility in an *international* contest)
-  // collapses to '', which /obras/[slug] can't route to. Fall back to a
-  // slice of the user id so every submission still gets a working page.
-  const baseSlug = slugify(`${name}-${artworkTitle}`) || user.id.slice(0, 8)
-  const slug = await uniqueSlug(supabase, baseSlug)
 
   // profiles row first — artworks.profile_id references it, and for a
   // first-time submitter this row doesn't exist yet. onboarded_at is only
@@ -162,20 +163,32 @@ export async function completeOnboarding(formData: FormData) {
   const { error: profileError } = await supabase.from('profiles').upsert(profilePayload)
   if (profileError) {
     console.error('onboarding: failed to save profile', user.id, profileError)
-    redirect('/onboarding?error=save_failed')
+    redirect(errorUrl('save_failed'))
   }
 
-  const { error: artworkError } = await supabase.from('artworks').insert({
-    profile_id: user.id,
-    title: artworkTitle,
-    slug,
-    image_url: publicUrl,
-    technique: technique || null,
-    is_selected: isFirstSubmission,
-  })
-  if (artworkError) {
-    console.error('onboarding: failed to save artwork', user.id, artworkError)
-    redirect('/onboarding?error=save_failed')
+  // One at a time: each slug is checked against the rows already inserted,
+  // so two obras with the same title in one submission still get distinct
+  // slugs.
+  for (const [index, artworkTitle] of titles.entries()) {
+    // slugify() strips anything outside [a-z0-9] — a name/title with no Latin
+    // characters at all (a real possibility in an *international* contest)
+    // collapses to '', which /obras/[slug] can't route to. Fall back to a
+    // slice of the user id so every submission still gets a working page.
+    const baseSlug = slugify(`${name}-${artworkTitle}`) || user.id.slice(0, 8)
+    const slug = await uniqueSlug(supabase, baseSlug)
+
+    const { error: artworkError } = await supabase.from('artworks').insert({
+      profile_id: user.id,
+      title: artworkTitle,
+      slug,
+      image_url: publicUrls[index],
+      technique: techniques[index] || null,
+      is_selected: isFirstSubmission && index === 0,
+    })
+    if (artworkError) {
+      console.error('onboarding: failed to save artwork', user.id, artworkError)
+      redirect(errorUrl('save_failed'))
+    }
   }
 
   // Best-effort: mark the matching legacy_submissions row (if any) as
@@ -197,8 +210,11 @@ export async function completeOnboarding(formData: FormData) {
     }
   }
 
+  if (isFirstSubmission) await trackServer('signup_done', user.id)
+  // With more than one obra on the account, the artist chooses which takes
+  // part before anything else.
   if (!isFirstSubmission) redirect('/onboarding/obras?nueva=1')
-  await trackServer('signup_done', user.id)
+  if (totalArtworks > 1) redirect('/onboarding/obras')
   redirect('/onboarding/confirmado')
 }
 

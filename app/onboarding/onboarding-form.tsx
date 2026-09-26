@@ -2,7 +2,7 @@
 
 import { startTransition, useActionState, useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, X } from 'lucide-react'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { Button } from '@/components/ui/button'
 import { CountrySelect } from '@/components/ui/country-select'
@@ -29,6 +29,8 @@ export function OnboardingForm({
   prefillImageUrl,
   prefillImagePath,
   entriesNote,
+  maxArtworks = 1,
+  another = false,
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaultName: string
@@ -55,9 +57,14 @@ export function OnboardingForm({
   // artist doesn't pick a new file, so the server action treats it exactly
   // like a normal upload.
   prefillImagePath?: string
-  // How many obras take part, told before uploading: 'first' for someone's
-  // first obra, 'another' when they already have one (see lib/entries.ts).
-  entriesNote?: 'first' | 'another'
+  // Shown before uploading: several obras can be sent, one takes part for
+  // free (see lib/entries.ts).
+  entriesNote?: boolean
+  // How many obras this submission can add (site.entries.maxStored minus
+  // the ones already on the account).
+  maxArtworks?: number
+  // Uploading more obras to an account that already has some (?another=1).
+  another?: boolean
 }) {
   const [, formAction, pending] = useActionState(async (_prev: null, formData: FormData) => {
     await action(formData)
@@ -65,7 +72,12 @@ export function OnboardingForm({
   }, null)
   const [uploading, setUploading] = useState(false)
   const [clientError, setClientError] = useState<string | null>(null)
-  const [pickedFileName, setPickedFileName] = useState<string | null>(null)
+  // One entry per obra in the form. The first one can fall back to the
+  // prefilled image; the rest always need a file.
+  const [slots, setSlots] = useState<{ key: number; pickedFileName: string | null }[]>([
+    { key: 0, pickedFileName: null },
+  ])
+  const [nextKey, setNextKey] = useState(1)
   const hasImagePrefill = Boolean(prefillImageUrl && prefillImagePath)
   const { locale, m } = useI18n()
   const errorMessages = m.onboarding.errors
@@ -83,9 +95,19 @@ export function OnboardingForm({
     setClientError(null)
 
     const formData = new FormData(event.currentTarget)
-    const image = formData.get('artwork_image')
+    const images = formData.getAll('artwork_image')
+    const hasFile = (image: FormDataEntryValue): image is File => image instanceof File && image.size > 0
 
-    if (image instanceof File && image.size > 0) {
+    // Check every obra before uploading any, so a bad third file doesn't
+    // leave the first two uploaded for nothing.
+    for (const [index, image] of images.entries()) {
+      if (!hasFile(image)) {
+        // No new file picked — only the first obra can fall back to the
+        // image page.tsx already fetched from Drive for this person.
+        if (index === 0 && hasImagePrefill) continue
+        setClientError(errorMessages.missing_image)
+        return
+      }
       if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
         setClientError(errorMessages.invalid_image)
         return
@@ -94,39 +116,36 @@ export function OnboardingForm({
         setClientError(errorMessages.image_too_large)
         return
       }
+    }
 
-      setUploading(true)
-      // Uploaded straight to Storage from the browser — a Server Action's
-      // request body is capped by Vercel at ~4.5MB, well under photos people
-      // actually submit, and the raw 413 that comes back crashes the page
-      // instead of showing a clean error.
-      const supabase = createClient()
+    setUploading(true)
+    // Uploaded straight to Storage from the browser — a Server Action's
+    // request body is capped by Vercel at ~4.5MB, well under photos people
+    // actually submit, and the raw 413 that comes back crashes the page
+    // instead of showing a clean error.
+    const supabase = createClient()
+    const paths: string[] = []
+    for (const [index, image] of images.entries()) {
+      if (!hasFile(image)) {
+        paths.push(prefillImagePath!)
+        continue
+      }
       const extension = image.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const path = `${userId}/${Date.now()}.${extension}`
+      const path = `${userId}/${Date.now()}-${index}.${extension}`
       const { error: uploadError } = await supabase.storage
         .from('artworks')
         .upload(path, image, { contentType: image.type })
-      setUploading(false)
-
       if (uploadError) {
+        setUploading(false)
         setClientError(errorMessages.upload_failed)
         return
       }
-
-      formData.delete('artwork_image')
-      formData.set('artwork_image_path', path)
-      startTransition(() => formAction(formData))
-      return
+      paths.push(path)
     }
+    setUploading(false)
 
-    // No new file picked — fall back to the image page.tsx already fetched
-    // from Drive and uploaded on this person's behalf, if there is one.
-    if (!hasImagePrefill || !prefillImagePath) {
-      setClientError(errorMessages.missing_image)
-      return
-    }
     formData.delete('artwork_image')
-    formData.set('artwork_image_path', prefillImagePath)
+    for (const path of paths) formData.append('artwork_image_path', path)
     startTransition(() => formAction(formData))
   }
 
@@ -157,15 +176,15 @@ export function OnboardingForm({
         </div>
       )}
 
+      {another && <input type="hidden" name="another" value="1" />}
+
       {entriesNote && (
         <p className="rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4 text-sm text-ink">
-          {entriesNote === 'first'
-            ? m.entries.onboardingFirst
-            : fmt(m.entries.onboardingAnother, {
-                limit: site.entries.paidLimit,
-                ars: formatMoney(locale, site.entries.priceArs, 'ARS'),
-                usd: formatMoney(locale, site.entries.priceUsd, 'USD'),
-              })}
+          {fmt(m.entries.onboardingNote, {
+            limit: site.entries.paidLimit,
+            ars: formatMoney(locale, site.entries.priceArs, 'ARS'),
+            usd: formatMoney(locale, site.entries.priceUsd, 'USD'),
+          })}
         </p>
       )}
 
@@ -206,66 +225,107 @@ export function OnboardingForm({
         />
       </div>
 
-      <div>
-        <label htmlFor="technique" className="text-sm font-semibold text-ink">
-          {m.onboarding.technique} <span className="font-normal text-muted-foreground">{m.common.optional}</span>
-        </label>
-        <select id="technique" name="technique" defaultValue="" className={inputClass}>
-          <option value="">{m.onboarding.techniqueNone}</option>
-          {TECHNIQUES.map((technique) => (
-            <option key={technique} value={technique}>
-              {m.common.techniques[technique] ?? technique}
-            </option>
-          ))}
-        </select>
-      </div>
+      {slots.map((slot, index) => {
+        const canUsePrefill = index === 0 && hasImagePrefill
+        const id = (field: string) => `${field}-${slot.key}`
+        return (
+          <fieldset key={slot.key} className="space-y-4 rounded-xl border-2 border-ink/10 p-4">
+            <legend className="flex w-full items-center justify-between gap-2 px-1 text-sm font-bold text-ink">
+              <span>{fmt(m.entries.artworkNumber, { number: index + 1 })}</span>
+              {slots.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setSlots((previous) => previous.filter((other) => other.key !== slot.key))}
+                  className="flex min-h-11 items-center gap-1 text-sm font-semibold text-collage-red"
+                >
+                  <X className="size-4" aria-hidden="true" />
+                  {m.entries.removeArtwork}
+                </button>
+              )}
+            </legend>
 
-      <div>
-        <label htmlFor="artwork_title" className="text-sm font-semibold text-ink">
-          {m.onboarding.artworkTitle}
-        </label>
-        <input
-          id="artwork_title"
-          name="artwork_title"
-          type="text"
-          required
-          placeholder={m.onboarding.artworkTitlePlaceholder}
-          className={inputClass}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="artwork_image" className="text-sm font-semibold text-ink">
-          {hasImagePrefill ? `${m.onboarding.changeImage} ${m.common.optional}` : m.onboarding.artworkImage}
-        </label>
-
-        {hasImagePrefill && !pickedFileName && !hasLegacyMatch && (
-          <div className="mt-1.5 mb-2 flex items-center gap-3 rounded-lg border-2 border-collage-blue/20 bg-collage-blue/5 p-2.5">
-            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-ink/10 bg-muted">
-              <Image
-                src={prefillImageUrl!}
-                alt={m.onboarding.previousImageAlt}
-                fill
-                sizes="56px"
-                className="object-cover"
+            <div>
+              <label htmlFor={id('artwork_title')} className="text-sm font-semibold text-ink">
+                {m.onboarding.artworkTitle}
+              </label>
+              <input
+                id={id('artwork_title')}
+                name="artwork_title"
+                type="text"
+                required
+                placeholder={m.onboarding.artworkTitlePlaceholder}
+                className={inputClass}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              {m.onboarding.previousImageNote}
-            </p>
-          </div>
-        )}
 
-        <input
-          id="artwork_image"
-          name="artwork_image"
-          type="file"
-          accept="image/*"
-          required={!hasImagePrefill}
-          onChange={(event) => setPickedFileName(event.target.files?.[0]?.name ?? null)}
-          className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-collage-blue file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary-foreground`}
-        />
-      </div>
+            <div>
+              <label htmlFor={id('technique')} className="text-sm font-semibold text-ink">
+                {m.onboarding.technique} <span className="font-normal text-muted-foreground">{m.common.optional}</span>
+              </label>
+              <select id={id('technique')} name="technique" defaultValue="" className={inputClass}>
+                <option value="">{m.onboarding.techniqueNone}</option>
+                {TECHNIQUES.map((technique) => (
+                  <option key={technique} value={technique}>
+                    {m.common.techniques[technique] ?? technique}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor={id('artwork_image')} className="text-sm font-semibold text-ink">
+                {canUsePrefill ? `${m.onboarding.changeImage} ${m.common.optional}` : m.onboarding.artworkImage}
+              </label>
+
+              {canUsePrefill && !slot.pickedFileName && !hasLegacyMatch && (
+                <div className="mt-1.5 mb-2 flex items-center gap-3 rounded-lg border-2 border-collage-blue/20 bg-collage-blue/5 p-2.5">
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-ink/10 bg-muted">
+                    <Image
+                      src={prefillImageUrl!}
+                      alt={m.onboarding.previousImageAlt}
+                      fill
+                      sizes="56px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {m.onboarding.previousImageNote}
+                  </p>
+                </div>
+              )}
+
+              <input
+                id={id('artwork_image')}
+                name="artwork_image"
+                type="file"
+                accept="image/*"
+                required={!canUsePrefill}
+                onChange={(event) => {
+                  const pickedFileName = event.target.files?.[0]?.name ?? null
+                  setSlots((previous) =>
+                    previous.map((other) => (other.key === slot.key ? { ...other, pickedFileName } : other)),
+                  )
+                }}
+                className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-collage-blue file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary-foreground`}
+              />
+            </div>
+          </fieldset>
+        )
+      })}
+
+      {slots.length < maxArtworks && (
+        <button
+          type="button"
+          onClick={() => {
+            setSlots((previous) => [...previous, { key: nextKey, pickedFileName: null }])
+            setNextKey((key) => key + 1)
+          }}
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-collage-blue/40 text-sm font-semibold text-collage-blue hover:bg-collage-blue/5"
+        >
+          <Plus className="size-4" aria-hidden="true" />
+          {m.entries.addArtwork}
+        </button>
+      )}
 
       <div>
         <label htmlFor="instagram" className="text-sm font-semibold text-ink">

@@ -318,8 +318,10 @@ const it: Messages = {
     pendingBody: 'Appena Mercado Pago lo accredita potrai candidare fino a {limit} opere. Può richiedere qualche minuto.',
     paymentFailed: 'Il pagamento non è andato a buon fine. Puoi riprovare quando vuoi.',
     paymentThanks: 'Grazie! Il tuo pagamento è stato accreditato. Ora puoi candidare fino a {limit} opere.',
-    onboardingFirst: 'Partecipi gratuitamente con 1 opera. Se in seguito vuoi candidarne altre, puoi farlo con un pagamento unico.',
-    onboardingAnother: "Puoi avere più opere caricate, ma gratuitamente ne partecipa solo una: dopo aver caricato questa, scegli quale. Per candidare fino a {limit} opere c'è un pagamento unico di {ars} ({usd}).",
+    onboardingNote: "Puoi caricare più opere, ma gratuitamente ne partecipa solo una: dopo averle inviate scegli quale. Per candidare fino a {limit} opere c'è un pagamento unico di {ars} ({usd}).",
+    artworkNumber: 'Opera {number}',
+    addArtwork: "Aggiungi un'altra opera",
+    removeArtwork: 'Rimuovi',
     chooseAmong: 'Scegli tra le mie opere',
     errors: {
       none: "Scegli almeno un'opera.",

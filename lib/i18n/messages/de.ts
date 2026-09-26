@@ -318,8 +318,10 @@ const de: Messages = {
     pendingBody: 'Sobald Mercado Pago sie bestätigt, kannst du bis zu {limit} Werke einreichen. Das kann ein paar Minuten dauern.',
     paymentFailed: 'Die Zahlung wurde nicht abgeschlossen. Du kannst es jederzeit erneut versuchen.',
     paymentThanks: 'Danke! Deine Zahlung ist eingegangen. Du kannst jetzt bis zu {limit} Werke einreichen.',
-    onboardingFirst: 'Du nimmst kostenlos mit 1 Werk teil. Wenn du später mehr einreichen möchtest, geht das mit einer einmaligen Zahlung.',
-    onboardingAnother: 'Du kannst mehrere Werke hochladen, aber nur eines nimmt kostenlos teil: Nach dem Hochladen wählst du, welches. Für bis zu {limit} Werke gibt es eine einmalige Zahlung von {ars} ({usd}).',
+    onboardingNote: 'Du kannst mehrere Werke hochladen, aber nur eines nimmt kostenlos teil: Nach dem Absenden wählst du, welches. Für bis zu {limit} Werke gibt es eine einmalige Zahlung von {ars} ({usd}).',
+    artworkNumber: 'Werk {number}',
+    addArtwork: 'Weiteres Werk hinzufügen',
+    removeArtwork: 'Entfernen',
     chooseAmong: 'Aus meinen Werken wählen',
     errors: {
       none: 'Wähle mindestens ein Werk.',

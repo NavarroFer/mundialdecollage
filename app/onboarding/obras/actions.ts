@@ -65,6 +65,7 @@ export async function saveEntryChoice(formData: FormData) {
     }
   }
 
+  const { data: before } = await supabase.from('profiles').select('entries_chosen_at').eq('id', user.id).maybeSingle()
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .update({ entries_chosen_at: new Date().toISOString() })
@@ -87,7 +88,9 @@ export async function saveEntryChoice(formData: FormData) {
   const main = owned.find((artwork) => artwork.id === choice.main)
   const needsConfirmation =
     !main?.title?.trim() || (Boolean(main?.legacy_submission_id) && !profile?.details_confirmed_at)
-  redirect(needsConfirmation ? '/onboarding' : '/onboarding/obras?guardado=1')
+  if (needsConfirmation) redirect('/onboarding')
+  // Choosing for the first time finishes the sign-up; later changes stay here.
+  redirect(before?.entries_chosen_at ? '/onboarding/obras?guardado=1' : '/onboarding/confirmado')
 }
 
 // One-time Mercado Pago payment that raises the artist's limit to

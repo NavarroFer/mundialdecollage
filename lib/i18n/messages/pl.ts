@@ -323,8 +323,10 @@ const pl: Messages = {
     pendingBody: 'Gdy tylko Mercado Pago ją potwierdzi, będziesz mógł zgłosić do {limit} prac. Może to potrwać kilka minut.',
     paymentFailed: 'Płatność nie została zrealizowana. Możesz spróbować ponownie w dowolnej chwili.',
     paymentThanks: 'Dziękujemy! Płatność zaksięgowana. Możesz już zgłosić do {limit} prac.',
-    onboardingFirst: 'Bierzesz udział bezpłatnie z 1 pracą. Jeśli później zechcesz zgłosić więcej, możesz to zrobić jednorazową płatnością.',
-    onboardingAnother: 'Możesz mieć kilka wgranych prac, ale bezpłatnie bierze udział tylko jedna: po wgraniu tej wybierzesz, którą. Aby zgłosić do {limit} prac, obowiązuje jednorazowa płatność {ars} ({usd}).',
+    onboardingNote: 'Możesz wgrać kilka prac, ale bezpłatnie bierze udział tylko jedna: po wysłaniu wybierzesz, która. Aby zgłosić do {limit} prac, obowiązuje jednorazowa płatność {ars} ({usd}).',
+    artworkNumber: 'Praca {number}',
+    addArtwork: 'Dodaj kolejną pracę',
+    removeArtwork: 'Usuń',
     chooseAmong: 'Wybierz spośród moich prac',
     errors: {
       none: 'Wybierz co najmniej jedną pracę.',

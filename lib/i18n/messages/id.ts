@@ -318,8 +318,10 @@ const id: Messages = {
     pendingBody: 'Begitu Mercado Pago mengonfirmasinya, kamu bisa mengajukan hingga {limit} karya. Ini bisa memakan waktu beberapa menit.',
     paymentFailed: 'Pembayaran tidak berhasil. Kamu bisa mencoba lagi kapan saja.',
     paymentThanks: 'Terima kasih! Pembayaranmu sudah diterima. Sekarang kamu bisa mengajukan hingga {limit} karya.',
-    onboardingFirst: 'Kamu ikut serta gratis dengan 1 karya. Jika nanti ingin mengajukan lebih banyak, kamu bisa melakukannya dengan pembayaran sekali.',
-    onboardingAnother: 'Kamu bisa menyimpan beberapa karya, tetapi hanya satu yang ikut serta secara gratis: setelah mengunggah karya ini, kamu memilih yang mana. Untuk mengajukan hingga {limit} karya ada pembayaran sekali sebesar {ars} ({usd}).',
+    onboardingNote: 'Kamu bisa mengunggah beberapa karya, tetapi hanya satu yang ikut serta secara gratis: setelah mengirimnya kamu memilih yang mana. Untuk mengajukan hingga {limit} karya ada pembayaran sekali sebesar {ars} ({usd}).',
+    artworkNumber: 'Karya {number}',
+    addArtwork: 'Tambah karya lain',
+    removeArtwork: 'Hapus',
     chooseAmong: 'Pilih dari karyaku',
     errors: {
       none: 'Pilih setidaknya satu karya.',
