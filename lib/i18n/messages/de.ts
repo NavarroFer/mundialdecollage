@@ -34,7 +34,6 @@ const de: Messages = {
   },
   header: {
     nav: 'Hauptnavigation',
-    howTo: 'So machst du mit',
     workshop: 'Workshop',
     participants: 'Teilnehmende',
     gallery3d: '3D-Galerie',
@@ -96,22 +95,6 @@ const de: Messages = {
     sub: 'Jedes Werk bringt einen neuen Blick mit. Das nächste kann deins sein.',
     submit: 'Reich dein Werk bei der WM ein',
     discover: 'Entdecke die teilnehmenden Werke →',
-  },
-  howTo: {
-    eyebrow: 'So machst du mit',
-    title: 'Dein Werk in 3 Schritten einreichen',
-    steps: [
-      { title: 'Mach deine Collage', description: 'Es muss ein eigenes Originalwerk sein, in der Technik deiner Wahl.' },
-      { title: 'Wähle, wie du es schickst', description: 'Du kannst das Bild direkt auf der Website hochladen oder per E-Mail schicken.' },
-      {
-        title: 'Gib deine Daten an',
-        description: 'Ergänze deinen Namen, dein Land und den Titel des Werks. Per E-Mail bitte alles in dieselbe Nachricht.',
-      },
-    ],
-    register: 'Registrieren und Werk hochladen',
-    byEmail: 'Werk per E-Mail schicken',
-    googleWhy:
-      'Warum fragen wir nach „Mit Google anmelden“? Damit erkennen wir dich, wenn du dein Werk bei der Internationalen Collage-WM hochlädst oder dich für den Workshop anmeldest – so kannst du deine Teilnahme verfolgen, ohne ein neues Konto anzulegen.',
   },
   about: {
     eyebrow: 'Wer wir sind',

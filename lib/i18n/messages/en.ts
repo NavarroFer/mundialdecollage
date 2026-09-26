@@ -34,7 +34,6 @@ const en: Messages = {
   },
   header: {
     nav: 'Main navigation',
-    howTo: 'How to take part',
     workshop: 'Workshop',
     participants: 'Participants',
     gallery3d: '3D Gallery',
@@ -96,22 +95,6 @@ const en: Messages = {
     sub: 'Every artwork adds a new perspective. The next one could be yours.',
     submit: 'Add your artwork to the World Cup',
     discover: 'Discover the participating artworks →',
-  },
-  howTo: {
-    eyebrow: 'How to take part',
-    title: 'Send your artwork in 3 steps',
-    steps: [
-      { title: 'Make your collage', description: 'It must be an original artwork of your own, in any technique you like.' },
-      { title: 'Choose how to send it', description: 'You can upload the image directly on the website or send it by email.' },
-      {
-        title: 'Fill in your details',
-        description: 'Add your name, country and the title of the artwork. If you choose email, include everything in the same message.',
-      },
-    ],
-    register: 'Sign up and upload my artwork',
-    byEmail: 'Send my artwork by email',
-    googleWhy:
-      'Why do we ask you to "Sign in with Google"? We use it to identify you when you upload your artwork to the International Collage World Cup or sign up for the workshop, so you can follow your participation without creating a new account.',
   },
   about: {
     eyebrow: 'Who we are',

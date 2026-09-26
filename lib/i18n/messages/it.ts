@@ -34,7 +34,6 @@ const it: Messages = {
   },
   header: {
     nav: 'Navigazione principale',
-    howTo: 'Come partecipare',
     workshop: 'Laboratorio',
     participants: 'Partecipanti',
     gallery3d: 'Galleria 3D',
@@ -96,22 +95,6 @@ const it: Messages = {
     sub: 'Ogni opera aggiunge uno sguardo. La prossima può essere la tua.',
     submit: 'Porta la tua opera al Mondiale',
     discover: 'Scopri le opere in gara →',
-  },
-  howTo: {
-    eyebrow: 'Come partecipare',
-    title: 'Invia la tua opera in 3 passi',
-    steps: [
-      { title: 'Crea il tuo collage', description: "Dev'essere un'opera originale e tua, nella tecnica che preferisci." },
-      { title: 'Scegli come inviarla', description: "Puoi caricare l'immagine direttamente sul sito oppure inviarla per email." },
-      {
-        title: 'Inserisci i tuoi dati',
-        description: "Aggiungi il tuo nome, il paese e il titolo dell'opera. Se scegli l'email, metti tutto nello stesso messaggio.",
-      },
-    ],
-    register: 'Registrarmi e caricare la mia opera',
-    byEmail: 'Inviare la mia opera per email',
-    googleWhy:
-      'Perché chiediamo "Accedi con Google"? Lo usiamo per identificarti quando carichi la tua opera al Mondiale Internazionale di Collage o ti iscrivi al laboratorio, così puoi seguire la tua partecipazione senza creare un nuovo account.',
   },
   about: {
     eyebrow: 'Chi siamo',

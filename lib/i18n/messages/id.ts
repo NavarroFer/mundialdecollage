@@ -34,7 +34,6 @@ const id: Messages = {
   },
   header: {
     nav: 'Navigasi utama',
-    howTo: 'Cara ikut serta',
     workshop: 'Lokakarya',
     participants: 'Peserta',
     gallery3d: 'Galeri 3D',
@@ -96,22 +95,6 @@ const id: Messages = {
     sub: 'Setiap karya menambah sudut pandang. Berikutnya bisa jadi karyamu.',
     submit: 'Ikutkan karyamu di Piala Dunia',
     discover: 'Temukan karya-karya peserta →',
-  },
-  howTo: {
-    eyebrow: 'Cara ikut serta',
-    title: 'Kirim karyamu dalam 3 langkah',
-    steps: [
-      { title: 'Buat kolasemu', description: 'Harus karya orisinal milikmu sendiri, dengan teknik apa pun yang kamu suka.' },
-      { title: 'Pilih cara mengirim', description: 'Kamu bisa mengunggah gambar langsung di situs atau mengirimnya lewat email.' },
-      {
-        title: 'Lengkapi datamu',
-        description: 'Tambahkan nama, negara, dan judul karya. Jika memilih email, sertakan semuanya dalam satu pesan.',
-      },
-    ],
-    register: 'Daftar dan unggah karyaku',
-    byEmail: 'Kirim karyaku lewat email',
-    googleWhy:
-      'Mengapa kami meminta "Masuk dengan Google"? Kami menggunakannya untuk mengenalimu saat kamu mengunggah karya ke Piala Dunia Kolase Internasional atau mendaftar lokakarya, sehingga kamu bisa memantau keikutsertaanmu tanpa membuat akun baru.',
   },
   about: {
     eyebrow: 'Tentang kami',

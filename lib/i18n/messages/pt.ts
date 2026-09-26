@@ -34,7 +34,6 @@ const pt: Messages = {
   },
   header: {
     nav: 'Navegação principal',
-    howTo: 'Como participar',
     workshop: 'Oficina',
     participants: 'Participantes',
     gallery3d: 'Galeria 3D',
@@ -96,22 +95,6 @@ const pt: Messages = {
     sub: 'Cada obra soma um olhar. A próxima pode ser a sua.',
     submit: 'Envie sua obra para o Mundial',
     discover: 'Descubra as obras participantes →',
-  },
-  howTo: {
-    eyebrow: 'Como participar',
-    title: 'Envie sua obra em 3 passos',
-    steps: [
-      { title: 'Crie sua colagem', description: 'Tem que ser uma obra original e sua, na técnica que você quiser.' },
-      { title: 'Escolha como enviar', description: 'Você pode carregar a imagem direto no site ou enviá-la por e-mail.' },
-      {
-        title: 'Preencha seus dados',
-        description: 'Inclua seu nome, país e o título da obra. Se escolher e-mail, mande tudo na mesma mensagem.',
-      },
-    ],
-    register: 'Cadastrar-me e enviar minha obra',
-    byEmail: 'Enviar minha obra por e-mail',
-    googleWhy:
-      'Por que pedimos "Entrar com Google"? Usamos isso para identificar você quando envia sua obra ao Mundial Internacional de Colagem ou se inscreve na oficina, assim você acompanha sua participação sem criar uma conta nova.',
   },
   about: {
     eyebrow: 'Quem somos',

@@ -34,7 +34,6 @@ const pl: Messages = {
   },
   header: {
     nav: 'Główna nawigacja',
-    howTo: 'Jak wziąć udział',
     workshop: 'Warsztaty',
     participants: 'Uczestnicy',
     gallery3d: 'Galeria 3D',
@@ -96,22 +95,6 @@ const pl: Messages = {
     sub: 'Każda praca to nowe spojrzenie. Następna może być Twoja.',
     submit: 'Zgłoś swoją pracę na Mistrzostwa',
     discover: 'Odkryj prace uczestników →',
-  },
-  howTo: {
-    eyebrow: 'Jak wziąć udział',
-    title: 'Wyślij pracę w 3 krokach',
-    steps: [
-      { title: 'Stwórz kolaż', description: 'Musi to być Twoja oryginalna praca, w dowolnej technice.' },
-      { title: 'Wybierz sposób wysyłki', description: 'Możesz przesłać obraz bezpośrednio na stronie albo wysłać go e-mailem.' },
-      {
-        title: 'Uzupełnij dane',
-        description: 'Podaj imię i nazwisko, kraj i tytuł pracy. Jeśli wybierasz e-mail, umieść wszystko w jednej wiadomości.',
-      },
-    ],
-    register: 'Zarejestruj się i prześlij pracę',
-    byEmail: 'Wyślij pracę e-mailem',
-    googleWhy:
-      'Dlaczego prosimy o „Zaloguj się przez Google”? Dzięki temu rozpoznajemy Cię, gdy przesyłasz pracę na Międzynarodowe Mistrzostwa Świata w Kolażu lub zapisujesz się na warsztaty, i możesz śledzić swój udział bez zakładania nowego konta.',
   },
   about: {
     eyebrow: 'Kim jesteśmy',

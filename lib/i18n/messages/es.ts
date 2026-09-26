@@ -35,7 +35,6 @@ const es = {
   },
   header: {
     nav: 'Navegación principal',
-    howTo: 'Cómo participar',
     workshop: 'Taller',
     participants: 'Participantes',
     gallery3d: 'Galería 3D',
@@ -97,22 +96,6 @@ const es = {
     sub: 'Cada obra suma una mirada. La próxima puede ser la tuya.',
     submit: 'Sumá tu obra al Mundial',
     discover: 'Descubrí las obras participantes →',
-  },
-  howTo: {
-    eyebrow: 'Cómo participar',
-    title: 'Mandá tu obra en 3 pasos',
-    steps: [
-      { title: 'Creá tu collage', description: 'Tiene que ser una obra original y propia, en la técnica que quieras.' },
-      { title: 'Elegí cómo enviarla', description: 'Podés cargar la imagen directamente en la web o mandarla por email.' },
-      {
-        title: 'Completá tus datos',
-        description: 'Sumá tu nombre, país y el título de la obra. Si elegís email, incluí todo en el mismo mensaje.',
-      },
-    ],
-    register: 'Registrarme y cargar mi obra',
-    byEmail: 'Enviar mi obra por email',
-    googleWhy:
-      '¿Para qué pedimos "Iniciar sesión con Google"? La usamos para identificarte cuando subís tu obra al Mundial Internacional de Collage o te anotás al taller, así podés hacer seguimiento de tu participación sin crear una cuenta nueva.',
   },
   about: {
     eyebrow: 'Quiénes somos',
