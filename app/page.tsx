@@ -34,11 +34,11 @@ export default function Home() {
           <ParticipationStatus />
           <BasesBanner />
           <EditionSection />
-          <AboutSection />
           <ParticipantsSection />
           <MapSection />
           <JurySection />
           <WorkshopSection />
+          <AboutSection />
         </main>
         <Footer />
       </div>
