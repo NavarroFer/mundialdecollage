@@ -153,6 +153,8 @@ const fr: Messages = {
     tagline: 'Il te faut du collage',
     terms: 'Conditions générales',
     privacy: 'Politique de confidentialité',
+    googleWhy:
+      "Pourquoi demandons-nous « Se connecter avec Google » ? Cela nous permet de t'identifier quand tu envoies ton œuvre au Mondial International du Collage ou que tu t'inscris à l'atelier, pour suivre ta participation sans créer de nouveau compte.",
   },
   legal: {
     notice:

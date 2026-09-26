@@ -158,6 +158,8 @@ const pl: Messages = {
     tagline: 'Potrzebujesz kolażu',
     terms: 'Regulamin',
     privacy: 'Polityka prywatności',
+    googleWhy:
+      'Dlaczego prosimy o „Zaloguj się przez Google”? Dzięki temu rozpoznajemy Cię, gdy przesyłasz pracę na Międzynarodowe Mistrzostwa Świata w Kolażu lub zapisujesz się na warsztaty, i możesz śledzić swój udział bez zakładania nowego konta.',
   },
   legal: {
     notice:

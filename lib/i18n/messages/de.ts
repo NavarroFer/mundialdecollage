@@ -153,6 +153,8 @@ const de: Messages = {
     tagline: 'Du brauchst Collage',
     terms: 'Nutzungsbedingungen',
     privacy: 'Datenschutzerklärung',
+    googleWhy:
+      'Warum fragen wir nach „Mit Google anmelden“? Damit erkennen wir dich, wenn du dein Werk bei der Internationalen Collage-WM hochlädst oder dich für den Workshop anmeldest – so kannst du deine Teilnahme verfolgen, ohne ein neues Konto anzulegen.',
   },
   legal: {
     notice:

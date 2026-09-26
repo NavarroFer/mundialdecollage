@@ -153,6 +153,8 @@ const id: Messages = {
     tagline: 'Kamu butuh kolase',
     terms: 'Syarat dan Ketentuan',
     privacy: 'Kebijakan Privasi',
+    googleWhy:
+      'Mengapa kami meminta "Masuk dengan Google"? Kami menggunakannya untuk mengenalimu saat kamu mengunggah karya ke Piala Dunia Kolase Internasional atau mendaftar lokakarya, sehingga kamu bisa memantau keikutsertaanmu tanpa membuat akun baru.',
   },
   legal: {
     notice:

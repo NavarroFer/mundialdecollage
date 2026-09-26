@@ -153,6 +153,8 @@ const it: Messages = {
     tagline: 'Ti serve del collage',
     terms: 'Termini e Condizioni',
     privacy: 'Informativa sulla Privacy',
+    googleWhy:
+      'Perché chiediamo "Accedi con Google"? Lo usiamo per identificarti quando carichi la tua opera al Mondiale Internazionale di Collage o ti iscrivi al laboratorio, così puoi seguire la tua partecipazione senza creare un nuovo account.',
   },
   legal: {
     notice:

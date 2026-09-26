@@ -154,6 +154,8 @@ const es = {
     tagline: 'Te hace falta collage',
     terms: 'Términos y Condiciones',
     privacy: 'Política de Privacidad',
+    googleWhy:
+      '¿Para qué pedimos "Iniciar sesión con Google"? La usamos para identificarte cuando subís tu obra al Mundial Internacional de Collage o te anotás al taller, así podés hacer seguimiento de tu participación sin crear una cuenta nueva.',
   },
   legal: {
     notice: '',

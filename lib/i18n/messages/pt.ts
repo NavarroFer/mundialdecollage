@@ -153,6 +153,8 @@ const pt: Messages = {
     tagline: 'Falta colagem na sua vida',
     terms: 'Termos e Condições',
     privacy: 'Política de Privacidade',
+    googleWhy:
+      'Por que pedimos "Entrar com Google"? Usamos isso para identificar você quando envia sua obra ao Mundial Internacional de Colagem ou se inscreve na oficina, assim você acompanha sua participação sem criar uma conta nova.',
   },
   legal: {
     notice:

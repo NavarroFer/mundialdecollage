@@ -25,6 +25,9 @@ export async function Footer() {
             {m.footer.privacy}
           </Link>
         </nav>
+        <p className="max-w-xl text-xs leading-relaxed text-muted-foreground/80">
+          {m.footer.googleWhy}
+        </p>
         <LanguageSwitcher />
         <p className="text-xs text-muted-foreground/70">
           © {new Date().getFullYear()} {site.name}

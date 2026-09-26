@@ -153,6 +153,8 @@ const en: Messages = {
     tagline: 'You need collage',
     terms: 'Terms and Conditions',
     privacy: 'Privacy Policy',
+    googleWhy:
+      'Why do we ask you to "Sign in with Google"? We use it to identify you when you upload your artwork to the International Collage World Cup or sign up for the workshop, so you can follow your participation without creating a new account.',
   },
   legal: {
     notice:
