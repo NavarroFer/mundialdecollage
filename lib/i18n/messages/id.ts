@@ -118,6 +118,7 @@ const id: Messages = {
     viewArtwork: '{title}, karya {name}. Lihat karya',
   },
   map: {
+    flagsLabel: 'Negara peserta',
     eyebrow: 'Peta Piala Dunia',
     title: 'Dari mana komunitas ini berasal',
     legend: 'Semakin banyak kolase yang dikirim sebuah negara, semakin gelap warnanya. Ketuk sebuah negara untuk melihat karyanya.',

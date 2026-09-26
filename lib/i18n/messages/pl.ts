@@ -118,6 +118,7 @@ const pl: Messages = {
     viewArtwork: '{title}, autor: {name}. Zobacz pracę',
   },
   map: {
+    flagsLabel: 'Kraje uczestniczące',
     eyebrow: 'Mapa Mistrzostw',
     title: 'Skąd pochodzi nasza społeczność',
     legend: 'Im więcej kolaży przysłał kraj, tym jest ciemniejszy. Stuknij kraj, żeby zobaczyć jego prace.',

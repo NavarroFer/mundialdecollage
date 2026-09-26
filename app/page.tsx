@@ -2,6 +2,7 @@ import { SiteHeader } from '@/components/site-header'
 import { SplashScreen } from '@/components/splash-screen'
 import { GalleryTour } from '@/components/gallery-tour'
 import { HeroSection } from '@/components/hero-section'
+import { FlagRibbon } from '@/components/flag-ribbon'
 import { ParticipationStatus } from '@/components/participation-status'
 import { BasesBanner } from '@/components/bases-banner'
 import { AboutSection } from '@/components/about-section'
@@ -27,7 +28,7 @@ export default function Home() {
         <SiteHeader />
         <main>
           <HeroSection />
-          <div aria-hidden className="torn-top h-10 w-full bg-collage-blue sm:h-14" />
+          <FlagRibbon />
           <ParticipationStatus />
           <BasesBanner />
           <EditionSection />

@@ -119,6 +119,7 @@ const es = {
     viewArtwork: '{title}, de {name}. Ver obra',
   },
   map: {
+    flagsLabel: 'Países que participan',
     eyebrow: 'Mapa del Mundial',
     title: 'De dónde viene la comunidad',
     legend: 'Cada país se pinta más oscuro cuanto más collages recibió. Tocá un país para desplegar sus obras.',

@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createPublicClient } from '@/lib/supabase/public'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -59,8 +60,9 @@ function rowToFinalist(row: FinalistRow): Finalist | undefined {
   }
 }
 
-// Every finalist with a completed, curated submission, newest first.
-export async function getFinalists(): Promise<Finalist[]> {
+// Every finalist with a completed, curated submission, newest first. Cached
+// per request, so the home's flag ribbon and map share one query.
+export const getFinalists = cache(async (): Promise<Finalist[]> => {
   if (!isSupabaseConfigured) return []
 
   const { data } = await createPublicClient()
@@ -76,7 +78,7 @@ export async function getFinalists(): Promise<Finalist[]> {
   return ((data ?? []) as unknown as FinalistRow[])
     .map(rowToFinalist)
     .filter((f): f is Finalist => f !== undefined)
-}
+})
 
 // The public finalists among these artwork ids, keyed by id — RLS drops any
 // that are no longer selected/published. Used for the daily exhibition

@@ -118,6 +118,7 @@ const en: Messages = {
     viewArtwork: '{title}, by {name}. View artwork',
   },
   map: {
+    flagsLabel: 'Participating countries',
     eyebrow: 'World Cup map',
     title: 'Where the community comes from',
     legend: 'The more collages a country has sent, the darker it gets. Tap a country to see its artworks.',

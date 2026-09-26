@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import type { Feature, GeoJsonObject, MultiPolygon, Position } from 'geojson'
 import { X } from 'lucide-react'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
@@ -13,6 +13,7 @@ import { alpha2ForUnnumberedShape, isoNumericToAlpha2 } from '@/lib/iso-numeric-
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
+import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
 
 // world-atlas ships this as a TopoJSON Topology, which react-simple-maps
 // handles at runtime (it converts to GeoJSON via topojson-client), but its
@@ -47,7 +48,13 @@ type Tooltip = { countryCode: string; count: number; x: number; y: number }
 export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; artworks: Finalist[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [tooltip, setTooltip] = useState<Tooltip | null>(null)
-  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null)
+  // Arriving on a #mapa-AR link (the flag ribbon, or a shared URL) opens
+  // that country right away. Client-only component (ssr: false), so window
+  // is always there.
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(() => {
+    const code = countryFromMapHash(window.location.hash)
+    return code && artworks.some((artwork) => artwork.countryCode.toUpperCase() === code) ? code : null
+  })
   const { locale, m } = useI18n()
   const countryName = (code: string) => countryCodeToName(code, locale)
 
@@ -69,6 +76,34 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
     if (!artworkCountries.has(countryCode)) return
     setSelectedCountryCode(countryCode)
     setTooltip(null)
+  }
+
+  // The browser can't scroll to #mapa-AR on its own (no element has that
+  // id), so a country opened from the URL brings the map into view here.
+  const openedFromHash = useRef(selectedCountryCode !== null)
+  useEffect(() => {
+    if (openedFromHash.current) scrollToMap()
+  }, [])
+
+  // A ribbon flag tapped while the map is already mounted.
+  useEffect(() => {
+    const codes = new Set(artworks.map((artwork) => artwork.countryCode.toUpperCase()))
+    const onCountry = (event: Event) => {
+      const code = (event as CustomEvent<string>).detail
+      if (!codes.has(code)) return
+      setSelectedCountryCode(code)
+      setTooltip(null)
+    }
+    window.addEventListener(MAP_COUNTRY_EVENT, onCountry)
+    return () => window.removeEventListener(MAP_COUNTRY_EVENT, onCountry)
+  }, [artworks])
+
+  function closeCountry() {
+    setSelectedCountryCode(null)
+    // Drop a #mapa-AR from the URL, so a reload doesn't reopen what was closed.
+    if (countryFromMapHash(window.location.hash)) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
   }
 
   function handleCountryKeyDown(evt: KeyboardEvent, countryCode: string) {
@@ -208,7 +243,7 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
             </div>
             <button
               type="button"
-              onClick={() => setSelectedCountryCode(null)}
+              onClick={closeCountry}
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border-2 border-ink/15 bg-background text-ink transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"
               aria-label={m.map.close}
             >

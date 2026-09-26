@@ -118,6 +118,7 @@ const fr: Messages = {
     viewArtwork: "{title}, de {name}. Voir l'œuvre",
   },
   map: {
+    flagsLabel: 'Pays participants',
     eyebrow: 'Carte du Mondial',
     title: "D'où vient la communauté",
     legend: 'Plus un pays a envoyé de collages, plus il est foncé. Touche un pays pour voir ses œuvres.',

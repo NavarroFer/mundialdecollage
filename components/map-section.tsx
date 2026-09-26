@@ -5,6 +5,7 @@ import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { countByCountry } from '@/lib/country-breakdown'
 import { getFinalists } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
+import { MAP_SECTION_ID } from '@/lib/map-country-link'
 
 export async function MapSection() {
   const [artworks, { locale, m }] = await Promise.all([getFinalists(), getI18n()])
@@ -16,7 +17,7 @@ export async function MapSection() {
 
   return (
     <section
-      id="mapa"
+      id={MAP_SECTION_ID}
       className="relative overflow-hidden border-t-2 border-ink/10 bg-card py-20 sm:py-28"
     >
       <Globe2

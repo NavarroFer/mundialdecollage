@@ -118,6 +118,7 @@ const de: Messages = {
     viewArtwork: '{title} von {name}. Werk ansehen',
   },
   map: {
+    flagsLabel: 'Teilnehmende Länder',
     eyebrow: 'WM-Karte',
     title: 'Woher die Community kommt',
     legend: 'Je mehr Collagen ein Land geschickt hat, desto dunkler ist es. Tippe auf ein Land, um seine Werke zu sehen.',
