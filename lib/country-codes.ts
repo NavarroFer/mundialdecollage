@@ -1,5 +1,6 @@
 // Every country an artist can say they're from: ISO 3166-1 alpha-2, minus the
-// four uninhabited entries (BV, GS, HM, UM), plus Kosovo's widely used XK.
+// four uninhabited entries (BV, GS, HM, UM) and FK (the Malvinas are part of
+// Argentina here), plus Kosovo's widely used XK.
 // Deliberately independent from the world map's shapes — the 110m map can't
 // draw Malta or Singapore, but artists from there still need to register.
 export const COUNTRY_CODES = [
@@ -8,7 +9,7 @@ export const COUNTRY_CODES = [
   'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ',
   'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ',
   'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET',
-  'FI', 'FJ', 'FK', 'FM', 'FO', 'FR',
+  'FI', 'FJ', 'FM', 'FO', 'FR',
   'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GT', 'GU', 'GW', 'GY',
   'HK', 'HN', 'HR', 'HT', 'HU',
   'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT',

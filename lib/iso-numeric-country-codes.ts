@@ -55,7 +55,9 @@ export const isoNumericToAlpha2: Record<string, string> = {
   '231': 'ET',
   '232': 'ER',
   '233': 'EE',
-  '238': 'FK',
+  // Islas Malvinas: world-atlas draws them as their own shape; here they
+  // are Argentina, painted and clickable with it (see components/world-map.tsx).
+  '238': 'AR',
   '242': 'FJ',
   '246': 'FI',
   '250': 'FR',

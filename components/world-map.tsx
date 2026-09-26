@@ -96,6 +96,12 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
               const opacity = count ? 0.35 + 0.65 * (count / maxCount) : 1
               const hasArtworks = code ? artworkCountries.has(code) : false
               const isSelected = code === selectedCountryCode
+              const fill = isSelected ? 'var(--collage-red)' : count ? 'var(--collage-blue)' : 'var(--muted)'
+              const fillOpacity = isSelected ? 1 : opacity
+              // The Malvinas are a few pixels wide at this scale, and the
+              // white country border would eat most of them: they get an
+              // outline in their own color instead, so they read as land.
+              const isMalvinas = String(geo.id) === '238'
 
               return (
                 <Geography
@@ -104,10 +110,12 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
                   {...countryInteraction(code)}
                   className="outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:opacity-60"
                   style={{
-                    fill: isSelected ? 'var(--collage-red)' : count ? 'var(--collage-blue)' : 'var(--muted)',
-                    fillOpacity: isSelected ? 1 : opacity,
-                    stroke: 'var(--card)',
-                    strokeWidth: isSelected ? 1.75 : 0.75,
+                    fill,
+                    fillOpacity,
+                    stroke: isMalvinas ? fill : 'var(--card)',
+                    strokeOpacity: isMalvinas ? fillOpacity : 1,
+                    strokeWidth: isMalvinas ? 2.5 : isSelected ? 1.75 : 0.75,
+                    strokeLinejoin: 'round',
                     cursor: hasArtworks ? 'pointer' : 'default',
                   }}
                 />
