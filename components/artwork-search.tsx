@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { searchArtworks, type SearchEntry } from '@/lib/artwork-search'
-import { galleryArtworkPath } from '@/lib/gallery-return'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 
@@ -32,6 +32,7 @@ function loadEntries() {
 // signed-out artists to sign up and see their own obra.
 export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
   const { locale, m } = useI18n()
+  const router = useRouter()
   const [entries, setEntries] = useState<SearchEntry[]>([])
   const [status, setStatus] = useState<Status>('idle')
   const [query, setQuery] = useState('')
@@ -76,7 +77,7 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
       setActive((current) => (current + step + results.length) % results.length)
     } else if (event.key === 'Enter') {
       const chosen = results[Math.max(active, 0)]
-      if (chosen) window.location.assign(galleryArtworkPath(chosen.slug))
+      if (chosen) router.push(`/obras/${chosen.slug}`)
     }
   }
 
@@ -129,7 +130,7 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
               {results.map((entry, index) => (
                 <li key={entry.slug} id={`${listId}-${index}`} role="option" aria-selected={index === active}>
                   <a
-                    href={galleryArtworkPath(entry.slug)}
+                    href={`/obras/${entry.slug}`}
                     tabIndex={-1}
                     onPointerEnter={() => setActive(index)}
                     className={`flex min-h-12 flex-col justify-center px-5 py-2 ${index === active ? 'bg-collage-blue/10' : ''}`}
