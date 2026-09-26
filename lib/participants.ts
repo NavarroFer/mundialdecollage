@@ -1,6 +1,6 @@
 import { createPublicClient } from '@/lib/supabase/public'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
+import { COUNTRY_CODES } from '@/lib/country-codes'
 
 // countryCode is the 2-letter ISO code (AR, MX, ES, US, ...) used to render
 // the flag next to their name.
@@ -83,11 +83,10 @@ export function countryCodeToName(countryCode: string, locale = 'es') {
   }
 }
 
-// Every ISO 3166-1 alpha-2 country code, for the registration form's country
-// picker — reuses the same code list already bundled for the world map
-// (lib/iso-numeric-country-codes.ts), sorted for a stable render order.
+// Every country code the registration form's picker offers (and the server
+// accepts) — see lib/country-codes.ts — sorted for a stable render order.
 export function getAllCountryCodes(): string[] {
-  return Object.values(isoNumericToAlpha2).sort()
+  return [...COUNTRY_CODES].sort()
 }
 
 function normalizeCountryName(name: string) {

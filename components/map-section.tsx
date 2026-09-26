@@ -1,24 +1,20 @@
 import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { WorldMap } from '@/components/world-map-lazy'
-import { countryCodeToFlag, countryCodeToName, guessCountryCodeFromName } from '@/lib/participants'
+import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
+import { buildCountryBreakdown } from '@/lib/country-breakdown'
 import { getFinalists } from '@/lib/finalists'
 import stats from '@/data/artist-country-stats.json'
 import { getI18n } from '@/lib/i18n/server'
 
-type CountryCount = { country: string; countryCode?: string; count: number }
-
-// The homepage and admin statistics share the same curated source of truth.
-// Composite or missing country labels stay in the ranking but are not painted
-// on a single country in the map.
-const breakdown: CountryCount[] = stats.countries.map(({ country, count }) => ({
-  country,
-  count,
-  countryCode: guessCountryCodeFromName(country),
-}))
-
 export async function MapSection() {
   const [artworks, { locale, m }] = await Promise.all([getFinalists(), getI18n()])
+  // Same curated Registro the admin statistics use, plus any country that
+  // already has a published obra but hasn't reached Registro yet.
+  const breakdown = buildCountryBreakdown(
+    stats.countries,
+    artworks.map((artwork) => artwork.countryCode),
+  )
 
   return (
     <section

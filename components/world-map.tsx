@@ -3,11 +3,12 @@
 import { useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import type { GeoJsonObject } from 'geojson'
 import { X } from 'lucide-react'
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { ObrasCollage } from '@/components/obras-collage'
 import type { Finalist } from '@/lib/finalists'
 import rawWorldTopology from '@/lib/data/world-countries-110m.json'
-import { isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
+import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
+import { alpha2ForUnnumberedShape, isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
@@ -54,6 +55,29 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
     selectCountry(countryCode)
   }
 
+  // Shapes and dots behave identically: hover tooltip, click/Enter to open the
+  // country's obras, focusable only when there's something to open.
+  function countryInteraction(code: string | undefined) {
+    const count = code ? countsByCode.get(code) : undefined
+    const hasArtworks = code ? artworkCountries.has(code) : false
+    return {
+      onMouseMove: (evt: ReactMouseEvent) => code && count && showTooltip(evt, code, count),
+      onMouseLeave: () => setTooltip(null),
+      onClick: () => code && selectCountry(code),
+      onKeyDown: (evt: KeyboardEvent) => code && handleCountryKeyDown(evt, code),
+      tabIndex: hasArtworks ? 0 : -1,
+      role: hasArtworks ? 'button' : undefined,
+      'aria-label': hasArtworks && code ? fmt(m.map.viewCountry, { country: countryName(code) }) : undefined,
+      'aria-pressed': hasArtworks ? code === selectedCountryCode : undefined,
+    }
+  }
+
+  // Countries too small for the 110m map (Malta, Singapore, Caribbean
+  // islands…) get a dot, but only once they have obras or artists to show.
+  const markerCodes = [...new Set([...countsByCode.keys(), ...artworkCountries])].filter(
+    (code) => code in COUNTRY_MARKER_COORDINATES,
+  )
+
   return (
     <div ref={containerRef} className="relative">
       <ComposableMap
@@ -66,7 +90,8 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
         <Geographies geography={worldTopology}>
           {({ geographies }) =>
             geographies.map((geo) => {
-              const code = isoNumericToAlpha2[String(geo.id)]
+              const code =
+                isoNumericToAlpha2[String(geo.id)] ?? alpha2ForUnnumberedShape[String(geo.properties?.name)]
               const count = code ? countsByCode.get(code) : undefined
               const opacity = count ? 0.35 + 0.65 * (count / maxCount) : 1
               const hasArtworks = code ? artworkCountries.has(code) : false
@@ -76,18 +101,11 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
                 <Geography
                   key={geo.rsmKey}
                   geography={geo}
-                  onMouseMove={(evt) => code && count && showTooltip(evt, code, count)}
-                  onMouseLeave={() => setTooltip(null)}
-                  onClick={() => code && selectCountry(code)}
-                  onKeyDown={(evt) => code && handleCountryKeyDown(evt, code)}
-                  tabIndex={hasArtworks ? 0 : -1}
-                  role={hasArtworks ? 'button' : undefined}
-                  aria-label={hasArtworks && code ? fmt(m.map.viewCountry, { country: countryName(code) }) : undefined}
-                  aria-pressed={hasArtworks ? isSelected : undefined}
+                  {...countryInteraction(code)}
                   className="outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:opacity-60"
                   style={{
                     fill: isSelected ? 'var(--collage-red)' : count ? 'var(--collage-blue)' : 'var(--muted)',
-                    fillOpacity: opacity,
+                    fillOpacity: isSelected ? 1 : opacity,
                     stroke: 'var(--card)',
                     strokeWidth: isSelected ? 1.75 : 0.75,
                     cursor: hasArtworks ? 'pointer' : 'default',
@@ -97,6 +115,34 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
             })
           }
         </Geographies>
+
+        {markerCodes.map((code) => {
+          const count = countsByCode.get(code)
+          const isSelected = code === selectedCountryCode
+
+          return (
+            <Marker
+              key={code}
+              coordinates={COUNTRY_MARKER_COORDINATES[code]}
+              {...countryInteraction(code)}
+              className="outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:opacity-60"
+              style={{ cursor: artworkCountries.has(code) ? 'pointer' : 'default' }}
+            >
+              {/* A generous invisible hit area: the visible dot alone is a
+                  couple of pixels wide once the map shrinks to phone width. */}
+              <circle r={16} fill="transparent" />
+              <circle
+                r={isSelected ? 5.5 : 4.5}
+                style={{
+                  fill: isSelected ? 'var(--collage-red)' : 'var(--collage-blue)',
+                  fillOpacity: isSelected ? 1 : count ? 0.55 + 0.45 * (count / maxCount) : 0.55,
+                  stroke: 'var(--card)',
+                  strokeWidth: 1.5,
+                }}
+              />
+            </Marker>
+          )
+        })}
       </ComposableMap>
 
       {tooltip && (

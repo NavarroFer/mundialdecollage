@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { parseRegistro, planRegistro, type RegistroCell } from '@/lib/registro'
-import { isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
+import { guessCountryCodeFromName } from '@/lib/participants'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { reuseRegistroArtwork } from '@/lib/reuse-registro-artwork'
 import { publishPendingLegacySubmissions } from '@/lib/publish-legacy'
@@ -8,14 +8,10 @@ import { publishPendingLegacySubmissions } from '@/lib/publish-legacy'
 // Shared by scripts/sync-registro.mts and the /api/cron/registro job so both
 // validate, back up, archive and fetch images exactly the same way.
 
-const normalize = (value: string) => value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-
 export function parseRegistroWithCountries(rows: RegistroCell[][]) {
-  const names = new Intl.DisplayNames(['es'], { type: 'region' })
-  const countryCodes = new Map(Object.values(isoNumericToAlpha2).map((code) => [normalize(names.of(code)!), code]))
   return parseRegistro(rows).map((entry) => ({
     ...entry,
-    country_code: entry.country_raw ? countryCodes.get(normalize(entry.country_raw)) ?? null : null,
+    country_code: entry.country_raw ? guessCountryCodeFromName(entry.country_raw) ?? null : null,
   }))
 }
 

@@ -179,3 +179,10 @@ export const isoNumericToAlpha2: Record<string, string> = {
   '887': 'YE',
   '894': 'ZM',
 }
+
+// world-atlas leaves a few disputed shapes without a numeric id, so they're
+// matched by name instead. Only Kosovo has a code artists can pick (XK); N.
+// Cyprus and Somaliland stay unpainted rather than being assigned to a country.
+export const alpha2ForUnnumberedShape: Record<string, string> = {
+  Kosovo: 'XK',
+}
