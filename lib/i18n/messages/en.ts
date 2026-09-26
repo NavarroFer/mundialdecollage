@@ -187,6 +187,18 @@ const en: Messages = {
     allTechniques: 'All techniques',
     noResults: "We couldn't find participants matching those filters.",
   },
+  search: {
+    label: 'Search artworks',
+    clear: 'Clear search',
+    placeholder: 'Search an artwork, artist or country',
+    hint: 'Type an artwork title, the artist’s name or a country.',
+    loading: 'Loading artworks…',
+    error: 'We couldn’t load the artworks. Try again in a moment.',
+    noResults: 'No artworks found for “{query}”.',
+    results: p({ one: '{count} result', other: '{count} results' }),
+    signUpTitle: 'Taking part in the Mundial?',
+    signUpBody: 'Sign up with Google to see your artwork, like and comment.',
+  },
   artwork: {
     back: 'Back to the artworks',
   },

@@ -192,6 +192,18 @@ const pl: Messages = {
     allTechniques: 'Wszystkie techniki',
     noResults: 'Brak uczestników pasujących do tych filtrów.',
   },
+  search: {
+    label: 'Szukaj prac',
+    clear: 'Wyczyść wyszukiwanie',
+    placeholder: 'Szukaj pracy, artysty lub kraju',
+    hint: 'Wpisz tytuł pracy, imię i nazwisko autora lub kraj.',
+    loading: 'Wczytywanie prac…',
+    error: 'Nie udało się wczytać prac. Spróbuj ponownie za chwilę.',
+    noResults: 'Brak prac dla „{query}”.',
+    results: p({ one: '{count} wynik', few: '{count} wyniki', many: '{count} wyników', other: '{count} wyniku' }),
+    signUpTitle: 'Bierzesz udział w Mundialu?',
+    signUpBody: 'Zarejestruj się przez Google, aby zobaczyć swoją pracę, polubić ją i komentować.',
+  },
   artwork: {
     back: 'Wróć do prac',
   },

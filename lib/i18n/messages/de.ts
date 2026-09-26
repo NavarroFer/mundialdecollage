@@ -187,6 +187,18 @@ const de: Messages = {
     allTechniques: 'Alle Techniken',
     noResults: 'Keine Teilnehmenden passen zu diesen Filtern.',
   },
+  search: {
+    label: 'Werke suchen',
+    clear: 'Suche löschen',
+    placeholder: 'Werk, Künstler:in oder Land suchen',
+    hint: 'Gib den Titel eines Werks, den Namen der Person oder ein Land ein.',
+    loading: 'Werke werden geladen…',
+    error: 'Die Werke konnten nicht geladen werden. Versuch es gleich noch einmal.',
+    noResults: 'Keine Werke für „{query}“ gefunden.',
+    results: p({ one: '{count} Ergebnis', other: '{count} Ergebnisse' }),
+    signUpTitle: 'Machst du beim Mundial mit?',
+    signUpBody: 'Registriere dich mit Google, um dein Werk zu sehen, zu liken und zu kommentieren.',
+  },
   artwork: {
     back: 'Zurück zu den Werken',
   },

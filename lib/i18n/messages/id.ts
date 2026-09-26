@@ -187,6 +187,18 @@ const id: Messages = {
     allTechniques: 'Semua teknik',
     noResults: 'Tidak ada peserta yang cocok dengan filter tersebut.',
   },
+  search: {
+    label: 'Cari karya',
+    clear: 'Hapus pencarian',
+    placeholder: 'Cari karya, seniman, atau negara',
+    hint: 'Ketik judul karya, nama senimannya, atau negara.',
+    loading: 'Memuat karya…',
+    error: 'Karya tidak dapat dimuat. Coba lagi sebentar lagi.',
+    noResults: 'Tidak ada karya untuk “{query}”.',
+    results: p({ one: '{count} hasil', other: '{count} hasil' }),
+    signUpTitle: 'Ikut serta di Mundial?',
+    signUpBody: 'Daftar dengan Google untuk melihat karyamu, menyukai, dan berkomentar.',
+  },
   artwork: {
     back: 'Kembali ke karya',
   },

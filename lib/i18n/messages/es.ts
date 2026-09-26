@@ -188,6 +188,18 @@ const es = {
     allTechniques: 'Todas las técnicas',
     noResults: 'No encontramos participantes con esos filtros.',
   },
+  search: {
+    label: 'Buscar obras',
+    clear: 'Borrar búsqueda',
+    placeholder: 'Buscá una obra, artista o país',
+    hint: 'Escribí el título de una obra, el nombre de quien la hizo o un país.',
+    loading: 'Cargando obras…',
+    error: 'No pudimos cargar las obras. Probá de nuevo en un momento.',
+    noResults: 'No encontramos obras para “{query}”.',
+    results: p({ one: '{count} resultado', other: '{count} resultados' }),
+    signUpTitle: '¿Participás del Mundial?',
+    signUpBody: 'Registrate con Google para ver tu obra, darle me gusta y comentar.',
+  },
   artwork: {
     back: 'Volver a las obras',
   },

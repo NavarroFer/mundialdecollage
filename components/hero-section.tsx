@@ -2,15 +2,27 @@ import Image from 'next/image'
 import { Scissors } from 'lucide-react'
 import { SubmitArtworkCta } from '@/components/submit-artwork-cta'
 import { Countdown } from '@/components/countdown'
+import { ArtworkSearch } from '@/components/artwork-search'
 import { FadeIn } from '@/components/fade-in'
 import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { createClient } from '@/lib/supabase/server'
+
+// The search's sign-up invite is only for visitors without a session.
+async function isSignedIn() {
+  if (!isSupabaseConfigured) return false
+  const { data: { user } } = await (await createClient()).auth.getUser()
+  return Boolean(user)
+}
 
 export async function HeroSection() {
-  const { locale, m } = await getI18n()
+  const [{ locale, m }, signedIn] = await Promise.all([getI18n(), isSignedIn()])
   return (
-    <section id="top" className="bg-grain relative overflow-hidden pt-16 pb-24 sm:pt-24 sm:pb-32">
+    // No overflow-hidden here: the search's results hang below the hero. The
+    // decorations clip themselves (their own overflow-hidden layer below).
+    <section id="top" className="bg-grain relative pt-16 pb-24 sm:pt-24 sm:pb-32">
       <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <FadeIn>
           <span className="torn-strip inline-block -rotate-2 bg-collage-blue px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase sm:text-sm">
@@ -79,6 +91,11 @@ export async function HeroSection() {
           <p className="mx-auto mt-7 max-w-xl text-lg text-muted-foreground sm:text-xl">
             {m.hero.intro}
           </p>
+        </FadeIn>
+
+        {/* z-20 keeps the open results above the CTA row and the dots. */}
+        <FadeIn delay={250} className="relative z-20 mt-8">
+          <ArtworkSearch signedIn={signedIn} />
         </FadeIn>
 
         <FadeIn delay={300}>
