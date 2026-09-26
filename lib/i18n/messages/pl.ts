@@ -152,7 +152,6 @@ const pl: Messages = {
     note: 'Liczba miejsc ograniczona — zapisy z płatnością online (zaliczka lub całość).',
   },
   footer: {
-    tagline: 'Potrzebujesz kolażu',
     terms: 'Regulamin',
     privacy: 'Polityka prywatności',
     googleWhy:

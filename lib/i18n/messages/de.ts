@@ -147,7 +147,6 @@ const de: Messages = {
     note: 'Begrenzte Plätze – Anmeldung mit Online-Zahlung (Anzahlung oder Gesamtbetrag).',
   },
   footer: {
-    tagline: 'Du brauchst Collage',
     terms: 'Nutzungsbedingungen',
     privacy: 'Datenschutzerklärung',
     googleWhy:

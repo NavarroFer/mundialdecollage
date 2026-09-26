@@ -147,7 +147,6 @@ const fr: Messages = {
     note: 'Places limitées — inscription avec paiement en ligne (acompte ou totalité).',
   },
   footer: {
-    tagline: 'Il te faut du collage',
     terms: 'Conditions générales',
     privacy: 'Politique de confidentialité',
     googleWhy:

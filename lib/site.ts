@@ -6,6 +6,11 @@ export const site = {
   email: 'mundialdecollage@gmail.com',
   // TODO: add the real Instagram handle/URL once confirmed.
   instagram: '',
+  // Who runs the Mundial, credited in the footer. Brand names, not translated.
+  organizers: [
+    { name: 'Fersos', instagram: 'https://www.instagram.com/fersos.jpg' },
+    { name: 'Te hace falta collage', instagram: 'https://www.instagram.com/tehacefaltacollage_/' },
+  ],
   // ISO date used by the countdown + "hasta el" copy. Update this if the deadline moves.
   deadlineISO: '2026-11-15T23:59:59-03:00',
   deadlineLabel: '15 de noviembre',

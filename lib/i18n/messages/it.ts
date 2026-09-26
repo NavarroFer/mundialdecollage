@@ -147,7 +147,6 @@ const it: Messages = {
     note: 'Posti limitati — iscrizione con pagamento online (acconto o totale).',
   },
   footer: {
-    tagline: 'Ti serve del collage',
     terms: 'Termini e Condizioni',
     privacy: 'Informativa sulla Privacy',
     googleWhy:

@@ -147,7 +147,6 @@ const pt: Messages = {
     note: 'Vagas limitadas — inscrição com pagamento online (sinal ou valor total).',
   },
   footer: {
-    tagline: 'Falta colagem na sua vida',
     terms: 'Termos e Condições',
     privacy: 'Política de Privacidade',
     googleWhy:

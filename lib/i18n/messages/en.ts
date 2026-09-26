@@ -147,7 +147,6 @@ const en: Messages = {
     note: 'Limited places — registration with online payment (deposit or full amount).',
   },
   footer: {
-    tagline: 'You need collage',
     terms: 'Terms and Conditions',
     privacy: 'Privacy Policy',
     googleWhy:

@@ -10,7 +10,6 @@ import { entryLimit } from '@/lib/entries'
 import { syncEntryPaymentById } from '@/lib/entry-payments'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SubmitButton } from '@/components/admin/submit-button'
-import { Button } from '@/components/ui/button'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatMoney } from '@/lib/i18n/format'
 import { EntryPicker } from './entry-picker'
@@ -168,11 +167,7 @@ export default async function EntriesPage({
                 {fmt(m.entries.payUnavailable, { email: site.email })}
               </p>
             )}
-            {/* PayPal (USD) comes once the account exists. */}
-            <Button type="button" variant="outline" size="lg" disabled className="mt-3 w-full">
-              {fmt(m.entries.payPaypal, { usd })}
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">{m.entries.paypalSoon}</span>
-            </Button>
+            {/* PayPal (USD) is hidden for now; m.entries.payPaypal is kept for when it returns. */}
           </section>
         )}
 

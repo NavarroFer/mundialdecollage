@@ -147,7 +147,6 @@ const id: Messages = {
     note: 'Tempat terbatas — pendaftaran dengan pembayaran online (uang muka atau penuh).',
   },
   footer: {
-    tagline: 'Kamu butuh kolase',
     terms: 'Syarat dan Ketentuan',
     privacy: 'Kebijakan Privasi',
     googleWhy:
