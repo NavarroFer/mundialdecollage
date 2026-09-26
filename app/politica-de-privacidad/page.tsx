@@ -141,6 +141,10 @@ export default async function PoliticaDePrivacidadPage() {
                 estadísticas de uso del Sitio (clics, desplazamiento y grabaciones
                 anónimas de la navegación) para mejorarlo.
               </li>
+              <li>
+                <span className="font-semibold text-foreground">Vercel</span> — alojamiento
+                del Sitio y conteo anónimo de visitas y páginas vistas, sin cookies.
+              </li>
             </ul>
           </Section>
 

@@ -4,6 +4,7 @@ import { Anton, Oswald } from 'next/font/google'
 import './globals.css'
 import { site, getSiteUrl } from '@/lib/site'
 import { ClarityAnalytics } from '@/components/clarity'
+import { VercelAnalytics } from '@/components/vercel-analytics'
 import { getI18n } from '@/lib/i18n/server'
 import { I18nProvider } from '@/lib/i18n/client'
 import { pickClientMessages } from '@/lib/i18n/messages/client'
@@ -62,6 +63,7 @@ export default async function RootLayout({
           {children}
         </I18nProvider>
         <ClarityAnalytics />
+        <VercelAnalytics />
       </body>
     </html>
   )
