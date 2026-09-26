@@ -11,11 +11,13 @@ import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
 import { confirmArtistDetails } from './actions'
 import { useI18n } from '@/lib/i18n/client'
 
-export function ArtistConfirmation({ name, countryCode, email, artwork }: {
+export function ArtistConfirmation({ name, countryCode, email, artwork, artworkCount = 1 }: {
   name: string
   countryCode: string
   email: string
   artwork: { id: string; title: string | null; image_url: string }
+  // More than one obra on the account: offer to choose among them.
+  artworkCount?: number
 }) {
   const [editedName, setEditedName] = useState(name)
   const [editedTitle, setEditedTitle] = useState(artwork.title ?? '')
@@ -85,7 +87,10 @@ export function ArtistConfirmation({ name, countryCode, email, artwork }: {
         </Button>
         <div className="border-t border-ink/10 pt-4 text-sm text-muted-foreground">
           <p>{m.confirmation.notThisOne}</p>
-          <Link href="/onboarding?another=1" className="inline-flex min-h-11 items-center font-semibold text-collage-blue underline underline-offset-4">{m.common.sendAnother}</Link>
+          <div className="flex flex-wrap gap-x-5">
+            {artworkCount > 1 && <Link href="/onboarding/obras" className="inline-flex min-h-11 items-center font-semibold text-collage-blue underline underline-offset-4">{m.entries.chooseAmong}</Link>}
+            <Link href="/onboarding?another=1" className="inline-flex min-h-11 items-center font-semibold text-collage-blue underline underline-offset-4">{m.common.sendAnother}</Link>
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-2"><span>{m.confirmation.otherAccount}</span><SignOutButton /></div>
         </div>
       </div>

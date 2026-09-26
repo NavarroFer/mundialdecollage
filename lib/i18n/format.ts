@@ -33,3 +33,8 @@ export function formatDayMonth(locale: Locale, iso: string): string {
     timeZone: 'America/Argentina/Buenos_Aires',
   }).format(new Date(iso))
 }
+
+// Whole amounts only ("$ 30.000", "US$ 15"): prices are set in round numbers.
+export function formatMoney(locale: Locale, value: number, currency: 'ARS' | 'USD'): string {
+  return new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency, maximumFractionDigits: 0 }).format(value)
+}

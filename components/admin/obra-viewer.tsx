@@ -247,7 +247,7 @@ function RealActions({
 
       {item.siblings && item.siblings.length > 0 && (
         <SiblingStrip
-          label="Otras obras de este artista — elegí cuál cuenta"
+          label="Otras obras de este artista — elegí cuál cuenta (las postuladas participan porque pagó por más)"
           siblings={item.siblings}
           fallbackAlt={item.name}
           renderControls={(sibling: ArtworkSibling) => (
@@ -263,6 +263,9 @@ function RealActions({
                   {sibling.isSelected ? 'Elegida' : 'Usar'}
                 </SubmitButton>
               </form>
+              {sibling.isEntered && !sibling.isSelected && (
+                <span className="text-[0.6rem] font-semibold text-collage-blue">Postulada</span>
+              )}
               <form action={deleteArtwork}>
                 <input type="hidden" name="id" value={sibling.id} />
                 <SubmitButton

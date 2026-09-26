@@ -7,6 +7,9 @@ export type ArtworkSibling = {
   title: string | null
   imageUrl: string | null
   isSelected: boolean
+  // Postulated to the contest. Besides the selected one, only an artist who
+  // paid for more entries has others (lib/entries.ts).
+  isEntered: boolean
 }
 
 export type LegacySibling = {

@@ -3,6 +3,8 @@ import { Payment } from 'mercadopago'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { parseSignatureHeader, verifyMercadoPagoSignature } from '@/lib/mercadopago-signature'
+import { parseExternalReference } from '@/lib/entries'
+import { applyEntryPayment } from '@/lib/entry-payments'
 
 // Mercado Pago's server-to-server notification. Historically sent both as a
 // JSON body (`{ type: 'payment', data: { id } }`) and as query params
@@ -71,11 +73,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const registrationId = payment.external_reference
-  if (!registrationId) {
+  const reference = parseExternalReference(payment.external_reference)
+  if (!reference) {
     console.warn('mercadopago webhook: payment has no external_reference', payment.id)
     return NextResponse.json({ ok: true })
   }
+
+  // The one-time payment to postulate more obras (app/onboarding/obras).
+  if (reference.kind === 'entry') {
+    await applyEntryPayment(payment)
+    return NextResponse.json({ ok: true })
+  }
+
+  const registrationId = reference.id
 
   const supabase = createAdminClient()
   const { data: registration } = await supabase

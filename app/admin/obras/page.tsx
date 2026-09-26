@@ -26,6 +26,7 @@ type ArtworkRow = {
   image_url: string | null
   technique: string | null
   is_selected: boolean
+  is_entered: boolean
   profiles: {
     name: string | null
     country_code: string | null
@@ -50,7 +51,7 @@ export default async function ObrasPage({
   const { data: artworkData } = await supabase
     .from('artworks')
     .select(
-      'id, profile_id, slug, title, image_url, technique, is_selected, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
+      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
     )
     .is('archived_at', null)
     .order('created_at', { ascending: true })
@@ -84,7 +85,7 @@ export default async function ObrasPage({
         instagram: profile.instagram ?? undefined,
         siblings:
           rows.length > 1
-            ? rows.map((r) => ({ id: r.id, title: r.title, imageUrl: r.image_url, isSelected: r.is_selected }))
+            ? rows.map((r) => ({ id: r.id, title: r.title, imageUrl: r.image_url, isSelected: r.is_selected, isEntered: r.is_entered }))
             : undefined,
       }
     })

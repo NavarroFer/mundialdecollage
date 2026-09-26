@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { hasPaidEntries } from '@/lib/entry-payments'
 import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { reuseRegistroArtwork } from '@/lib/reuse-registro-artwork'
@@ -485,6 +486,17 @@ export async function selectArtwork(formData: FormData) {
 
   const { error: selectError } = await supabase.from('artworks').update({ is_selected: true }).eq('id', id)
   if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
+
+  // The chosen obra is now the postulated one (a trigger marks it entered).
+  // An artist who didn't pay for more entries keeps only that one.
+  if (!(await hasPaidEntries(supabase, row.profile_id))) {
+    const { error: enteredError } = await supabase
+      .from('artworks')
+      .update({ is_entered: false })
+      .eq('profile_id', row.profile_id)
+      .neq('id', id)
+    if (enteredError) redirect(`/admin/obras?error=${encodeURIComponent(enteredError.message)}`)
+  }
 
   revalidatePath('/admin/obras')
   revalidatePath('/')

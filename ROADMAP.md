@@ -53,6 +53,19 @@ librería de mapas pesada de más.
   puntual que se repite cada mes (mismo Checkout Pro del taller). Definir
   esto antes de tocar código — cambia bastante la arquitectura.
 
+## 4b. Postular más de una obra — ✅ Mercado Pago / pendiente PayPal (2026-09-26)
+
+Cada artista participa gratis con 1 obra. Puede cargar varias (hasta 10) y
+elige cuál participa en `/onboarding/obras`; para postular hasta 5 hay un
+pago único de ARS 30.000 por Mercado Pago (USD 15 por PayPal cuando exista
+la cuenta — hoy el botón dice "Próximamente"). Precios y límites en
+`site.entries` (`lib/site.ts`); pagos en `/admin/pagos`. El aviso aparece al
+cargar una obra, al registrarse con varias obras recibidas por mail y en la
+confirmación — no en la home.
+
+Pendiente: PayPal; decidir si las obras extra de quien pagó se muestran en
+la galería pública (hoy solo las ve el admin/jurado).
+
 ## 5. Antes de lanzar públicamente — pendiente (2026-09-19)
 
 - Terminar el logo definitivo y subirlo a la app (reemplaza el badge "M"

@@ -27,6 +27,17 @@ export const site = {
     minDeposit: null as number | null,
     capacity: 20,
   },
+  // How many obras an artist can postulate. One is free; a one-time payment
+  // raises it to paidLimit. maxStored caps how many obras one account can
+  // upload at all (they can keep several and choose), so storage can't be
+  // filled without limit. See lib/entries.ts.
+  entries: {
+    freeLimit: 1,
+    paidLimit: 5,
+    maxStored: 10,
+    priceArs: 30000,
+    priceUsd: 15,
+  },
 } as const
 
 export function isWorkshopPaymentConfigured() {

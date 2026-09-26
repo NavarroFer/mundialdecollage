@@ -10,6 +10,8 @@ import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/partici
 import { useI18n } from '@/lib/i18n/client'
 import { createClient } from '@/lib/supabase/client'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
+import { fmt, formatMoney } from '@/lib/i18n/format'
+import { site } from '@/lib/site'
 
 const inputClass =
   'mt-1.5 w-full rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5 text-sm outline-none focus:border-collage-blue'
@@ -26,6 +28,7 @@ export function OnboardingForm({
   email,
   prefillImageUrl,
   prefillImagePath,
+  entriesNote,
 }: {
   action: (formData: FormData) => void | Promise<void>
   defaultName: string
@@ -52,6 +55,9 @@ export function OnboardingForm({
   // artist doesn't pick a new file, so the server action treats it exactly
   // like a normal upload.
   prefillImagePath?: string
+  // How many obras take part, told before uploading: 'first' for someone's
+  // first obra, 'another' when they already have one (see lib/entries.ts).
+  entriesNote?: 'first' | 'another'
 }) {
   const [, formAction, pending] = useActionState(async (_prev: null, formData: FormData) => {
     await action(formData)
@@ -149,6 +155,18 @@ export function OnboardingForm({
             </div>
           )}
         </div>
+      )}
+
+      {entriesNote && (
+        <p className="rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4 text-sm text-ink">
+          {entriesNote === 'first'
+            ? m.entries.onboardingFirst
+            : fmt(m.entries.onboardingAnother, {
+                limit: site.entries.paidLimit,
+                ars: formatMoney(locale, site.entries.priceArs, 'ARS'),
+                usd: formatMoney(locale, site.entries.priceUsd, 'USD'),
+              })}
+        </p>
       )}
 
       {email && (

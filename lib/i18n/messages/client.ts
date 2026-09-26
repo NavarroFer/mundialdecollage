@@ -15,6 +15,7 @@ const CLIENT_NAMESPACES = [
   'countrySelect',
   'onboarding',
   'confirmation',
+  'entries',
   'gallery',
 ] as const
 

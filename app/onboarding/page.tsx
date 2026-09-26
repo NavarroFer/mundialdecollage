@@ -5,6 +5,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { fetchAndStoreLegacyArtwork } from '@/lib/legacy-submissions'
 import { guessCountryCodeFromName } from '@/lib/participants'
+import { needsEntryChoice } from '@/lib/entries'
+import { site } from '@/lib/site'
 import { OnboardingForm } from './onboarding-form'
 import { completeOnboarding } from './actions'
 import { ArtistConfirmation } from './artist-confirmation'
@@ -57,26 +59,35 @@ export default async function OnboardingPage({
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('onboarded_at, name, country_code, instagram, website')
+    .select('onboarded_at, name, country_code, instagram, website, entries_chosen_at')
     .eq('id', user.id)
     .maybeSingle()
 
   if (profileError) return <LoadingProblem m={m} />
 
+  // Every obra on this account: one takes part for free, and an artist with
+  // several (more than one sent by mail, or uploaded another) chooses which
+  // on /onboarding/obras before anything else. See lib/entries.ts.
+  const { data: artworks, error: artworksError } = await supabase
+    .from('artworks')
+    .select('id, title, image_url')
+    .eq('profile_id', user.id)
+    .is('archived_at', null)
+    .is('duplicate_of', null)
+    .order('is_selected', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  if (artworksError) return <LoadingProblem m={m} />
+  const artworkCount = artworks?.length ?? 0
+
+  if (another && artworkCount >= site.entries.maxStored) redirect('/onboarding/obras')
+
   // Provisioned artists already own an artwork. Review that row instead of
   // creating a second submission just because this is their first Google login.
   if (!another) {
-    const { data: artwork, error: artworkError } = await supabase
-      .from('artworks')
-      .select('id, title, image_url')
-      .eq('profile_id', user.id)
-      .order('is_selected', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    if (needsEntryChoice(artworkCount, profile?.entries_chosen_at)) redirect('/onboarding/obras')
 
-    if (artworkError) return <LoadingProblem m={m} />
-
+    const artwork = artworks?.[0]
     if (artwork) {
       const name = profile?.name || user.user_metadata?.full_name || ''
       return (
@@ -85,7 +96,7 @@ export default async function OnboardingPage({
             <p className="text-center text-sm font-bold tracking-widest text-collage-blue uppercase">{m.onboarding.welcomeEyebrow}</p>
             <h1 className="font-display mt-3 text-center text-3xl text-ink sm:text-4xl">{name ? fmt(m.onboarding.helloName, { name }) : m.onboarding.welcome}</h1>
             <p className="mt-4 text-center text-muted-foreground">{m.onboarding.existingBody}</p>
-            <ArtistConfirmation name={name} countryCode={profile?.country_code || ''} email={user.email || ''} artwork={artwork} />
+            <ArtistConfirmation name={name} countryCode={profile?.country_code || ''} email={user.email || ''} artwork={artwork} artworkCount={artworkCount} />
           </div>
         </main>
       )
@@ -204,6 +215,7 @@ export default async function OnboardingPage({
           email={user.email || ''}
           prefillImageUrl={legacyImagePreview?.publicUrl}
           prefillImagePath={legacyImagePreview?.path}
+          entriesNote={artworkCount > 0 ? 'another' : 'first'}
         />
       </div>
     </main>

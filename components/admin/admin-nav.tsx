@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, FileText, Send, ClipboardList, Images, BarChart3, MessageSquare } from 'lucide-react'
+import { Users, FileText, Send, ClipboardList, Images, BarChart3, MessageSquare, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/admin/plantillas', label: 'Plantillas', icon: FileText },
   { href: '/admin/campanas', label: 'Campañas', icon: Send },
   { href: '/admin/inscripciones', label: 'Inscripciones', icon: ClipboardList },
+  { href: '/admin/pagos', label: 'Pagos', icon: CreditCard },
 ]
 
 export function AdminNav() {

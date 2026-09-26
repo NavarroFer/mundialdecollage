@@ -9,6 +9,7 @@ import { slugify } from '@/lib/slug'
 import { getAllCountryCodes } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { trackServer } from '@/lib/track-server'
+import { site } from '@/lib/site'
 
 // Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
 // so this also doubles as XSS defense — only ever accept http(s), never
@@ -95,16 +96,28 @@ export async function completeOnboarding(formData: FormData) {
 
   // A profile with onboarded_at already set has submitted before — this is
   // a resubmission (see the "Enviar otra obra" link on ParticipationStatus).
-  // Its artwork lands as a new artworks row that an admin has to curate via
-  // "Usar esta obra" (app/admin/obras/actions.ts's selectArtwork) before it
-  // replaces the currently-selected one; a first-ever submission has
-  // nothing to curate against, so it auto-selects.
+  // Its artwork lands as a new, unselected artworks row and the artist
+  // chooses on /onboarding/obras which obra takes part (one for free, more
+  // after paying — lib/entries.ts); a first-ever submission has nothing to
+  // choose against, so it auto-selects.
   const { data: existingProfile } = await supabase
     .from('profiles')
     .select('onboarded_at')
     .eq('id', user.id)
     .maybeSingle()
   const isFirstSubmission = !existingProfile?.onboarded_at
+
+  // Artists can keep several obras and choose which take part, but not
+  // upload without limit (site.entries.maxStored).
+  if (!isFirstSubmission) {
+    const { count } = await supabase
+      .from('artworks')
+      .select('id', { count: 'exact', head: true })
+      .eq('profile_id', user.id)
+      .is('archived_at', null)
+      .is('duplicate_of', null)
+    if ((count ?? 0) >= site.entries.maxStored) redirect('/onboarding/obras')
+  }
 
   // The upload RLS policy already confines writes to `${uid}/...`, but the
   // path arrives here as plain form data — re-check it wasn't tampered with
@@ -184,7 +197,8 @@ export async function completeOnboarding(formData: FormData) {
     }
   }
 
-  if (isFirstSubmission) await trackServer('signup_done', user.id)
+  if (!isFirstSubmission) redirect('/onboarding/obras?nueva=1')
+  await trackServer('signup_done', user.id)
   redirect('/onboarding/confirmado')
 }
 
