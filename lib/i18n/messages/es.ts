@@ -16,7 +16,7 @@ const es = {
   },
   common: {
     backHome: 'Volver al inicio',
-    noData: 'Sin datos',
+    untitled: 'Sin título',
     optional: '(opcional)',
     opensInNewTab: '(se abre en una pestaña nueva)',
     save: 'Guardar',
@@ -54,16 +54,12 @@ const es = {
     badge: 'Convocatoria abierta',
     intro:
       'El Mundial ya está sucediendo y queremos que tu obra sea parte. Jurado internacional, Gran Muestra Online y Revista 1ª Edición de Collage.',
-    until: 'Hasta el {date}',
+    free: 'Participar es gratis · Hasta el {date}',
+    proof: 'Ya participan {artworks} de {countries}',
+    countries: p({ one: '{count} país', other: '{count} países' }),
     submit: 'Enviá tu obra',
   },
   countdown: { days: 'días', hours: 'horas', minutes: 'min' },
-  popup: {
-    eyebrow: 'Convocatoria abierta',
-    title: 'Tu collage puede ser parte del Mundial',
-    body: 'Sumate al Mundial Internacional de Collage. Tenés tiempo hasta el {date} para enviar tu obra.',
-    dismiss: 'Seguir explorando',
-  },
   status: {
     badge: 'Ya estás participando',
     body: 'Tu obra ya forma parte del Mundial de Collage.',

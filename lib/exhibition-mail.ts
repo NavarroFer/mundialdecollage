@@ -11,7 +11,7 @@ import { MESSAGES } from '@/lib/i18n/messages'
 
 /** {{obra}} → the artwork's title, escaped; "Sin datos" (in the mail's language) when it has none. */
 export function fillArtworkTitle(html: string, title: string | null, locale: Locale): string {
-  return fillTextTag(html, 'obra', title?.trim() || MESSAGES[locale].common.noData)
+  return fillTextTag(html, 'obra', title?.trim() || MESSAGES[locale].common.untitled)
 }
 
 /**

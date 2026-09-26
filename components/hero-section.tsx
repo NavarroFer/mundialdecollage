@@ -6,7 +6,9 @@ import { ArtworkSearch } from '@/components/artwork-search'
 import { FadeIn } from '@/components/fade-in'
 import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
-import { fmt, formatDayMonth } from '@/lib/i18n/format'
+import { fmt, formatDayMonth, plural } from '@/lib/i18n/format'
+import { getSubmissionsCount } from '@/lib/submissions'
+import { getFinalists } from '@/lib/finalists'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
 
@@ -18,7 +20,15 @@ async function isSignedIn() {
 }
 
 export async function HeroSection() {
-  const [{ locale, m }, signedIn] = await Promise.all([getI18n(), isSignedIn()])
+  const [{ locale, m }, signedIn, submissions, artworks] = await Promise.all([
+    getI18n(),
+    isSignedIn(),
+    getSubmissionsCount(),
+    getFinalists(),
+  ])
+  // Live, like the edition banner and the map: every obra received, and the
+  // countries of the published ones (the same flags the ribbon below shows).
+  const countries = new Set(artworks.flatMap((artwork) => (artwork.countryCode ? [artwork.countryCode] : []))).size
   return (
     // No overflow-hidden here: the search's results hang below the hero. The
     // decorations clip themselves (their own overflow-hidden layer below).
@@ -93,6 +103,17 @@ export async function HeroSection() {
           </p>
         </FadeIn>
 
+        {submissions > 0 && countries > 0 && (
+          <FadeIn delay={225}>
+            <p className="mt-5 text-base font-semibold text-ink sm:text-lg">
+              {fmt(m.hero.proof, {
+                artworks: plural(locale, submissions, m.map.artworks),
+                countries: plural(locale, countries, m.hero.countries),
+              })}
+            </p>
+          </FadeIn>
+        )}
+
         {/* z-20 keeps the open results above the CTA row and the dots. */}
         <FadeIn delay={250} className="relative z-20 mt-8">
           <ArtworkSearch signedIn={signedIn} />
@@ -106,11 +127,8 @@ export async function HeroSection() {
         </FadeIn>
 
         <FadeIn delay={400}>
-          <p className="mt-6 text-sm text-muted-foreground">
-            {fmt(m.hero.until, { date: formatDayMonth(locale, site.deadlineISO) })} ·{' '}
-            <a href={`mailto:${site.email}`} className="font-medium text-ink underline underline-offset-4">
-              {site.email}
-            </a>
+          <p className="mt-6 text-sm font-semibold text-ink/80">
+            {fmt(m.hero.free, { date: formatDayMonth(locale, site.deadlineISO) })}
           </p>
         </FadeIn>
       </div>

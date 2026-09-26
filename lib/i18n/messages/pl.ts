@@ -15,7 +15,7 @@ const pl: Messages = {
   },
   common: {
     backHome: 'Wróć na stronę główną',
-    noData: 'Brak danych',
+    untitled: 'Bez tytułu',
     optional: '(opcjonalnie)',
     opensInNewTab: '(otwiera się w nowej karcie)',
     save: 'Zapisz',
@@ -53,16 +53,12 @@ const pl: Messages = {
     badge: 'Nabór otwarty',
     intro:
       'Mistrzostwa już trwają i chcemy, żeby Twoja praca była ich częścią. Międzynarodowe jury, Wielka Wystawa Online i magazyn „Kolaż”, 1. wydanie.',
-    until: 'Do {date}',
+    free: 'Udział jest bezpłatny · Do {date}',
+    proof: 'Już biorą udział: {artworks} z {countries}',
+    countries: p({ one: '{count} kraju', few: '{count} krajów', many: '{count} krajów', other: '{count} kraju' }),
     submit: 'Wyślij swoją pracę',
   },
   countdown: { days: 'dni', hours: 'godz.', minutes: 'min' },
-  popup: {
-    eyebrow: 'Nabór otwarty',
-    title: 'Twój kolaż może być częścią Mistrzostw',
-    body: 'Dołącz do Międzynarodowych Mistrzostw Świata w Kolażu. Na wysłanie pracy masz czas do {date}.',
-    dismiss: 'Przeglądaj dalej',
-  },
   status: {
     badge: 'Już bierzesz udział',
     body: 'Twoja praca jest już częścią Mistrzostw Świata w Kolażu.',

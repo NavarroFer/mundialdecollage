@@ -36,12 +36,12 @@ export function ArtistConfirmation({ name, countryCode, email, artwork, artworkC
     <form action={action} className="mt-8 overflow-hidden rounded-2xl border-2 border-ink/10 bg-card shadow-sm">
       <input type="hidden" name="artwork_id" value={artwork.id} />
       <div className="relative aspect-[4/3] bg-paper">
-        <Image src={artwork.image_url} alt={artwork.title ?? m.common.noData} fill sizes="(max-width: 640px) 100vw, 512px" className="object-contain p-4" priority />
+        <Image src={artwork.image_url} alt={artwork.title ?? m.common.untitled} fill sizes="(max-width: 640px) 100vw, 512px" className="object-contain p-4" priority />
       </div>
       <div className="space-y-6 p-6 sm:p-8">
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold text-collage-blue"><CheckCircle2 className="size-4" aria-hidden="true" />{m.confirmation.haveArtwork}</p>
-          <h2 className="mt-2 text-xl font-semibold text-ink">{artwork.title ?? m.common.noData}</h2>
+          <h2 className="mt-2 text-xl font-semibold text-ink">{artwork.title ?? m.common.untitled}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{m.confirmation.noReupload}</p>
         </div>
         <div>

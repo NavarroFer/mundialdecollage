@@ -4,7 +4,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { FUNNEL_STEPS } from '@/lib/funnel'
+import { FUNNEL_STEPS, HOME_EVENTS } from '@/lib/funnel'
 
 async function getArtworkStats() {
   if (!isSupabaseConfigured) return null
@@ -40,16 +40,30 @@ async function getFunnel(days: number): Promise<FunnelCounts | null> {
   return new Map(((data ?? []) as { name: string; visitors: number | string }[]).map((row) => [row.name, Number(row.visitors)]))
 }
 
-function FunnelSection({ week, month }: { week: FunnelCounts | null; month: FunnelCounts | null }) {
-  const base = month?.get('gallery_view') ?? 0
+function FunnelSection({
+  week,
+  month,
+  title,
+  description,
+  steps,
+  baseStep,
+  baseLabel,
+  footnote,
+}: {
+  week: FunnelCounts | null
+  month: FunnelCounts | null
+  title: string
+  description: string
+  steps: readonly { name: string; label: string }[]
+  baseStep: string
+  baseLabel: string
+  footnote?: string
+}) {
+  const base = month?.get(baseStep) ?? 0
   return (
     <section className="mt-10 rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
-      <h2 className="font-display text-xl tracking-tight text-ink uppercase">Circuito de la galería</h2>
-      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-        Personas distintas que llegaron a cada paso, del recorrido por la Galería 3D a terminar la inscripción.
-        Cada navegador cuenta como una persona (un identificador anónimo, sin nombre ni mail). Sirve para ver dónde
-        se cae la gente antes de armar el plan mensual. Se mide desde el 25 de septiembre de 2026.
-      </p>
+      <h2 className="font-display text-xl tracking-tight text-ink uppercase">{title}</h2>
+      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{description}</p>
       {!week || !month ? (
         <p role="status" className="mt-6 text-sm text-collage-red">No pudimos cargar el circuito. Recargá la página para reintentar.</p>
       ) : (
@@ -60,11 +74,11 @@ function FunnelSection({ week, month }: { week: FunnelCounts | null; month: Funn
                 <th className="py-2 pr-4 font-semibold">Paso</th>
                 <th className="py-2 pr-4 text-right font-semibold">7 días</th>
                 <th className="py-2 pr-4 text-right font-semibold">30 días</th>
-                <th className="py-2 text-right font-semibold">De quienes abrieron la galería</th>
+                <th className="py-2 text-right font-semibold">{baseLabel}</th>
               </tr>
             </thead>
             <tbody>
-              {FUNNEL_STEPS.map((step) => {
+              {steps.map((step) => {
                 const monthCount = month.get(step.name) ?? 0
                 return (
                   <tr key={step.name} className="border-t border-ink/10">
@@ -79,9 +93,7 @@ function FunnelSection({ week, month }: { week: FunnelCounts | null; month: Funn
               })}
             </tbody>
           </table>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Los pasos de la home y la inscripción también cuentan a quien llegó sin pasar por la galería, por eso pueden superar a los anteriores.
-          </p>
+          {footnote && <p className="mt-3 text-xs text-muted-foreground">{footnote}</p>}
         </div>
       )}
     </section>
@@ -108,7 +120,27 @@ export default async function EstadisticasPage() {
         <StatPill label="Con técnica registrada · Sitio" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
       </div>
 
-      <FunnelSection week={funnelWeek} month={funnelMonth} />
+      <FunnelSection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Circuito de la galería"
+        description="Personas distintas que llegaron a cada paso, del recorrido por la Galería 3D a terminar la inscripción. Cada navegador cuenta como una persona (un identificador anónimo, sin nombre ni mail). Sirve para ver dónde se cae la gente antes de armar el plan mensual. Se mide desde el 25 de septiembre de 2026."
+        steps={FUNNEL_STEPS}
+        baseStep="gallery_view"
+        baseLabel="De quienes abrieron la galería"
+        footnote="Los pasos de la home y la inscripción también cuentan a quien llegó sin pasar por la galería, por eso pueden superar a los anteriores."
+      />
+
+      <FunnelSection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Botones de la home"
+        description="Personas distintas que tocaron cada botón, para comparar cuál lleva más gente a mandar su obra. Mismo identificador anónimo que el circuito de la galería. Se mide desde el 26 de septiembre de 2026."
+        steps={HOME_EVENTS}
+        baseStep="home_view"
+        baseLabel="De quienes abrieron la home"
+        footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
+      />
 
       <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">

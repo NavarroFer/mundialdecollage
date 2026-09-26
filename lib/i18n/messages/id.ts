@@ -15,7 +15,7 @@ const id: Messages = {
   },
   common: {
     backHome: 'Kembali ke beranda',
-    noData: 'Tidak ada data',
+    untitled: 'Tanpa judul',
     optional: '(opsional)',
     opensInNewTab: '(terbuka di tab baru)',
     save: 'Simpan',
@@ -53,16 +53,12 @@ const id: Messages = {
     badge: 'Panggilan terbuka',
     intro:
       'Piala Dunia sudah berlangsung dan kami ingin karyamu menjadi bagiannya. Juri internasional, Pameran Besar Online, dan Majalah Kolase Edisi Pertama.',
-    until: 'Hingga {date}',
+    free: 'Ikut serta gratis · Hingga {date}',
+    proof: 'Sudah ikut serta: {artworks} dari {countries}',
+    countries: p({ other: '{count} negara' }),
     submit: 'Kirim karyamu',
   },
   countdown: { days: 'hari', hours: 'jam', minutes: 'mnt' },
-  popup: {
-    eyebrow: 'Panggilan terbuka',
-    title: 'Kolasemu bisa menjadi bagian dari Piala Dunia',
-    body: 'Bergabunglah dengan Piala Dunia Kolase Internasional. Kamu punya waktu hingga {date} untuk mengirim karyamu.',
-    dismiss: 'Lanjut menjelajah',
-  },
   status: {
     badge: 'Kamu sudah ikut serta',
     body: 'Karyamu sudah menjadi bagian dari Piala Dunia Kolase.',

@@ -6,7 +6,6 @@ const CLIENT_NAMESPACES = [
   'auth',
   'splash',
   'countdown',
-  'popup',
   'hero',
   'collage',
   'map',

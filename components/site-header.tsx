@@ -11,6 +11,7 @@ import { ADMIN_EMAILS } from '@/lib/admin'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { TrackedLink } from '@/components/track'
 
 async function AuthSlot() {
   if (!isSupabaseConfigured) return null
@@ -21,7 +22,15 @@ async function AuthSlot() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return <GoogleSignInButton compact />
+  // Hidden on phones, where «Participar» needs the room — it leads to the
+  // same Google sign-in through /onboarding anyway.
+  if (!user) {
+    return (
+      <div className="hidden sm:block">
+        <GoogleSignInButton compact />
+      </div>
+    )
+  }
 
   const firstName = (user.user_metadata?.full_name as string | undefined)?.split(' ')[0]
   const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
@@ -100,11 +109,11 @@ export async function SiteHeader() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <AuthSlot />
-          <a href={`mailto:${site.email}`}>
-            <Button size="sm" className="hidden sm:inline-flex">
+          <Button asChild size="sm">
+            <TrackedLink href="/onboarding" event="submit_click_header">
               {m.header.participate}
-            </Button>
-          </a>
+            </TrackedLink>
+          </Button>
         </div>
       </div>
     </header>

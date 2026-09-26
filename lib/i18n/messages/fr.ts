@@ -15,7 +15,7 @@ const fr: Messages = {
   },
   common: {
     backHome: "Retour à l'accueil",
-    noData: 'Aucune donnée',
+    untitled: 'Sans titre',
     optional: '(facultatif)',
     opensInNewTab: "(s'ouvre dans un nouvel onglet)",
     save: 'Enregistrer',
@@ -53,16 +53,12 @@ const fr: Messages = {
     badge: 'Appel à participation',
     intro:
       "Le Mondial a déjà commencé et nous voulons que ton œuvre en fasse partie. Jury international, Grande Exposition en ligne et Revue 1re Édition de Collage.",
-    until: "Jusqu'au {date}",
+    free: "Participer est gratuit · Jusqu'au {date}",
+    proof: 'Déjà en lice : {artworks} de {countries}',
+    countries: p({ one: '{count} pays', other: '{count} pays' }),
     submit: 'Envoie ton œuvre',
   },
   countdown: { days: 'jours', hours: 'heures', minutes: 'min' },
-  popup: {
-    eyebrow: 'Appel à participation',
-    title: 'Ton collage peut faire partie du Mondial',
-    body: "Rejoins le Mondial International du Collage. Tu as jusqu'au {date} pour envoyer ton œuvre.",
-    dismiss: 'Continuer à explorer',
-  },
   status: {
     badge: 'Tu participes déjà',
     body: 'Ton œuvre fait déjà partie du Mondial du Collage.',

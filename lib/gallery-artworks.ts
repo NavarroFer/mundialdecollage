@@ -95,7 +95,7 @@ export async function getGalleryArtworks(locale: Locale = DEFAULT_LOCALE): Promi
     const slot = gallerySlots[index]
     return {
       id: finalist.slug,
-      title: finalist.artworkTitle ?? MESSAGES[locale].common.noData,
+      title: finalist.artworkTitle ?? MESSAGES[locale].common.untitled,
       artist: finalist.name,
       countryCode: finalist.countryCode,
       flagSvg: flagSvg(finalist.countryCode),

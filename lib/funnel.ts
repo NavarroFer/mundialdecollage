@@ -20,9 +20,22 @@ export const FUNNEL_STEPS = [
   { name: 'signup_done', label: 'Terminaron o confirmaron la inscripción' },
 ] as const
 
-export type FunnelEvent = (typeof FUNNEL_STEPS)[number]['name']
+// The home's calls to action, recorded the same way so /admin/estadisticas
+// can compare them against each other. home_view is the base the rest are
+// measured against; the header's «Participar» sits on every page, not only
+// the home.
+export const HOME_EVENTS = [
+  { name: 'home_view', label: 'Abrieron la home' },
+  { name: 'submit_click_hero', label: 'Tocaron «Enviá tu obra» en la portada' },
+  { name: 'submit_click_edition', label: 'Tocaron «Sumá tu obra» en la sección amarilla' },
+  { name: 'submit_click_header', label: 'Tocaron «Participar» en el encabezado (cualquier página)' },
+  { name: 'bases_download', label: 'Descargaron las bases' },
+  { name: 'gallery_click_home', label: 'Fueron a la Galería 3D desde la sección de participantes' },
+] as const
 
-const NAMES = new Set<string>(FUNNEL_STEPS.map((step) => step.name))
+export type FunnelEvent = (typeof FUNNEL_STEPS)[number]['name'] | (typeof HOME_EVENTS)[number]['name']
+
+const NAMES = new Set<string>([...FUNNEL_STEPS, ...HOME_EVENTS].map((step) => step.name))
 
 export function isFunnelEvent(value: unknown): value is FunnelEvent {
   return typeof value === 'string' && NAMES.has(value)

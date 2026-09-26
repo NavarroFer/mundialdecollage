@@ -15,7 +15,7 @@ const de: Messages = {
   },
   common: {
     backHome: 'Zur Startseite',
-    noData: 'Keine Angaben',
+    untitled: 'Ohne Titel',
     optional: '(optional)',
     opensInNewTab: '(öffnet in einem neuen Tab)',
     save: 'Speichern',
@@ -53,16 +53,12 @@ const de: Messages = {
     badge: 'Offene Ausschreibung',
     intro:
       'Die WM läuft schon und wir möchten, dass dein Werk dabei ist. Internationale Jury, große Online-Ausstellung und das Collage-Magazin, 1. Ausgabe.',
-    until: 'Bis zum {date}',
+    free: 'Die Teilnahme ist kostenlos · Bis zum {date}',
+    proof: 'Schon dabei: {artworks} aus {countries}',
+    countries: p({ one: '{count} Land', other: '{count} Ländern' }),
     submit: 'Schick dein Werk',
   },
   countdown: { days: 'Tage', hours: 'Std.', minutes: 'Min.' },
-  popup: {
-    eyebrow: 'Offene Ausschreibung',
-    title: 'Deine Collage kann Teil der WM sein',
-    body: 'Mach mit bei der Internationalen Collage-WM. Du hast bis zum {date} Zeit, dein Werk einzureichen.',
-    dismiss: 'Weiter stöbern',
-  },
   status: {
     badge: 'Du bist schon dabei',
     body: 'Dein Werk ist jetzt Teil der Collage-WM.',

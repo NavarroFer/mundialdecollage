@@ -20,7 +20,7 @@ export type Finalist = {
   name: string
   countryCode: string
   // Empty when nobody has given the obra a real title yet; shown as
-  // m.common.noData until the artist writes it (see confirmArtistDetails).
+  // m.common.untitled until the artist writes it (see confirmArtistDetails).
   artworkTitle: string | null
   technique?: string
   imageUrl: string

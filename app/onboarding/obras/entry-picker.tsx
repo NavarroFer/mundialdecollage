@@ -72,7 +72,7 @@ export function EntryPicker({
         {artworks.map((artwork) => {
           const isEntered = entered.includes(artwork.id)
           const disabled = multi && !isEntered && full
-          const title = artwork.title?.trim() || m.common.noData
+          const title = artwork.title?.trim() || m.common.untitled
           return (
             <li key={artwork.id}>
               <label

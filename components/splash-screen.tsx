@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { SubmissionPopup } from '@/components/submission-popup'
 import { useI18n } from '@/lib/i18n/client'
 
 // Once-per-tab flag — a fresh visit gets the intro, but a reload or
@@ -16,7 +15,6 @@ const DISMISS_MS = 3200
 const FADE_MS = 300
 
 export function SplashScreen() {
-  const [ready, setReady] = useState(false)
   const [show, setShow] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const dismissedRef = useRef(false)
@@ -25,16 +23,10 @@ export function SplashScreen() {
   useEffect(() => {
     function checkAndShow() {
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      if (reduced) {
-        setReady(true)
-        return
-      }
+      if (reduced) return
 
       try {
-        if (sessionStorage.getItem(SESSION_KEY)) {
-          setReady(true)
-          return
-        }
+        if (sessionStorage.getItem(SESSION_KEY)) return
         sessionStorage.setItem(SESSION_KEY, '1')
       } catch {
         // Safari private mode etc. can throw on read/write — fail open and
@@ -51,10 +43,7 @@ export function SplashScreen() {
     if (dismissedRef.current) return
     dismissedRef.current = true
     setLeaving(true)
-    setTimeout(() => {
-      setShow(false)
-      setReady(true)
-    }, FADE_MS)
+    setTimeout(() => setShow(false), FADE_MS)
   }
 
   useEffect(() => {
@@ -84,7 +73,7 @@ export function SplashScreen() {
     }
   }, [show])
 
-  if (!show) return ready ? <SubmissionPopup /> : null
+  if (!show) return null
 
   return (
     <div

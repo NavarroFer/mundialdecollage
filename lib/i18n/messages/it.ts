@@ -15,7 +15,7 @@ const it: Messages = {
   },
   common: {
     backHome: 'Torna alla home',
-    noData: 'Nessun dato',
+    untitled: 'Senza titolo',
     optional: '(facoltativo)',
     opensInNewTab: '(si apre in una nuova scheda)',
     save: 'Salva',
@@ -53,16 +53,12 @@ const it: Messages = {
     badge: 'Open call',
     intro:
       'Il Mondiale è già in corso e vogliamo che la tua opera ne faccia parte. Giuria internazionale, Grande Mostra Online e Rivista 1ª Edizione di Collage.',
-    until: 'Fino al {date}',
+    free: 'Partecipare è gratis · Fino al {date}',
+    proof: 'Già in gara: {artworks} da {countries}',
+    countries: p({ one: '{count} paese', other: '{count} paesi' }),
     submit: 'Invia la tua opera',
   },
   countdown: { days: 'giorni', hours: 'ore', minutes: 'min' },
-  popup: {
-    eyebrow: 'Open call',
-    title: 'Il tuo collage può far parte del Mondiale',
-    body: 'Unisciti al Mondiale Internazionale di Collage. Hai tempo fino al {date} per inviare la tua opera.',
-    dismiss: 'Continua a esplorare',
-  },
   status: {
     badge: 'Stai già partecipando',
     body: 'La tua opera fa già parte del Mondiale di Collage.',

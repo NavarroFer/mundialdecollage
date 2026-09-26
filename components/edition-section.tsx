@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { TrackedLink } from '@/components/track'
 import { FadeIn } from '@/components/fade-in'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { getI18n } from '@/lib/i18n/server'
@@ -19,7 +20,7 @@ export async function EditionSection() {
         </FadeIn>
 
         <FadeIn delay={100}>
-          <p className="mt-6 text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase sm:text-sm">
+          <p className="mt-6 text-xs font-bold tracking-[0.2em] text-ink/80 uppercase sm:text-sm">
             {m.edition.eyebrow}
           </p>
         </FadeIn>
@@ -46,7 +47,7 @@ export async function EditionSection() {
           <p className="font-display mx-auto mt-6 max-w-xl text-2xl uppercase text-ink sm:text-3xl">
             {m.edition.tagline}
           </p>
-          <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-md text-ink/80">
             {m.edition.sub}
           </p>
         </FadeIn>
@@ -54,7 +55,7 @@ export async function EditionSection() {
         <FadeIn delay={400}>
           <div className="mt-8 flex flex-col items-center justify-center gap-5 sm:flex-row">
             <Button asChild size="lg" variant="primary">
-              <Link href="/onboarding">{m.edition.submit}</Link>
+              <TrackedLink href="/onboarding" event="submit_click_edition">{m.edition.submit}</TrackedLink>
             </Button>
             <Link href="#participantes" className="text-sm font-semibold text-collage-blue underline underline-offset-4">
               {m.edition.discover}

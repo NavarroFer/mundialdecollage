@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Gamepad2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
+import { TrackedLink } from '@/components/track'
 import { ObrasCollage } from '@/components/obras-collage'
 import { InstagramIconLink } from '@/components/instagram-icon-link'
 import { countryCodeToFlag, getParticipants } from '@/lib/participants'
@@ -44,10 +45,10 @@ export async function ParticipantsSection() {
             {m.participants.playEyebrow}
           </p>
           <Button asChild size="lg" variant="primary" className="h-auto min-h-14 whitespace-normal py-4">
-            <Link href="/galeria-3d" prefetch={false}>
+            <TrackedLink href="/galeria-3d" prefetch={false} event="gallery_click_home">
               <Gamepad2 className="size-5" aria-hidden="true" />
               {m.participants.playCta}
-            </Link>
+            </TrackedLink>
           </Button>
           <p className="mt-4 text-sm text-muted-foreground">
             {m.participants.playSub}

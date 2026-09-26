@@ -15,7 +15,7 @@ const pt: Messages = {
   },
   common: {
     backHome: 'Voltar ao início',
-    noData: 'Sem dados',
+    untitled: 'Sem título',
     optional: '(opcional)',
     opensInNewTab: '(abre em uma nova aba)',
     save: 'Salvar',
@@ -53,16 +53,12 @@ const pt: Messages = {
     badge: 'Chamada aberta',
     intro:
       'O Mundial já está acontecendo e queremos que a sua obra faça parte. Júri internacional, Grande Mostra Online e Revista 1ª Edição de Colagem.',
-    until: 'Até {date}',
+    free: 'Participar é grátis · Até {date}',
+    proof: 'Já participam {artworks} de {countries}',
+    countries: p({ one: '{count} país', other: '{count} países' }),
     submit: 'Envie sua obra',
   },
   countdown: { days: 'dias', hours: 'horas', minutes: 'min' },
-  popup: {
-    eyebrow: 'Chamada aberta',
-    title: 'Sua colagem pode fazer parte do Mundial',
-    body: 'Participe do Mundial Internacional de Colagem. Você tem até {date} para enviar sua obra.',
-    dismiss: 'Continuar explorando',
-  },
   status: {
     badge: 'Você já está participando',
     body: 'Sua obra já faz parte do Mundial de Colagem.',

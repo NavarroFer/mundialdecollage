@@ -84,7 +84,7 @@ export async function ParticipationStatus() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={artwork.image_url}
-                alt={artwork.title ?? m.common.noData}
+                alt={artwork.title ?? m.common.untitled}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -96,7 +96,7 @@ export async function ParticipationStatus() {
               </span>
 
               <h2 className="font-display mt-4 text-2xl tracking-tight text-ink uppercase sm:text-3xl">
-                {artwork.title ?? m.common.noData}
+                {artwork.title ?? m.common.untitled}
               </h2>
 
               <p className="mt-2 text-muted-foreground">

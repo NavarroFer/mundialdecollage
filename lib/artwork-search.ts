@@ -3,7 +3,7 @@
 // so each keystroke answers instantly instead of waiting on a request.
 export type SearchEntry = {
   slug: string
-  // Empty when the obra has no title yet (shown as m.common.noData).
+  // Empty when the obra has no title yet (shown as m.common.untitled).
   title: string | null
   name: string
   countryCode: string

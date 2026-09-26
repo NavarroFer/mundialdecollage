@@ -15,7 +15,7 @@ const en: Messages = {
   },
   common: {
     backHome: 'Back to home',
-    noData: 'No data',
+    untitled: 'Untitled',
     optional: '(optional)',
     opensInNewTab: '(opens in a new tab)',
     save: 'Save',
@@ -53,16 +53,12 @@ const en: Messages = {
     badge: 'Open call',
     intro:
       'The World Cup is already happening and we want your artwork to be part of it. International jury, Great Online Exhibition and the 1st Edition Collage Magazine.',
-    until: 'Until {date}',
+    free: 'Taking part is free · Until {date}',
+    proof: 'Already taking part: {artworks} from {countries}',
+    countries: p({ one: '{count} country', other: '{count} countries' }),
     submit: 'Send your artwork',
   },
   countdown: { days: 'days', hours: 'hours', minutes: 'min' },
-  popup: {
-    eyebrow: 'Open call',
-    title: 'Your collage can be part of the World Cup',
-    body: 'Join the International Collage World Cup. You have until {date} to send your artwork.',
-    dismiss: 'Keep exploring',
-  },
   status: {
     badge: "You're taking part",
     body: 'Your artwork is now part of the Collage World Cup.',

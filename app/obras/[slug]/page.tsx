@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const [finalist, { locale, m }] = await Promise.all([getFinalistBySlug(slug), getI18n()])
   if (!finalist) return {}
-  const title = finalist.artworkTitle ?? m.common.noData
+  const title = finalist.artworkTitle ?? m.common.untitled
 
   return {
     title: `${title} — ${finalist.name} | Mundial de Collage`,
@@ -33,7 +33,7 @@ export default async function ObraPage({ params }: { params: Promise<{ slug: str
   const [finalist, { locale, m }] = await Promise.all([getFinalistBySlug(slug), getI18n()])
 
   if (!finalist) notFound()
-  const title = finalist.artworkTitle ?? m.common.noData
+  const title = finalist.artworkTitle ?? m.common.untitled
 
   return (
     <>

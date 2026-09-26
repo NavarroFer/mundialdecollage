@@ -12,6 +12,7 @@ import { ParticipantsSection } from '@/components/participants-section'
 import { MapSection } from '@/components/map-section'
 import { JurySection } from '@/components/jury-section'
 import { Footer } from '@/components/footer'
+import { TrackView } from '@/components/track'
 
 // Renders per request so a new submission shows up without a redeploy.
 export const dynamic = 'force-dynamic'
@@ -19,6 +20,7 @@ export const dynamic = 'force-dynamic'
 export default function Home() {
   return (
     <>
+      <TrackView event="home_view" />
       <SplashScreen />
       <GalleryTour />
       {/* Wrapped so SplashScreen can mark it inert while it covers the

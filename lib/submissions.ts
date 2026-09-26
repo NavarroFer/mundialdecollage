@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createPublicClient } from '@/lib/supabase/public'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 
@@ -9,11 +10,12 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 // get_total_submissions_count() in
 // supabase/migrations/20260921110000_curate_total_submissions_count.sql for
 // why a plain `profiles`/`legacy_submissions` count from this anon client
-// can't compute that itself.
-export async function getSubmissionsCount(): Promise<number> {
+// can't compute that itself. Cached per request: the hero and the edition
+// banner both show it.
+export const getSubmissionsCount = cache(async (): Promise<number> => {
   if (!isSupabaseConfigured) return 0
 
   const { data } = await createPublicClient().rpc('get_total_submissions_count')
 
   return data ?? 0
-}
+})

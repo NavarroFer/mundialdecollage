@@ -15,3 +15,8 @@ export function TrackView({ event }: { event: FunnelEvent }) {
 export function TrackedLink({ event, ...props }: React.ComponentProps<typeof Link> & { event: FunnelEvent }) {
   return <Link {...props} onClick={(e) => { track(event); props.onClick?.(e) }} />
 }
+
+// Same as TrackedLink, for plain anchors (downloads, mailto) that aren't routes.
+export function TrackedAnchor({ event, ...props }: React.ComponentProps<'a'> & { event: FunnelEvent }) {
+  return <a {...props} onClick={(e) => { track(event); props.onClick?.(e) }} />
+}
