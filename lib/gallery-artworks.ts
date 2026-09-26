@@ -1,3 +1,4 @@
+import * as flags from 'country-flag-icons/string/3x2'
 import { getFinalists, getFinalistsByIds, countryCodeToName, type Finalist } from '@/lib/finalists'
 import { createPublicClient } from '@/lib/supabase/public'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -38,6 +39,13 @@ function goldenShuffle<T>(items: T[], seed: number): T[] {
     })
     .sort((a, b) => a.key - b.key)
     .map((entry) => entry.item)
+}
+
+// Emoji flags need an OS font that has them (Windows has none, so it shows
+// the bare letters), so the 3D label draws a real SVG flag instead. Looked
+// up here on the server to keep the ~1.6MB flag set out of the browser.
+function flagSvg(countryCode: string): string | null {
+  return (flags as Record<string, string | undefined>)[countryCode.toUpperCase()] ?? null
 }
 
 function describeArtwork(finalist: Finalist, locale: Locale): string {
@@ -90,6 +98,7 @@ export async function getGalleryArtworks(locale: Locale = DEFAULT_LOCALE): Promi
       title: finalist.artworkTitle ?? MESSAGES[locale].common.noData,
       artist: finalist.name,
       countryCode: finalist.countryCode,
+      flagSvg: flagSvg(finalist.countryCode),
       year: EDITION_YEAR,
       image: finalist.imageUrl,
       description: describeArtwork(finalist, locale),

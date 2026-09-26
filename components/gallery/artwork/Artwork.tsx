@@ -23,19 +23,18 @@ function escapeSvgText(value: string) {
     .replaceAll("'", '&apos;')
 }
 
-function artistLabel(artist: string, countryCode: string) {
-  const code = countryCode.toUpperCase()
-  const flag = /^[A-Z]{2}$/.test(code)
-    ? Array.from(code, (letter) => String.fromCodePoint(127397 + letter.charCodeAt(0))).join('')
-    : ''
-  const flagSpace = flag ? 62 : 0
+// flagSvg is a 3:2 SVG flag, nested as a data-URI image: an SVG loaded as an
+// image can't fetch anything, and an emoji flag only shows as letters where
+// the OS has no flag glyphs (all of Windows).
+function artistLabel(artist: string, flagSvg: string | null) {
+  const flagSpace = flagSvg ? 62 : 0
   const textWidth = Array.from(artist).length * 19
   const width = Math.min(760, Math.max(320, textWidth + flagSpace + 48))
   const availableTextWidth = width - flagSpace - 48
   const fontSize = Math.min(32, 32 * availableTextWidth / Math.max(textWidth, 1))
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="100" viewBox="0 0 ${width} 100">
     <rect x="1" y="1" width="${width - 2}" height="98" rx="6" fill="#f7f5f0" stroke="#d8d3ca" stroke-width="2"/>
-    ${flag ? `<text x="24" y="53" dominant-baseline="middle" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif" font-size="38">${flag}</text>` : ''}
+    ${flagSvg ? `<image x="24" y="35" width="48" height="32" href="data:image/svg+xml;charset=utf-8,${encodeURIComponent(flagSvg)}"/><rect x="24" y="35" width="48" height="32" fill="none" stroke="#d8d3ca" stroke-width="1"/>` : ''}
     <text x="${24 + flagSpace}" y="53" dominant-baseline="middle" fill="#161513" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="600">${escapeSvgText(artist)}</text>
   </svg>`
 
@@ -52,7 +51,7 @@ function setSrgb(texture: { colorSpace: string }) {
 export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryTheme }) {
   const texture = useTexture(data.image, setSrgb)
   const frame = galleryThemes[theme].frame
-  const label = useMemo(() => artistLabel(data.artist, data.countryCode), [data.artist, data.countryCode])
+  const label = useMemo(() => artistLabel(data.artist, data.flagSvg), [data.artist, data.flagSvg])
   const labelTexture = useTexture(label.url, setSrgb)
 
   // data.width/height is a bounding footprint on the wall — the image keeps

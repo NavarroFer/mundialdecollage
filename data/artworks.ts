@@ -3,6 +3,8 @@ export type Artwork = {
   title: string
   artist: string
   countryCode: string
+  /** The country's flag as SVG markup, or null for an unknown code. */
+  flagSvg: string | null
   year: number
   image: string
   description: string

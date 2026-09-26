@@ -61,6 +61,8 @@ describe('daily exhibition shared by home and 3D gallery', () => {
     expect(home).toHaveLength(20)
     expect(new Set(home.map(work => work.slug)).size).toBe(20)
     expect(gallery.map(work => work.id)).toEqual(home.map(work => work.slug))
+    // A real SVG flag, not an emoji that Windows shows as bare letters.
+    expect(gallery[0].flagSvg).toMatch(/^<svg /)
   })
 
   it('rotates at 09:00 Argentina and handles fewer available works', async () => {
