@@ -314,6 +314,18 @@ const id: Messages = {
       not_configured: 'Pembayaran online belum tersedia.',
     },
   },
+  share: {
+    heading: 'Ceritakan bahwa kamu ikut serta',
+    headingOther: 'Bagikan karya ini',
+    button: 'Bagikan',
+    story: 'Gambar untuk story',
+    copied: 'Tautan disalin!',
+    text: '“{title}” karya {name} ikut serta dalam Piala Dunia Kolase Internasional.',
+    textOwn: 'Karyaku “{title}” ikut serta dalam Piala Dunia Kolase Internasional. Ayo ikut juga, gratis!',
+    pending: 'Setelah karyamu kami publikasikan, tautannya akan menampilkannya. Sementara itu, unggah gambarnya ke story-mu dan ajak seniman lain.',
+    badge: 'Karya peserta',
+    cta: 'Ikut serta gratis hingga {date}',
+  },
   gallery: {
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
     startTitle: 'Jelajahi pameran',

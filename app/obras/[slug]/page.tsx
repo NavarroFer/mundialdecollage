@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Globe, Instagram } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
+import { ShareArtwork } from '@/components/share-artwork'
 import { countryCodeToFlag } from '@/lib/participants'
-import { countryCodeToName, getFinalistBySlug } from '@/lib/finalists'
+import { countryCodeToName, getArtworkShareState, getFinalistBySlug } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 
@@ -18,19 +19,29 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!finalist) return {}
   const title = finalist.artworkTitle ?? m.common.untitled
 
+  const description = fmt(m.meta.artworkDescription, {
+    title,
+    name: finalist.name,
+    country: countryCodeToName(finalist.countryCode, locale),
+  })
+  // Without these the link preview would keep the home's title and text
+  // around this obra's own image (opengraph-image.tsx).
+  const shareTitle = `${title} — ${finalist.name}`
   return {
-    title: `${title} — ${finalist.name} | Mundial de Collage`,
-    description: fmt(m.meta.artworkDescription, {
-      title,
-      name: finalist.name,
-      country: countryCodeToName(finalist.countryCode, locale),
-    }),
+    title: `${shareTitle} | Mundial de Collage`,
+    description,
+    openGraph: { title: shareTitle, description, type: 'article' },
+    twitter: { card: 'summary_large_image', title: shareTitle, description },
   }
 }
 
 export default async function ObraPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const [finalist, { locale, m }] = await Promise.all([getFinalistBySlug(slug), getI18n()])
+  const [finalist, { locale, m }, shareState] = await Promise.all([
+    getFinalistBySlug(slug),
+    getI18n(),
+    getArtworkShareState(slug),
+  ])
 
   if (!finalist) notFound()
   const title = finalist.artworkTitle ?? m.common.untitled
@@ -97,6 +108,10 @@ export default async function ObraPage({ params }: { params: Promise<{ slug: str
                 )}
               </div>
             )}
+
+            <div className="mt-10">
+              <ShareArtwork slug={finalist.slug} title={title} name={finalist.name} {...shareState} />
+            </div>
           </div>
         </div>
       </main>

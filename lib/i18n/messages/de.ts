@@ -314,6 +314,18 @@ const de: Messages = {
       not_configured: 'Online-Zahlung ist noch nicht verfügbar.',
     },
   },
+  share: {
+    heading: 'Erzähl, dass du dabei bist',
+    headingOther: 'Teile dieses Werk',
+    button: 'Teilen',
+    story: 'Bild für Stories',
+    copied: 'Link kopiert!',
+    text: '„{title}“ von {name} nimmt an der Internationalen Collage-WM teil.',
+    textOwn: 'Mein Werk „{title}“ nimmt an der Internationalen Collage-WM teil. Mach auch mit, es ist kostenlos!',
+    pending: 'Sobald wir dein Werk veröffentlichen, zeigt der Link es an. Bis dahin: Teile das Bild in deinen Stories und lade andere Künstler:innen ein.',
+    badge: 'Teilnehmendes Werk',
+    cta: 'Kostenlos mitmachen bis zum {date}',
+  },
   gallery: {
     startEyebrow: 'COLLAGE-WM · 3D-GALERIE',
     startTitle: 'Geh durch die Ausstellung',

@@ -319,6 +319,18 @@ const pl: Messages = {
       not_configured: 'Płatność online nie jest jeszcze dostępna.',
     },
   },
+  share: {
+    heading: 'Pochwal się, że bierzesz udział',
+    headingOther: 'Udostępnij tę pracę',
+    button: 'Udostępnij',
+    story: 'Obraz do relacji',
+    copied: 'Link skopiowany!',
+    text: '„{title}” autorstwa {name} bierze udział w Międzynarodowych Mistrzostwach Świata w Kolażu.',
+    textOwn: 'Moja praca „{title}” bierze udział w Międzynarodowych Mistrzostwach Świata w Kolażu. Dołącz i Ty, to nic nie kosztuje!',
+    pending: 'Gdy opublikujemy Twoją pracę, link będzie ją pokazywał. Do tego czasu wrzuć obraz do relacji i zaproś innych artystów.',
+    badge: 'Praca konkursowa',
+    cta: 'Weź udział za darmo do {date}',
+  },
   gallery: {
     startEyebrow: 'MISTRZOSTWA ŚWIATA W KOLAŻU · GALERIA 3D',
     startTitle: 'Przejdź się po wystawie',

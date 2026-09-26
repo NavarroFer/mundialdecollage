@@ -314,6 +314,18 @@ const fr: Messages = {
       not_configured: "Le paiement en ligne n'est pas encore disponible.",
     },
   },
+  share: {
+    heading: 'Dis que tu participes',
+    headingOther: 'Partage cette œuvre',
+    button: 'Partager',
+    story: 'Image pour les stories',
+    copied: 'Lien copié !',
+    text: '« {title} », de {name}, participe au Mondial International du Collage.',
+    textOwn: 'Mon œuvre « {title} » participe au Mondial International du Collage. Rejoins-nous, c’est gratuit !',
+    pending: 'Quand nous publierons ton œuvre, son lien l’affichera. En attendant, publie l’image dans tes stories et invite d’autres artistes.',
+    badge: 'Œuvre participante',
+    cta: 'Participe gratuitement jusqu’au {date}',
+  },
   gallery: {
     startEyebrow: 'MONDIAL DU COLLAGE · GALERIE 3D',
     startTitle: "Parcours l'exposition",

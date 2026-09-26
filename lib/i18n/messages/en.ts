@@ -315,6 +315,18 @@ const en: Messages = {
       not_configured: "Online payment isn't available yet.",
     },
   },
+  share: {
+    heading: "Tell people you're taking part",
+    headingOther: 'Share this artwork',
+    button: 'Share',
+    story: 'Image for stories',
+    copied: 'Link copied!',
+    text: '“{title}” by {name} is taking part in the International Collage World Cup.',
+    textOwn: "My artwork “{title}” is taking part in the International Collage World Cup. Join in too, it's free!",
+    pending: 'Once we publish your artwork, its link will show it. Meanwhile, post the image to your stories and invite other artists.',
+    badge: 'Participating artwork',
+    cta: 'Take part for free until {date}',
+  },
   gallery: {
     startEyebrow: 'COLLAGE WORLD CUP · 3D GALLERY',
     startTitle: 'Walk through the exhibition',

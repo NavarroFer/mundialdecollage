@@ -33,9 +33,20 @@ export const HOME_EVENTS = [
   { name: 'gallery_click_home', label: 'Fueron a la Galería 3D desde la sección de participantes' },
 ] as const
 
-export type FunnelEvent = (typeof FUNNEL_STEPS)[number]['name'] | (typeof HOME_EVENTS)[number]['name']
+// Sharing an obra from its page, the home's «Ya estás participando» card or
+// the confirmation after sending it (components/share-artwork.tsx).
+export const SHARE_EVENTS = [
+  { name: 'obra_share_click', label: 'Tocaron «Compartir»' },
+  { name: 'obra_whatsapp_click', label: 'Compartieron por WhatsApp' },
+  { name: 'obra_story_download', label: 'Bajaron la imagen para historias' },
+] as const
 
-const NAMES = new Set<string>([...FUNNEL_STEPS, ...HOME_EVENTS].map((step) => step.name))
+export type FunnelEvent =
+  | (typeof FUNNEL_STEPS)[number]['name']
+  | (typeof HOME_EVENTS)[number]['name']
+  | (typeof SHARE_EVENTS)[number]['name']
+
+const NAMES = new Set<string>([...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS].map((step) => step.name))
 
 export function isFunnelEvent(value: unknown): value is FunnelEvent {
   return typeof value === 'string' && NAMES.has(value)

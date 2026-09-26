@@ -317,6 +317,18 @@ const es = {
       not_configured: 'El pago online todavía no está disponible.',
     } as Record<string, string>,
   },
+  share: {
+    heading: 'Contá que participás',
+    headingOther: 'Compartí esta obra',
+    button: 'Compartir',
+    story: 'Imagen para historias',
+    copied: '¡Link copiado!',
+    text: '«{title}», de {name}, participa del Mundial Internacional de Collage.',
+    textOwn: 'Mi obra «{title}» participa del Mundial Internacional de Collage. ¡Sumate vos también, es gratis!',
+    pending: 'Cuando publiquemos tu obra, su link la va a mostrar. Mientras tanto, subí la imagen a tus historias e invitá a otros artistas.',
+    badge: 'Obra participante',
+    cta: 'Participá gratis hasta el {date}',
+  },
   gallery: {
     startEyebrow: 'MUNDIAL DE COLLAGE · GALERÍA 3D',
     startTitle: 'Recorré la exposición',

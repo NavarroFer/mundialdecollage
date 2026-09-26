@@ -111,11 +111,40 @@ export async function getFinalistsByIds(ids: string[]): Promise<Map<string, Fina
 // profiles"). An anonymous visitor gets the same anon-role request
 // createPublicClient() would have made, since createClient() falls back to
 // the anon key when there's no session cookie.
-export async function getFinalistBySlug(slug: string): Promise<Finalist | undefined> {
+export const getFinalistBySlug = cache(async (slug: string): Promise<Finalist | undefined> => {
   if (!isSupabaseConfigured) return undefined
 
   const supabase = await createClient()
   const { data } = await supabase.from('artworks').select(SELECT_COLUMNS).eq('slug', slug).maybeSingle()
 
   return data ? rowToFinalist(data as unknown as FinalistRow) : undefined
+})
+
+// The same obra as anyone without a session sees it: only once it's
+// published. What link previews (opengraph-image) render, so an obra still
+// under review never leaks through a crawler.
+export async function getPublishedFinalistBySlug(slug: string): Promise<Finalist | undefined> {
+  if (!isSupabaseConfigured) return undefined
+
+  const { data } = await createPublicClient().from('artworks').select(SELECT_COLUMNS).eq('slug', slug).maybeSingle()
+
+  return data ? rowToFinalist(data as unknown as FinalistRow) : undefined
+}
+
+// Whether a link to this obra works for everyone, and whether the reader is
+// the artist — which decides what components/share-artwork.tsx offers.
+export async function getArtworkShareState(slug: string): Promise<{ isPublic: boolean; isOwn: boolean }> {
+  if (!isSupabaseConfigured) return { isPublic: false, isOwn: false }
+
+  const supabase = await createClient()
+  const [published, { data: { user } }] = await Promise.all([
+    createPublicClient().from('artworks').select('slug').eq('slug', slug).maybeSingle(),
+    supabase.auth.getUser(),
+  ])
+  let isOwn = false
+  if (user) {
+    const { data } = await supabase.from('artworks').select('profile_id').eq('slug', slug).maybeSingle()
+    isOwn = data?.profile_id === user.id
+  }
+  return { isPublic: Boolean(published.data), isOwn }
 }

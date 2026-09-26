@@ -5,11 +5,13 @@ import { FadeIn } from '@/components/fade-in'
 import { TrackedLink, TrackView } from '@/components/track'
 import { CountrySelect } from '@/components/ui/country-select'
 import { SubmitButton } from '@/components/admin/submit-button'
+import { ShareArtwork } from '@/components/share-artwork'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { completeMissingDetails } from '@/app/onboarding/actions'
+import { getArtworkShareState } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
 import type { Messages } from '@/lib/i18n/messages'
 
@@ -32,7 +34,7 @@ export async function ParticipationStatus() {
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('onboarded_at, country_code, details_confirmed_at')
+    .select('onboarded_at, country_code, details_confirmed_at, name')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -55,6 +57,7 @@ export async function ParticipationStatus() {
     .maybeSingle()
 
   if (!artwork) return null
+  const { isPublic } = await getArtworkShareState(artwork.slug)
 
   // /admin/obras can publish a legacy submission with no país (the
   // free-text import couldn't guess one) rather than block on it — this is
@@ -158,6 +161,16 @@ export async function ParticipationStatus() {
                     {m.common.sendAnother}
                   </Button>
                 </Link>
+              </div>
+
+              <div className="mt-6">
+                <ShareArtwork
+                  slug={artwork.slug}
+                  title={artwork.title?.trim() || m.common.untitled}
+                  name={profile.name ?? ''}
+                  isPublic={isPublic}
+                  isOwn
+                />
               </div>
             </div>
           </div>

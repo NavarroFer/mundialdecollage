@@ -4,7 +4,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { FUNNEL_STEPS, HOME_EVENTS } from '@/lib/funnel'
+import { FUNNEL_STEPS, HOME_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
 
 async function getArtworkStats() {
   if (!isSupabaseConfigured) return null
@@ -55,11 +55,12 @@ function FunnelSection({
   title: string
   description: string
   steps: readonly { name: string; label: string }[]
-  baseStep: string
-  baseLabel: string
+  // Without a base step the share column is left out.
+  baseStep?: string
+  baseLabel?: string
   footnote?: string
 }) {
-  const base = month?.get(baseStep) ?? 0
+  const base = baseStep ? month?.get(baseStep) ?? 0 : 0
   return (
     <section className="mt-10 rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
       <h2 className="font-display text-xl tracking-tight text-ink uppercase">{title}</h2>
@@ -74,7 +75,7 @@ function FunnelSection({
                 <th className="py-2 pr-4 font-semibold">Paso</th>
                 <th className="py-2 pr-4 text-right font-semibold">7 días</th>
                 <th className="py-2 pr-4 text-right font-semibold">30 días</th>
-                <th className="py-2 text-right font-semibold">{baseLabel}</th>
+                {baseStep && <th className="py-2 text-right font-semibold">{baseLabel}</th>}
               </tr>
             </thead>
             <tbody>
@@ -85,9 +86,11 @@ function FunnelSection({
                     <td className="py-2 pr-4 text-ink">{step.label}</td>
                     <td className="py-2 pr-4 text-right tabular-nums">{week.get(step.name) ?? 0}</td>
                     <td className="py-2 pr-4 text-right tabular-nums">{monthCount}</td>
-                    <td className="py-2 text-right tabular-nums text-muted-foreground">
-                      {base ? formatShare(monthCount, base) : '—'}
-                    </td>
+                    {baseStep && (
+                      <td className="py-2 text-right tabular-nums text-muted-foreground">
+                        {base ? formatShare(monthCount, base) : '—'}
+                      </td>
+                    )}
                   </tr>
                 )
               })}
@@ -140,6 +143,14 @@ export default async function EstadisticasPage() {
         baseStep="home_view"
         baseLabel="De quienes abrieron la home"
         footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
+      />
+
+      <FunnelSection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Compartir obras"
+        description="Personas distintas que compartieron una obra desde su página, la tarjeta «Ya estás participando» de la home o la confirmación después de enviarla. Se mide desde el 26 de septiembre de 2026."
+        steps={SHARE_EVENTS}
       />
 
       <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
