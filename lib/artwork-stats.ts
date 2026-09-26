@@ -1,6 +1,8 @@
+import { countByCountry } from '@/lib/country-breakdown'
+
 export type StatsArtwork = {
   technique: string | null
-  profiles: { is_public: boolean | null }
+  profiles: { id: string; is_public: boolean | null; country_code: string | null }
 }
 
 export function buildArtworkStats(artworks: StatsArtwork[]) {
@@ -21,6 +23,15 @@ export function buildArtworkStats(artworks: StatsArtwork[]) {
     techniques: [...counts].map(([label, count]) => ({ label, count }))
       .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'es')),
   }
+}
+
+// Artists, not obras: someone with more than one selected obra counts once,
+// under the country on their profile.
+export function buildArtistCountryStats(artworks: StatsArtwork[]) {
+  const countryByArtist = new Map(artworks.map((artwork) => [artwork.profiles.id, artwork.profiles.country_code]))
+  const countries = countByCountry([...countryByArtist.values()])
+  const missing = countries.find((c) => c.countryCode === null)?.count ?? 0
+  return { totalArtists: countryByArtist.size, withCountry: countryByArtist.size - missing, countries }
 }
 
 export function formatShare(value: number, total: number) {

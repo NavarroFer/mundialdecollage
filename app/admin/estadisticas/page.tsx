@@ -1,7 +1,7 @@
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { StatBar } from '@/components/admin/stat-bar'
-import stats from '@/data/artist-country-stats.json'
-import { buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
+import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
+import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { FUNNEL_STEPS } from '@/lib/funnel'
@@ -13,7 +13,7 @@ async function getArtworkStats() {
   // Paginate to avoid silently truncating the report at Supabase's row limit.
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase.from('artworks')
-      .select('technique, profiles!inner(is_public)')
+      .select('technique, profiles!inner(id, is_public, country_code)')
       .eq('is_selected', true)
       .is('archived_at', null)
       .not('title', 'is', null)
@@ -25,7 +25,7 @@ async function getArtworkStats() {
     artworks.push(...rows)
     if (rows.length < 1000) break
   }
-  return buildArtworkStats(artworks)
+  return { artworks: buildArtworkStats(artworks), artists: buildArtistCountryStats(artworks) }
 }
 
 type FunnelCounts = Map<string, number>
@@ -89,9 +89,11 @@ function FunnelSection({ week, month }: { week: FunnelCounts | null; month: Funn
 }
 
 export default async function EstadisticasPage() {
-  const [artworkStats, funnelWeek, funnelMonth] = await Promise.all([getArtworkStats(), getFunnel(7), getFunnel(30)])
-  const missingCountry = stats.countries.find(c => c.country === 'Sin país registrado')?.count ?? 0
-  const leadingCountry = stats.countries[0]
+  const [siteStats, funnelWeek, funnelMonth] = await Promise.all([getArtworkStats(), getFunnel(7), getFunnel(30)])
+  const artworkStats = siteStats?.artworks
+  const artistStats = siteStats?.artists
+  const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
+  const countryLabel = (code: string | null) => (code ? countryCodeToName(code) : 'Sin país registrado')
 
   return (
     <div>
@@ -100,8 +102,8 @@ export default async function EstadisticasPage() {
         De dónde vienen los artistas, qué técnicas eligen, cómo avanza la publicación y cómo se mueve la gente por la galería.
       </p>
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatPill label="Artistas · Registro" value={stats.totalArtists} />
-        <StatPill label="Con país registrado" value={formatShare(stats.totalArtists - missingCountry, stats.totalArtists)} />
+        <StatPill label="Artistas · Sitio" value={artistStats?.totalArtists ?? 'No disponible'} />
+        <StatPill label="Con país registrado · Sitio" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
         <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />
         <StatPill label="Con técnica registrada · Sitio" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
       </div>
@@ -112,24 +114,32 @@ export default async function EstadisticasPage() {
         <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
           <h2 className="font-display text-xl tracking-tight text-ink uppercase">Artistas por país</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Porcentaje sobre {stats.totalArtists} artistas del corte de Registro. Cada artista cuenta una vez por email.
+            Datos actuales del sitio: artistas con una obra seleccionada, publicada o pendiente, sin archivar.
+            Cada artista cuenta una vez, con el país de su perfil.
           </p>
-          {leadingCountry && (
-            <p className="mt-4 rounded-xl bg-collage-blue/10 p-3 text-sm text-ink">
-              <strong>{leadingCountry.country}</strong> reúne el {formatShare(leadingCountry.count, stats.totalArtists)} de los artistas.
-            </p>
+          {!artistStats ? (
+            <p role="status" className="mt-6 text-sm text-collage-red">No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</p>
+          ) : artistStats.totalArtists === 0 ? (
+            <p className="mt-6 text-sm text-muted-foreground">Todavía no hay artistas con una obra seleccionada.</p>
+          ) : (
+            <>
+              {leadingCountry && (
+                <p className="mt-4 rounded-xl bg-collage-blue/10 p-3 text-sm text-ink">
+                  <strong>{countryLabel(leadingCountry.countryCode)}</strong> reúne el {formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.
+                </p>
+              )}
+              <ul className="mt-6 space-y-4" aria-label="Distribución de artistas por país">
+                {artistStats.countries.map(({ countryCode, count }) => (
+                  <li key={countryCode ?? 'none'}>
+                    <StatBar label={countryLabel(countryCode)} value={count} maxValue={artistStats.countries[0]?.count ?? 0} total={artistStats.totalArtists} color="var(--color-collage-blue)" />
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-6 text-xs text-muted-foreground">
+                Base: {artistStats.totalArtists} artistas. {artistStats.totalArtists - artistStats.withCountry} sin país registrado.
+              </p>
+            </>
           )}
-          <ul className="mt-6 space-y-4" aria-label="Distribución de artistas por país">
-            {stats.countries.map(({ country, count }) => (
-              <li key={country}>
-                <StatBar label={country} value={count} maxValue={leadingCountry?.count ?? 0} total={stats.totalArtists} color="var(--color-collage-blue)" />
-              </li>
-            ))}
-          </ul>
-          <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-            Fuente: columna País de <a href={stats.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">{stats.sheet}</a>.
-            Este corte no se actualiza en vivo.
-          </p>
         </section>
 
         <div className="space-y-6">
@@ -171,7 +181,7 @@ export default async function EstadisticasPage() {
             </section>
           )}
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Países y técnicas usan bases distintas: artistas del corte de Registro y obras actuales del sitio.
+            Países cuenta artistas y técnicas cuenta obras, ambos sobre las mismas obras seleccionadas del sitio.
             Las barras de país y técnica se escalan al grupo más grande; los porcentajes usan el total de cada sección.
             Por redondeo, la suma puede diferir de 100%.
           </p>

@@ -1,37 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { buildCountryBreakdown } from './country-breakdown'
+import { countByCountry } from './country-breakdown'
 
-const registro = [
-  { country: 'Argentina', count: 130 },
-  { country: 'México', count: 23 },
-  { country: 'Sin país registrado', count: 2 },
-]
-
-describe('buildCountryBreakdown', () => {
-  it("keeps Registro's curated counts for the countries it lists", () => {
-    const breakdown = buildCountryBreakdown(registro, ['AR', 'AR', 'MX'])
-    expect(breakdown).toEqual([
-      { country: 'Argentina', countryCode: 'AR', count: 130 },
-      { country: 'México', countryCode: 'MX', count: 23 },
-      { country: 'Sin país registrado', countryCode: undefined, count: 2 },
+describe('countByCountry', () => {
+  it('tallies codes case-insensitively, biggest first', () => {
+    expect(countByCountry(['AR', 'ar', 'AU', 'AR', 'pa', 'PA'])).toEqual([
+      { countryCode: 'AR', count: 3 },
+      { countryCode: 'PA', count: 2 },
+      { countryCode: 'AU', count: 1 },
     ])
   })
 
-  it('adds countries that have published obras but are missing from Registro', () => {
-    const breakdown = buildCountryBreakdown(registro, ['AR', 'AU', 'pa', 'PA', 'MT'])
-    expect(breakdown).toContainEqual({ country: 'Australia', countryCode: 'AU', count: 1 })
-    expect(breakdown).toContainEqual({ country: 'Panamá', countryCode: 'PA', count: 2 })
-    expect(breakdown).toContainEqual({ country: 'Malta', countryCode: 'MT', count: 1 })
+  it('breaks ties alphabetically by Spanish name', () => {
+    // Suiza (CH) sorts after Australia (AU) and Panamá (PA).
+    expect(countByCountry(['CH', 'PA', 'AU']).map((c) => c.countryCode)).toEqual(['AU', 'PA', 'CH'])
   })
 
-  it('ranks by count, then alphabetically', () => {
-    const breakdown = buildCountryBreakdown(registro, ['PA', 'AU', 'PA', 'PA'])
-    expect(breakdown.map((b) => b.country)).toEqual([
-      'Argentina',
-      'México',
-      'Panamá',
-      'Sin país registrado',
-      'Australia',
+  it('groups missing countries and always lists them last', () => {
+    expect(countByCountry([null, undefined, ' ', null, 'MT'])).toEqual([
+      { countryCode: 'MT', count: 1 },
+      { countryCode: null, count: 4 },
     ])
+  })
+
+  it('returns nothing for no rows', () => {
+    expect(countByCountry([])).toEqual([])
   })
 })

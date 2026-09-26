@@ -1,6 +1,6 @@
 // Languages the public site and campaign mails come in. Spanish is the
 // source every other one is translated from; the rest cover the countries
-// our participants come from (see data/artist-country-stats.json).
+// our participants come from (see the map or /admin/estadisticas).
 // Kept free of `@/` imports so plain Node scripts can load it too.
 export const LOCALES = ['es', 'en', 'pt', 'it', 'fr', 'de', 'ru', 'pl', 'id'] as const
 

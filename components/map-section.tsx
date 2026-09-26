@@ -2,18 +2,16 @@ import { Globe2 } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { WorldMap } from '@/components/world-map-lazy'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
-import { buildCountryBreakdown } from '@/lib/country-breakdown'
+import { countByCountry } from '@/lib/country-breakdown'
 import { getFinalists } from '@/lib/finalists'
-import stats from '@/data/artist-country-stats.json'
 import { getI18n } from '@/lib/i18n/server'
 
 export async function MapSection() {
   const [artworks, { locale, m }] = await Promise.all([getFinalists(), getI18n()])
-  // Same curated Registro the admin statistics use, plus any country that
-  // already has a published obra but hasn't reached Registro yet.
-  const breakdown = buildCountryBreakdown(
-    stats.countries,
-    artworks.map((artwork) => artwork.countryCode),
+  // Live from the database: the same published obras the map opens when a
+  // country is tapped (getFinalists only returns ones with a country).
+  const breakdown = countByCountry(artworks.map((artwork) => artwork.countryCode)).flatMap(
+    ({ countryCode, count }) => (countryCode ? [{ countryCode, count }] : []),
   )
 
   return (
@@ -45,12 +43,7 @@ export async function MapSection() {
       {breakdown.length > 0 && (
         <FadeIn delay={200}>
           <div className="relative mx-auto mt-12 max-w-4xl px-5 sm:px-8">
-            <WorldMap
-              breakdown={breakdown.flatMap(({ countryCode, count }) =>
-                countryCode ? [{ countryCode, count }] : [],
-              )}
-              artworks={artworks}
-            />
+            <WorldMap breakdown={breakdown} artworks={artworks} />
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {m.map.legend}
             </p>
@@ -62,22 +55,19 @@ export async function MapSection() {
         <FadeIn delay={300}>
           {breakdown.length > 0 ? (
             <ul className="mt-12 space-y-3">
-              {breakdown.map(({ country, countryCode, count }, i) => (
+              {breakdown.map(({ countryCode, count }, i) => (
                 <li
-                  key={country}
+                  key={countryCode}
                   className="flex items-center justify-between gap-4 rounded-2xl border-2 border-ink/10 bg-background px-5 py-3"
                 >
                   <span className="flex items-center gap-3 font-medium text-ink">
                     <span className="text-sm text-muted-foreground">
                       #{i + 1}
                     </span>
-                    {countryCode && (
-                      <span aria-hidden className="text-xl">
-                        {countryCodeToFlag(countryCode)}
-                      </span>
-                    )}
-                    {/* Registro's labels are Spanish; recognisable countries get the reader's name for them. */}
-                    {countryCode ? countryCodeToName(countryCode, locale) : country}
+                    <span aria-hidden className="text-xl">
+                      {countryCodeToFlag(countryCode)}
+                    </span>
+                    {countryCodeToName(countryCode, locale)}
                   </span>
                   <span className="rounded-full bg-collage-blue px-3 py-1 text-sm font-bold text-primary-foreground">
                     {count}
