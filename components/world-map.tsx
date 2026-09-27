@@ -10,7 +10,8 @@ import rawWorldTopology from '@/lib/data/world-countries-110m.json'
 import rawMalvinas from '@/lib/data/malvinas-50m.json'
 import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
 import { alpha2ForUnnumberedShape, isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
-import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
+import { countryCodeToName } from '@/lib/participants'
+import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
@@ -45,7 +46,16 @@ type CountryCount = { countryCode: string; count: number }
 
 type Tooltip = { countryCode: string; count: number; x: number; y: number }
 
-export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; artworks: Finalist[] }) {
+export function WorldMap({
+  breakdown,
+  artworks,
+  flags,
+}: {
+  breakdown: CountryCount[]
+  artworks: Finalist[]
+  // SVG flags by upper-case country code, from lib/flag-svg.ts.
+  flags: Record<string, string>
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [tooltip, setTooltip] = useState<Tooltip | null>(null)
   // Arriving on a #mapa-AR link (the flag ribbon, or a shared URL) opens
@@ -214,7 +224,7 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
           style={{ left: tooltip.x, top: tooltip.y - 10 }}
         >
           <span className="mr-1" aria-hidden>
-            {countryCodeToFlag(tooltip.countryCode)}
+            <CountryFlag countryCode={tooltip.countryCode} svg={flags[tooltip.countryCode.toUpperCase()]} />
           </span>
           {countryName(tooltip.countryCode)} · {tooltip.count}
         </div>
@@ -232,7 +242,7 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
           <div className="flex items-start justify-between gap-4 px-2 sm:px-5">
             <div>
               <p className="text-sm font-bold tracking-[0.2em] text-collage-red uppercase">
-                {countryCodeToFlag(selectedCountryCode)} {countryName(selectedCountryCode)}
+                <CountryFlag countryCode={selectedCountryCode} svg={flags[selectedCountryCode.toUpperCase()]} /> {countryName(selectedCountryCode)}
               </p>
               <h3
                 id={`country-artworks-${selectedCountryCode}`}
@@ -255,6 +265,7 @@ export function WorldMap({ breakdown, artworks }: { breakdown: CountryCount[]; a
             <ObrasCollage
               key={selectedCountryCode}
               finalists={selectedArtworks}
+              flags={flags}
               animateEntrance
               showHint={false}
               ariaLabel={fmt(m.map.countryArtworks, { country: countryName(selectedCountryCode) })}

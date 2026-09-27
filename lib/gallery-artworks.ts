@@ -1,8 +1,8 @@
-import * as flags from 'country-flag-icons/string/3x2'
 import { getFinalists, getFinalistsByIds, countryCodeToName, type Finalist } from '@/lib/finalists'
 import { createPublicClient } from '@/lib/supabase/public'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { site } from '@/lib/site'
+import { flagSvg } from '@/lib/flag-svg'
 import { gallerySlots, type Artwork } from '@/data/artworks'
 import { MESSAGES } from '@/lib/i18n/messages'
 import { fmt } from '@/lib/i18n/format'
@@ -39,13 +39,6 @@ function goldenShuffle<T>(items: T[], seed: number): T[] {
     })
     .sort((a, b) => a.key - b.key)
     .map((entry) => entry.item)
-}
-
-// Emoji flags need an OS font that has them (Windows has none, so it shows
-// the bare letters), so the 3D label draws a real SVG flag instead. Looked
-// up here on the server to keep the ~1.6MB flag set out of the browser.
-function flagSvg(countryCode: string): string | null {
-  return (flags as Record<string, string | undefined>)[countryCode.toUpperCase()] ?? null
 }
 
 function describeArtwork(finalist: Finalist, locale: Locale): string {

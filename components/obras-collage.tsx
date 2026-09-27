@@ -3,18 +3,21 @@
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import type { Finalist } from '@/lib/finalists'
-import { countryCodeToFlag } from '@/lib/participants'
+import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 import './obras-collage.css'
 
 export function ObrasCollage({
   finalists,
+  flags = {},
   animateEntrance = false,
   showHint = true,
   ariaLabel,
 }: {
   finalists: Finalist[]
+  // SVG flags by upper-case country code, from lib/flag-svg.ts.
+  flags?: Record<string, string>
   animateEntrance?: boolean
   showHint?: boolean
   ariaLabel?: string
@@ -44,7 +47,9 @@ export function ObrasCollage({
               aria-label={fmt(m.collage.viewArtwork, { title: artwork.artworkTitle ?? m.common.untitled, name: artwork.name })}
             >
               <span className="obras-collage__bar" aria-hidden="true">
-                <span className="obras-collage__flag">{countryCodeToFlag(artwork.countryCode)}</span>
+                <span className="obras-collage__flag">
+                  <CountryFlag countryCode={artwork.countryCode} svg={flags[artwork.countryCode.toUpperCase()]} />
+                </span>
                 <span className="obras-collage__artist">{artwork.name}</span>
                 <span className="obras-collage__arrow">↗</span>
               </span>

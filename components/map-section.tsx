@@ -3,6 +3,7 @@ import { FadeIn } from '@/components/fade-in'
 import { WorldMap } from '@/components/world-map-lazy'
 import { countByCountry } from '@/lib/country-breakdown'
 import { getFinalists } from '@/lib/finalists'
+import { flagSvgsFor } from '@/lib/flag-svg'
 import { getI18n } from '@/lib/i18n/server'
 import { MAP_SECTION_ID } from '@/lib/map-country-link'
 
@@ -43,7 +44,11 @@ export async function MapSection() {
       {breakdown.length > 0 && (
         <FadeIn delay={200}>
           <div className="relative mx-auto mt-12 max-w-4xl px-5 sm:px-8">
-            <WorldMap breakdown={breakdown} artworks={artworks} />
+            <WorldMap
+              breakdown={breakdown}
+              artworks={artworks}
+              flags={flagSvgsFor(breakdown.map(({ countryCode }) => countryCode))}
+            />
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {m.map.legend}
             </p>
