@@ -40,11 +40,19 @@ export function driveFileId(value: string): string | null {
 
 const REGISTRO_HEADER = ['Nombre', 'País', 'Email', 'Obra (Foto en Drive)']
 
+// Case, accents and spacing don't matter ("Pais", "EMAIL ", "Obra (foto en
+// drive)"): a hand edit of the header shouldn't stop the sync.
+function headerKey(value: string) {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
 // Turning the range into a Sheets table renames empty or replaced header
 // cells to "Columna N". That placeholder still marks the right position, so
 // only a different name (a reordered or swapped column) stops the sync.
 function isRegistroHeader(header: string[]) {
-  return REGISTRO_HEADER.every((name, i) => header[i] === name || new RegExp(`^colum(na|n) ${i + 1}$`, 'i').test(header[i] ?? ''))
+  return REGISTRO_HEADER.every((name, i) =>
+    headerKey(header[i] ?? '') === headerKey(name) || new RegExp(`^colum(na|n) ${i + 1}$`, 'i').test(headerKey(header[i] ?? '')),
+  )
 }
 
 export function parseRegistro(rows: RegistroCell[][]): RegistroEntry[] {
