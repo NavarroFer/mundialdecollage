@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { countryCodeToFlag, countryCodeToName, type Participant } from '@/lib/participants'
+import { countryCodeToName, type Participant } from '@/lib/participants'
+import { CountryFlag } from '@/components/country-flag'
 import { InstagramIconLink } from '@/components/instagram-icon-link'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
@@ -16,7 +17,14 @@ function chipClass(active: boolean) {
   )
 }
 
-export function ParticipantsDirectory({ participants }: { participants: Participant[] }) {
+export function ParticipantsDirectory({
+  participants,
+  flags,
+}: {
+  participants: Participant[]
+  // SVG flags by upper-case country code, from lib/flag-svg.ts.
+  flags: Record<string, string>
+}) {
   const [query, setQuery] = useState('')
   const [countryFilter, setCountryFilter] = useState<string | null>(null)
   const [techniqueFilter, setTechniqueFilter] = useState<string | null>(null)
@@ -81,7 +89,7 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
             onClick={() => setCountryFilter(countryCode)}
             className={chipClass(countryFilter === countryCode)}
           >
-            {countryCodeToFlag(countryCode)} {countryName(countryCode)} — {count}
+            <CountryFlag countryCode={countryCode} svg={flags[countryCode.toUpperCase()]} /> {countryName(countryCode)} — {count}
           </button>
         ))}
       </div>
@@ -113,10 +121,11 @@ export function ParticipantsDirectory({ participants }: { participants: Particip
           {filtered.map((p, i) => (
             <li
               key={`${p.name}-${p.countryCode}-${i}`}
-              className="flex items-center gap-2 rounded-full border-2 border-ink/10 bg-card px-4 py-2 text-sm font-medium text-ink"
+              className="flex max-w-full items-center gap-2 rounded-full border-2 border-ink/10 bg-card px-4 py-2 text-sm font-medium text-ink"
             >
-              <span aria-hidden>{countryCodeToFlag(p.countryCode)}</span>
-              {p.name}
+              <CountryFlag countryCode={p.countryCode} svg={flags[p.countryCode.toUpperCase()]} />
+              {/* One-word names can be long enough to overflow a phone. */}
+              <span className="min-w-0 [overflow-wrap:anywhere]">{p.name}</span>
               <span className="text-muted-foreground">· {countryName(p.countryCode)}</span>
               {p.instagram && <InstagramIconLink href={p.instagram} name={p.name} />}
             </li>

@@ -14,6 +14,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const CLARITY_HOST = /^[a-z0-9-]+\.clarity\.ms$/i
 
+// Statuses that can't carry a body: the Response constructor throws if given
+// one, and Clarity's telemetry endpoints answer 204.
+const NULL_BODY_STATUSES = new Set([101, 204, 205, 304])
+
 function stripCookieDomain(cookie: string) {
   return cookie.replace(/;\s*domain=[^;]+/i, '')
 }
@@ -30,14 +34,22 @@ async function proxy(request: NextRequest, path: string[]) {
   const contentType = request.headers.get('content-type')
   if (contentType) headers.set('content-type', contentType)
 
-  const upstream = await fetch(`https://${host}/${rest.join('/')}${request.nextUrl.search}`, {
-    method: request.method,
-    headers,
-    body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.arrayBuffer(),
-  })
+  let upstream: Response
+  try {
+    upstream = await fetch(`https://${host}/${rest.join('/')}${request.nextUrl.search}`, {
+      method: request.method,
+      headers,
+      body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.arrayBuffer(),
+    })
+  } catch {
+    // Clarity unreachable (dropped TLS handshake and the like): analytics
+    // can miss a beat, it's not worth a server error.
+    return new NextResponse(null, { status: 502 })
+  }
 
-  const body =
-    host === 'www.clarity.ms'
+  const body = NULL_BODY_STATUSES.has(upstream.status)
+    ? null
+    : host === 'www.clarity.ms'
       ? (await upstream.text()).replace(/https:\/\/([a-z0-9-]+\.clarity\.ms)/gi, '/monitoring/$1')
       : upstream.body
 

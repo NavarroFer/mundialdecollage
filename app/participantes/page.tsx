@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { getParticipants } from '@/lib/participants'
+import { flagSvgsFor } from '@/lib/flag-svg'
 import { ParticipantsDirectory } from './participants-directory'
 import { getI18n } from '@/lib/i18n/server'
 
@@ -36,7 +37,10 @@ export default async function ParticipantesPage() {
 
         {participants.length > 0 ? (
           <FadeIn delay={150}>
-            <ParticipantsDirectory participants={participants} />
+            <ParticipantsDirectory
+              participants={participants}
+              flags={flagSvgsFor(participants.map(({ countryCode }) => countryCode))}
+            />
           </FadeIn>
         ) : (
           <FadeIn delay={150}>
