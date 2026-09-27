@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 import path from 'path'
 
 export default defineConfig({
@@ -9,5 +9,8 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // Agent worktrees are full checkouts of other branches; their tests
+    // aren't this tree's.
+    exclude: [...configDefaults.exclude, '.claude/**'],
   },
 })
