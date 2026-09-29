@@ -1,9 +1,15 @@
 import * as THREE from 'three'
 import { centroid, cutIntoPieces, seededRandom, type Polygon } from '@/lib/ar/pieces'
 
-// Anchor space (after MindAR's post-matrix): the printed obra spans x in
+// Anchor space (after MindAR's post-matrix): the printed target spans x in
 // [-0.5, 0.5] and y in [-aspect/2, aspect/2], centered on the origin, with +z
 // coming off the paper toward the camera.
+//
+// Two ways to show the obra:
+// - on the print (default): the target *is* the obra, and the pieces come out
+//   of the paper.
+// - floating: the target is the Mundial logo card; the obra rises over it
+//   the same width as the logo, then breaks apart just the same.
 
 const PIECE_COUNT = 16
 const PAPER_EDGE = 0.006
@@ -11,6 +17,10 @@ const PAPER_EDGE = 0.006
 // Seconds for a piece to fly off the paper or settle back into its hole.
 const BREAK_DURATION = 1.2
 const MEND_DURATION = 1
+
+// Floating mode: seconds for the obra to rise off the card, and how high.
+const APPEAR_DURATION = 1.2
+const FLOAT_HEIGHT = 0.25
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)
@@ -57,22 +67,35 @@ function pieceGeometry(poly: Polygon, center: { x: number; y: number }, aspect: 
 export class CollageScene {
   readonly anchor = new THREE.Group()
   private readonly pieces: Piece[] = []
-  private readonly paperMaterial: THREE.MeshBasicMaterial
+  // The obra's own space (width 1): the anchor itself on the print, lifted
+  // over the card when floating.
+  private readonly content = new THREE.Group()
+  private readonly floating: boolean
+  // Covers the print once the pieces leave it (on the print), or is the
+  // obra's shadow on the card (floating).
+  private readonly underMaterial: THREE.MeshBasicMaterial
+  private appearStartedAt: number | null = null
+  private appearPending = true
   private readonly disposables: { dispose(): void }[] = []
 
-  constructor(texture: THREE.Texture, aspect: number, seed: string) {
+  constructor(texture: THREE.Texture, aspect: number, seed: string, { floating = false } = {}) {
     this.anchor.matrixAutoUpdate = false
     this.anchor.visible = false
+    this.anchor.add(this.content)
+    this.floating = floating
     this.disposables.push(texture)
 
-    // Covers the print once the pieces leave it, as if they'd been cut out of
-    // the paper.
-    this.paperMaterial = new THREE.MeshBasicMaterial({ color: 0xefe9dc, transparent: true, opacity: 0, depthWrite: false })
-    const paperGeometry = new THREE.PlaneGeometry(1, aspect)
-    const paper = new THREE.Mesh(paperGeometry, this.paperMaterial)
-    paper.renderOrder = 0
-    this.anchor.add(paper)
-    this.disposables.push(paperGeometry, this.paperMaterial)
+    this.underMaterial = new THREE.MeshBasicMaterial({
+      color: floating ? 0x000000 : 0xefe9dc,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    })
+    const underGeometry = new THREE.PlaneGeometry(1, aspect)
+    const under = new THREE.Mesh(underGeometry, this.underMaterial)
+    under.renderOrder = 0
+    this.anchor.add(under)
+    this.disposables.push(underGeometry, this.underMaterial)
 
     const artMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
     const edgeMaterial = new THREE.MeshBasicMaterial({ color: 0xfbf8f1, side: THREE.DoubleSide })
@@ -90,12 +113,12 @@ export class CollageScene {
       const edgeMesh = new THREE.Mesh(edge, edgeMaterial)
       edgeMesh.position.z = -0.0015
       group.add(edgeMesh)
-      this.anchor.add(group)
+      this.content.add(group)
 
       const shadowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false })
       const shadow = new THREE.Mesh(art, shadowMaterial)
       shadow.renderOrder = 1
-      this.anchor.add(shadow)
+      this.content.add(shadow)
       this.disposables.push(shadowMaterial)
 
       // Pieces drift away from the middle, so the obra opens up like a burst.
@@ -137,10 +160,23 @@ export class CollageScene {
   // Back to whole with no animation, for when the print is found again.
   reset() {
     for (const piece of this.pieces) piece.progress = piece.from = piece.to = 0
+    this.appearPending = true
   }
 
   // `time`: a running clock in seconds.
   update(time: number) {
+    if (this.appearPending) {
+      this.appearStartedAt = time
+      this.appearPending = false
+    }
+    if (this.floating) {
+      const t = Math.min(1, (time - (this.appearStartedAt ?? time)) / APPEAR_DURATION)
+      const a = easeOutCubic(t)
+      this.content.position.z = 0.01 + FLOAT_HEIGHT * a + Math.sin(time * 1.2) * 0.012 * a
+      this.content.scale.setScalar(0.3 + 0.7 * a)
+      this.underMaterial.opacity = 0.22 * a
+    }
+
     let open = 0
     for (const piece of this.pieces) {
       if (piece.progress !== piece.to) {
@@ -153,7 +189,9 @@ export class CollageScene {
       open = Math.max(open, p)
       // At rest the real print is the best copy of itself; tracking jitter
       // would only make a flat overlay swim on top of it.
-      piece.group.visible = piece.shadow.visible = p > 0.001
+      // Floating, there's no print underneath: the pieces are all there is.
+      piece.group.visible = this.floating || p > 0.001
+      piece.shadow.visible = !this.floating && p > 0.001
       const float = Math.sin(time * 1.4 + piece.phase) * 0.012 * p
       const x = piece.home.x + piece.drift.x * p
       const y = piece.home.y + piece.drift.y * p
@@ -168,7 +206,7 @@ export class CollageScene {
       piece.shadow.scale.setScalar(1 + z * 0.3)
       piece.shadowMaterial.opacity = 0.16 * p
     }
-    this.paperMaterial.opacity = Math.min(1, open * 6)
+    if (!this.floating) this.underMaterial.opacity = Math.min(1, open * 6)
   }
 
   dispose() {

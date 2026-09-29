@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import * as THREE from 'three'
-import { Camera, ScanLine, X } from 'lucide-react'
+import { Camera, Download, ScanLine, X } from 'lucide-react'
 import { downscale, getImageTarget, loadImage, loadMindAR, type MindARController } from '@/lib/ar/mindar'
 import { CollageScene, fitToContainer } from './collage-scene'
 
@@ -17,8 +17,14 @@ type Status =
   | { kind: 'tracking' }
   | { kind: 'error'; message: string }
 
+export type ArMode = 'obra' | 'tarjeta'
+
 type Props = {
   slug: string
+  // 'obra': the camera looks for the printed obra. 'tarjeta': it looks for the
+  // Mundial logo card (targetUrl) and the obra floats over it.
+  mode: ArMode
+  targetUrl: string
   imageUrl: string
   title: string
   name: string
@@ -39,7 +45,7 @@ function cameraErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Algo falló al iniciar la cámara.'
 }
 
-export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) {
+export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country, flag }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -76,7 +82,11 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
 
     try {
       setStatus({ kind: 'loading', label: 'Abriendo la cámara…' })
-      const assets = Promise.all([loadMindAR(), loadImage(imageUrl)])
+      const assets = Promise.all([
+        loadMindAR(),
+        loadImage(imageUrl),
+        targetUrl === imageUrl ? null : loadImage(targetUrl),
+      ])
       // Ask for the camera first, while the tap still counts as a gesture.
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'environment' } })
@@ -94,8 +104,8 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
       video.height = video.videoHeight
 
       setStatus({ kind: 'loading', label: 'Preparando la obra…', progress: 0 })
-      const [mindar, img] = await assets
-      const target = await getImageTarget(mindar, imageUrl, img, (progress) => {
+      const [mindar, img, targetImg] = await assets
+      const target = await getImageTarget(mindar, targetUrl, targetImg ?? img, (progress) => {
         if (!stopped) setStatus({ kind: 'loading', label: 'Preparando la obra…', progress })
       })
       if (stopped) return
@@ -147,7 +157,7 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
 
       const texture = new THREE.CanvasTexture(downscale(img, 2048))
       texture.colorSpace = THREE.SRGBColorSpace
-      collage = new CollageScene(texture, h / w, slug)
+      collage = new CollageScene(texture, img.naturalHeight / img.naturalWidth, slug, { floating: mode === 'tarjeta' })
 
       renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -219,7 +229,9 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
             <p className="mt-5 text-sm text-white/80">
               {status.kind === 'error'
                 ? status.message
-                : 'Apuntá la cámara a esta obra impresa (o abierta en otra pantalla) y mirá qué pasa.'}
+                : mode === 'tarjeta'
+                  ? 'Apuntá la cámara al logo del Mundial de la tarjeta y mirá qué pasa.'
+                  : 'Apuntá la cámara a esta obra impresa (o abierta en otra pantalla) y mirá qué pasa.'}
             </p>
           </div>
           <button
@@ -230,6 +242,25 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
             <Camera className="h-5 w-5" />
             {status.kind === 'error' ? 'Probar de nuevo' : 'Activar cámara'}
           </button>
+          <div className="text-sm text-white/70">
+            <p>Tarjetas para imprimir y repartir (4 por hoja A4):</p>
+            <div className="mt-2 flex flex-wrap justify-center gap-2">
+              <a
+                href={`/ar/${slug}/tarjetas?formato=obra`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 font-semibold text-white hover:border-white/50"
+              >
+                <Download className="h-4 w-4" />
+                Obra + QR
+              </a>
+              <a
+                href={`/ar/${slug}/tarjetas?formato=tarjeta`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 font-semibold text-white hover:border-white/50"
+              >
+                <Download className="h-4 w-4" />
+                Tarjeta del Mundial
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
@@ -245,7 +276,9 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
       {status.kind === 'scanning' && (
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6">
           <ScanLine className="h-24 w-24 animate-pulse text-white/70" strokeWidth={1} />
-          <p className="rounded-full bg-black/60 px-5 py-3 text-sm backdrop-blur">Apuntá a la obra impresa</p>
+          <p className="rounded-full bg-black/60 px-5 py-3 text-sm backdrop-blur">
+            {mode === 'tarjeta' ? 'Apuntá al logo de la tarjeta' : 'Apuntá a la obra impresa'}
+          </p>
         </div>
       )}
 

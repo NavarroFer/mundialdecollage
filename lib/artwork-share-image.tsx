@@ -17,20 +17,20 @@ import { fmt, formatDayMonth } from '@/lib/i18n/format'
 // Hardcoded hex, not CSS var() — ImageResponse renders outside the app's
 // stylesheet; same values as the brand tokens in app/globals.css.
 const PAPER = '#FAF8F2'
-const INK = '#1B110C'
-const BLUE = '#11458C'
-const RED = '#D4302E'
+export const INK = '#1B110C'
+export const BLUE = '#11458C'
+export const RED = '#D4302E'
 const WHITE = '#FFFFFF'
 
-const DOMAIN = 'mundialdecollage.com.ar'
+export const DOMAIN = 'mundialdecollage.com.ar'
 
 // Read once: none depends on the request. Anton has no Cyrillic, so Russian
 // falls back to Oswald, as on the site (app/layout.tsx).
 const anton = readFileSync(join(process.cwd(), 'assets/Anton-Regular.ttf'))
 const oswaldCyrillic = readFileSync(join(process.cwd(), 'assets/Oswald-Cyrillic-700.woff'))
-const banner = `data:image/png;base64,${readFileSync(join(process.cwd(), 'public/banner-mundial.png')).toString('base64')}`
+export const banner = `data:image/png;base64,${readFileSync(join(process.cwd(), 'public/banner-mundial.png')).toString('base64')}`
 // banner-mundial.png is 1290x388.
-const BANNER_RATIO = 388 / 1290
+export const BANNER_RATIO = 388 / 1290
 
 export const OG_SIZE = { width: 1200, height: 630 }
 export const STORY_SIZE = { width: 1080, height: 1920 }
@@ -39,7 +39,7 @@ type Box = { width: number; height: number }
 
 // Uploads can be WEBP, GIF or huge JPEGs, none of which the image renderer
 // takes as is: sharp turns the obra into a JPEG that fits the frame.
-async function loadArtwork(url: string, box: Box): Promise<(Box & { src: string }) | null> {
+export async function loadArtwork(url: string, box: Box): Promise<(Box & { src: string }) | null> {
   try {
     const response = await fetch(url)
     if (!response.ok) return null
@@ -110,7 +110,7 @@ function details({ finalist, locale, m }: Input) {
   }
 }
 
-const fonts = [
+export const fonts = [
   { name: 'Anton', data: anton, style: 'normal' as const, weight: 400 as const },
   { name: 'Oswald', data: oswaldCyrillic, style: 'normal' as const, weight: 400 as const },
 ]
