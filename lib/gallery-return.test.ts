@@ -11,6 +11,8 @@ describe('gallery return link', () => {
   it('reads a shared obra link, but not a sign-in return', () => {
     expect(readSharedArtwork(galleryArtworkPath('luz & sombra').split('?')[1])).toBe('luz & sombra')
     expect(readSharedArtwork('?obra=x&accion=like')).toBeNull()
+    // Shared links also name the inviting artist (lib/referral.ts).
+    expect(readSharedArtwork('?obra=x&ref=x')).toBe('x')
     expect(readSharedArtwork('')).toBeNull()
   })
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { track } from '@/lib/track'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
+import { withReferral } from '@/lib/referral'
 
 const pill =
   'inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30'
@@ -13,7 +14,9 @@ const pill =
 // Every artist who shares is the Mundial's best invitation. A published obra
 // is shared by its own link, whose preview is the obra (opengraph-image.tsx);
 // one still under review would 404 for everyone else, so its artist shares
-// the home instead — and can post the story image either way.
+// the home instead — and can post the story image either way. Both links
+// carry ?ref=<slug> (lib/referral.ts): whoever opens one is greeted as the
+// artist's guest and invited to send their own obra.
 export function ShareArtwork({
   slug,
   title,
@@ -32,7 +35,7 @@ export function ShareArtwork({
   const t = m.share
 
   const text = fmt(isOwn ? t.textOwn : t.text, { title, name })
-  const link = () => `${window.location.origin}${isPublic ? `/obras/${slug}` : '/'}`
+  const link = () => `${window.location.origin}${withReferral(isPublic ? `/obras/${slug}` : '/', slug)}`
 
   async function share() {
     track('obra_share_click')

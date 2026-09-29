@@ -331,6 +331,15 @@ const en: Messages = {
     pending: 'Once we publish your artwork, its link will show it. Meanwhile, post the image to your stories and invite other artists.',
     badge: 'Participating artwork',
     cta: 'Take part for free until {date}',
+    invite: {
+      from: 'You came here through {name}’s artwork.',
+      body: 'Do you make collage too? Join the World Cup for free.',
+      cta: 'Send your artwork',
+    },
+  },
+  referral: {
+    joined: p({ one: 'You brought {count} artist to the World Cup', other: 'You brought {count} artists to the World Cup' }),
+    joinedBody: 'Counting everyone who signed up through your links. Keep sharing your artwork.',
   },
   gallery: {
     startEyebrow: 'COLLAGE WORLD CUP · 3D GALLERY',

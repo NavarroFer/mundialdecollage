@@ -5,6 +5,7 @@ import './globals.css'
 import { site, getSiteUrl } from '@/lib/site'
 import { ClarityAnalytics } from '@/components/clarity'
 import { VercelAnalytics } from '@/components/vercel-analytics'
+import { ReferralCapture } from '@/components/referral-capture'
 import { getI18n } from '@/lib/i18n/server'
 import { I18nProvider } from '@/lib/i18n/client'
 import { pickClientMessages } from '@/lib/i18n/messages/client'
@@ -59,6 +60,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${geist.variable} ${anton.variable} ${oswald.variable}`}>
       <body className="bg-background font-sans text-foreground antialiased">
+        <ReferralCapture />
         <I18nProvider locale={locale} messages={pickClientMessages(m)}>
           {children}
         </I18nProvider>

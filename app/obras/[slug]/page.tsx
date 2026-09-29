@@ -4,6 +4,7 @@ import { ArrowLeft, Globe, Instagram } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { ShareArtwork } from '@/components/share-artwork'
+import { ReferralInvite } from '@/components/referral-invite'
 import { countryCodeToFlag } from '@/lib/participants'
 import { countryCodeToName, getArtworkShareState, getFinalistBySlug } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
@@ -35,8 +36,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-export default async function ObraPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export default async function ObraPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ ref?: string | string[] }>
+}) {
+  const [{ slug }, { ref }] = await Promise.all([params, searchParams])
   const [finalist, { locale, m }, shareState] = await Promise.all([
     getFinalistBySlug(slug),
     getI18n(),
@@ -58,6 +65,9 @@ export default async function ObraPage({ params }: { params: Promise<{ slug: str
             <ArrowLeft className="h-4 w-4" />
             {m.artwork.back}
           </Link>
+
+          {/* Most visitors here came through the link its artist shared. */}
+          <ReferralInvite refParam={ref} className="mt-6" />
 
           <div className="mt-8 overflow-hidden rounded-2xl border-2 border-ink/10 bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}

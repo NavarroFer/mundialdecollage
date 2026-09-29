@@ -330,6 +330,15 @@ const de: Messages = {
     pending: 'Sobald wir dein Werk veröffentlichen, zeigt der Link es an. Bis dahin: Teile das Bild in deinen Stories und lade andere Künstler:innen ein.',
     badge: 'Teilnehmendes Werk',
     cta: 'Kostenlos mitmachen bis zum {date}',
+    invite: {
+      from: 'Du bist über das Werk von {name} hier.',
+      body: 'Machst du auch Collagen? Mach kostenlos bei der WM mit.',
+      cta: 'Reich dein Werk ein',
+    },
+  },
+  referral: {
+    joined: p({ one: 'Du hast {count} Künstler:in zur WM gebracht', other: 'Du hast {count} Künstler:innen zur WM gebracht' }),
+    joinedBody: 'Gezählt wird, wer sich über deine Links angemeldet hat. Teile dein Werk weiter.',
   },
   gallery: {
     startEyebrow: 'COLLAGE-WM · 3D-GALERIE',

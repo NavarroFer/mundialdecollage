@@ -9,6 +9,7 @@ import { slugify } from '@/lib/slug'
 import { getAllCountryCodes } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { trackServer } from '@/lib/track-server'
+import { recordReferral } from '@/lib/referral-server'
 import { site } from '@/lib/site'
 
 // Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
@@ -210,7 +211,12 @@ export async function completeOnboarding(formData: FormData) {
     }
   }
 
-  if (isFirstSubmission) await trackServer('signup_done', user.id)
+  if (isFirstSubmission) {
+    await trackServer('signup_done', user.id)
+    // Arrived through an artist's shared link: that artist gets the credit
+    // (lib/referral-server.ts — never throws, a failure is only logged).
+    if (await recordReferral(user.id)) await trackServer('referral_signup', user.id)
+  }
   // With more than one obra on the account, the artist chooses which takes
   // part before anything else.
   if (!isFirstSubmission) redirect('/onboarding/obras?nueva=1')

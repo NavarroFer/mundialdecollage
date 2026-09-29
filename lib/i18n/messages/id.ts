@@ -330,6 +330,15 @@ const id: Messages = {
     pending: 'Setelah karyamu kami publikasikan, tautannya akan menampilkannya. Sementara itu, unggah gambarnya ke story-mu dan ajak seniman lain.',
     badge: 'Karya peserta',
     cta: 'Ikut serta gratis hingga {date}',
+    invite: {
+      from: 'Kamu datang lewat karya {name}.',
+      body: 'Kamu juga membuat kolase? Ikut Piala Dunia gratis.',
+      cta: 'Kirim karyamu',
+    },
+  },
+  referral: {
+    joined: p({ other: 'Kamu mengajak {count} seniman ke Piala Dunia' }),
+    joinedBody: 'Kami menghitung siapa saja yang mendaftar lewat tautanmu. Terus bagikan karyamu.',
   },
   gallery: {
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
