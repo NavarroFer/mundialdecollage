@@ -38,6 +38,8 @@ export type Submission = {
   // Full profile URL (profiles.instagram, or built from the Registro handle).
   instagram?: string
   imageUrl: string
+  // The selected artwork's /obras/[slug] slug, for a `source: 'real'` row.
+  slug?: string
   // Only ever set for a `source: 'legacy'` row — the site-stored imageUrl is
   // a resized copy (see lib/legacy-submissions.ts's storeLegacyArtworkGlobally),
   // so this is how an admin gets back to the original file on Drive to judge

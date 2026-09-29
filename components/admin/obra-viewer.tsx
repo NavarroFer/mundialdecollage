@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleCheck,
+  Download,
   ExternalLink,
   EyeOff,
   ImageOff,
@@ -13,6 +14,7 @@ import {
   Loader2,
   Megaphone,
   RefreshCw,
+  ScanLine,
   Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -178,6 +180,8 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
                 )}
               </div>
 
+              {renderedItem.slug && renderedItem.isPublic && <ArLinks slug={renderedItem.slug} />}
+
               <div className="mt-5 border-t-2 border-ink/10 pt-5">
                 {renderedItem.source === 'legacy' ? (
                   <LegacyActions
@@ -200,6 +204,31 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+// Prototype (see app/ar/[slug]): the printable AR cards and the camera page.
+// Only for published obras — the PDF route looks the obra up publicly.
+function ArLinks({ slug }: { slug: string }) {
+  const link = 'inline-flex items-center gap-1.5 text-sm font-semibold text-collage-blue hover:underline'
+  return (
+    <div className="mt-4 rounded-xl border-2 border-ink/10 p-3">
+      <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Realidad aumentada</p>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
+        <a href={`/ar/${slug}/tarjetas?formato=obra`} className={link}>
+          <Download className="h-4 w-4" />
+          PDF obra + QR
+        </a>
+        <a href={`/ar/${slug}/tarjetas?formato=tarjeta`} className={link}>
+          <Download className="h-4 w-4" />
+          PDF tarjeta del Mundial
+        </a>
+        <a href={`/ar/${slug}`} target="_blank" rel="noreferrer" className={link}>
+          <ScanLine className="h-4 w-4" />
+          Abrir AR
+        </a>
+      </div>
+    </div>
   )
 }
 

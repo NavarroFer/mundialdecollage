@@ -77,6 +77,7 @@ export default async function ObrasPage({
         technique: selected.technique ?? undefined,
         artworkTitle: selected.title ?? undefined,
         imageUrl: selected.image_url,
+        slug: selected.slug ?? undefined,
         isPublic: profile.is_public,
         artworkCount: rows.length,
         source: 'real' as const,
