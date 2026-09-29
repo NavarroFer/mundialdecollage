@@ -1,13 +1,18 @@
 // Scheduled campaigns go out once a day, when /api/cron/campanas runs (12:10
-// UTC, 09:10 Argentina). Days are Argentina days (UTC-3, no DST), so the
-// earliest day that can be picked is always one the cron hasn't reached yet.
+// UTC, 09:10 Argentina). Days are Argentina days (UTC-3, no DST). Today can
+// still be picked until 09:00, ten minutes before the run; after that it
+// would only go out tomorrow, so the earliest day becomes tomorrow.
 const ARGENTINA_OFFSET_MS = 3 * 60 * 60 * 1000
+const TODAY_CUTOFF_HOUR = 9
 
 export const SCHEDULED_SEND_TIME_LABEL = '09:10 (hora de Argentina)'
 
+// Argentina's wall clock, read with the getUTC* methods.
+const argentinaClock = (now: Date) => new Date(now.getTime() - ARGENTINA_OFFSET_MS)
+
 // YYYY-MM-DD in Argentina.
 export function argentinaDay(now: Date = new Date()): string {
-  return new Date(now.getTime() - ARGENTINA_OFFSET_MS).toISOString().slice(0, 10)
+  return argentinaClock(now).toISOString().slice(0, 10)
 }
 
 function addDays(day: string, days: number): string {
@@ -16,9 +21,9 @@ function addDays(day: string, days: number): string {
   return date.toISOString().slice(0, 10)
 }
 
-// Tomorrow: today's run may already have happened.
 export function earliestScheduleDay(now: Date = new Date()): string {
-  return addDays(argentinaDay(now), 1)
+  const today = argentinaDay(now)
+  return argentinaClock(now).getUTCHours() < TODAY_CUTOFF_HOUR ? today : addDays(today, 1)
 }
 
 export function parseScheduleDay(value: unknown, now: Date = new Date()): string | null {

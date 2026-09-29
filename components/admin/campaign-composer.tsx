@@ -133,7 +133,7 @@ export function CampaignComposer({
         onSubmit={(e) => {
           const scheduling = (e.nativeEvent as SubmitEvent).submitter?.id === 'schedule_submit'
           const question = scheduling
-            ? `¿Programar este mail para el ${formatScheduleDay(scheduledFor)}? Se puede cancelar hasta ese día.`
+            ? `¿Programar este mail para el ${formatScheduleDay(scheduledFor)}? Se puede cancelar hasta que salga.`
             : `¿Enviar este mail a ${recipientCount} contactos suscriptos? No se puede deshacer.`
           if (!confirm(question)) e.preventDefault()
         }}
@@ -228,7 +228,7 @@ export function CampaignComposer({
 
         <div className="space-y-2 rounded-xl border-2 border-dashed border-ink/15 p-4">
           <label className="text-sm font-semibold text-ink" htmlFor="scheduled_for">
-            O programarla para otro día
+            O programarla para un día
           </label>
           <p className="text-xs text-muted-foreground">
             Sale ese día a las {SCHEDULED_SEND_TIME_LABEL}, a quienes estén en el público elegido en ese momento. Se
