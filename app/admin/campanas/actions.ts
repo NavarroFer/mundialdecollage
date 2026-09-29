@@ -15,7 +15,6 @@ import {
 import { site } from '@/lib/site'
 import { isEmailDocument, personalizeHtml } from '@/lib/email-blocks'
 import {
-  contactLocale,
   emailFor,
   emailTextsFingerprint,
   extractEmailTexts,
@@ -25,7 +24,9 @@ import {
   type TranslatedLocale,
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
-import { audienceContacts, parseAudience } from '@/lib/campaign-audience'
+import { parseAudience } from '@/lib/campaign-audience'
+import { campaignRecipients, chunk, deliverCampaign } from '@/lib/campaign-delivery'
+import { parseScheduleDay } from '@/lib/campaign-schedule'
 import { DEFAULT_LOCALE, isLocale, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -67,12 +68,6 @@ async function translationsForSend(
   }
 }
 
-function chunk<T>(items: T[], size: number): T[][] {
-  const chunks: T[][] = []
-  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size))
-  return chunks
-}
-
 function parseBodyJson(formData: FormData) {
   const raw = formData.get('body_json')
   if (!raw) return null
@@ -83,15 +78,24 @@ function parseBodyJson(formData: FormData) {
   }
 }
 
+function campaignDraft(formData: FormData) {
+  return {
+    subject: String(formData.get('subject') ?? '').trim(),
+    bodyHtml: String(formData.get('body_html') ?? '').trim(),
+    bodyJson: parseBodyJson(formData),
+    templateId: String(formData.get('template_id') ?? '') || null,
+  }
+}
+
+const translationWarning = (errors: string[]) =>
+  errors.length ? `No se pudo traducir (esos contactos reciben español): ${errors.join('; ')}` : null
+
 // Bound to the audience picked on /admin/campanas/nueva
 // (sendCampaign.bind(null, audience)). Bound arguments come back from the
 // browser as-is, so it's parsed again here.
 export async function sendCampaign(audienceInput: unknown, formData: FormData) {
   const audience = parseAudience(audienceInput)
-  const subject = String(formData.get('subject') ?? '').trim()
-  const bodyHtml = String(formData.get('body_html') ?? '').trim()
-  const bodyJson = parseBodyJson(formData)
-  const templateId = String(formData.get('template_id') ?? '') || null
+  const { subject, bodyHtml, bodyJson, templateId } = campaignDraft(formData)
   const backTo = (error: string) => `/admin/campanas/nueva?audience=${audience}&error=${encodeURIComponent(error)}`
 
   if (!subject || !bodyHtml) {
@@ -103,24 +107,10 @@ export async function sendCampaign(audienceInput: unknown, formData: FormData) {
 
   const supabase = await createClient()
 
-  const [{ contacts, error: audienceError }, { data: contactCountries }] = await Promise.all([
-    audienceContacts(supabase, audience),
-    supabase.rpc('contact_country_codes'),
-  ])
+  const { recipients, error: audienceError } = await campaignRecipients(supabase, audience)
   if (audienceError) {
     redirect(backTo(`No se pudo armar la lista de destinatarios: ${audienceError}`))
   }
-
-  const countryByContact = new Map(
-    ((contactCountries ?? []) as { contact_id: string; country_code: string | null }[]).map((row) => [
-      row.contact_id,
-      row.country_code,
-    ]),
-  )
-  const recipients = contacts.map((contact) => ({
-    ...contact,
-    locale: contactLocale(countryByContact.get(contact.id)),
-  }))
   if (recipients.length === 0) {
     redirect(backTo('no_recipients'))
   }
@@ -130,11 +120,6 @@ export async function sendCampaign(audienceInput: unknown, formData: FormData) {
     subject,
     bodyJson,
   })
-  const emails = new Map<Locale, ReturnType<typeof emailFor>>()
-  const emailForContact = (locale: Locale) => {
-    if (!emails.has(locale)) emails.set(locale, emailFor(locale, { subject, bodyHtml, bodyJson, translations }))
-    return emails.get(locale)!
-  }
 
   const { data: campaign, error: campaignError } = await supabase
     .from('campaigns')
@@ -148,104 +133,83 @@ export async function sendCampaign(audienceInput: unknown, formData: FormData) {
       recipient_count: recipients.length,
       audience,
     })
-    .select('id')
+    .select('id, subject, body_html, body_json, translations')
     .single()
 
   if (campaignError || !campaign) {
     redirect(backTo(campaignError?.message ?? 'create_failed'))
   }
 
-  const resend = createResendClient()
-  let sentCount = 0
-  let failedCount = 0
-  let firstError: string | null = translationErrors.length
-    ? `No se pudo traducir (esos contactos recibieron español): ${translationErrors.join('; ')}`
-    : null
-
-  // A malformed address fails Resend's *entire* batch.send call, marking
-  // every recipient in that batch as failed even though only one was bad.
-  // Screen those out up front so one bad row in `contacts` can't take down
-  // sends to everyone else.
-  const validRecipients = recipients.filter((contact) => isValidEmail(contact.email))
-  const invalidRecipients = recipients.filter((contact) => !isValidEmail(contact.email))
-
-  if (invalidRecipients.length > 0) {
-    failedCount += invalidRecipients.length
-    firstError ??= 'Formato de email inválido'
-    await supabase.from('campaign_sends').insert(
-      invalidRecipients.map((contact) => ({
-        campaign_id: campaign.id,
-        contact_id: contact.id,
-        email: contact.email,
-        locale: emailForContact(contact.locale).locale,
-        status: 'failed',
-        error: 'Formato de email inválido',
-      })),
-    )
-  }
-
-  for (const batch of chunk(validRecipients, RESEND_BATCH_SIZE)) {
-    // The Resend SDK never throws for an API-level failure (bad key,
-    // unverified domain, invalid recipient) — it always resolves to
-    // { data, error }, so `error` is the only signal that a batch actually
-    // failed. A try/catch here would never fire and was hiding failed sends
-    // as "sent".
-    const { data, error } = await resend.batch.send(
-      batch.map((contact) => {
-        const email = emailForContact(contact.locale)
-        return {
-          from: site.mailFrom,
-          to: contact.email,
-          subject: email.subject,
-          html: withUnsubscribeFooter(personalizeHtml(email.html, contact.name), contact.id, email.locale),
-        }
-      }),
-    )
-
-    if (error || !data) {
-      failedCount += batch.length
-      const message = error?.message ?? 'Error desconocido'
-      firstError ??= message
-      await supabase.from('campaign_sends').insert(
-        batch.map((contact) => ({
-          campaign_id: campaign.id,
-          contact_id: contact.id,
-          email: contact.email,
-          locale: emailForContact(contact.locale).locale,
-          status: 'failed',
-          error: message,
-        })),
-      )
-      continue
-    }
-
-    sentCount += batch.length
-    await supabase.from('campaign_sends').insert(
-      batch.map((contact, i) => ({
-        campaign_id: campaign.id,
-        contact_id: contact.id,
-        email: contact.email,
-        locale: emailForContact(contact.locale).locale,
-        status: 'sent',
-        sent_at: new Date().toISOString(),
-        resend_email_id: data.data[i]?.id ?? null,
-      })),
-    )
-  }
-
-  await supabase
-    .from('campaigns')
-    .update({
-      status: failedCount === recipients.length ? 'failed' : 'sent',
-      sent_count: sentCount,
-      failed_count: failedCount,
-      sent_at: new Date().toISOString(),
-    })
-    .eq('id', campaign.id)
+  const { sentCount, failedCount, firstError: sendError } = await deliverCampaign(supabase, campaign, recipients)
+  const firstError = translationWarning(translationErrors) ?? sendError
 
   revalidatePath('/admin/campanas')
   const errorParam = firstError ? `&error=${encodeURIComponent(firstError)}` : ''
   redirect(`/admin/campanas?sent=${sentCount}&failed=${failedCount}${errorParam}`)
+}
+
+// Saves the campaign to go out on `scheduled_for` (see
+// lib/campaign-schedule.ts). It's translated now, so a translator problem
+// shows up here and not on the day; the audience is worked out on the day.
+export async function scheduleCampaign(audienceInput: unknown, formData: FormData) {
+  const audience = parseAudience(audienceInput)
+  const { subject, bodyHtml, bodyJson, templateId } = campaignDraft(formData)
+  const scheduledFor = parseScheduleDay(formData.get('scheduled_for'))
+  const backTo = (error: string) => `/admin/campanas/nueva?audience=${audience}&error=${encodeURIComponent(error)}`
+
+  if (!subject || !bodyHtml) {
+    redirect(backTo('missing_fields'))
+  }
+  if (!scheduledFor) {
+    redirect(backTo('invalid_schedule'))
+  }
+
+  const supabase = await createClient()
+  const { translations, errors: translationErrors } = await translationsForSend(supabase, {
+    templateId,
+    subject,
+    bodyJson,
+  })
+
+  const { error: campaignError } = await supabase.from('campaigns').insert({
+    template_id: templateId,
+    subject,
+    body_html: bodyHtml,
+    body_json: bodyJson,
+    translations,
+    status: 'scheduled',
+    scheduled_for: scheduledFor,
+    audience,
+  })
+  if (campaignError) {
+    redirect(backTo(campaignError.message))
+  }
+
+  revalidatePath('/admin/campanas')
+  const warning = translationWarning(translationErrors)
+  const errorParam = warning ? `&error=${encodeURIComponent(warning)}` : ''
+  redirect(`/admin/campanas?scheduled=${scheduledFor}${errorParam}`)
+}
+
+// Only while it's still 'scheduled' — once the cron has claimed it, it's
+// already going out.
+export async function cancelScheduledCampaign(formData: FormData) {
+  const campaignId = String(formData.get('campaign_id') ?? '')
+  if (!campaignId) redirect('/admin/campanas')
+
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('campaigns')
+    .update({ status: 'canceled' })
+    .eq('id', campaignId)
+    .eq('status', 'scheduled')
+    .select('id')
+
+  revalidatePath('/admin/campanas')
+  if (!data?.length) {
+    redirect(`/admin/campanas?error=${encodeURIComponent('Esa campaña ya no está programada')}`)
+  }
+  redirect('/admin/campanas?canceled=1')
 }
 
 // Sends one copy of the current draft to a single address without creating a

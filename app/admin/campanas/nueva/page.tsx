@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { isResendConfigured, getDomainStatus } from '@/lib/resend'
 import { CampaignComposer } from '@/components/admin/campaign-composer'
 import { AdminPageHeader } from '@/components/admin/page-header'
-import { sendCampaign, sendTestEmail, enableOpenTracking } from '../actions'
+import { sendCampaign, scheduleCampaign, sendTestEmail, enableOpenTracking } from '../actions'
+import { earliestScheduleDay } from '@/lib/campaign-schedule'
 import { isTranslatorConfigured } from '@/lib/email-translator'
 import { contactLocale } from '@/lib/email-translation'
 import { LOCALES, type Locale } from '@/lib/i18n/locales'
@@ -18,6 +19,7 @@ const errorMessages: Record<string, string> = {
   resend_not_configured: 'Todavía no está conectado Resend (falta RESEND_API_KEY).',
   resend_domain_not_configured: 'Falta configurar RESEND_DOMAIN_API_KEY para gestionar el dominio en Resend.',
   no_recipients: 'No hay contactos suscriptos en ese público.',
+  invalid_schedule: 'Elegí un día a partir de mañana para programarla.',
   domain_not_found: 'El dominio configurado en site.mailFrom no aparece en la cuenta de Resend.',
 }
 
@@ -169,6 +171,8 @@ export default async function NuevaCampanaPage({
       <div className="mt-6">
         <CampaignComposer
           action={sendCampaign.bind(null, audience)}
+          scheduleAction={scheduleCampaign.bind(null, audience)}
+          earliestScheduleDay={earliestScheduleDay()}
           testAction={sendTestEmail}
           templates={templates ?? []}
           recipientCount={count}

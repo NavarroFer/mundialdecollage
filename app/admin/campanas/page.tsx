@@ -1,15 +1,18 @@
 import Link from 'next/link'
-import { Circle, CircleAlert, CircleCheck, Loader2, Plus, RotateCw } from 'lucide-react'
+import { CalendarClock, Circle, CircleAlert, CircleCheck, CircleSlash, Loader2, Plus, RotateCw, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { SubmitButton } from '@/components/admin/submit-button'
-import { retryFailedSends } from './actions'
+import { cancelScheduledCampaign, retryFailedSends } from './actions'
+import { formatScheduleDay, SCHEDULED_SEND_TIME_LABEL } from '@/lib/campaign-schedule'
 import { audienceLabel } from '@/lib/campaign-audience'
 import { adminDescription } from '@/components/admin/admin-sections'
 
 const STATUS: Record<string, { label: string; icon: typeof Circle; className: string; spin?: boolean }> = {
   draft: { label: 'Borrador', icon: Circle, className: 'bg-ink/10 text-muted-foreground' },
+  scheduled: { label: 'Programada', icon: CalendarClock, className: 'bg-collage-blue/15 text-collage-blue' },
+  canceled: { label: 'Cancelada', icon: CircleSlash, className: 'bg-ink/10 text-muted-foreground' },
   sending: { label: 'Enviando…', icon: Loader2, className: 'bg-collage-yellow/15 text-collage-yellow', spin: true },
   sent: { label: 'Enviada', icon: CircleCheck, className: 'bg-collage-blue/15 text-collage-blue' },
   failed: { label: 'Falló', icon: CircleAlert, className: 'bg-collage-red/15 text-collage-red' },
@@ -18,14 +21,22 @@ const STATUS: Record<string, { label: string; icon: typeof Circle; className: st
 export default async function CampanasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; retried?: string; skipped?: string; failed?: string; error?: string }>
+  searchParams: Promise<{
+    sent?: string
+    retried?: string
+    skipped?: string
+    failed?: string
+    scheduled?: string
+    canceled?: string
+    error?: string
+  }>
 }) {
-  const { sent, retried, skipped, failed, error } = await searchParams
+  const { sent, retried, skipped, failed, scheduled, canceled, error } = await searchParams
   const supabase = await createClient()
   const { data: campaigns } = await supabase
     .from('campaigns')
     .select(
-      'id, subject, status, audience, recipient_count, sent_count, failed_count, delivered_count, opened_count, bounced_count, sent_at, created_at',
+      'id, subject, status, audience, scheduled_for, recipient_count, sent_count, failed_count, delivered_count, opened_count, bounced_count, sent_at, created_at',
     )
     .order('created_at', { ascending: false })
 
@@ -62,7 +73,16 @@ export default async function CampanasPage({
         </p>
       )}
 
-      {!sent && (retried || error) && (
+      {(scheduled || canceled) && (
+        <p className="mt-4 rounded-xl border-2 border-collage-blue/30 bg-collage-blue/10 px-4 py-3 text-sm text-ink">
+          {scheduled
+            ? `Programada para el ${formatScheduleDay(scheduled)} a las ${SCHEDULED_SEND_TIME_LABEL}.`
+            : 'Campaña programada cancelada.'}
+          {error && <span className="mt-1 block text-xs text-muted-foreground">{error}</span>}
+        </p>
+      )}
+
+      {!sent && !scheduled && !canceled && (retried || error) && (
         <p
           className={`mt-4 rounded-xl border-2 px-4 py-3 text-sm text-ink ${
             !retried || Number(retried) === 0
@@ -100,14 +120,30 @@ export default async function CampanasPage({
                   {status.label}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {c.recipient_count} destinatarios{c.audience && c.audience !== 'subscribed' ?` (${audienceLabel(c.audience)})` : ''} ·{' '}
-                {c.sent_count} enviados
-                {c.delivered_count > 0 ? ` · ${c.delivered_count} entregados` : ''}
-                {c.opened_count > 0 ? ` · ${c.opened_count} abiertos` : ''}
-                {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
-                {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
-              </p>
+              {c.status === 'scheduled' || c.status === 'canceled' ? (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {c.status === 'scheduled' ? 'Sale el' : 'Iba a salir el'} {formatScheduleDay(c.scheduled_for)}
+                  {c.status === 'scheduled' ? ` a las ${SCHEDULED_SEND_TIME_LABEL}` : ''} · {audienceLabel(c.audience)}
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {c.recipient_count} destinatarios{c.audience && c.audience !== 'subscribed' ?` (${audienceLabel(c.audience)})` : ''} ·{' '}
+                  {c.sent_count} enviados
+                  {c.delivered_count > 0 ? ` · ${c.delivered_count} entregados` : ''}
+                  {c.opened_count > 0 ? ` · ${c.opened_count} abiertos` : ''}
+                  {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
+                  {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
+                </p>
+              )}
+              {c.status === 'scheduled' && (
+                <form action={cancelScheduledCampaign} className="mt-3">
+                  <input type="hidden" name="campaign_id" value={c.id} />
+                  <SubmitButton size="sm" variant="outline" className="gap-1.5" pendingLabel="Cancelando…">
+                    <X className="h-3.5 w-3.5" />
+                    Cancelar envío
+                  </SubmitButton>
+                </form>
+              )}
               {c.failed_count > 0 && c.status !== 'sending' && (
                 <form action={retryFailedSends} className="mt-3">
                   <input type="hidden" name="campaign_id" value={c.id} />

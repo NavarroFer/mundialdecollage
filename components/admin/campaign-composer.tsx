@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Send, FlaskConical, Languages } from 'lucide-react'
+import { Send, FlaskConical, Languages, CalendarClock } from 'lucide-react'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { EmailBlockEditor } from '@/components/admin/email-block-editor'
 import { renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
 import { translationState, type EmailTranslations } from '@/lib/email-translation'
 import { LOCALE_INFO, LOCALES, type Locale } from '@/lib/i18n/locales'
+import { formatScheduleDay, SCHEDULED_SEND_TIME_LABEL } from '@/lib/campaign-schedule'
 
 type Template = {
   id: string
@@ -65,6 +66,8 @@ const EMPTY_DOC: EmailDocument = { blocks: [] }
 
 export function CampaignComposer({
   action,
+  scheduleAction,
+  earliestScheduleDay,
   testAction,
   templates,
   recipientCount,
@@ -72,6 +75,8 @@ export function CampaignComposer({
   translatorConfigured,
 }: {
   action: (formData: FormData) => void
+  scheduleAction: (formData: FormData) => void
+  earliestScheduleDay: string
   testAction: (formData: FormData) => void
   templates: Template[]
   recipientCount: number
@@ -86,6 +91,7 @@ export function CampaignComposer({
   const [legacyHtml, setLegacyHtml] = useState<string | null>(null)
   const [testEmail, setTestEmail] = useState('fernando.navarro.mdp@gmail.com')
   const [testLocale, setTestLocale] = useState<Locale>('es')
+  const [scheduledFor, setScheduledFor] = useState('')
 
   const bodyHtml = legacyHtml ?? renderEmailDocumentToHtml(doc)
   // renderEmailDocumentToHtml always wraps in the outer table, so `bodyHtml`
@@ -125,9 +131,11 @@ export function CampaignComposer({
       <form
         action={action}
         onSubmit={(e) => {
-          if (!confirm(`¿Enviar este mail a ${recipientCount} contactos suscriptos? No se puede deshacer.`)) {
-            e.preventDefault()
-          }
+          const scheduling = (e.nativeEvent as SubmitEvent).submitter?.id === 'schedule_submit'
+          const question = scheduling
+            ? `¿Programar este mail para el ${formatScheduleDay(scheduledFor)}? Se puede cancelar hasta ese día.`
+            : `¿Enviar este mail a ${recipientCount} contactos suscriptos? No se puede deshacer.`
+          if (!confirm(question)) e.preventDefault()
         }}
         className="space-y-4"
       >
@@ -217,6 +225,38 @@ export function CampaignComposer({
           <Send className="h-4 w-4" />
           Enviar a {recipientCount} contactos
         </SubmitButton>
+
+        <div className="space-y-2 rounded-xl border-2 border-dashed border-ink/15 p-4">
+          <label className="text-sm font-semibold text-ink" htmlFor="scheduled_for">
+            O programarla para otro día
+          </label>
+          <p className="text-xs text-muted-foreground">
+            Sale ese día a las {SCHEDULED_SEND_TIME_LABEL}, a quienes estén en el público elegido en ese momento. Se
+            puede cancelar desde la lista de campañas hasta entonces.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              id="scheduled_for"
+              name="scheduled_for"
+              type="date"
+              min={earliestScheduleDay}
+              value={scheduledFor}
+              onChange={(e) => setScheduledFor(e.target.value)}
+              className="rounded-xl border-2 border-ink/15 bg-background px-3 py-2 text-sm text-ink"
+            />
+            <SubmitButton
+              id="schedule_submit"
+              formAction={scheduleAction}
+              disabled={!scheduledFor || scheduledFor < earliestScheduleDay || !subject || !hasContent}
+              variant="outline"
+              className="gap-2"
+              pendingLabel={willTranslate ? 'Traduciendo y programando…' : 'Programando…'}
+            >
+              <CalendarClock className="h-4 w-4" />
+              Programar
+            </SubmitButton>
+          </div>
+        </div>
       </form>
 
       <div>
