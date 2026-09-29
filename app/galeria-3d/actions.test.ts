@@ -5,7 +5,7 @@ vi.mock('@/lib/supabase/config', () => ({ isSupabaseConfigured: true }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser } }) }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ rpc: mocks.rpc, from: mocks.from }) }))
 vi.mock('@/lib/supabase/public', () => ({ createPublicClient: () => ({ from: mocks.publicFrom }) }))
-import { addArtworkComment, likeArtwork } from './actions'
+import { addArtworkComment, getArtworkSocial, likeArtwork } from './actions'
 
 // A chainable stand-in for a supabase-js query that resolves to `result`.
 function query(result: unknown) {
@@ -84,5 +84,47 @@ describe('gallery comments', () => {
     mocks.getUser.mockResolvedValue({ data: { user } })
     mocks.from.mockReturnValue({ select: () => query({ count: 5, error: null }) })
     expect(await addArtworkComment('obra', 'Otra más')).toEqual({ error: 'rate_limited' })
+  })
+})
+
+describe('invite to send an obra', () => {
+  // Likes and comments answer empty; `profile` is what the profiles read returns.
+  function tables(profile: unknown) {
+    mocks.from.mockImplementation((table: string) => {
+      if (table === 'profiles') return query(profile)
+      if (table === 'artwork_likes') return query({ count: 2, data: null, error: null })
+      return query({ data: [], error: null })
+    })
+  }
+
+  it('is not offered to anonymous visitors', async () => {
+    tables({ data: null, error: null })
+    expect(await getArtworkSocial('obra')).toMatchObject({ canJoin: false, like: { count: 2, signedIn: false } })
+    expect(mocks.from).not.toHaveBeenCalledWith('profiles')
+  })
+
+  it('is offered to a signed-in visitor who never sent an obra', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user } })
+    tables({ data: null, error: null })
+    expect(await getArtworkSocial('obra')).toMatchObject({ canJoin: true, like: { signedIn: true } })
+  })
+
+  it('is not offered to artists already taking part', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user } })
+    tables({ data: { onboarded_at: '2026-09-20T10:00:00Z' }, error: null })
+    expect(await getArtworkSocial('obra')).toMatchObject({ canJoin: false })
+  })
+
+  it('is not offered to admins', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { ...user, email: 'MundialDeCollage@gmail.com' } } })
+    tables({ data: null, error: null })
+    expect(await getArtworkSocial('obra')).toMatchObject({ canJoin: false })
+    expect(mocks.from).not.toHaveBeenCalledWith('profiles')
+  })
+
+  it('stays quiet when the profile cannot be read, without losing likes and comments', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user } })
+    tables({ data: null, error: { message: 'failure' } })
+    expect(await getArtworkSocial('obra')).toMatchObject({ canJoin: false, like: { count: 2 }, comments: { comments: [] } })
   })
 })

@@ -17,8 +17,9 @@ type CommentsState = { comments: GalleryComment[]; signedIn: boolean }
 // moderation (/admin/comentarios). Writing one needs a Google account: a
 // signed-out visitor's draft is kept across the sign-in round trip and sent
 // automatically once they're back (lib/gallery-return.ts). `initial` comes
-// from the modal's single likes+comments fetch (artworkSocial.ts).
-export function ArtworkComments({ slug, initial }: { slug: string; initial: CommentsState }) {
+// from the modal's single likes+comments fetch (artworkSocial.ts); `onSent`
+// lets the modal follow up once a comment is in (ArtistInvite).
+export function ArtworkComments({ slug, initial, onSent }: { slug: string; initial: CommentsState; onSent?: () => void }) {
   const [state, setState] = useState<CommentsState>(initial)
   const [draft, setDraft] = useState(() => readCommentDraft(slug))
   const [busy, setBusy] = useState(false)
@@ -61,6 +62,7 @@ export function ArtworkComments({ slug, initial }: { slug: string; initial: Comm
         forgetArtworkSocial(slug)
         setNotice(t.sent)
         track('comment_sent')
+        onSent?.()
       } else if (result.error === 'sign_in_required') {
         return signIn(body)
       } else {
@@ -74,7 +76,7 @@ export function ArtworkComments({ slug, initial }: { slug: string; initial: Comm
     }
     // errorText/t only change with the language, which reloads the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, signIn])
+  }, [slug, signIn, onSent])
 
   // Back from Google with a comment drafted for this obra: send it.
   useEffect(() => {

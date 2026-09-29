@@ -4,6 +4,7 @@ const CLIENT_NAMESPACES = [
   'common',
   'language',
   'auth',
+  'artistInvite',
   'splash',
   'countdown',
   'hero',
