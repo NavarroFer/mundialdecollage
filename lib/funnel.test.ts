@@ -5,7 +5,6 @@ describe('isFunnelEvent', () => {
   it('accepts the public discovery and completed-onboarding events', () => {
     expect(isFunnelEvent('artist_profile_view')).toBe(true)
     expect(isFunnelEvent('artwork_participate_click')).toBe(true)
-    expect(isFunnelEvent('submit_click_guide')).toBe(true)
     expect(isFunnelEvent('signup_done')).toBe(true)
   })
 

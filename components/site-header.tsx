@@ -88,9 +88,9 @@ export async function SiteHeader() {
         </a>
 
         <nav className="flex items-center gap-6 text-sm font-semibold text-ink/70" aria-label={m.header.nav}>
-          <a href="#taller" className="hidden transition-colors duration-300 hover:text-ink md:block">
-            {m.header.workshop}
-          </a>
+          <Link href="/tienda" className="hidden transition-colors duration-300 hover:text-ink md:block">
+            Shop
+          </Link>
           <a href="#participantes" className="hidden transition-colors duration-300 hover:text-ink md:block">
             {m.header.participants}
           </a>

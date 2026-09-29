@@ -7,9 +7,7 @@ import { ParticipationStatus } from '@/components/participation-status'
 import { ReferralInvite } from '@/components/referral-invite'
 import { BasesBanner } from '@/components/bases-banner'
 import { AboutSection } from '@/components/about-section'
-import { ParticipationGuide } from '@/components/participation-guide'
 import { EditionSection } from '@/components/edition-section'
-import { WorkshopSection } from '@/components/workshop-section'
 import { ParticipantsSection } from '@/components/participants-section'
 import { MapSection } from '@/components/map-section'
 import { JurySection } from '@/components/jury-section'
@@ -42,13 +40,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             hideForSignedIn
             className="mx-auto max-w-4xl px-5 pt-10 sm:px-8 sm:pt-14"
           />
-          <ParticipationGuide />
           <BasesBanner />
           <EditionSection />
           <ParticipantsSection />
           <MapSection />
           <JurySection />
-          <WorkshopSection />
           <AboutSection />
         </main>
         <Footer />

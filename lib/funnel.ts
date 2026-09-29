@@ -28,7 +28,6 @@ export const HOME_EVENTS = [
   { name: 'home_view', label: 'Abrieron la home' },
   { name: 'hero_cta_view', label: 'Vieron «Enviá tu obra» en la portada' },
   { name: 'submit_click_hero', label: 'Tocaron «Enviá tu obra» en la portada' },
-  { name: 'submit_click_guide', label: 'Tocaron «Enviá tu obra» en «Cómo participar»' },
   { name: 'submit_click_edition', label: 'Tocaron «Sumá tu obra» en la sección amarilla' },
   { name: 'submit_click_header', label: 'Tocaron «Participar» en el encabezado (cualquier página)' },
   { name: 'bases_download', label: 'Descargaron las bases' },
