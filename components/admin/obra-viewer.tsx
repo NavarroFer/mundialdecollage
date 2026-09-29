@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag } from '@/lib/participants'
 import { instagramHandle } from '@/lib/instagram'
+import { DEFAULT_LOCALE, LOCALES, LOCALE_INFO, localeForCountry, type Locale } from '@/lib/i18n/locales'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/admin/submit-button'
@@ -180,7 +181,7 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
                 )}
               </div>
 
-              {renderedItem.slug && renderedItem.isPublic && <ArLinks slug={renderedItem.slug} />}
+              {renderedItem.slug && renderedItem.isPublic && <ArLinks key={renderedItem.slug} slug={renderedItem.slug} countryCode={renderedItem.countryCode} />}
 
               <div className="mt-5 border-t-2 border-ink/10 pt-5">
                 {renderedItem.source === 'legacy' ? (
@@ -208,18 +209,36 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
 }
 
 // Prototype (see app/ar/[slug]): the printable AR cards and the camera page.
-// Only for published obras — the PDF route looks the obra up publicly.
-function ArLinks({ slug }: { slug: string }) {
+// Only for published obras — the PDF route looks the obra up publicly. The
+// cards default to the artist's language, like the route does.
+function ArLinks({ slug, countryCode }: { slug: string; countryCode?: string }) {
+  const [lang, setLang] = useState<Locale>(localeForCountry(countryCode) ?? DEFAULT_LOCALE)
   const link = 'inline-flex items-center gap-1.5 text-sm font-semibold text-collage-blue hover:underline'
   return (
     <div className="mt-4 rounded-xl border-2 border-ink/10 p-3">
-      <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Realidad aumentada</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Realidad aumentada</p>
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          Tarjetas en
+          <select
+            value={lang}
+            onChange={(event) => setLang(event.target.value as Locale)}
+            className="rounded-md border border-ink/15 bg-card px-1.5 py-0.5 text-xs text-ink"
+          >
+            {LOCALES.map((locale) => (
+              <option key={locale} value={locale}>
+                {LOCALE_INFO[locale].nameEs}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
-        <a href={`/ar/${slug}/tarjetas?formato=obra`} className={link}>
+        <a href={`/ar/${slug}/tarjetas?formato=obra&lang=${lang}`} className={link}>
           <Download className="h-4 w-4" />
           PDF obra + QR
         </a>
-        <a href={`/ar/${slug}/tarjetas?formato=tarjeta`} className={link}>
+        <a href={`/ar/${slug}/tarjetas?formato=tarjeta&lang=${lang}`} className={link}>
           <Download className="h-4 w-4" />
           PDF tarjeta del Mundial
         </a>

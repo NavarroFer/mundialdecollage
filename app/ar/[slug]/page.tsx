@@ -5,15 +5,18 @@ import { BRAND_TARGET_PATH } from '@/lib/ar/targets'
 import { countryCodeToFlag } from '@/lib/participants'
 import { countryCodeToName, getFinalistBySlug } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
+import { fmt } from '@/lib/i18n/format'
 
 // Prototype: reachable from the QR on a print, kept out of search results.
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const finalist = await getFinalistBySlug(slug)
+  const [finalist, { m }] = await Promise.all([getFinalistBySlug(slug), getI18n()])
   return {
-    title: finalist ? `${finalist.artworkTitle ?? finalist.name} en realidad aumentada | Mundial de Collage` : undefined,
+    title: finalist
+      ? `${fmt(m.ar.pageTitle, { title: finalist.artworkTitle ?? finalist.name })} | Mundial de Collage`
+      : undefined,
     robots: { index: false, follow: false },
   }
 }

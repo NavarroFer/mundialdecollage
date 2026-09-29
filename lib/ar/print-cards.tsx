@@ -5,6 +5,7 @@ import { PDFDocument, rgb } from 'pdf-lib'
 import QRCode from 'qrcode'
 import sharp from 'sharp'
 import { BRAND_TARGET_PATH } from '@/lib/ar/targets'
+import type { Messages } from '@/lib/i18n/messages'
 import { BANNER_RATIO, BLUE, DOMAIN, INK, RED, banner, fonts, loadArtwork } from '@/lib/artwork-share-image'
 
 // Printable AR cards: an A4 sheet with four A6 cards and two cut lines, so an
@@ -32,6 +33,8 @@ type CardInput = {
   title: string
   artist: string
   arUrl: string
+  // In the language of whoever the cards are for (app/ar/[slug]/tarjetas).
+  text: Messages['ar']['card']
 }
 
 function titleSize(title: string) {
@@ -40,17 +43,14 @@ function titleSize(title: string) {
   return 72
 }
 
-async function renderCard({ format, imageUrl, title, artist, arUrl }: CardInput): Promise<Buffer> {
+async function renderCard({ format, imageUrl, title, artist, arUrl, text }: CardInput): Promise<Buffer> {
   const qr = await QRCode.toDataURL(arUrl, {
     margin: 0,
     width: 320,
     errorCorrectionLevel: 'M',
     color: { dark: INK, light: '#FFFFFF' },
   })
-  const steps =
-    format === 'obra'
-      ? ['Escaneá el código', 'Apuntá la cámara a la obra', 'Tocá la pantalla']
-      : ['Escaneá el código', 'Apuntá la cámara al logo', 'Tocá la pantalla']
+  const steps = [text.scan, format === 'obra' ? text.pointObra : text.pointCard, text.tap]
 
   // The obra gets whatever height the rest of the card leaves.
   const artwork = format === 'obra' ? await loadArtwork(imageUrl, { width: INNER, height: 940 }) : null
@@ -82,7 +82,7 @@ async function renderCard({ format, imageUrl, title, artist, arUrl }: CardInput)
               padding: '10px 18px',
             }}
           >
-            REALIDAD AUMENTADA
+            {text.badge}
           </div>
         </div>
 
@@ -104,7 +104,7 @@ async function renderCard({ format, imageUrl, title, artist, arUrl }: CardInput)
                   lineHeight: 1.1,
                 }}
               >
-                HAY UNA OBRA ESCONDIDA EN ESTA TARJETA
+                {text.hidden}
               </div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={brandTargetSrc} width={INNER} height={Math.round(INNER * BRAND_RATIO)} alt="" style={{ marginTop: 56 }} />

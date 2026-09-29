@@ -5,14 +5,14 @@ import Link from 'next/link'
 import * as THREE from 'three'
 import { Camera, ScanLine, X } from 'lucide-react'
 import { downscale, getImageTarget, loadImage, loadMindAR, type MindARController } from '@/lib/ar/mindar'
+import { useI18n } from '@/lib/i18n/client'
+import type { Messages } from '@/lib/i18n/messages'
 import { CollageScene, fitToContainer } from './collage-scene'
 
-// Prototype: the copy is Spanish-only until the feature is confirmed and
-// moves into lib/i18n.
 
 type Status =
   | { kind: 'idle' }
-  | { kind: 'loading'; label: string; progress?: number }
+  | { kind: 'loading'; step: 'camera' | 'preparing'; progress?: number }
   | { kind: 'scanning' }
   | { kind: 'tracking' }
   | { kind: 'error'; message: string }
@@ -32,17 +32,15 @@ type Props = {
   flag: string
 }
 
-function cameraErrorMessage(error: unknown) {
-  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-    return 'La cámara solo funciona si la página se abre con https.'
-  }
-  if (error instanceof DOMException && error.name === 'NotAllowedError') {
-    return 'Necesitamos permiso para usar la cámara. Habilitalo en la configuración del navegador y probá de nuevo.'
-  }
-  if (error instanceof DOMException && error.name === 'NotFoundError') {
-    return 'No encontramos una cámara en este dispositivo.'
-  }
-  return error instanceof Error ? error.message : 'Algo falló al iniciar la cámara.'
+// Shown as is; anything else that fails (MindAR or the image not loading)
+// gets the generic message.
+class ArError extends Error {}
+
+function cameraError(error: unknown, t: Messages['ar']['errors']) {
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) return new ArError(t.insecure)
+  if (error instanceof DOMException && error.name === 'NotAllowedError') return new ArError(t.denied)
+  if (error instanceof DOMException && error.name === 'NotFoundError') return new ArError(t.noCamera)
+  return new ArError(t.generic)
 }
 
 export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country, flag }: Props) {
@@ -53,6 +51,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
   const toggleRef = useRef<(() => void) | null>(null)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const [broken, setBroken] = useState(false)
+  const t = useI18n().m.ar
 
   useEffect(() => () => stopRef.current?.(), [])
 
@@ -81,7 +80,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
     stopRef.current = stop
 
     try {
-      setStatus({ kind: 'loading', label: 'Abriendo la cámara…' })
+      setStatus({ kind: 'loading', step: 'camera' })
       const assets = Promise.all([
         loadMindAR(),
         loadImage(imageUrl),
@@ -91,7 +90,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'environment' } })
       } catch (error) {
-        throw new Error(cameraErrorMessage(error))
+        throw cameraError(error, t.errors)
       }
       video.srcObject = stream
       await new Promise<void>((resolve) => {
@@ -103,10 +102,10 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
       video.width = video.videoWidth
       video.height = video.videoHeight
 
-      setStatus({ kind: 'loading', label: 'Preparando la obra…', progress: 0 })
+      setStatus({ kind: 'loading', step: 'preparing', progress: 0 })
       const [mindar, img, targetImg] = await assets
       const target = await getImageTarget(mindar, targetUrl, targetImg ?? img, (progress) => {
-        if (!stopped) setStatus({ kind: 'loading', label: 'Preparando la obra…', progress })
+        if (!stopped) setStatus({ kind: 'loading', step: 'preparing', progress })
       })
       if (stopped) return
 
@@ -190,7 +189,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
       render()
     } catch (error) {
       stop()
-      setStatus({ kind: 'error', message: error instanceof Error ? error.message : 'Algo falló.' })
+      setStatus({ kind: 'error', message: error instanceof ArError ? error.message : t.errors.generic })
     }
   }
 
@@ -211,7 +210,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
 
       <Link
         href={`/obras/${slug}`}
-        aria-label="Cerrar"
+        aria-label={t.close}
         className="absolute top-4 left-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 backdrop-blur"
       >
         <X className="h-5 w-5" />
@@ -230,8 +229,8 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
               {status.kind === 'error'
                 ? status.message
                 : mode === 'tarjeta'
-                  ? 'Apuntá la cámara al logo del Mundial de la tarjeta y mirá qué pasa.'
-                  : 'Apuntá la cámara a esta obra impresa (o abierta en otra pantalla) y mirá qué pasa.'}
+                  ? t.introCard
+                  : t.introObra}
             </p>
           </div>
           <button
@@ -240,7 +239,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
             className="inline-flex items-center gap-2 rounded-full bg-collage-red px-6 py-3 font-semibold"
           >
             <Camera className="h-5 w-5" />
-            {status.kind === 'error' ? 'Probar de nuevo' : 'Activar cámara'}
+            {status.kind === 'error' ? t.retry : t.start}
           </button>
         </div>
       )}
@@ -248,7 +247,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
       {status.kind === 'loading' && (
         <div className="absolute inset-x-0 bottom-10 flex justify-center px-6">
           <div className="rounded-full bg-black/60 px-5 py-3 text-sm backdrop-blur">
-            {status.label}
+            {status.step === 'camera' ? t.openingCamera : t.preparing}
             {status.progress !== undefined && ` ${Math.round(status.progress)}%`}
           </div>
         </div>
@@ -258,7 +257,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6">
           <ScanLine className="h-24 w-24 animate-pulse text-white/70" strokeWidth={1} />
           <p className="rounded-full bg-black/60 px-5 py-3 text-sm backdrop-blur">
-            {mode === 'tarjeta' ? 'Apuntá al logo de la tarjeta' : 'Apuntá a la obra impresa'}
+            {mode === 'tarjeta' ? t.scanCard : t.scanObra}
           </p>
         </div>
       )}
@@ -271,7 +270,7 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
               {flag} {name} · {country}
             </p>
             <p className="mt-2 text-xs font-semibold tracking-wide text-collage-yellow uppercase">
-              {broken ? 'Tocá para volver a armarla' : 'Tocá la pantalla para romperla'}
+              {broken ? t.tapToMend : t.tapToBreak}
             </p>
           </div>
         </div>
