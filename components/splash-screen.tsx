@@ -1,45 +1,20 @@
 'use client'
 
 import Image from 'next/image'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/lib/i18n/client'
-
-// A fresh tab gets the intro; reloads and back-navigation in the same session
-// go straight to the page.
-const SESSION_KEY = 'mdc-splash-seen'
 
 // The papers clear the frame first, then the logo dissolves into the page.
 const INTRO_MS = 1250
 
 export function SplashScreen() {
-  const [mounted, setMounted] = useState(false)
-  const [visible, setVisible] = useState(false)
+  // Render the cover in the server HTML. Waiting for an effect here exposes
+  // the home page for a frame before hydration finishes.
+  const [mounted, setMounted] = useState(true)
+  const [visible, setVisible] = useState(true)
   const dismissedRef = useRef(false)
   const { m } = useI18n()
-
-  useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced) return
-
-    try {
-      if (sessionStorage.getItem(SESSION_KEY)) return
-    } catch {
-      // Storage can fail in private browsing. The intro should still work.
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      try {
-        sessionStorage.setItem(SESSION_KEY, '1')
-      } catch {
-        // Same private-browsing fallback as the read above.
-      }
-      setMounted(true)
-      setVisible(true)
-    })
-
-    return () => window.cancelAnimationFrame(frame)
-  }, [])
 
   const dismiss = useCallback(() => {
     if (dismissedRef.current) return
@@ -73,12 +48,13 @@ export function SplashScreen() {
   if (!mounted) return null
 
   return (
-    <AnimatePresence onExitComplete={() => setMounted(false)}>
-      {visible && (
-        <motion.div
+    <MotionConfig reducedMotion="user">
+      <AnimatePresence onExitComplete={() => setMounted(false)}>
+        {visible && (
+          <motion.div
           key="brand-splash"
           className="fixed inset-0 z-[60] grid place-items-center overflow-hidden bg-paper"
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.015 }}
           transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
@@ -112,38 +88,14 @@ export function SplashScreen() {
             transition={{ duration: 0.56, delay: 0.43, ease: [0.7, 0, 0.84, 0] }}
           />
 
-          <motion.div
-            className="relative z-10 mx-auto flex w-[84vw] max-w-3xl items-center justify-center gap-3 sm:gap-7"
-          >
-            <div
-              aria-hidden="true"
-              className="absolute -inset-x-5 -inset-y-6 bg-paper shadow-[8px_10px_0_rgba(27,17,12,0.12)] sm:-inset-x-10 sm:-inset-y-9"
-              style={{
-                clipPath:
-                  'polygon(2% 8%, 24% 2%, 51% 6%, 77% 0, 98% 9%, 95% 45%, 100% 86%, 73% 96%, 48% 92%, 19% 100%, 0 89%, 4% 51%)',
-              }}
-            />
-            <div className="relative z-10 shrink-0">
-              <Image
-                src="/logo-mark.png"
-                alt=""
-                priority
-                width={512}
-                height={512}
-                className="h-20 w-20 drop-shadow-[5px_6px_0_rgba(27,17,12,0.14)] sm:h-32 sm:w-32"
-              />
-            </div>
-            <div className="relative z-10 min-w-0">
-              <Image
-                src="/wordmark.png"
-                alt=""
-                priority
-                width={949}
-                height={322}
-                className="h-auto w-full max-w-xl drop-shadow-[5px_6px_0_rgba(27,17,12,0.1)]"
-              />
-            </div>
-          </motion.div>
+          <Image
+            src="/logo.png"
+            alt="Mundial de Collage"
+            priority
+            width={1415}
+            height={370}
+            className="relative z-10 h-auto w-[84vw] max-w-4xl drop-shadow-[6px_8px_0_rgba(27,17,12,0.16)]"
+          />
 
           <div className="grain-overlay pointer-events-none absolute inset-0" />
           <button
@@ -153,8 +105,9 @@ export function SplashScreen() {
           >
             {m.splash.skip}
           </button>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </MotionConfig>
   )
 }
