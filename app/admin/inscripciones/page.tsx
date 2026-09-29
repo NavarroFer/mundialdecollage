@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { site } from '@/lib/site'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pendiente', className: 'bg-muted text-muted-foreground' },
@@ -41,7 +42,7 @@ export default async function InscripcionesPage() {
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Taller de collage" title="Inscripciones" />
+      <AdminPageHeader eyebrow="Taller de collage" title="Inscripciones" description={adminDescription('/admin/inscripciones')} />
 
       <div className="mt-6 flex flex-wrap gap-3">
         <StatPill label="Cupos pagados" value={`${paidCount} / ${site.workshop.capacity}`} />

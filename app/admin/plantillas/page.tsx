@@ -9,6 +9,7 @@ import { translationState } from '@/lib/email-translation'
 import { isTranslatorConfigured } from '@/lib/email-translator'
 import { ensureSystemTemplate, isSystemTemplateKey, SYSTEM_TEMPLATES } from '@/lib/system-templates'
 import { deleteTemplate, duplicateTemplate, translateTemplate } from './actions'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 // Translating a template into eight languages takes a little while.
 export const maxDuration = 120
@@ -37,6 +38,7 @@ export default async function PlantillasPage({
       <AdminPageHeader
         eyebrow="Newsletter"
         title="Plantillas"
+        description={adminDescription('/admin/plantillas')}
         action={
           <Link href="/admin/plantillas/nueva">
             <Button className="gap-2">

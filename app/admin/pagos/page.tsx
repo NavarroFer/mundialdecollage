@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { site } from '@/lib/site'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 // One-time payments to postulate more than one obra (app/onboarding/obras).
 // A checkout the artist opened and left without paying has no payment id and
@@ -62,7 +63,7 @@ export default async function PagosPage() {
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Postulación de más obras" title="Pagos" />
+      <AdminPageHeader eyebrow="Postulación de más obras" title="Pagos" description={adminDescription('/admin/pagos')} />
 
       <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
         Cada artista participa gratis con 1 obra. Con el pago único de{' '}

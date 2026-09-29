@@ -17,6 +17,7 @@ import {
   retryLegacyImageFetch,
   selectArtwork,
 } from './actions'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 type ArtworkRow = {
   id: string
@@ -226,7 +227,7 @@ export default async function ObrasPage({
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Convocatoria" title="Obras" />
+      <AdminPageHeader eyebrow="Convocatoria" title="Obras" description={adminDescription('/admin/obras')} />
 
       {missingImageRows.length > 0 && (
         <div className="mt-6 rounded-2xl border-2 border-collage-red/30 bg-collage-red/5 p-5">

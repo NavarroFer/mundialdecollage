@@ -1,19 +1,26 @@
+import { SectionEyebrow } from '@/components/admin/section-eyebrow'
+
 export function AdminPageHeader({
   eyebrow,
   title,
+  description,
   action,
 }: {
   eyebrow: string
   title: string
+  description?: string
   action?: React.ReactNode
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div>
-        <p className="text-xs font-bold tracking-[0.2em] text-collage-red uppercase">{eyebrow}</p>
-        <h1 className="font-display mt-1 text-3xl tracking-tight text-ink uppercase sm:text-4xl">
+        <SectionEyebrow>{eyebrow}</SectionEyebrow>
+        <h1 className="font-display mt-2 text-3xl tracking-tight text-ink uppercase sm:text-4xl">
           {title}
         </h1>
+        {description && (
+          <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
       {action}
     </div>

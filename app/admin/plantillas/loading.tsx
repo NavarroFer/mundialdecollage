@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { Button } from '@/components/ui/button'
 import { CardListSkeleton } from '@/components/admin/admin-skeletons'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 export default function Loading() {
   return (
@@ -9,6 +10,7 @@ export default function Loading() {
       <AdminPageHeader
         eyebrow="Newsletter"
         title="Plantillas"
+        description={adminDescription('/admin/plantillas')}
         action={
           <Button className="gap-2" disabled>
             <Plus className="h-4 w-4" />

@@ -6,6 +6,7 @@ import { AdminPageHeader } from '@/components/admin/page-header'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { retryFailedSends } from './actions'
 import { audienceLabel } from '@/lib/campaign-audience'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 const STATUS: Record<string, { label: string; icon: typeof Circle; className: string; spin?: boolean }> = {
   draft: { label: 'Borrador', icon: Circle, className: 'bg-ink/10 text-muted-foreground' },
@@ -35,6 +36,7 @@ export default async function CampanasPage({
       <AdminPageHeader
         eyebrow="Newsletter"
         title="Campañas"
+        description={adminDescription('/admin/campanas')}
         action={
           <Link href="/admin/campanas/nueva">
             <Button className="gap-2">

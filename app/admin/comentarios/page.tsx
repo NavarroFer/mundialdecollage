@@ -5,6 +5,7 @@ import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { cn } from '@/lib/utils'
 import { approveComment, rejectComment } from './actions'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 const TABS = [
   { id: 'pendientes', label: 'Pendientes', status: 'pending' },
@@ -49,7 +50,7 @@ export default async function ComentariosPage({
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Galería 3D" title="Comentarios" />
+      <AdminPageHeader eyebrow="Galería 3D" title="Comentarios" description={adminDescription('/admin/comentarios')} />
 
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Los comentarios que la gente deja en las obras de la Galería 3D (con su cuenta de Google) solo se publican

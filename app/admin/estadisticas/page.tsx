@@ -5,6 +5,7 @@ import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 async function getArtworkStats() {
   if (!isSupabaseConfigured) return null
@@ -112,7 +113,7 @@ export default async function EstadisticasPage() {
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Convocatoria" title="Estadísticas" />
+      <AdminPageHeader eyebrow="Convocatoria" title="Estadísticas" description={adminDescription('/admin/estadisticas')} />
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         De dónde vienen los artistas, qué técnicas eligen, cómo avanza la publicación y cómo se mueve la gente por la galería.
       </p>

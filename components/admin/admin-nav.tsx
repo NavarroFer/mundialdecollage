@@ -2,70 +2,27 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  Users,
-  FileText,
-  Send,
-  ClipboardList,
-  Images,
-  BarChart3,
-  MessageSquare,
-  CreditCard,
-  Boxes,
-  ArrowUpRight,
-} from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-type NavItem = {
-  href: string
-  label: string
-  icon: typeof Images
-  external?: boolean
-}
-
-// Groups match the eyebrows each admin page shows above its title.
-const navGroups: { label: string; items: NavItem[] }[] = [
-  {
-    label: 'Convocatoria',
-    items: [
-      { href: '/admin/obras', label: 'Obras', icon: Images },
-      { href: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3 },
-      { href: '/admin/pagos', label: 'Pagos', icon: CreditCard },
-    ],
-  },
-  {
-    label: 'Galería 3D',
-    items: [
-      { href: '/admin/comentarios', label: 'Comentarios', icon: MessageSquare },
-      { href: '/galeria-3d', label: 'Recorrido', icon: Boxes, external: true },
-    ],
-  },
-  {
-    label: 'Taller',
-    items: [{ href: '/admin/inscripciones', label: 'Inscripciones', icon: ClipboardList }],
-  },
-  {
-    label: 'Newsletter',
-    items: [
-      { href: '/admin/contactos', label: 'Contactos', icon: Users },
-      { href: '/admin/campanas', label: 'Campañas', icon: Send },
-      { href: '/admin/plantillas', label: 'Plantillas', icon: FileText },
-    ],
-  },
-]
+import { adminSections } from '@/components/admin/admin-sections'
 
 export function AdminNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex flex-wrap gap-x-8 gap-y-5">
-      {navGroups.map((group) => (
-        <div key={group.label} className="min-w-0">
-          <p className="mb-1.5 px-2.5 text-[0.65rem] font-bold tracking-[0.2em] text-muted-foreground/70 uppercase">
-            {group.label}
+    <nav className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {adminSections.map((section) => (
+        <div
+          key={section.label}
+          className={cn('relative overflow-hidden rounded-xl border p-3 pt-4', section.tone.tile)}
+        >
+          <span className={cn('absolute inset-x-0 top-0 h-1', section.tone.bar)} aria-hidden />
+          <p className="mb-2 flex items-center gap-1.5 px-2 text-[0.65rem] font-bold tracking-[0.2em] text-ink uppercase">
+            <span className={cn('h-2 w-2 rounded-full', section.tone.bar)} aria-hidden />
+            {section.label}
           </p>
           <ul className="flex flex-wrap gap-1">
-            {group.items.map((item) => {
+            {section.items.map((item) => {
               const isActive = !item.external && pathname?.startsWith(item.href)
               const Icon = item.icon
               return (
@@ -74,11 +31,10 @@ export function AdminNav() {
                     href={item.href}
                     {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                     aria-current={isActive ? 'page' : undefined}
+                    title={item.description ?? (item.external ? 'Se abre en otra pestaña' : undefined)}
                     className={cn(
-                      'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-semibold transition-colors',
-                      isActive
-                        ? 'bg-collage-blue/10 text-collage-blue'
-                        : 'text-muted-foreground hover:bg-ink/5 hover:text-ink',
+                      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-semibold transition-colors',
+                      isActive ? section.tone.active : cn('text-ink/70', section.tone.hover),
                     )}
                   >
                     <Icon className="h-4 w-4" />

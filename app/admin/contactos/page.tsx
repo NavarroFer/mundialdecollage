@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { importContacts, toggleSubscribed, deleteContact } from './actions'
+import { adminDescription } from '@/components/admin/admin-sections'
 
 export default async function ContactosPage({
   searchParams,
@@ -21,7 +22,7 @@ export default async function ContactosPage({
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Newsletter" title="Contactos" />
+      <AdminPageHeader eyebrow="Newsletter" title="Contactos" description={adminDescription('/admin/contactos')} />
 
       <div className="mt-6 flex flex-wrap gap-3">
         <StatPill label="Contactos totales" value={list.length} />
