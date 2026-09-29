@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import * as THREE from 'three'
-import { Camera, Download, ScanLine, X } from 'lucide-react'
+import { Camera, ScanLine, X } from 'lucide-react'
 import { downscale, getImageTarget, loadImage, loadMindAR, type MindARController } from '@/lib/ar/mindar'
 import { CollageScene, fitToContainer } from './collage-scene'
 
@@ -242,25 +242,6 @@ export function ArViewer({ slug, mode, targetUrl, imageUrl, title, name, country
             <Camera className="h-5 w-5" />
             {status.kind === 'error' ? 'Probar de nuevo' : 'Activar cámara'}
           </button>
-          <div className="text-sm text-white/70">
-            <p>Tarjetas para imprimir y repartir (4 por hoja A4):</p>
-            <div className="mt-2 flex flex-wrap justify-center gap-2">
-              <a
-                href={`/ar/${slug}/tarjetas?formato=obra`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 font-semibold text-white hover:border-white/50"
-              >
-                <Download className="h-4 w-4" />
-                Obra + QR
-              </a>
-              <a
-                href={`/ar/${slug}/tarjetas?formato=tarjeta`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 font-semibold text-white hover:border-white/50"
-              >
-                <Download className="h-4 w-4" />
-                Tarjeta del Mundial
-              </a>
-            </div>
-          </div>
         </div>
       )}
 

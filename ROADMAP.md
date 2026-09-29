@@ -97,6 +97,31 @@ registraron por el sitio real:
 - Catalogar por técnica con categorías fijas en vez de texto libre: mixta,
   analógica o digital.
 
+## 7. Suscripción y tienda — pendiente (2026-09-29)
+
+Probablemente reemplaza/define la "obra mensual" del ítem 4.
+
+- **Suscripción** que incluye:
+  - Las tarjetas de realidad aumentada para imprimir (hoy, prototipo en
+    `/ar/[slug]`: el PDF A4 con 4 tarjetas A6 sale de
+    `/ar/[slug]/tarjetas`, solo con sesión iniciada y enlazado únicamente
+    desde el admin).
+  - Una revista mensual con packs de productos (digitales o virtuales).
+- **Productos de compra única**, fuera de la suscripción.
+- **Kit de collage a medida**: cada persona arma el suyo eligiendo
+  productos → carrito de compras.
+- Definir antes de tocar código: qué entra en la suscripción y qué se vende
+  suelto, cobro recurrente (Mercado Pago Preapproval) vs. compras puntuales,
+  y cómo se entregan los productos digitales.
+
+## 8. Perfil del artista — pendiente (2026-09-29)
+
+Una página propia de cada artista (hoy no existe: solo `/onboarding/obras`
+para cargar y elegir obras). Ahí va a descargar las tarjetas de realidad
+aumentada de sus obras para imprimir y repartir, en vez de tenerlas en la
+página pública de la cámara. Hasta que exista, las tarjetas solo se bajan
+desde `/admin/obras`.
+
 ## Cómo se construyó
 
 Los ítems 1, 2 y 3 se scaffoldearon en paralelo, cada uno en su propio

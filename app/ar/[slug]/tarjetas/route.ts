@@ -1,13 +1,22 @@
 import { printCardsPdf, type CardFormat } from '@/lib/ar/print-cards'
 import { countryCodeToName, getFinalistBySlug } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
+import { createClient } from '@/lib/supabase/server'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 // A4 PDF with four AR cards to cut out (see lib/ar/print-cards.tsx).
 // ?formato=obra (default) prints the obra itself; ?formato=tarjeta prints the
 // Mundial logo card the obra floats over.
+//
+// Signed-in people only, linked from the admin obra viewer for now; artists
+// will get them from their profile, and later the subscription (ROADMAP.md).
+// The AR page itself stays public, since anyone scanning a card has to see
+// it; without a session this just sends them there.
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const url = new URL(request.url)
+  const user = isSupabaseConfigured ? (await (await createClient()).auth.getUser()).data.user : null
+  if (!user) return Response.redirect(new URL(`/ar/${encodeURIComponent(slug)}`, url.origin), 303)
   const format: CardFormat = url.searchParams.get('formato') === 'tarjeta' ? 'tarjeta' : 'obra'
   const [finalist, { locale, m }] = await Promise.all([getFinalistBySlug(slug), getI18n()])
   if (!finalist) return new Response(null, { status: 404 })
