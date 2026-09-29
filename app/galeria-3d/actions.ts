@@ -6,6 +6,7 @@ import { createPublicClient } from '@/lib/supabase/public'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { normalizeLikeEmail } from '@/lib/gallery-identity'
+import { ADMIN_EMAILS } from '@/lib/admin'
 
 // Error codes, not sentences: the gallery shows them in the reader's language.
 const unavailable = 'unavailable'
@@ -107,7 +108,21 @@ async function commentsState(admin: AdminClient, artworkId: string, user: User |
   return { comments, signedIn: Boolean(user) }
 }
 
-export type ArtworkSocial = { like: LikeState; comments: CommentsState }
+// Signed in but not an artist yet (e.g. a friend who came to like an obra):
+// the modal invites them to send their own after a like or comment. Admins
+// never submit (lib/admin.ts), and a failed read counts as "already an
+// artist" so a real one is never nagged.
+async function canJoin(admin: AdminClient, user: User | null): Promise<boolean> {
+  if (!user || ADMIN_EMAILS.includes(user.email?.toLowerCase() ?? '')) return false
+  try {
+    const { data, error } = await admin.from('profiles').select('onboarded_at').eq('id', user.id).maybeSingle()
+    return !error && !data?.onboarded_at
+  } catch {
+    return false
+  }
+}
+
+export type ArtworkSocial = { like: LikeState; comments: CommentsState; canJoin: boolean }
 
 // Everything the obra's modal needs in one round trip, so likes and comments
 // arrive together (and the gallery can fetch it before E is pressed).
@@ -117,12 +132,13 @@ export async function getArtworkSocial(slug: string): Promise<ArtworkSocial | { 
     const [artworkId, user] = await Promise.all([publicArtworkId(slug), getSessionUser()])
     if (!artworkId) return { error: unavailable }
     const admin = createAdminClient()
-    const [like, comments] = await Promise.all([
+    const [like, comments, join] = await Promise.all([
       likeState(admin, artworkId, normalizeLikeEmail(user?.email)),
       commentsState(admin, artworkId, user),
+      canJoin(admin, user),
     ])
     if (!like || !comments) return { error: unavailable }
-    return { like, comments }
+    return { like, comments, canJoin: join }
   } catch {
     return { error: unavailable }
   }

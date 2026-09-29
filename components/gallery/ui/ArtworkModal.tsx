@@ -2,12 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
 import { ArtworkComments } from './ArtworkComments'
 import { ArtworkShare } from './ArtworkShare'
+import { ArtistInvite } from './ArtistInvite'
 import { ArtworkViewers } from './PresenceCounter'
 import { LiveReactions } from './LiveReactions'
 import { loadArtworkSocial, peekArtworkSocial, type SocialResult } from './artworkSocial'
@@ -85,6 +86,12 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
 
 const pulse = 'animate-pulse rounded-full bg-ink/10 motion-reduce:animate-none'
 
+// Where the invitation to send an obra appears: under the like or the comment
+// that triggered it. Once shown or dismissed it stays that way while this
+// obra is open, and "Ahora no" silences it for the rest of the visit.
+type Invite = 'like' | 'comment' | 'dismissed' | null
+let inviteDismissed = false
+
 // Likes and comments share one request and appear in the same frame, over
 // placeholders the size of what replaces them so nothing below jumps.
 function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
@@ -92,7 +99,15 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
   // Already fetched (the usual case): it opens with the modal, no fade of its own.
   const [instant] = useState(() => result !== undefined)
   const [attempt, setAttempt] = useState(0)
+  const [invite, setInvite] = useState<Invite>(() => (inviteDismissed ? 'dismissed' : null))
   const { m } = useI18n()
+  // Stable, so ArtworkLike/ArtworkComments can keep them in their callbacks' deps.
+  const afterLike = useCallback(() => setInvite((current) => current ?? 'like'), [])
+  const afterComment = useCallback(() => setInvite((current) => current ?? 'comment'), [])
+  const dismissInvite = useCallback(() => {
+    inviteDismissed = true
+    setInvite('dismissed')
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -103,11 +118,12 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
   const social = result && !('error' in result) ? result : undefined
   const failed = result !== undefined && !social
   const reveal = cn(!instant && 'animate-in fade-in duration-300 motion-reduce:animate-none')
+  const inviteUnder = (from: Invite) => social?.canJoin && invite === from && <ArtistInvite onDismiss={dismissInvite} />
 
   return (
     <>
       {social ? (
-        <div className={reveal}><ArtworkLike slug={artwork.id} initial={social.like} /></div>
+        <div className={reveal}><ArtworkLike slug={artwork.id} initial={social.like} onSaved={afterLike} /></div>
       ) : failed ? (
         <p role="alert" className="mt-3 text-sm text-red-700">
           {m.gallery.like.unavailable}{' '}
@@ -118,15 +134,17 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
       ) : (
         <div aria-hidden="true" className={cn(pulse, 'mt-3 h-12 w-36')} />
       )}
+      {inviteUnder('like')}
       <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
       {social ? (
-        <div className={reveal}><ArtworkComments slug={artwork.id} initial={social.comments} /></div>
+        <div className={reveal}><ArtworkComments slug={artwork.id} initial={social.comments} onSent={afterComment} /></div>
       ) : !failed && (
         <div aria-hidden="true" className="mt-2 space-y-3 border-t border-ink/10 pt-4">
           <div className={cn(pulse, 'h-4 w-28')} />
           <div className={cn(pulse, 'h-20 w-full rounded-lg')} />
         </div>
       )}
+      {inviteUnder('comment')}
     </>
   )
 }

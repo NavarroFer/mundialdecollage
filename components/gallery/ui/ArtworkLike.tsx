@@ -15,7 +15,8 @@ import { plural } from '@/lib/i18n/format'
 type LikeState = { count: number; liked: boolean; signedIn: boolean }
 
 // `initial` comes from the modal's single likes+comments fetch (artworkSocial.ts).
-export function ArtworkLike({ slug, initial }: { slug: string; initial: LikeState }) {
+// `onSaved` lets the modal follow up once the like is in (ArtistInvite).
+export function ArtworkLike({ slug, initial, onSaved }: { slug: string; initial: LikeState; onSaved?: () => void }) {
   const [state, setState] = useState<LikeState>(initial)
   const [busy, setBusy] = useState(false)
   // A signed-out visitor pressed the heart: offer Google right under it.
@@ -58,6 +59,7 @@ export function ArtworkLike({ slug, initial }: { slug: string; initial: LikeStat
       setState({ ...current, count: current.count + 1, liked: true })
       forgetArtworkSocial(slug)
       track('like_saved')
+      onSaved?.()
       // Everyone inside sees a heart rise from the obra.
       usePresenceStore.getState().react?.(slug, '❤️')
       // Fetch the authoritative count: another tab may have already voted.
@@ -71,7 +73,7 @@ export function ArtworkLike({ slug, initial }: { slug: string; initial: LikeStat
     }
     // errorText/t only change with the language, which reloads the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug])
+  }, [slug, onSaved])
 
   // Back from Google with a like pending on this obra: save it.
   useEffect(() => {
