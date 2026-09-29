@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Boxes, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Boxes, CheckCircle2, ShieldCheck, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SignOutButton } from '@/components/auth/sign-out-button'
@@ -76,7 +76,7 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b-2 border-ink/10 bg-paper/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
-        <a href="#top" className="flex items-center gap-2.5 transition-opacity duration-300 hover:opacity-75">
+        <Link href="/#top" className="flex items-center gap-2.5 transition-opacity duration-300 hover:opacity-75">
           <Image src="/logo-mark.png" alt="" width={512} height={512} className="h-9 w-9" />
           <Image
             src="/wordmark.png"
@@ -85,15 +85,16 @@ export async function SiteHeader() {
             height={322}
             className="hidden h-6 w-auto sm:block"
           />
-        </a>
+        </Link>
 
         <nav className="flex items-center gap-6 text-sm font-semibold text-ink/70" aria-label={m.header.nav}>
-          <Link href="/tienda" className="hidden transition-colors duration-300 hover:text-ink md:block">
+          <Link href="/tienda" className="flex min-h-11 items-center gap-1.5 whitespace-nowrap text-collage-blue hover:opacity-80">
+            <Store className="h-4 w-4" aria-hidden="true" />
             Shop
           </Link>
-          <a href="#participantes" className="hidden transition-colors duration-300 hover:text-ink md:block">
+          <Link href="/#participantes" className="hidden transition-colors duration-300 hover:text-ink md:block">
             {m.header.participants}
-          </a>
+          </Link>
           <Link
             href="/galeria-3d"
             target="_blank"
