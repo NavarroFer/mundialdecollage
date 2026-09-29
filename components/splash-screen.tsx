@@ -9,19 +9,8 @@ import { useI18n } from '@/lib/i18n/client'
 // go straight to the page.
 const SESSION_KEY = 'mdc-splash-seen'
 
-// 1.25s on screen + the 0.35s exit below = a 1.6s brand intro.
+// The papers clear the frame first, then the logo dissolves into the page.
 const INTRO_MS = 1250
-
-const logoPart = {
-  hidden: { opacity: 0, y: 18, scale: 0.88, rotate: -3 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    rotate: 0,
-    transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const },
-  },
-}
 
 export function SplashScreen() {
   const [mounted, setMounted] = useState(false)
@@ -100,9 +89,9 @@ export function SplashScreen() {
               clipPath:
                 'polygon(3% 6%, 94% 0, 100% 22%, 93% 52%, 100% 91%, 68% 100%, 38% 92%, 0 100%)',
             }}
-            initial={{ x: '-105%', rotate: -12 }}
-            animate={{ x: 0, rotate: -5 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ x: 0, rotate: -5 }}
+            animate={{ x: '-115%', y: '-18%', rotate: -13 }}
+            transition={{ duration: 0.62, delay: 0.35, ease: [0.7, 0, 0.84, 0] }}
           />
 
           <motion.div
@@ -111,25 +100,30 @@ export function SplashScreen() {
               clipPath:
                 'polygon(10% 4%, 62% 0, 96% 15%, 90% 44%, 100% 72%, 80% 100%, 38% 94%, 0 100%, 6% 55%, 0 24%)',
             }}
-            initial={{ x: '105%', rotate: 10 }}
-            animate={{ x: 0, rotate: 5 }}
-            transition={{ duration: 0.5, delay: 0.04, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ x: 0, rotate: 5 }}
+            animate={{ x: '115%', y: '18%', rotate: 13 }}
+            transition={{ duration: 0.62, delay: 0.38, ease: [0.7, 0, 0.84, 0] }}
           />
 
           <motion.div
             className="torn-strip absolute inset-x-[-8%] top-[52%] h-14 -rotate-3 bg-collage-yellow sm:h-20"
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{ scaleX: 1, opacity: 1 }}
-            transition={{ duration: 0.42, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ x: 0, opacity: 1 }}
+            animate={{ x: '115%', opacity: 0 }}
+            transition={{ duration: 0.56, delay: 0.43, ease: [0.7, 0, 0.84, 0] }}
           />
 
           <motion.div
             className="relative z-10 mx-auto flex w-[84vw] max-w-3xl items-center justify-center gap-3 sm:gap-7"
-            initial="hidden"
-            animate="visible"
-            transition={{ staggerChildren: 0.08, delayChildren: 0.22 }}
           >
-            <motion.div variants={logoPart} className="shrink-0">
+            <div
+              aria-hidden="true"
+              className="absolute -inset-x-5 -inset-y-6 bg-paper shadow-[8px_10px_0_rgba(27,17,12,0.12)] sm:-inset-x-10 sm:-inset-y-9"
+              style={{
+                clipPath:
+                  'polygon(2% 8%, 24% 2%, 51% 6%, 77% 0, 98% 9%, 95% 45%, 100% 86%, 73% 96%, 48% 92%, 19% 100%, 0 89%, 4% 51%)',
+              }}
+            />
+            <div className="relative z-10 shrink-0">
               <Image
                 src="/logo-mark.png"
                 alt=""
@@ -138,8 +132,8 @@ export function SplashScreen() {
                 height={512}
                 className="h-20 w-20 drop-shadow-[5px_6px_0_rgba(27,17,12,0.14)] sm:h-32 sm:w-32"
               />
-            </motion.div>
-            <motion.div variants={logoPart} className="min-w-0">
+            </div>
+            <div className="relative z-10 min-w-0">
               <Image
                 src="/wordmark.png"
                 alt=""
@@ -148,7 +142,7 @@ export function SplashScreen() {
                 height={322}
                 className="h-auto w-full max-w-xl drop-shadow-[5px_6px_0_rgba(27,17,12,0.1)]"
               />
-            </motion.div>
+            </div>
           </motion.div>
 
           <div className="grain-overlay pointer-events-none absolute inset-0" />
