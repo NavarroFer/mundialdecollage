@@ -4,7 +4,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { FUNNEL_STEPS, HOME_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
+import { FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
 
 async function getArtworkStats() {
   if (!isSupabaseConfigured) return null
@@ -151,6 +151,37 @@ export default async function EstadisticasPage() {
         title="Compartir obras"
         description="Personas distintas que compartieron una obra desde su página, la tarjeta «Ya estás participando» de la home o la confirmación después de enviarla. Se mide desde el 26 de septiembre de 2026."
         steps={SHARE_EVENTS}
+      />
+
+      <FunnelSection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Invitación después de un like o comentario"
+        description="Quien da like o comenta una obra en la galería (muchas veces gente que llegó porque el artista la compartió) ve ahí mismo la invitación a mandar su propia obra. Se mide desde el 28 de septiembre de 2026."
+        steps={INVITE_EVENTS}
+        baseStep="artist_invite_view"
+        baseLabel="De quienes vieron la invitación"
+      />
+
+      <FunnelSection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Invitaciones de los artistas"
+        description="Los links que comparten los artistas llevan su invitación: quien llega por uno ve «te invita a participar» y, si se inscribe, cuenta para ese artista. Se mide desde el 28 de septiembre de 2026."
+        steps={REFERRAL_EVENTS}
+        baseStep="referral_open"
+        baseLabel="De quienes llegaron invitados"
+      />
+
+      <FunnelSection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Formulario de inscripción"
+        description="Cada paso dentro de /onboarding, entre tocar «Enviá tu obra» y terminar, para ver dónde se cae la gente. Se mide desde el 28 de septiembre de 2026."
+        steps={ONBOARDING_EVENTS}
+        baseStep="onboarding_form_view"
+        baseLabel="De quienes vieron el formulario"
+        footnote="Quien ya tenía la sesión iniciada llega directo al formulario, sin pasar por «Entrá con Google»."
       />
 
       <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">

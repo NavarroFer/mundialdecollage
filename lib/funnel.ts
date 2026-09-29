@@ -41,12 +41,44 @@ export const SHARE_EVENTS = [
   { name: 'obra_story_download', label: 'Bajaron la imagen para historias' },
 ] as const
 
+// Someone who just liked or commented an obra (mostly friends of the artist
+// who shared it) is invited, right there, to send their own.
+export const INVITE_EVENTS = [
+  { name: 'artist_invite_view', label: 'Vieron «¿Vos también hacés collage?» después de un like o comentario' },
+  { name: 'artist_invite_click', label: 'Tocaron para mandar su obra desde esa invitación' },
+] as const
+
+// Links shared by an artist carry ?ref=<their obra>, so whoever arrives
+// through one is greeted as that artist's guest and their sign-up is
+// credited to them.
+export const REFERRAL_EVENTS = [
+  { name: 'referral_open', label: 'Llegaron por el link de un artista (con su invitación)' },
+  { name: 'referral_invite_click', label: 'Tocaron «Sumá tu obra» en la invitación del artista' },
+  { name: 'referral_signup', label: 'Se inscribieron invitados por un artista' },
+] as const
+
+// The steps inside /onboarding, between «Enviá tu obra» and a finished
+// sign-up, to see where people give up.
+export const ONBOARDING_EVENTS = [
+  { name: 'onboarding_signin_view', label: 'Vieron «Entrá con Google» en la inscripción' },
+  { name: 'onboarding_signin_click', label: 'Tocaron «Entrar con Google» en la inscripción' },
+  { name: 'onboarding_form_view', label: 'Vieron el formulario de la obra' },
+  { name: 'onboarding_image_selected', label: 'Eligieron la imagen de su obra' },
+  { name: 'onboarding_submit', label: 'Tocaron «Enviar»' },
+  { name: 'onboarding_error', label: 'Volvieron al formulario con un error' },
+] as const
+
 export type FunnelEvent =
   | (typeof FUNNEL_STEPS)[number]['name']
   | (typeof HOME_EVENTS)[number]['name']
   | (typeof SHARE_EVENTS)[number]['name']
+  | (typeof INVITE_EVENTS)[number]['name']
+  | (typeof REFERRAL_EVENTS)[number]['name']
+  | (typeof ONBOARDING_EVENTS)[number]['name']
 
-const NAMES = new Set<string>([...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS].map((step) => step.name))
+const NAMES = new Set<string>(
+  [...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS].map((step) => step.name),
+)
 
 export function isFunnelEvent(value: unknown): value is FunnelEvent {
   return typeof value === 'string' && NAMES.has(value)
