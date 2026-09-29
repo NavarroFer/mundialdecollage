@@ -4,6 +4,7 @@ import { SubmitArtworkCta } from '@/components/submit-artwork-cta'
 import { Countdown } from '@/components/countdown'
 import { ArtworkSearch } from '@/components/artwork-search'
 import { FadeIn } from '@/components/fade-in'
+import { TrackVisible } from '@/components/track'
 import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatDayMonth, plural } from '@/lib/i18n/format'
@@ -114,22 +115,30 @@ export async function HeroSection() {
           </FadeIn>
         )}
 
-        {/* z-20 keeps the open results above the CTA row and the dots. */}
-        <FadeIn delay={250} className="relative z-20 mt-8">
-          <ArtworkSearch signedIn={signedIn} />
-        </FadeIn>
-
-        <FadeIn delay={300}>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <FadeIn delay={250}>
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <TrackVisible event="hero_cta_view" />
             <SubmitArtworkCta />
             <Countdown />
           </div>
         </FadeIn>
 
-        <FadeIn delay={400}>
-          <p className="mt-6 text-sm font-semibold text-ink/80">
-            {fmt(m.hero.free, { date: formatDayMonth(locale, site.deadlineISO) })}
-          </p>
+        <FadeIn delay={300}>
+          <div className="mx-auto mt-5 max-w-2xl">
+            <p className="text-sm font-bold text-ink">
+              {fmt(m.hero.free, { date: formatDayMonth(locale, site.deadlineISO) })}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {m.onboarding.signInNeeds}
+            </p>
+          </div>
+        </FadeIn>
+
+        {/* The artwork directory supports discovery, but sits after the
+            participation action so it cannot compete with the open call's
+            primary next step. z-20 keeps its open results above the dots. */}
+        <FadeIn delay={400} className="relative z-20 mt-10 border-t-2 border-ink/10 pt-8">
+          <ArtworkSearch signedIn={signedIn} />
         </FadeIn>
       </div>
     </section>

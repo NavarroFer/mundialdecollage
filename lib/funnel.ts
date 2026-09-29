@@ -26,7 +26,9 @@ export const FUNNEL_STEPS = [
 // the home.
 export const HOME_EVENTS = [
   { name: 'home_view', label: 'Abrieron la home' },
+  { name: 'hero_cta_view', label: 'Vieron «Enviá tu obra» en la portada' },
   { name: 'submit_click_hero', label: 'Tocaron «Enviá tu obra» en la portada' },
+  { name: 'submit_click_guide', label: 'Tocaron «Enviá tu obra» en «Cómo participar»' },
   { name: 'submit_click_edition', label: 'Tocaron «Sumá tu obra» en la sección amarilla' },
   { name: 'submit_click_header', label: 'Tocaron «Participar» en el encabezado (cualquier página)' },
   { name: 'bases_download', label: 'Descargaron las bases' },
@@ -66,6 +68,17 @@ export const ONBOARDING_EVENTS = [
   { name: 'onboarding_image_selected', label: 'Eligieron la imagen de su obra' },
   { name: 'onboarding_submit', label: 'Tocaron «Enviar»' },
   { name: 'onboarding_error', label: 'Volvieron al formulario con un error' },
+  { name: 'signup_done', label: 'Terminaron o confirmaron la inscripción' },
+] as const
+
+// Public artwork and artist pages turn discovery and shared traffic into a
+// path back to the artist and, from there, into a new free submission.
+export const DISCOVERY_EVENTS = [
+  { name: 'artwork_page_view', label: 'Abrieron la página pública de una obra' },
+  { name: 'artwork_artist_profile_click', label: 'Fueron de una obra al perfil de su artista' },
+  { name: 'artwork_participate_click', label: 'Fueron de una obra a participar' },
+  { name: 'artist_profile_view', label: 'Abrieron un perfil público de artista' },
+  { name: 'artist_profile_participate_click', label: 'Fueron de un perfil de artista a participar' },
 ] as const
 
 export type FunnelEvent =
@@ -75,9 +88,10 @@ export type FunnelEvent =
   | (typeof INVITE_EVENTS)[number]['name']
   | (typeof REFERRAL_EVENTS)[number]['name']
   | (typeof ONBOARDING_EVENTS)[number]['name']
+  | (typeof DISCOVERY_EVENTS)[number]['name']
 
 const NAMES = new Set<string>(
-  [...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS].map((step) => step.name),
+  [...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS].map((step) => step.name),
 )
 
 export function isFunnelEvent(value: unknown): value is FunnelEvent {

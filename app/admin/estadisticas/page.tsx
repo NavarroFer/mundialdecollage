@@ -4,7 +4,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 
 async function getArtworkStats() {
@@ -183,6 +183,16 @@ export default async function EstadisticasPage() {
         baseStep="onboarding_form_view"
         baseLabel="De quienes vieron el formulario"
         footnote="Quien ya tenía la sesión iniciada llega directo al formulario, sin pasar por «Entrá con Google»."
+      />
+
+      <FunnelSection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Descubrimiento de obras y artistas"
+        description="Cómo las páginas públicas de obra y artista llevan a conocer más del proyecto o a empezar una participación."
+        steps={DISCOVERY_EVENTS}
+        baseStep="artwork_page_view"
+        baseLabel="De quienes abrieron una obra"
       />
 
       <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
