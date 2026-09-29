@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Users } from 'lucide-react'
+import { AlertCircle, ArrowRight, CheckCircle2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { TrackedLink, TrackView } from '@/components/track'
@@ -98,18 +98,30 @@ export async function ParticipationStatus() {
             </div>
 
             <div className="flex-1 text-center sm:text-left">
-              <span className="torn-strip inline-flex -rotate-1 items-center gap-1.5 bg-collage-blue px-4 py-1.5 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {m.status.badge}
-              </span>
+              {/* Until they confirm, don't tell them they're already in — a
+                  "Ya estás participando" badge above the prompt read as done,
+                  and almost nobody tapped it. */}
+              {needsConfirmation ? (
+                <span className="torn-strip inline-flex -rotate-1 items-center gap-1.5 bg-collage-red px-4 py-1.5 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {m.status.pendingBadge}
+                </span>
+              ) : (
+                <span className="torn-strip inline-flex -rotate-1 items-center gap-1.5 bg-collage-blue px-4 py-1.5 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {m.status.badge}
+                </span>
+              )}
 
               <h2 className="font-display mt-4 text-2xl tracking-tight text-ink uppercase sm:text-3xl">
                 {artwork.title ?? m.common.untitled}
               </h2>
 
-              <p className="mt-2 text-muted-foreground">
-                {m.status.body}
-              </p>
+              {!needsConfirmation && (
+                <p className="mt-2 text-muted-foreground">
+                  {m.status.body}
+                </p>
+              )}
 
               {needsConfirmation && (
                 <div className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/5 p-4 text-left">
