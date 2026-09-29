@@ -8,6 +8,7 @@ import { sendCampaign, sendTestEmail, enableOpenTracking } from '../actions'
 import { isTranslatorConfigured } from '@/lib/email-translator'
 import { contactLocale } from '@/lib/email-translation'
 import { LOCALES, type Locale } from '@/lib/i18n/locales'
+import { audienceContacts, CAMPAIGN_AUDIENCES, parseAudience } from '@/lib/campaign-audience'
 
 // A send may first translate the email into eight languages.
 export const maxDuration = 300
@@ -16,7 +17,7 @@ const errorMessages: Record<string, string> = {
   missing_fields: 'Completá asunto y cuerpo.',
   resend_not_configured: 'Todavía no está conectado Resend (falta RESEND_API_KEY).',
   resend_domain_not_configured: 'Falta configurar RESEND_DOMAIN_API_KEY para gestionar el dominio en Resend.',
-  no_recipients: 'No hay contactos suscriptos para enviar.',
+  no_recipients: 'No hay contactos suscriptos en ese público.',
   domain_not_found: 'El dominio configurado en site.mailFrom no aparece en la cuenta de Resend.',
 }
 
@@ -32,21 +33,27 @@ const domainStatusLabel: Record<string, string> = {
 export default async function NuevaCampanaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; test_sent?: string; tracking_enabled?: string }>
+  searchParams: Promise<{ error?: string; test_sent?: string; tracking_enabled?: string; audience?: string }>
 }) {
-  const { error, test_sent: testSent, tracking_enabled: trackingEnabled } = await searchParams
+  const { error, test_sent: testSent, tracking_enabled: trackingEnabled, audience: audienceParam } = await searchParams
+  const audience = parseAudience(audienceParam)
   const supabase = await createClient()
 
-  const [{ data: templates }, { data: subscribed }, { data: contactCountries }, domainStatus] = await Promise.all([
+  // Both audiences are counted so each option shows its size before it's
+  // picked; the picked one is the same list sendCampaign will send to.
+  const [{ data: templates }, everyone, withoutArtwork, { data: contactCountries }, domainStatus] = await Promise.all([
     supabase
       .from('templates')
       .select('id, name, subject, body_html, body_json, translations, translations_source')
       .order('name'),
-    supabase.from('contacts').select('id').eq('subscribed', true),
+    audienceContacts(supabase, 'subscribed'),
+    audienceContacts(supabase, 'no_artwork'),
     supabase.rpc('contact_country_codes'),
     getDomainStatus(),
   ])
-  const count = subscribed?.length ?? 0
+  const audiences = { subscribed: everyone, no_artwork: withoutArtwork }
+  const { contacts: subscribed, error: audienceError } = audiences[audience]
+  const count = subscribed.length
 
   // How many subscribed contacts read each language, by their country.
   const countryByContact = new Map(
@@ -56,7 +63,7 @@ export default async function NuevaCampanaPage({
     ]),
   )
   const localeCounts = Object.fromEntries(LOCALES.map((locale) => [locale, 0])) as Record<Locale, number>
-  for (const { id } of subscribed ?? []) localeCounts[contactLocale(countryByContact.get(id))] += 1
+  for (const { id } of subscribed) localeCounts[contactLocale(countryByContact.get(id))] += 1
 
   return (
     <div>
@@ -120,11 +127,48 @@ export default async function NuevaCampanaPage({
         </p>
       )}
 
-      <p className="mt-4 text-sm text-muted-foreground">{count} contactos suscriptos van a recibir este mail.</p>
+      <fieldset className="mt-6">
+        <legend className="text-sm font-semibold text-ink">¿A quién le llega?</legend>
+        {/* Links, not a form field: the count and the per-language split
+            follow the choice, and a searchParams-only navigation keeps
+            whatever is already written in the composer. */}
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          {CAMPAIGN_AUDIENCES.map((option) => {
+            const active = option.value === audience
+            const { contacts, error: optionError } = audiences[option.value]
+            return (
+              <Link
+                key={option.value}
+                href={option.value === 'subscribed' ? '/admin/campanas/nueva' : `/admin/campanas/nueva?audience=${option.value}`}
+                replace
+                scroll={false}
+                aria-current={active ? 'true' : undefined}
+                className={`rounded-xl border-2 px-4 py-3 text-sm ${
+                  active ? 'border-collage-blue bg-collage-blue/10' : 'border-ink/10 bg-card hover:border-ink/25'
+                }`}
+              >
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="font-semibold text-ink">{option.label}</span>
+                  <span className="shrink-0 font-bold text-ink">{optionError ? '—' : contacts.length}</span>
+                </span>
+                <span className="mt-1 block text-muted-foreground">{option.description}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </fieldset>
+
+      {audienceError ? (
+        <p className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-4 py-3 text-sm text-ink">
+          No se pudo armar la lista de destinatarios: {audienceError}
+        </p>
+      ) : (
+        <p className="mt-4 text-sm text-muted-foreground">{count} contactos suscriptos van a recibir este mail.</p>
+      )}
 
       <div className="mt-6">
         <CampaignComposer
-          action={sendCampaign}
+          action={sendCampaign.bind(null, audience)}
           testAction={sendTestEmail}
           templates={templates ?? []}
           recipientCount={count}

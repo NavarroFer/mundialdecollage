@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { retryFailedSends } from './actions'
+import { audienceLabel } from '@/lib/campaign-audience'
 
 const STATUS: Record<string, { label: string; icon: typeof Circle; className: string; spin?: boolean }> = {
   draft: { label: 'Borrador', icon: Circle, className: 'bg-ink/10 text-muted-foreground' },
@@ -23,7 +24,7 @@ export default async function CampanasPage({
   const { data: campaigns } = await supabase
     .from('campaigns')
     .select(
-      'id, subject, status, recipient_count, sent_count, failed_count, delivered_count, opened_count, bounced_count, sent_at, created_at',
+      'id, subject, status, audience, recipient_count, sent_count, failed_count, delivered_count, opened_count, bounced_count, sent_at, created_at',
     )
     .order('created_at', { ascending: false })
 
@@ -98,7 +99,8 @@ export default async function CampanasPage({
                 </span>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                {c.recipient_count} destinatarios · {c.sent_count} enviados
+                {c.recipient_count} destinatarios{c.audience && c.audience !== 'subscribed' ?` (${audienceLabel(c.audience)})` : ''} ·{' '}
+                {c.sent_count} enviados
                 {c.delivered_count > 0 ? ` · ${c.delivered_count} entregados` : ''}
                 {c.opened_count > 0 ? ` · ${c.opened_count} abiertos` : ''}
                 {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}

@@ -25,6 +25,7 @@ import {
   type TranslatedLocale,
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
+import { audienceContacts, parseAudience } from '@/lib/campaign-audience'
 import { DEFAULT_LOCALE, isLocale, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -82,25 +83,33 @@ function parseBodyJson(formData: FormData) {
   }
 }
 
-export async function sendCampaign(formData: FormData) {
+// Bound to the audience picked on /admin/campanas/nueva
+// (sendCampaign.bind(null, audience)). Bound arguments come back from the
+// browser as-is, so it's parsed again here.
+export async function sendCampaign(audienceInput: unknown, formData: FormData) {
+  const audience = parseAudience(audienceInput)
   const subject = String(formData.get('subject') ?? '').trim()
   const bodyHtml = String(formData.get('body_html') ?? '').trim()
   const bodyJson = parseBodyJson(formData)
   const templateId = String(formData.get('template_id') ?? '') || null
+  const backTo = (error: string) => `/admin/campanas/nueva?audience=${audience}&error=${encodeURIComponent(error)}`
 
   if (!subject || !bodyHtml) {
-    redirect('/admin/campanas/nueva?error=missing_fields')
+    redirect(backTo('missing_fields'))
   }
   if (!isResendConfigured) {
-    redirect('/admin/campanas/nueva?error=resend_not_configured')
+    redirect(backTo('resend_not_configured'))
   }
 
   const supabase = await createClient()
 
-  const [{ data: contacts }, { data: contactCountries }] = await Promise.all([
-    supabase.from('contacts').select('id, email, name').eq('subscribed', true),
+  const [{ contacts, error: audienceError }, { data: contactCountries }] = await Promise.all([
+    audienceContacts(supabase, audience),
     supabase.rpc('contact_country_codes'),
   ])
+  if (audienceError) {
+    redirect(backTo(`No se pudo armar la lista de destinatarios: ${audienceError}`))
+  }
 
   const countryByContact = new Map(
     ((contactCountries ?? []) as { contact_id: string; country_code: string | null }[]).map((row) => [
@@ -108,12 +117,12 @@ export async function sendCampaign(formData: FormData) {
       row.country_code,
     ]),
   )
-  const recipients = (contacts ?? []).map((contact) => ({
+  const recipients = contacts.map((contact) => ({
     ...contact,
     locale: contactLocale(countryByContact.get(contact.id)),
   }))
   if (recipients.length === 0) {
-    redirect('/admin/campanas/nueva?error=no_recipients')
+    redirect(backTo('no_recipients'))
   }
 
   const { translations, errors: translationErrors } = await translationsForSend(supabase, {
@@ -137,12 +146,13 @@ export async function sendCampaign(formData: FormData) {
       translations,
       status: 'sending',
       recipient_count: recipients.length,
+      audience,
     })
     .select('id')
     .single()
 
   if (campaignError || !campaign) {
-    redirect(`/admin/campanas/nueva?error=${encodeURIComponent(campaignError?.message ?? 'create_failed')}`)
+    redirect(backTo(campaignError?.message ?? 'create_failed'))
   }
 
   const resend = createResendClient()

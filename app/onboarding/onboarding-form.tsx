@@ -1,6 +1,6 @@
 'use client'
 
-import { startTransition, useActionState, useMemo, useState } from 'react'
+import { startTransition, useActionState, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Loader2, Plus, X } from 'lucide-react'
 import { SignOutButton } from '@/components/auth/sign-out-button'
@@ -9,9 +9,19 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { useI18n } from '@/lib/i18n/client'
 import { createClient } from '@/lib/supabase/client'
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
+import { cleanInstagramInput, cleanWebsiteInput, imageProblem } from '@/lib/onboarding-input'
+import { track } from '@/lib/track'
 import { fmt, formatMoney } from '@/lib/i18n/format'
 import { site } from '@/lib/site'
+
+type Slot = {
+  key: number
+  pickedFileName: string | null
+  // blob: URL of the picked file, shown so the artist sees it's the right photo.
+  preview: string | null
+  // Found as soon as the file was picked (lib/onboarding-input.ts).
+  problem: 'invalid_image' | 'image_too_large' | null
+}
 
 const inputClass =
   'mt-1.5 w-full rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5 text-sm outline-none focus:border-collage-blue'
@@ -70,17 +80,25 @@ export function OnboardingForm({
     await action(formData)
     return null
   }, null)
-  const [uploading, setUploading] = useState(false)
+  // Which image is going up, for the button's "1 de 2" — null when idle.
+  const [upload, setUpload] = useState<{ current: number; total: number } | null>(null)
+  const uploading = upload !== null
   const [clientError, setClientError] = useState<string | null>(null)
   // One entry per obra in the form. The first one can fall back to the
   // prefilled image; the rest always need a file.
-  const [slots, setSlots] = useState<{ key: number; pickedFileName: string | null }[]>([
-    { key: 0, pickedFileName: null },
-  ])
+  const [slots, setSlots] = useState<Slot[]>([{ key: 0, pickedFileName: null, preview: null, problem: null }])
   const [nextKey, setNextKey] = useState(1)
   const hasImagePrefill = Boolean(prefillImageUrl && prefillImagePath)
   const { locale, m } = useI18n()
   const errorMessages = m.onboarding.errors
+  const alertRef = useRef<HTMLParagraphElement>(null)
+  // Files already in Storage from an earlier try of this same form. When
+  // the server action sends the form back with ?error=, the inputs keep
+  // their values (a searchParams-only navigation doesn't remount the page),
+  // so a second «Enviar» would otherwise upload the same photos again over
+  // mobile data.
+  const uploadedPaths = useRef(new WeakMap<File, string>())
+  const imageTracked = useRef(false)
 
   const countries = useMemo(
     () =>
@@ -90,11 +108,74 @@ export function OnboardingForm({
     [locale],
   )
 
+  // The /onboarding steps in /admin/estadisticas (ONBOARDING_EVENTS in
+  // lib/funnel.ts) measure first sign-ups only: ?another=1 is an artist
+  // who's already in, adding obras. The legacy "we found your obra" variant
+  // of this same form counts — it's still the form a newcomer has to get
+  // through. ArtistConfirmation (an obra already on the account, only
+  // confirming details) isn't tracked: it has no image step, and would make
+  // that step look like a drop-off it isn't.
+  const tracked = !another
+  useEffect(() => {
+    // An ?error= arrives as a prop change on the mounted form (see
+    // uploadedPaths), so this counts the visit once, not once per error.
+    if (tracked && !error) track('onboarding_form_view')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount
+  }, [])
+  useEffect(() => {
+    if (tracked && error) track('onboarding_error')
+    // These two mean the stored file itself was the problem: upload it again.
+    if (error === 'upload_failed' || error === 'invalid_image') uploadedPaths.current = new WeakMap()
+  }, [tracked, error])
+
+  const displayError = clientError ?? (error && errorMessages[error])
+  // The form is long on a phone and the alert sits at its top, out of view
+  // of the «Enviar» button that triggered it.
+  useEffect(() => {
+    if (displayError) alertRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [displayError])
+
+  function pickImage(slotKey: number, file: File | undefined) {
+    if (file && tracked && !imageTracked.current) {
+      imageTracked.current = true
+      track('onboarding_image_selected')
+    }
+    setSlots((previous) =>
+      previous.map((other) => {
+        if (other.key !== slotKey) return other
+        if (other.preview) URL.revokeObjectURL(other.preview)
+        const problem = file ? imageProblem(file) : null
+        return {
+          ...other,
+          pickedFileName: file?.name ?? null,
+          preview: file && !problem ? URL.createObjectURL(file) : null,
+          problem,
+        }
+      }),
+    )
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setClientError(null)
 
     const formData = new FormData(event.currentTarget)
+
+    // Fixed up (or refused) here rather than bounced back by the server —
+    // see lib/onboarding-input.ts.
+    const instagram = cleanInstagramInput(String(formData.get('instagram') ?? ''))
+    if (instagram === null) {
+      setClientError(errorMessages.invalid_instagram)
+      return
+    }
+    formData.set('instagram', instagram)
+    const website = cleanWebsiteInput(String(formData.get('website') ?? ''))
+    if (website === null) {
+      setClientError(errorMessages.invalid_website)
+      return
+    }
+    formData.set('website', website)
+
     const images = formData.getAll('artwork_image')
     const hasFile = (image: FormDataEntryValue): image is File => image instanceof File && image.size > 0
 
@@ -108,48 +189,52 @@ export function OnboardingForm({
         setClientError(errorMessages.missing_image)
         return
       }
-      if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
-        setClientError(errorMessages.invalid_image)
-        return
-      }
-      if (image.size > MAX_IMAGE_BYTES) {
-        setClientError(errorMessages.image_too_large)
+      const problem = imageProblem(image)
+      if (problem) {
+        setClientError(errorMessages[problem])
         return
       }
     }
 
-    setUploading(true)
     // Uploaded straight to Storage from the browser — a Server Action's
     // request body is capped by Vercel at ~4.5MB, well under photos people
     // actually submit, and the raw 413 that comes back crashes the page
     // instead of showing a clean error.
     const supabase = createClient()
+    const total = images.filter(hasFile).length
+    let current = 0
     const paths: string[] = []
     for (const [index, image] of images.entries()) {
       if (!hasFile(image)) {
         paths.push(prefillImagePath!)
         continue
       }
+      current += 1
+      const alreadyUploaded = uploadedPaths.current.get(image)
+      if (alreadyUploaded) {
+        paths.push(alreadyUploaded)
+        continue
+      }
+      setUpload({ current, total })
       const extension = image.name.split('.').pop()?.toLowerCase() || 'jpg'
       const path = `${userId}/${Date.now()}-${index}.${extension}`
       const { error: uploadError } = await supabase.storage
         .from('artworks')
         .upload(path, image, { contentType: image.type })
       if (uploadError) {
-        setUploading(false)
+        setUpload(null)
         setClientError(errorMessages.upload_failed)
         return
       }
+      uploadedPaths.current.set(image, path)
       paths.push(path)
     }
-    setUploading(false)
+    setUpload(null)
 
     formData.delete('artwork_image')
     for (const path of paths) formData.append('artwork_image_path', path)
     startTransition(() => formAction(formData))
   }
-
-  const displayError = clientError ?? (error && errorMessages[error])
 
   return (
     <form
@@ -157,7 +242,7 @@ export function OnboardingForm({
       className="mt-8 space-y-5 rounded-2xl border-2 border-ink/10 bg-card p-7"
     >
       {displayError && (
-        <p role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
+        <p ref={alertRef} role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
           {displayError}
         </p>
       )}
@@ -177,16 +262,6 @@ export function OnboardingForm({
       )}
 
       {another && <input type="hidden" name="another" value="1" />}
-
-      {entriesNote && (
-        <p className="rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4 text-sm text-ink">
-          {fmt(m.entries.onboardingNote, {
-            limit: site.entries.paidLimit,
-            ars: formatMoney(locale, site.entries.priceArs, 'ARS'),
-            usd: formatMoney(locale, site.entries.priceUsd, 'USD'),
-          })}
-        </p>
-      )}
 
       {email && (
         <div className="rounded-lg bg-paper p-3">
@@ -208,6 +283,7 @@ export function OnboardingForm({
           required
           defaultValue={defaultName}
           placeholder={m.onboarding.namePlaceholder}
+          autoComplete="name"
           className={inputClass}
         />
       </div>
@@ -235,7 +311,10 @@ export function OnboardingForm({
               {slots.length > 1 && (
                 <button
                   type="button"
-                  onClick={() => setSlots((previous) => previous.filter((other) => other.key !== slot.key))}
+                  onClick={() => {
+                    if (slot.preview) URL.revokeObjectURL(slot.preview)
+                    setSlots((previous) => previous.filter((other) => other.key !== slot.key))
+                  }}
                   className="flex min-h-11 items-center gap-1 text-sm font-semibold text-collage-red"
                 >
                   <X className="size-4" aria-hidden="true" />
@@ -300,24 +379,47 @@ export function OnboardingForm({
                 type="file"
                 accept="image/*"
                 required={!canUsePrefill}
-                onChange={(event) => {
-                  const pickedFileName = event.target.files?.[0]?.name ?? null
-                  setSlots((previous) =>
-                    previous.map((other) => (other.key === slot.key ? { ...other, pickedFileName } : other)),
-                  )
-                }}
+                aria-invalid={slot.problem ? true : undefined}
+                aria-describedby={slot.problem ? id('artwork_image_problem') : undefined}
+                onChange={(event) => pickImage(slot.key, event.target.files?.[0])}
                 className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-collage-blue file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary-foreground`}
               />
+              {slot.problem && (
+                <p id={id('artwork_image_problem')} className="mt-2 text-sm font-medium text-collage-red">
+                  {errorMessages[slot.problem]}
+                </p>
+              )}
+              {slot.preview && (
+                // eslint-disable-next-line @next/next/no-img-element -- local blob: preview, not optimizable
+                <img
+                  src={slot.preview}
+                  alt={m.onboarding.selectedImageAlt}
+                  className="mt-3 max-h-48 w-auto rounded-lg border border-ink/10 bg-paper object-contain"
+                />
+              )}
             </div>
           </fieldset>
         )
       })}
 
+      {/* Next to «Agregar otra obra», where it answers a question the artist
+          is actually asking — at the top of the form, a price was the first
+          thing a newcomer read, before a single field. */}
+      {entriesNote && (
+        <p className="rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4 text-sm text-ink">
+          {fmt(m.entries.onboardingNote, {
+            limit: site.entries.paidLimit,
+            ars: formatMoney(locale, site.entries.priceArs, 'ARS'),
+            usd: formatMoney(locale, site.entries.priceUsd, 'USD'),
+          })}
+        </p>
+      )}
+
       {slots.length < maxArtworks && (
         <button
           type="button"
           onClick={() => {
-            setSlots((previous) => [...previous, { key: nextKey, pickedFileName: null }])
+            setSlots((previous) => [...previous, { key: nextKey, pickedFileName: null, preview: null, problem: null }])
             setNextKey((key) => key + 1)
           }}
           className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-collage-blue/40 text-sm font-semibold text-collage-blue hover:bg-collage-blue/5"
@@ -336,6 +438,9 @@ export function OnboardingForm({
           id="instagram"
           name="instagram"
           type="text"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder={m.onboarding.instagramPlaceholder}
           className={inputClass}
         />
@@ -345,26 +450,49 @@ export function OnboardingForm({
         <label htmlFor="website" className="text-sm font-semibold text-ink">
           {m.common.website} <span className="font-normal text-muted-foreground">{m.common.optional}</span>
         </label>
+        {/* Not type="url": that makes the browser refuse "misitio.com" in its
+            own words; cleanWebsiteInput adds the https:// instead. */}
         <input
           defaultValue={defaultWebsite}
           id="website"
           name="website"
-          type="url"
+          type="text"
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder="https://..."
           className={inputClass}
         />
       </div>
 
-      <Button type="submit" size="lg" disabled={uploading || pending} className="w-full">
+      <Button
+        type="submit"
+        size="lg"
+        disabled={uploading || pending}
+        // On the tap, not in handleSubmit: a tap the browser stops for an
+        // empty required field is exactly the friction this should show.
+        onClick={() => {
+          if (tracked) track('onboarding_submit')
+        }}
+        className="w-full"
+      >
         {uploading || pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        {uploading
-          ? m.onboarding.uploading
+        {upload
+          ? upload.total > 1
+            ? fmt(m.onboarding.uploadingProgress, { current: upload.current, total: upload.total })
+            : m.onboarding.uploading
           : pending
             ? m.common.confirming
             : hasLegacyMatch
               ? m.onboarding.confirmParticipation
               : m.onboarding.submit}
       </Button>
+      {uploading && (
+        <p role="status" className="text-center text-sm text-muted-foreground">
+          {m.onboarding.uploadNote}
+        </p>
+      )}
     </form>
   )
 }

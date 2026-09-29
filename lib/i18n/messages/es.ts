@@ -200,6 +200,8 @@ const es = {
     signInTitle: 'Enviá tu obra',
     signInBody:
       'Ingresá con Google para continuar. Vamos a completar el formulario con los datos que ya tengamos de vos.',
+    signInNeeds:
+      'Vas a necesitar una foto de tu collage, su título, tu nombre y tu país. Lleva un par de minutos y participar con una obra es gratis.',
     welcomeEyebrow: 'Qué bueno encontrarte acá',
     helloName: '¡Hola, {name}!',
     hello: '¡Hola!',
@@ -215,10 +217,11 @@ const es = {
     errors: {
       missing_fields: 'Completá nombre, país y título de la obra para seguir.',
       missing_image: 'Subí una imagen de tu obra para seguir.',
-      invalid_image: 'El archivo tiene que ser una imagen (JPG, PNG, WEBP o GIF).',
+      invalid_image:
+        'Esa imagen no está en un formato que aceptemos: usá JPG, PNG, WEBP o GIF. Si es una foto HEIC del celular, una captura de pantalla sirve.',
       image_too_large: 'La imagen pesa más de 15MB — probá con una versión más liviana.',
       invalid_instagram: 'Ese usuario de Instagram no parece válido — probá solo con el @usuario.',
-      invalid_website: 'Ese sitio web no parece una URL válida (tiene que empezar con http:// o https://).',
+      invalid_website: 'Ese sitio web no parece una dirección válida (por ejemplo: misitio.com).',
       upload_failed: 'Algo falló al subir la imagen. Probá de nuevo.',
       save_failed: 'Algo falló al guardar. Probá de nuevo.',
       too_many_artworks: 'Ya cargaste el máximo de obras. Elegí entre las que ya subiste.',
@@ -241,8 +244,11 @@ const es = {
     artworkImage: 'Imagen de la obra',
     previousImageAlt: 'Obra que nos enviaste antes',
     previousImageNote: 'Ya tenemos esta imagen. Subí un archivo nuevo solo si querés reemplazarla.',
+    selectedImageAlt: 'La imagen que elegiste',
     instagramPlaceholder: '@tu.usuario',
     uploading: 'Subiendo imagen…',
+    uploadingProgress: 'Subiendo imagen {current} de {total}…',
+    uploadNote: 'Con datos móviles puede tardar un poco. No cierres esta página.',
     confirmParticipation: 'Confirmar mi participación',
     submit: 'Enviar mi obra',
   },
