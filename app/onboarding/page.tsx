@@ -10,7 +10,8 @@ import { site } from '@/lib/site'
 import { OnboardingForm } from './onboarding-form'
 import { completeOnboarding } from './actions'
 import { ArtistConfirmation } from './artist-confirmation'
-import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
+import { OnboardingSignInButton } from '@/components/onboarding-sign-in-button'
+import { TrackView } from '@/components/track'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import type { Messages } from '@/lib/i18n/messages'
@@ -40,12 +41,17 @@ export default async function OnboardingPage({
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) {
+    // Most arrive here from «Enviá tu obra» on a phone, often from
+    // Instagram: say up front what the form will ask for and that it's
+    // free, so the Google step doesn't feel like a leap into the unknown.
     return (
       <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
+        <TrackView event="onboarding_signin_view" />
         <div className="w-full max-w-lg rounded-2xl bg-card p-8 text-center">
           <h1 className="font-display text-3xl uppercase">{m.onboarding.signInTitle}</h1>
-          <p className="my-6 text-muted-foreground">{m.onboarding.signInBody}</p>
-          <GoogleSignInButton next="/onboarding" />
+          <p className="mt-6 text-muted-foreground">{m.onboarding.signInBody}</p>
+          <p className="mt-4 mb-6 rounded-xl bg-collage-blue/5 p-4 text-sm text-ink">{m.onboarding.signInNeeds}</p>
+          <OnboardingSignInButton />
         </div>
       </main>
     )
