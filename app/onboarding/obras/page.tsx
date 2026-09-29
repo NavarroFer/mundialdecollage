@@ -12,6 +12,7 @@ import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatMoney } from '@/lib/i18n/format'
+import { OnboardingSteps } from '../onboarding-steps'
 import { EntryPicker } from './entry-picker'
 import { saveEntryChoice, startEntryCheckout } from './actions'
 
@@ -42,6 +43,7 @@ export default async function EntriesPage({
     return (
       <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
         <div className="w-full max-w-lg rounded-2xl bg-card p-8 text-center">
+          <OnboardingSteps current="signin" m={m} />
           <h1 className="font-display text-3xl uppercase">{m.entries.signInTitle}</h1>
           <p className="my-6 text-muted-foreground">{m.entries.signInBody}</p>
           <GoogleSignInButton next="/onboarding/obras" />
@@ -103,6 +105,7 @@ export default async function EntriesPage({
   return (
     <main className="bg-grain min-h-screen px-5 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-2xl">
+        <OnboardingSteps current="details" m={m} />
         <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">{m.entries.eyebrow}</p>
         <h1 className="font-display mt-3 text-center text-3xl tracking-tight text-ink uppercase sm:text-4xl">
           {hasPaid ? m.entries.titlePaid : m.entries.title}

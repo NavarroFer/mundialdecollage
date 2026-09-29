@@ -8,6 +8,7 @@ import { guessCountryCodeFromName } from '@/lib/participants'
 import { needsEntryChoice } from '@/lib/entries'
 import { site } from '@/lib/site'
 import { OnboardingForm } from './onboarding-form'
+import { OnboardingSteps } from './onboarding-steps'
 import { completeOnboarding } from './actions'
 import { ArtistConfirmation } from './artist-confirmation'
 import { OnboardingSignInButton } from '@/components/onboarding-sign-in-button'
@@ -48,10 +49,15 @@ export default async function OnboardingPage({
       <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
         <TrackView event="onboarding_signin_view" />
         <div className="w-full max-w-lg rounded-2xl bg-card p-8 text-center">
+          <OnboardingSteps current="signin" m={m} />
           <h1 className="font-display text-3xl uppercase">{m.onboarding.signInTitle}</h1>
           <p className="mt-6 text-muted-foreground">{m.onboarding.signInBody}</p>
           <p className="mt-4 mb-6 rounded-xl bg-collage-blue/5 p-4 text-sm text-ink">{m.onboarding.signInNeeds}</p>
           <OnboardingSignInButton />
+          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">{m.footer.googleWhy}</p>
+          <Link href="/politica-de-privacidad" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-collage-blue underline underline-offset-4">
+            {m.footer.privacy}
+          </Link>
         </div>
       </main>
     )
@@ -99,6 +105,7 @@ export default async function OnboardingPage({
       return (
         <main className="bg-grain min-h-screen px-5 py-12 sm:py-16">
           <div className="mx-auto w-full max-w-lg">
+            <OnboardingSteps current="details" m={m} />
             <p className="text-center text-sm font-bold tracking-widest text-collage-blue uppercase">{m.onboarding.welcomeEyebrow}</p>
             <h1 className="font-display mt-3 text-center text-3xl text-ink sm:text-4xl">{name ? fmt(m.onboarding.helloName, { name }) : m.onboarding.welcome}</h1>
             <p className="mt-4 text-center text-muted-foreground">{m.onboarding.existingBody}</p>
@@ -195,6 +202,7 @@ export default async function OnboardingPage({
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-lg">
+        <OnboardingSteps current="details" m={m} />
         <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">
           {hasLegacyMatch ? m.onboarding.welcomeEyebrow : m.onboarding.formEyebrow}
         </p>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ShareArtwork } from '@/components/share-artwork'
 import { getArtworkShareState } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
+import { OnboardingSteps } from '../onboarding-steps'
 
 export default async function ConfirmationPage() {
   if (!isSupabaseConfigured) redirect('/')
@@ -22,6 +23,7 @@ export default async function ConfirmationPage() {
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-lg rounded-2xl border-2 border-ink/10 bg-card p-8 text-center">
+        <OnboardingSteps current="confirmation" m={m} />
         <CheckCircle2 className="mx-auto size-12 text-collage-blue" aria-hidden="true" />
         <h1 className="font-display mt-5 text-3xl text-ink">{m.confirmation.doneTitle}</h1>
         <p className="mt-4 text-muted-foreground">{m.confirmation.doneBody}</p>

@@ -488,10 +488,40 @@ export function OnboardingForm({
               ? m.onboarding.confirmParticipation
               : m.onboarding.submit}
       </Button>
-      {uploading && (
-        <p role="status" className="text-center text-sm text-muted-foreground">
-          {m.onboarding.uploadNote}
-        </p>
+      {(uploading || pending) && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4"
+        >
+          <div className="flex items-center gap-3">
+            <Loader2 className="size-5 shrink-0 animate-spin text-collage-blue" aria-hidden="true" />
+            <p className="font-semibold text-ink">
+              {upload
+                ? upload.total > 1
+                  ? fmt(m.onboarding.uploadingProgress, { current: upload.current, total: upload.total })
+                  : m.onboarding.uploading
+                : m.common.confirming}
+            </p>
+          </div>
+          {upload && (
+            <>
+              <div
+                className="mt-3 h-2 overflow-hidden rounded-full bg-collage-blue/15"
+                role="progressbar"
+                aria-valuemin={1}
+                aria-valuemax={upload.total}
+                aria-valuenow={upload.current}
+              >
+                <div
+                  className="h-full rounded-full bg-collage-blue transition-[width]"
+                  style={{ width: `${(upload.current / upload.total) * 100}%` }}
+                />
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">{m.onboarding.uploadNote}</p>
+            </>
+          )}
+        </div>
       )}
     </form>
   )
