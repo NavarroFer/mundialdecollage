@@ -29,6 +29,7 @@ import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
 import { readGalleryReturn, readSharedArtwork } from '@/lib/gallery-return'
+import { readReferralParam, withReferral } from '@/lib/referral'
 import { track } from '@/lib/track'
 
 // Doesn't change over a session, so no subscription is needed — just a
@@ -100,7 +101,10 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
         window.history.replaceState(null, '', window.location.pathname)
         useInteractionStore.getState().open(shared)
       } else {
-        window.location.replace(`/obras/${encodeURIComponent(shared)}`)
+        // Keeping ?ref so the obra's page still greets the artist's guest.
+        const ref = readReferralParam(window.location.search)
+        const path = `/obras/${encodeURIComponent(shared)}`
+        window.location.replace(ref ? withReferral(path, ref) : path)
       }
       return
     }
@@ -160,6 +164,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       {!openId && <ThemePicker theme={theme} onChange={setTheme} />}
       {!isActive && !openId && !resuming && (
         <StartScreen
+          artworks={artworks}
           label={hasStarted ? m.gallery.resume : m.gallery.enter}
           showPresence={!hasStarted}
           hint={isTouchDevice ? m.gallery.hintTouch : m.gallery.hintDesktop}

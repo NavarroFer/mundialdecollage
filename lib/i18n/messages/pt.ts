@@ -324,6 +324,15 @@ const pt: Messages = {
     pending: 'Quando publicarmos sua obra, o link vai mostrá-la. Enquanto isso, poste a imagem nos seus stories e convide outros artistas.',
     badge: 'Obra participante',
     cta: 'Participe grátis até {date}',
+    invite: {
+      from: 'Você chegou pela obra de {name}.',
+      body: 'Você também faz collage? Participe grátis do Mundial.',
+      cta: 'Envie sua obra',
+    },
+  },
+  referral: {
+    joined: p({ one: 'Você trouxe {count} artista para o Mundial', other: 'Você trouxe {count} artistas para o Mundial' }),
+    joinedBody: 'Contamos quem se inscreveu pelos seus links. Continue compartilhando sua obra.',
   },
   gallery: {
     startEyebrow: 'MUNDIAL DE COLAGEM · GALERIA 3D',

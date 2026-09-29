@@ -329,6 +329,20 @@ const pl: Messages = {
     pending: 'Gdy opublikujemy Twoją pracę, link będzie ją pokazywał. Do tego czasu wrzuć obraz do relacji i zaproś innych artystów.',
     badge: 'Praca konkursowa',
     cta: 'Weź udział za darmo do {date}',
+    invite: {
+      from: 'Trafiasz tu dzięki pracy {name}.',
+      body: 'Też robisz kolaże? Weź udział w Mistrzostwach za darmo.',
+      cta: 'Wyślij swoją pracę',
+    },
+  },
+  referral: {
+    joined: p({
+      one: 'Dzięki Tobie do Mistrzostw dołączył {count} artysta',
+      few: 'Dzięki Tobie do Mistrzostw dołączyło {count} artystów',
+      many: 'Dzięki Tobie do Mistrzostw dołączyło {count} artystów',
+      other: 'Dzięki Tobie do Mistrzostw dołączyło {count} artysty',
+    }),
+    joinedBody: 'Liczymy każdego, kto zgłosił się przez Twoje linki. Udostępniaj dalej swoją pracę.',
   },
   gallery: {
     startEyebrow: 'MISTRZOSTWA ŚWIATA W KOLAŻU · GALERIA 3D',

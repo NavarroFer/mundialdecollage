@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { TrackedLink, TrackView } from '@/components/track'
@@ -12,6 +12,8 @@ import { ADMIN_EMAILS } from '@/lib/admin'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { completeMissingDetails } from '@/app/onboarding/actions'
 import { getArtworkShareState } from '@/lib/finalists'
+import { countReferrals } from '@/lib/referral-server'
+import { plural } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
 import type { Messages } from '@/lib/i18n/messages'
 
@@ -57,7 +59,10 @@ export async function ParticipationStatus() {
     .maybeSingle()
 
   if (!artwork) return null
-  const { isPublic } = await getArtworkShareState(artwork.slug)
+  // How many artists signed up through this one's shared links
+  // (lib/referral.ts) — shown next to the share buttons, as the reason to
+  // keep sharing.
+  const [{ isPublic }, referrals] = await Promise.all([getArtworkShareState(artwork.slug), countReferrals(user.id)])
 
   // /admin/obras can publish a legacy submission with no país (the
   // free-text import couldn't guess one) rather than block on it — this is
@@ -162,6 +167,16 @@ export async function ParticipationStatus() {
                   </Button>
                 </Link>
               </div>
+
+              {referrals > 0 && (
+                <div className="mt-6 flex items-start gap-3 rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4 text-left">
+                  <Users className="mt-0.5 h-5 w-5 shrink-0 text-collage-blue" aria-hidden="true" />
+                  <div>
+                    <p className="font-semibold text-ink">{plural(locale, referrals, m.referral.joined)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{m.referral.joinedBody}</p>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6">
                 <ShareArtwork

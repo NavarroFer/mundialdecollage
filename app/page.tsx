@@ -4,6 +4,7 @@ import { GalleryTour } from '@/components/gallery-tour'
 import { HeroSection } from '@/components/hero-section'
 import { FlagRibbon } from '@/components/flag-ribbon'
 import { ParticipationStatus } from '@/components/participation-status'
+import { ReferralInvite } from '@/components/referral-invite'
 import { BasesBanner } from '@/components/bases-banner'
 import { AboutSection } from '@/components/about-section'
 import { EditionSection } from '@/components/edition-section'
@@ -17,7 +18,8 @@ import { TrackView } from '@/components/track'
 // Renders per request so a new submission shows up without a redeploy.
 export const dynamic = 'force-dynamic'
 
-export default function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ ref?: string | string[] }> }) {
+  const { ref } = await searchParams
   return (
     <>
       <TrackView event="home_view" />
@@ -32,6 +34,13 @@ export default function Home() {
           <HeroSection />
           <FlagRibbon />
           <ParticipationStatus />
+          {/* An artist's guest (lib/referral.ts), in the slot ParticipationStatus
+              uses for the signed in — who get asked to finish there instead. */}
+          <ReferralInvite
+            refParam={ref}
+            hideForSignedIn
+            className="mx-auto max-w-4xl px-5 pt-10 sm:px-8 sm:pt-14"
+          />
           <BasesBanner />
           <EditionSection />
           <ParticipantsSection />

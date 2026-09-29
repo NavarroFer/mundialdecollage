@@ -327,6 +327,16 @@ const es = {
     pending: 'Cuando publiquemos tu obra, su link la va a mostrar. Mientras tanto, subí la imagen a tus historias e invitá a otros artistas.',
     badge: 'Obra participante',
     cta: 'Participá gratis hasta el {date}',
+    // The greeting for whoever arrives through a shared link (lib/referral.ts).
+    invite: {
+      from: 'Llegaste por la obra de {name}.',
+      body: '¿Vos también hacés collage? Participá gratis del Mundial.',
+      cta: 'Sumá tu obra',
+    },
+  },
+  referral: {
+    joined: p({ one: 'Sumaste {count} artista al Mundial', other: 'Sumaste {count} artistas al Mundial' }),
+    joinedBody: 'Contamos a quienes se inscribieron desde tus links. Seguí compartiendo tu obra.',
   },
   gallery: {
     startEyebrow: 'MUNDIAL DE COLLAGE · GALERÍA 3D',

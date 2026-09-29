@@ -3,13 +3,16 @@
 import { useState } from 'react'
 import { Share2 } from 'lucide-react'
 import { galleryArtworkPath } from '@/lib/gallery-return'
+import { withReferral } from '@/lib/referral'
 import { track } from '@/lib/track'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 
 // Every share brings someone new into the gallery, straight to this obra
 // (Game.tsx opens it, or its /obras page once it's no longer on the walls).
-// The phone's share sheet when there is one, else the link is copied.
+// The phone's share sheet when there is one, else the link is copied. The
+// link names the obra as the referrer (lib/referral.ts), so whoever opens it
+// is invited in on its artist's behalf.
 export function ArtworkShare({ slug, title, artist }: { slug: string; title: string; artist: string }) {
   const [copied, setCopied] = useState(false)
   const { m } = useI18n()
@@ -17,7 +20,7 @@ export function ArtworkShare({ slug, title, artist }: { slug: string; title: str
 
   async function share() {
     track('share_click')
-    const url = `${window.location.origin}${galleryArtworkPath(slug)}`
+    const url = `${window.location.origin}${withReferral(galleryArtworkPath(slug), slug)}`
     const text = fmt(t.text, { title, artist })
     try {
       if (navigator.share) {

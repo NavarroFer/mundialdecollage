@@ -179,6 +179,14 @@ export default async function PoliticaDePrivacidadPage() {
               cookies para las estadísticas de uso. No usamos cookies de seguimiento
               publicitario.
             </p>
+            <p>
+              Si llegás al Sitio por el link que compartió un artista, guardamos
+              durante 30 días una cookie (<code>mdc-ref</code>) con la dirección de su
+              obra — nada tuyo. Sirve para saludarte de su parte y, si después enviás
+              tu propia obra, para registrar junto a tu inscripción qué artista te
+              invitó. Ese artista ve cuántos artistas se sumaron por sus links, no
+              quiénes.
+            </p>
           </Section>
 
           <Section title="Cambios a esta política">
