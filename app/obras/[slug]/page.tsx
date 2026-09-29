@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Globe, Instagram } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Globe, Instagram } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { ShareArtwork } from '@/components/share-artwork'
 import { ReferralInvite } from '@/components/referral-invite'
+import { TrackView, TrackedLink } from '@/components/track'
+import { Button } from '@/components/ui/button'
 import { countryCodeToFlag } from '@/lib/participants'
-import { countryCodeToName, getArtworkShareState, getFinalistBySlug } from '@/lib/finalists'
+import { countryCodeToName, getArtworkShareState, getFinalistBySlug, getFinalists } from '@/lib/finalists'
+import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 
@@ -44,17 +47,28 @@ export default async function ObraPage({
   searchParams: Promise<{ ref?: string | string[] }>
 }) {
   const [{ slug }, { ref }] = await Promise.all([params, searchParams])
-  const [finalist, { locale, m }, shareState] = await Promise.all([
+  const [finalist, { locale, m }, shareState, finalists] = await Promise.all([
     getFinalistBySlug(slug),
     getI18n(),
     getArtworkShareState(slug),
+    getFinalists(),
   ])
 
   if (!finalist) notFound()
   const title = finalist.artworkTitle ?? m.common.untitled
+  const artistHref = `/artistas/${artistProfileSlug(finalist.name, finalist.profileId)}`
+  const relatedArtworks = finalists
+    .filter((artwork) => artwork.profileId === finalist.profileId && artwork.slug !== finalist.slug)
+    .slice(0, 3)
+  const currentIndex = finalists.findIndex((artwork) => artwork.slug === finalist.slug)
+  const previousArtwork = currentIndex > 0 ? finalists[currentIndex - 1] : undefined
+  const nextArtwork = currentIndex >= 0 && currentIndex < finalists.length - 1
+    ? finalists[currentIndex + 1]
+    : undefined
 
   return (
     <>
+      <TrackView event="artwork_page_view" />
       <SiteHeader />
       <main className="bg-background py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-5 sm:px-8">
@@ -88,7 +102,13 @@ export default async function ObraPage({
 
             <p className="mt-5 flex items-center gap-2 text-lg font-semibold text-ink">
               <span aria-hidden>{countryCodeToFlag(finalist.countryCode)}</span>
-              {finalist.name}
+              <TrackedLink
+                href={artistHref}
+                event="artwork_artist_profile_click"
+                className="underline decoration-2 underline-offset-4 hover:text-collage-blue"
+              >
+                {finalist.name}
+              </TrackedLink>
             </p>
             <p className="text-muted-foreground">{countryCodeToName(finalist.countryCode, locale)}</p>
 
@@ -123,6 +143,76 @@ export default async function ObraPage({
               <ShareArtwork slug={finalist.slug} title={title} name={finalist.name} {...shareState} />
             </div>
           </div>
+
+          {relatedArtworks.length > 0 && (
+            <section className="mt-14 border-t-2 border-ink/10 pt-10" aria-labelledby="related-artworks-title">
+              <h2 id="related-artworks-title" className="font-display text-2xl tracking-tight text-ink uppercase sm:text-3xl">
+                {m.collage.label} — {finalist.name}
+              </h2>
+              <div className="mt-6 grid gap-5 sm:grid-cols-3">
+                {relatedArtworks.map((artwork) => {
+                  const artworkTitle = artwork.artworkTitle ?? m.common.untitled
+                  return (
+                    <Link key={artwork.slug} href={`/obras/${artwork.slug}`} className="group overflow-hidden rounded-2xl border-2 border-ink/10 bg-card">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={artwork.imageUrl}
+                        alt={fmt(m.common.artworkBy, { title: artworkTitle, name: artwork.name })}
+                        className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        loading="lazy"
+                      />
+                      <p className="p-4 font-semibold text-ink group-hover:text-collage-blue">{artworkTitle}</p>
+                    </Link>
+                  )
+                })}
+              </div>
+              <TrackedLink
+                href={artistHref}
+                event="artwork_artist_profile_click"
+                className="mt-5 inline-flex min-h-11 items-center font-semibold text-collage-blue underline underline-offset-4"
+              >
+                {finalist.name}
+                <ArrowRight className="ml-2 size-4" aria-hidden="true" />
+              </TrackedLink>
+            </section>
+          )}
+
+          {(previousArtwork || nextArtwork) && (
+            <nav className="mt-14 grid grid-cols-2 gap-3 border-t-2 border-ink/10 pt-8" aria-label={m.collage.label}>
+              {previousArtwork ? (
+                <Link
+                  href={`/obras/${previousArtwork.slug}`}
+                  className="flex min-h-20 items-center gap-3 rounded-2xl border-2 border-ink/10 bg-card p-4 text-sm font-semibold text-ink hover:border-ink/25"
+                >
+                  <ArrowLeft className="size-5 shrink-0 text-collage-blue" aria-hidden="true" />
+                  <span className="line-clamp-2">{previousArtwork.artworkTitle ?? m.common.untitled}</span>
+                </Link>
+              ) : <span />}
+              {nextArtwork && (
+                <Link
+                  href={`/obras/${nextArtwork.slug}`}
+                  className="flex min-h-20 items-center justify-end gap-3 rounded-2xl border-2 border-ink/10 bg-card p-4 text-right text-sm font-semibold text-ink hover:border-ink/25"
+                >
+                  <span className="line-clamp-2">{nextArtwork.artworkTitle ?? m.common.untitled}</span>
+                  <ArrowRight className="size-5 shrink-0 text-collage-blue" aria-hidden="true" />
+                </Link>
+              )}
+            </nav>
+          )}
+
+          <section className="mt-14 rounded-3xl border-2 border-ink/10 bg-paper p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
+            <div>
+              <h2 className="font-display text-2xl tracking-tight text-ink uppercase sm:text-3xl">
+                {m.status.joinTitle}
+              </h2>
+              <p className="mt-2 max-w-xl text-muted-foreground">{m.status.joinBody}</p>
+            </div>
+            <Button asChild size="lg" variant="primary" className="mt-6 h-auto min-h-14 whitespace-normal py-3 sm:mt-0">
+              <TrackedLink href="/onboarding" event="artwork_participate_click">
+                {m.status.joinCta}
+              </TrackedLink>
+            </Button>
+          </section>
         </div>
       </main>
       <Footer />

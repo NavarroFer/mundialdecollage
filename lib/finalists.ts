@@ -16,6 +16,7 @@ export { countryCodeToName } from '@/lib/participants'
 // the query below. getFinalistBySlug() is the one exception: see its own
 // comment.
 export type Finalist = {
+  profileId: string
   slug: string
   name: string
   countryCode: string
@@ -28,7 +29,7 @@ export type Finalist = {
   website?: string
 }
 
-const SELECT_COLUMNS = 'slug, title, technique, image_url, profiles!inner(name, country_code, instagram, website)'
+const SELECT_COLUMNS = 'slug, title, technique, image_url, profiles!inner(id, name, country_code, instagram, website)'
 
 type FinalistRow = {
   slug: string | null
@@ -36,6 +37,7 @@ type FinalistRow = {
   technique: string | null
   image_url: string | null
   profiles: {
+    id: string | null
     name: string | null
     country_code: string | null
     instagram: string | null
@@ -45,10 +47,11 @@ type FinalistRow = {
 
 function rowToFinalist(row: FinalistRow): Finalist | undefined {
   const profile = row.profiles
-  if (!row.slug || !row.image_url || !profile?.name || !profile.country_code) {
+  if (!row.slug || !row.image_url || !profile?.id || !profile.name || !profile.country_code) {
     return undefined
   }
   return {
+    profileId: profile.id,
     slug: row.slug,
     name: profile.name,
     countryCode: profile.country_code,

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getSiteUrl } from '@/lib/site'
 import { getFinalists } from '@/lib/finalists'
 
@@ -21,5 +22,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }))
 
-  return [...staticRoutes, ...obraRoutes]
+  const seenArtists = new Set<string>()
+  const artistRoutes: MetadataRoute.Sitemap = finalists.flatMap((finalist) => {
+    if (seenArtists.has(finalist.profileId)) return []
+    seenArtists.add(finalist.profileId)
+    return [{
+      url: `${siteUrl}/artistas/${artistProfileSlug(finalist.name, finalist.profileId)}`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    }]
+  })
+
+  return [...staticRoutes, ...obraRoutes, ...artistRoutes]
 }

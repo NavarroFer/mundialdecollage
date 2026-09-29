@@ -19,7 +19,7 @@ import { getFinalists, getFinalistsByIds } from '@/lib/finalists'
 import { getDailyExhibition, getGalleryArtworks } from './gallery-artworks'
 
 const finalists: Finalist[] = Array.from({ length: 40 }, (_, index) => ({
-  slug: `obra-${index}`, name: `Artista ${index}`, countryCode: 'AR',
+  profileId: `profile-${index}`, slug: `obra-${index}`, name: `Artista ${index}`, countryCode: 'AR',
   artworkTitle: `Obra ${index}`, imageUrl: `/obra-${index}.jpg`,
 }))
 
