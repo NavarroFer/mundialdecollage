@@ -234,11 +234,11 @@ function ArLinks({ slug, countryCode }: { slug: string; countryCode?: string }) 
         </label>
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
-        <a href={`/ar/${slug}/tarjetas?formato=obra&lang=${lang}`} className={link}>
+        <a href={`/ar/${slug}/tarjetas?formato=obra&idioma=${lang}`} className={link}>
           <Download className="h-4 w-4" />
           PDF obra + QR
         </a>
-        <a href={`/ar/${slug}/tarjetas?formato=tarjeta&lang=${lang}`} className={link}>
+        <a href={`/ar/${slug}/tarjetas?formato=tarjeta&idioma=${lang}`} className={link}>
           <Download className="h-4 w-4" />
           PDF tarjeta del Mundial
         </a>

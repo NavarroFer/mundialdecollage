@@ -10,7 +10,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 // Mundial logo card the obra floats over.
 //
 // The cards speak the artist's language (they hand them out where they live);
-// ?lang= picks another.
+// ?idioma= picks another (not ?lang=: proxy.ts takes that one to switch
+// the whole site's language).
 //
 // Signed-in people only, linked from the admin obra viewer for now; artists
 // will get them from their profile, and later the subscription (ROADMAP.md).
@@ -24,7 +25,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const format: CardFormat = url.searchParams.get('formato') === 'tarjeta' ? 'tarjeta' : 'obra'
   const finalist = await getFinalistBySlug(slug)
   if (!finalist) return new Response(null, { status: 404 })
-  const lang = url.searchParams.get('lang')
+  const lang = url.searchParams.get('idioma')
   const locale = isLocale(lang) ? lang : (localeForCountry(finalist.countryCode) ?? DEFAULT_LOCALE)
   const m = MESSAGES[locale]
 
