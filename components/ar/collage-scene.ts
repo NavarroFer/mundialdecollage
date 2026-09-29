@@ -8,26 +8,12 @@ import { centroid, cutIntoPieces, seededRandom, type Polygon } from '@/lib/ar/pi
 const PIECE_COUNT = 16
 const PAPER_EDGE = 0.006
 
-// One loop of the effect, in seconds: the pieces lift off the paper, float,
-// settle back into place and rest before starting over.
-const LIFT_END = 1.4
-const HOLD_END = 5
-const SETTLE_END = 6.4
-const CYCLE = 7.6
-// Pause after the obra is found, so the print is seen whole before it breaks up.
-const START_DELAY = 0.6
+// Seconds for a piece to fly off the paper or settle back into its hole.
+const BREAK_DURATION = 1.2
+const MEND_DURATION = 1
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)
-
-function envelope(t: number): number {
-  if (t < 0) return 0
-  const x = t % CYCLE
-  if (x < LIFT_END) return easeOutCubic(x / LIFT_END)
-  if (x < HOLD_END) return 1
-  if (x < SETTLE_END) return 1 - easeInOutCubic((x - HOLD_END) / (SETTLE_END - HOLD_END))
-  return 0
-}
 
 type Piece = {
   group: THREE.Group
@@ -39,6 +25,12 @@ type Piece = {
   tilt: { x: number; y: number; z: number }
   phase: number
   delay: number
+  // 0 = in its place on the print, 1 = fully lifted. Tweens from `from` to
+  // `to` starting at `startedAt`, so a tap mid-way reverses from where it is.
+  progress: number
+  from: number
+  to: number
+  startedAt: number
 }
 
 function pieceGeometry(poly: Polygon, center: { x: number; y: number }, aspect: number, grow = 0) {
@@ -119,17 +111,45 @@ export class CollageScene {
         tilt: { x: (random() - 0.5) * 0.4, y: (random() - 0.5) * 0.4, z: (random() - 0.5) * 0.35 },
         phase: random() * Math.PI * 2,
         delay: random() * 0.35,
+        progress: 0,
+        from: 0,
+        to: 0,
+        startedAt: 0,
       })
     }
-    this.update(0, 0)
+    this.update(0)
   }
 
-  // `sinceFound`: seconds since the print was recognized; `time`: a running
-  // clock for the idle float.
-  update(sinceFound: number, time: number) {
+  get broken() {
+    return this.pieces[0]?.to === 1
+  }
+
+  // Breaks the obra apart, or puts it back together if it's already broken.
+  toggle(time: number) {
+    const to = this.broken ? 0 : 1
+    for (const piece of this.pieces) {
+      piece.from = piece.progress
+      piece.to = to
+      piece.startedAt = time
+    }
+  }
+
+  // Back to whole with no animation, for when the print is found again.
+  reset() {
+    for (const piece of this.pieces) piece.progress = piece.from = piece.to = 0
+  }
+
+  // `time`: a running clock in seconds.
+  update(time: number) {
     let open = 0
     for (const piece of this.pieces) {
-      const p = envelope(sinceFound - START_DELAY - piece.delay)
+      if (piece.progress !== piece.to) {
+        const breaking = piece.to > piece.from
+        const t = Math.min(1, Math.max(0, (time - piece.startedAt - (breaking ? piece.delay : 0)) / (breaking ? BREAK_DURATION : MEND_DURATION)))
+        const eased = breaking ? easeOutCubic(t) : easeInOutCubic(t)
+        piece.progress = t === 1 ? piece.to : piece.from + (piece.to - piece.from) * eased
+      }
+      const p = piece.progress
       open = Math.max(open, p)
       // At rest the real print is the best copy of itself; tracking jitter
       // would only make a flat overlay swim on top of it.

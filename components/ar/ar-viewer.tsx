@@ -44,7 +44,9 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stopRef = useRef<(() => void) | null>(null)
+  const toggleRef = useRef<(() => void) | null>(null)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
+  const [broken, setBroken] = useState(false)
 
   useEffect(() => () => stopRef.current?.(), [])
 
@@ -64,6 +66,7 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
       stopped = true
       cancelAnimationFrame(frame)
       if (onResize) window.removeEventListener('resize', onResize)
+      toggleRef.current = null
       controller?.dispose()
       stream?.getTracks().forEach((t) => t.stop())
       collage?.dispose()
@@ -99,7 +102,10 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
 
       const anchorMatrix = new THREE.Matrix4()
       let postMatrix = new THREE.Matrix4()
-      let foundAt: number | null = null
+      let tracking = false
+      let lostAt = 0
+      const clock = performance.now()
+      const seconds = () => (performance.now() - clock) / 1000
 
       controller = new mindar.Controller({
         inputWidth: video.videoWidth,
@@ -109,15 +115,24 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
           if (update.type !== 'updateMatrix' || !collage) return
           if (update.worldMatrix === null) {
             collage.anchor.visible = false
-            if (foundAt !== null) setStatus({ kind: 'scanning' })
-            foundAt = null
+            if (tracking) {
+              tracking = false
+              lostAt = performance.now()
+              setStatus({ kind: 'scanning' })
+            }
             return
           }
           anchorMatrix.fromArray(update.worldMatrix).multiply(postMatrix)
           collage.anchor.matrix.copy(anchorMatrix)
           collage.anchor.visible = true
-          if (foundAt === null) {
-            foundAt = performance.now()
+          if (!tracking) {
+            tracking = true
+            // A tracking hiccup keeps the pieces where they were; pointing at
+            // the print again after a while starts over from the whole obra.
+            if (performance.now() - lostAt > 2000) {
+              collage.reset()
+              setBroken(false)
+            }
             setStatus({ kind: 'tracking' })
           }
         },
@@ -150,10 +165,15 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
       controller.processVideo(video)
       setStatus({ kind: 'scanning' })
 
-      const clock = performance.now()
+      toggleRef.current = () => {
+        if (!tracking || !collage) return
+        collage.toggle(seconds())
+        setBroken(collage.broken)
+        navigator.vibrate?.(15)
+      }
+
       const render = () => {
-        const now = performance.now()
-        collage!.update(foundAt === null ? 0 : (now - foundAt) / 1000, (now - clock) / 1000)
+        collage!.update(seconds())
         renderer!.render(scene, camera)
         frame = requestAnimationFrame(render)
       }
@@ -167,7 +187,13 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
   const running = status.kind !== 'idle' && status.kind !== 'error'
 
   return (
-    <div ref={containerRef} className="fixed inset-0 overflow-hidden bg-ink text-white">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 overflow-hidden bg-ink text-white"
+      onClick={(event) => {
+        if (!(event.target as Element).closest('a, button')) toggleRef.current?.()
+      }}
+    >
       {/* max-w-none: Tailwind's reset caps videos at 100% width, which would
           letterbox the feed instead of covering the screen like the 3D layer. */}
       <video ref={videoRef} muted playsInline className={running ? 'max-w-none' : 'hidden'} />
@@ -229,6 +255,9 @@ export function ArViewer({ slug, imageUrl, title, name, country, flag }: Props) 
             <p className="font-display tracking-tight uppercase">{title}</p>
             <p className="text-sm text-white/70">
               {flag} {name} · {country}
+            </p>
+            <p className="mt-2 text-xs font-semibold tracking-wide text-collage-yellow uppercase">
+              {broken ? 'Tocá para volver a armarla' : 'Tocá la pantalla para romperla'}
             </p>
           </div>
         </div>
