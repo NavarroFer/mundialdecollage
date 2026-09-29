@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Dev only: lets a phone open `next dev` through a Cloudflare quick tunnel
+  // (https is required for the camera on /ar/[slug]).
+  allowedDevOrigins: ['*.trycloudflare.com'],
   images: {
     // Serve stored images directly: Vercel's optimization endpoint can return
     // 402 when its image allowance is unavailable. Imports are resized on upload.
