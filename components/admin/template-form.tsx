@@ -4,7 +4,12 @@ import { useState } from 'react'
 import { Save } from 'lucide-react'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { EmailBlockEditor } from '@/components/admin/email-block-editor'
-import { createDefaultEmailDocument, renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
+import {
+  createDefaultEmailDocument,
+  renderEmailDocumentToHtml,
+  renderEmailPreviewHtml,
+  type EmailDocument,
+} from '@/lib/email-blocks'
 import { TRANSLATED_LOCALES } from '@/lib/i18n/locales'
 
 export function TemplateForm({
@@ -30,7 +35,7 @@ export function TemplateForm({
   const [doc, setDoc] = useState<EmailDocument>(defaultValues?.body_json ?? createDefaultEmailDocument())
   const [legacyHtml, setLegacyHtml] = useState(defaultValues?.body_html ?? '')
 
-  const previewHtml = isLegacyHtml ? legacyHtml : renderEmailDocumentToHtml(doc)
+  const previewHtml = renderEmailPreviewHtml(isLegacyHtml ? legacyHtml : renderEmailDocumentToHtml(doc))
 
   return (
     <form action={action} className="grid gap-6 md:grid-cols-2">
@@ -112,7 +117,10 @@ export function TemplateForm({
 
       <div>
         <p className="text-sm font-semibold text-ink">Vista previa</p>
-        <div className="mt-1 h-full min-h-[400px] overflow-auto rounded-xl border-2 border-ink/15 bg-white p-4">
+        <p className="mt-1 text-xs text-muted-foreground">
+          Las etiquetas se completan con datos de ejemplo; al enviar, usan los datos reales de cada contacto.
+        </p>
+        <div className="mt-2 h-full min-h-[400px] overflow-auto rounded-xl border-2 border-ink/15 bg-white p-4">
           <div
             dangerouslySetInnerHTML={{
               __html: previewHtml || '<p style="color:#999">Agregá bloques para ver la vista previa acá.</p>',

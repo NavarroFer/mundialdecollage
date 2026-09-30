@@ -116,6 +116,39 @@ function escapeHtml(value: string) {
 
 const NOMBRE_TOKEN = /\{\{\s*nombre\s*\}\}/gi
 
+// Values used only in the admin preview. They make system-template tags
+// readable without accidentally looking like data from a real contact.
+const PREVIEW_TAG_VALUES: Record<string, string> = {
+  nombre: 'Camila Fernández',
+  obra: 'La ciudad que imaginé',
+  likes: '12',
+  likes_total: '84',
+  comentarios: '“Qué hermosa composición.” — Julieta',
+  link_obra: `${getSiteUrl()}/galeria-3d?obra=ejemplo`,
+  email: 'camila.fernandez@example.com',
+  pais: 'Argentina',
+  país: 'Argentina',
+  ciudad: 'Mar del Plata',
+  fecha: '15 de octubre',
+}
+
+function previewValueForTag(tag: string) {
+  const normalized = tag.trim().toLocaleLowerCase('es-AR')
+  const value = PREVIEW_TAG_VALUES[normalized]
+  if (value) return value
+
+  // A new tag still renders as something meaningful while its eventual
+  // delivery data is being implemented, e.g. {{nombre_evento}} becomes
+  // "Nombre evento de ejemplo" rather than a bare template token.
+  const label = normalized.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim()
+  return `${label.charAt(0).toLocaleUpperCase('es-AR')}${label.slice(1)} de ejemplo`
+}
+
+/** Replaces merge tags with safe, coherent sample data in the admin preview. */
+export function renderEmailPreviewHtml(html: string): string {
+  return html.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (_match, tag: string) => escapeHtml(previewValueForTag(tag)))
+}
+
 // Fills in the {{nombre}} merge tag the default template's greeting uses
 // (createDefaultEmailDocument above) with each recipient's name at send
 // time. Without a name, drop the token along with an adjacent comma so

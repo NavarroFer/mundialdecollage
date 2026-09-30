@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createDefaultEmailDocument, renderEmailDocumentToHtml, type EmailDocument } from './email-blocks'
+import { createDefaultEmailDocument, renderEmailDocumentToHtml, renderEmailPreviewHtml, type EmailDocument } from './email-blocks'
 
 // The block editor lets admins type free-form text into heading/text blocks —
 // this is the one place that turns it into HTML, so it's also the one place
@@ -56,5 +56,20 @@ describe('renderEmailDocumentToHtml', () => {
     expect(doc.blocks.length).toBeGreaterThan(0)
     const html = renderEmailDocumentToHtml(doc)
     expect(html).toContain('{{nombre}}')
+  })
+})
+
+describe('renderEmailPreviewHtml', () => {
+  it('fills known delivery tags with coherent sample data', () => {
+    const preview = renderEmailPreviewHtml('Hola {{ nombre }}: {{obra}} tiene {{likes}} likes. {{link_obra}}')
+    expect(preview).toContain('Camila Fernández')
+    expect(preview).toContain('La ciudad que imaginé')
+    expect(preview).toContain('12 likes')
+    expect(preview).toContain('/galeria-3d?obra=ejemplo')
+    expect(preview).not.toContain('{{')
+  })
+
+  it('gives an unknown tag a readable sample value and escapes it safely', () => {
+    expect(renderEmailPreviewHtml('{{nombre_<tag>}}')).toBe('Nombre &lt;tag&gt; de ejemplo')
   })
 })
