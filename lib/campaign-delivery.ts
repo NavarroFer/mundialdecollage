@@ -5,12 +5,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createResendClient, isValidEmail, RESEND_BATCH_SIZE } from '@/lib/resend'
 import { site } from '@/lib/site'
-import { personalizeHtml } from '@/lib/email-blocks'
+import { personalizeHtmlWithValues } from '@/lib/email-blocks'
 import { contactLocale, emailFor, withUnsubscribeFooter, type EmailTranslations } from '@/lib/email-translation'
 import { audienceContacts, parseAudience } from '@/lib/campaign-audience'
 import type { Locale } from '@/lib/i18n/locales'
+import { countryCodeToName } from '@/lib/participants'
+import type { ProfileReviewData } from '@/lib/campaign-audience'
 
-export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale }
+export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData }
 
 export type DeliverableCampaign = {
   id: string
@@ -118,7 +120,7 @@ export async function deliverCampaign(
             from: site.mailFrom,
             to: contact.email,
             subject: email.subject,
-            html: withUnsubscribeFooter(personalizeHtml(email.html, contact.name), contact.id, email.locale),
+            html: withUnsubscribeFooter(personalizeHtmlWithValues(email.html, campaignRecipientValues(contact)), contact.id, email.locale),
           }
         }),
       )
@@ -170,4 +172,16 @@ export async function deliverCampaign(
   }
 
   return { sentCount, failedCount, firstError }
+}
+
+export function campaignRecipientValues(contact: CampaignRecipient): Record<string, string | null | undefined> {
+  const review = contact.review
+  const missing = review?.missingFields ?? []
+  return {
+    nombre: review?.artistName || contact.name,
+    nombre_dato: review?.artistName || 'Sin completar',
+    pais_dato: review?.countryCode ? countryCodeToName(review.countryCode, contact.locale) : 'Sin completar',
+    obra_dato: review?.artworkTitle || 'Sin título',
+    datos_faltantes: missing.length ? missing.join(', ') : 'Sólo falta tu confirmación',
+  }
 }

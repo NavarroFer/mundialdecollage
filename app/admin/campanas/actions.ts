@@ -13,7 +13,7 @@ import {
   getMailFromDomain,
 } from '@/lib/resend'
 import { site } from '@/lib/site'
-import { isEmailDocument, personalizeHtml } from '@/lib/email-blocks'
+import { isEmailDocument, personalizeHtmlWithValues, renderEmailPreviewHtml } from '@/lib/email-blocks'
 import {
   emailFor,
   emailTextsFingerprint,
@@ -25,7 +25,7 @@ import {
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
 import { parseAudience } from '@/lib/campaign-audience'
-import { campaignRecipients, chunk, deliverCampaign } from '@/lib/campaign-delivery'
+import { campaignRecipientValues, campaignRecipients, chunk, deliverCampaign } from '@/lib/campaign-delivery'
 import { parseScheduleDay } from '@/lib/campaign-schedule'
 import { DEFAULT_LOCALE, isLocale, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -247,7 +247,7 @@ export async function sendTestEmail(formData: FormData) {
     from: site.mailFrom,
     to: testEmail,
     subject: `[PRUEBA] ${email.subject}`,
-    html: withUnsubscribeFooter(personalizeHtml(email.html, null), 'prueba', email.locale),
+    html: withUnsubscribeFooter(renderEmailPreviewHtml(email.html), 'prueba', email.locale),
   })
 
   if (error) {
@@ -315,7 +315,7 @@ export async function retryFailedSends(formData: FormData) {
     .eq('id', campaignId)
     .neq('status', 'sending')
     .gt('failed_count', 0)
-    .select('id, subject, body_html, body_json, translations, recipient_count, sent_count, failed_count')
+    .select('id, subject, body_html, body_json, translations, audience, recipient_count, sent_count, failed_count')
     .maybeSingle()
 
   if (!campaign) {
@@ -328,6 +328,9 @@ export async function retryFailedSends(formData: FormData) {
   let firstError: string | null = null
 
   try {
+    const { recipients: currentRecipients, error: recipientError } = await campaignRecipients(supabase, campaign.audience)
+    if (recipientError) throw new Error(`No se pudieron reconstruir los datos personalizados: ${recipientError}`)
+    const recipientByContact = new Map(currentRecipients.map((recipient) => [recipient.id, recipient]))
     const { data: failedSends } = await supabase
       .from('campaign_sends')
       .select('id, email, locale, contact:contacts(id, name, subscribed)')
@@ -339,7 +342,11 @@ export async function retryFailedSends(formData: FormData) {
       email: string
       locale: string | null
       contact: { id: string; name: string | null; subscribed: boolean } | null
-    }[]).filter((send) => send.contact?.subscribed && isValidEmail(send.email))
+    }[]).filter((send) =>
+      send.contact?.subscribed
+      && isValidEmail(send.email)
+      && (campaign.audience !== 'profile_review' || recipientByContact.has(send.contact.id)),
+    )
     skippedCount = (failedSends?.length ?? 0) - retryable.length
 
     const translations = (campaign.translations ?? {}) as EmailTranslations
@@ -369,7 +376,16 @@ export async function retryFailedSends(formData: FormData) {
             from: site.mailFrom,
             to: send.email,
             subject: email.subject,
-            html: withUnsubscribeFooter(personalizeHtml(email.html, send.contact!.name), send.contact!.id, email.locale),
+            html: withUnsubscribeFooter(
+              personalizeHtmlWithValues(
+                email.html,
+                recipientByContact.has(send.contact!.id)
+                  ? campaignRecipientValues(recipientByContact.get(send.contact!.id)!)
+                  : { nombre: send.contact!.name },
+              ),
+              send.contact!.id,
+              email.locale,
+            ),
           }
         }),
       )

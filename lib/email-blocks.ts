@@ -116,6 +116,11 @@ function escapeHtml(value: string) {
 
 const NOMBRE_TOKEN = /\{\{\s*nombre\s*\}\}/gi
 
+function tagPattern(tag: string) {
+  const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`\\{\\{\\s*${escaped}\\s*\\}\\}`, 'gi')
+}
+
 // Values used only in the admin preview. They make system-template tags
 // readable without accidentally looking like data from a real contact.
 const PREVIEW_TAG_VALUES: Record<string, string> = {
@@ -130,6 +135,10 @@ const PREVIEW_TAG_VALUES: Record<string, string> = {
   país: 'Argentina',
   ciudad: 'Mar del Plata',
   fecha: '15 de octubre',
+  nombre_dato: 'Camila Fernández',
+  pais_dato: 'Argentina',
+  obra_dato: 'La ciudad que imaginé',
+  datos_faltantes: 'confirmar el país y el título de la obra',
 }
 
 function previewValueForTag(tag: string) {
@@ -168,6 +177,19 @@ export function personalizeHtml(html: string, name: string | null | undefined): 
     .replace(/,\s*\{\{\s*nombre\s*\}\}\s?/gi, '')
     .replace(NOMBRE_TOKEN, '')
     .replace(/[ \t]{2,}/g, ' ')
+}
+
+/** Replaces arbitrary merge tags with escaped per-recipient values. */
+export function personalizeHtmlWithValues(
+  html: string,
+  values: Record<string, string | null | undefined>,
+): string {
+  let personalized = personalizeHtml(html, values.nombre)
+  for (const [tag, value] of Object.entries(values)) {
+    if (tag.toLocaleLowerCase('es-AR') === 'nombre') continue
+    personalized = personalized.replace(tagPattern(tag), () => escapeHtml(value?.trim() || '—'))
+  }
+  return personalized
 }
 
 // Plain-text blocks only ever need line breaks preserved — anything richer

@@ -39,15 +39,15 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   confirmar_datos: {
     name: 'Confirmación de datos: revisá tu participación',
     subject: '¿Revisamos tus datos para el Mundial de Collage?',
-    description: 'Invita a cada artista a iniciar sesión, revisar los datos que tenemos de su participación y corregirlos si hace falta. El botón abre la confirmación segura con Google.',
+    description: 'Para el público «Datos por confirmar». Personaliza {{nombre_dato}}, {{pais_dato}}, {{obra_dato}} y {{datos_faltantes}} para cada artista. El botón abre la confirmación segura con Google.',
     createDocument: (siteUrl) => ({
       blocks: [
         logo(siteUrl),
         { id: nextBlockId(), type: 'spacer', size: 'sm' },
         { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}}, queremos confirmar tus datos', align: 'left', size: 'md' },
-        { id: nextBlockId(), type: 'text', text: 'Estamos preparando la próxima etapa del Mundial de Collage. Entrá para revisar el nombre, país y título de obra que tenemos asociados a tu participación.', align: 'left' },
-        { id: nextBlockId(), type: 'text', text: 'Si algo cambió o falta un dato, podés editarlo ahí mismo. Si está todo bien, sólo confirmalo: nos ayuda a que tu obra y tu crédito aparezcan correctamente.', align: 'left' },
-        { id: nextBlockId(), type: 'button', text: 'Revisar mis datos', url: `${siteUrl}/onboarding`, align: 'left', color: 'red' },
+        { id: nextBlockId(), type: 'text', text: 'Estos son los datos que tenemos hoy:\n\nNombre: {{nombre_dato}}\nPaís: {{pais_dato}}\nObra: {{obra_dato}}', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Necesitamos revisar: {{datos_faltantes}}. Si algo está mal o incompleto, podés corregirlo ahí mismo. Si está todo bien, sólo confirmalo.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Corregir o confirmar mis datos', url: `${siteUrl}/onboarding`, align: 'left', color: 'red' },
         { id: nextBlockId(), type: 'text', text: 'Por seguridad, el botón te va a pedir ingresar con la misma cuenta de Google que usaste para participar.', align: 'left' },
         ...footer(),
       ],
@@ -140,7 +140,26 @@ export async function ensureSystemTemplate(db: SupabaseClient, key: SystemTempla
   const find = () => db.from('templates').select(COLUMNS).eq('system_key', key).maybeSingle()
 
   const { data: existing } = await find()
-  if (existing) return existing as StoredTemplate
+  if (existing) {
+    // Upgrade the short-lived generic draft shipped before personalized
+    // profile-review tags existed. Once personalized (or manually edited),
+    // the stored version remains the source of truth like every template.
+    if (key === 'confirmar_datos' && existing.body_html.includes('nombre, país y título de obra')) {
+      const definition = SYSTEM_TEMPLATES[key]
+      const doc = definition.createDocument(getSiteUrl())
+      const { data: upgraded } = await db.from('templates').update({
+        name: definition.name,
+        subject: definition.subject,
+        body_json: doc,
+        body_html: renderEmailDocumentToHtml(doc),
+        translations: {},
+        translations_source: null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', existing.id).select(COLUMNS).single()
+      if (upgraded) return upgraded as StoredTemplate
+    }
+    return existing as StoredTemplate
+  }
 
   const definition = SYSTEM_TEMPLATES[key]
   const doc = definition.createDocument(getSiteUrl())

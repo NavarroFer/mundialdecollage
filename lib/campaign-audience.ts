@@ -15,6 +15,11 @@ export const CAMPAIGN_AUDIENCES = [
     // /onboarding.
     description: 'Entraron con Google pero no mandaron su obra (suscriptos, sin admins).',
   },
+  {
+    value: 'profile_review',
+    label: 'Datos por confirmar',
+    description: 'Artistas con obra que todavía deben confirmar o completar nombre, país o título.',
+  },
 ] as const
 
 export type CampaignAudience = (typeof CAMPAIGN_AUDIENCES)[number]['value']
@@ -52,13 +57,48 @@ export function contactsWithoutArtwork<T extends { email: string }>(
 export async function audienceContacts(
   supabase: SupabaseClient,
   audience: CampaignAudience,
-): Promise<{ contacts: { id: string; email: string; name: string | null }[]; error: string | null }> {
+): Promise<{ contacts: Array<{ id: string; email: string; name: string | null; review?: ProfileReviewData }>; error: string | null }> {
   const { data: subscribed, error } = await supabase.from('contacts').select('id, email, name').eq('subscribed', true)
   if (error) return { contacts: [], error: error.message }
   if (audience === 'subscribed') return { contacts: subscribed ?? [], error: null }
+
+  if (audience === 'profile_review') {
+    const { data, error: reviewError } = await supabase.rpc('profile_review_contacts')
+    if (reviewError) return { contacts: [], error: reviewError.message }
+    const reviewByContact = new Map(
+      ((data ?? []) as ProfileReviewRow[]).map((row) => [row.contact_id, {
+        artistName: row.artist_name,
+        countryCode: row.country_code,
+        artworkTitle: row.artwork_title,
+        missingFields: row.missing_fields ?? [],
+      }]),
+    )
+    return {
+      contacts: (subscribed ?? []).flatMap((contact) => {
+        const review = reviewByContact.get(contact.id)
+        return review ? [{ ...contact, review }] : []
+      }),
+      error: null,
+    }
+  }
 
   const { data: accounts, error: accountsError } = await supabase.rpc('accounts_without_artwork_emails')
   if (accountsError) return { contacts: [], error: accountsError.message }
   const emails = ((accounts ?? []) as { email: string | null }[]).flatMap((row) => (row.email ? [row.email] : []))
   return { contacts: contactsWithoutArtwork(subscribed ?? [], emails), error: null }
+}
+
+export type ProfileReviewData = {
+  artistName: string | null
+  countryCode: string | null
+  artworkTitle: string | null
+  missingFields: string[]
+}
+
+type ProfileReviewRow = {
+  contact_id: string
+  artist_name: string | null
+  country_code: string | null
+  artwork_title: string | null
+  missing_fields: string[] | null
 }

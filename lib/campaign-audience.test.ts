@@ -5,6 +5,7 @@ describe('parseAudience', () => {
   it('defaults to every subscriber for anything unknown', () => {
     expect(parseAudience('no_artwork')).toBe('no_artwork')
     expect(parseAudience('subscribed')).toBe('subscribed')
+    expect(parseAudience('profile_review')).toBe('profile_review')
     expect(parseAudience('everyone')).toBe('subscribed')
     expect(parseAudience(undefined)).toBe('subscribed')
   })
@@ -12,6 +13,7 @@ describe('parseAudience', () => {
   it('labels campaigns saved before audiences existed as every subscriber', () => {
     expect(audienceLabel(null)).toBe('Todos los suscriptos')
     expect(audienceLabel('no_artwork')).toBe('Cuentas sin obra')
+    expect(audienceLabel('profile_review')).toBe('Datos por confirmar')
   })
 })
 

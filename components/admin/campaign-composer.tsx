@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Send, FlaskConical, Languages, CalendarClock } from 'lucide-react'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { EmailBlockEditor } from '@/components/admin/email-block-editor'
-import { renderEmailDocumentToHtml, type EmailDocument } from '@/lib/email-blocks'
+import { renderEmailDocumentToHtml, renderEmailPreviewHtml, type EmailDocument } from '@/lib/email-blocks'
 import { translationState, type EmailTranslations } from '@/lib/email-translation'
 import { LOCALE_INFO, LOCALES, type Locale } from '@/lib/i18n/locales'
 import { formatScheduleDay, SCHEDULED_SEND_TIME_LABEL } from '@/lib/campaign-schedule'
@@ -264,7 +264,7 @@ export function CampaignComposer({
         <div className="mt-1 h-full min-h-[400px] overflow-auto rounded-xl border-2 border-ink/15 bg-white p-4">
           <div
             dangerouslySetInnerHTML={{
-              __html: bodyHtml || '<p style="color:#999">Escribí el cuerpo para ver la vista previa acá.</p>',
+              __html: bodyHtml ? renderEmailPreviewHtml(bodyHtml) : '<p style="color:#999">Escribí el cuerpo para ver la vista previa acá.</p>',
             }}
           />
         </div>
