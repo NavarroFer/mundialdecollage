@@ -90,7 +90,7 @@ export async function SiteHeader() {
         <nav className="flex items-center gap-6 text-sm font-semibold text-ink/70" aria-label={m.header.nav}>
           <Link href="/tienda" className="flex min-h-11 items-center gap-1.5 whitespace-nowrap text-collage-blue hover:opacity-80">
             <Store className="h-4 w-4" aria-hidden="true" />
-            Shop
+            {m.header.shop}
           </Link>
           <Link href="/#participantes" className="hidden transition-colors duration-300 hover:text-ink md:block">
             {m.header.participants}

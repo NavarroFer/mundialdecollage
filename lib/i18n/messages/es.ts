@@ -36,6 +36,7 @@ const es = {
   },
   header: {
     nav: 'Navegación principal',
+    shop: 'Tienda',
     workshop: 'Taller',
     participants: 'Participantes',
     gallery3d: 'Galería 3D',

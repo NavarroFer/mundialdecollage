@@ -35,6 +35,7 @@ const ru: Messages = {
   },
   header: {
     nav: 'Основная навигация',
+    shop: 'Магазин',
     workshop: 'Мастерская',
     participants: 'Участники',
     gallery3d: '3D-галерея',

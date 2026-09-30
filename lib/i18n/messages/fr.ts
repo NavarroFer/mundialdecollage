@@ -35,6 +35,7 @@ const fr: Messages = {
   },
   header: {
     nav: 'Navigation principale',
+    shop: 'Boutique',
     workshop: 'Atelier',
     participants: 'Participants',
     gallery3d: 'Galerie 3D',

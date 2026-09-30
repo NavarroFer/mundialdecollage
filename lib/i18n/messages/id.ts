@@ -35,6 +35,7 @@ const id: Messages = {
   },
   header: {
     nav: 'Navigasi utama',
+    shop: 'Toko',
     workshop: 'Lokakarya',
     participants: 'Peserta',
     gallery3d: 'Galeri 3D',
