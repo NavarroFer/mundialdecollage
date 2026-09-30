@@ -3,7 +3,8 @@
 // that sends scheduled ones (app/api/cron/campanas). Works with either the
 // admin's own client or the service-role one.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createResendClient, isValidEmail, RESEND_BATCH_SIZE } from '@/lib/resend'
+import { isValidEmail } from '@/lib/resend'
+import { sendBrevoCampaignEmail } from '@/lib/brevo'
 import { site } from '@/lib/site'
 import { personalizeHtmlWithValues } from '@/lib/email-blocks'
 import { contactLocale, emailFor, withUnsubscribeFooter, type EmailTranslations } from '@/lib/email-translation'
@@ -83,12 +84,8 @@ export async function deliverCampaign(
   let firstError: string | null = null
 
   try {
-    const resend = createResendClient()
-
-    // A malformed address fails Resend's *entire* batch.send call, marking
-    // every recipient in that batch as failed even though only one was bad.
-    // Screen those out up front so one bad row in `contacts` can't take down
-    // sends to everyone else.
+    // Screen malformed addresses up front. Brevo is called one recipient at a
+    // time here because each campaign is personalised and language-specific.
     const validRecipients = recipients.filter((contact) => isValidEmail(contact.email))
     const invalidRecipients = recipients.filter((contact) => !isValidEmail(contact.email))
 
@@ -107,53 +104,22 @@ export async function deliverCampaign(
       )
     }
 
-    for (const batch of chunk(validRecipients, RESEND_BATCH_SIZE)) {
-      // The Resend SDK never throws for an API-level failure (bad key,
-      // unverified domain, invalid recipient) — it always resolves to
-      // { data, error }, so `error` is the only signal that a batch actually
-      // failed. A try/catch here would never fire and was hiding failed sends
-      // as "sent".
-      const { data, error } = await resend.batch.send(
-        batch.map((contact) => {
-          const email = emailForContact(contact.locale)
-          return {
-            from: site.mailFrom,
-            to: contact.email,
-            subject: email.subject,
-            html: withUnsubscribeFooter(personalizeHtmlWithValues(email.html, campaignRecipientValues(contact)), contact.id, email.locale),
-          }
-        }),
-      )
-
-      if (error || !data) {
-        failedCount += batch.length
-        const message = error?.message ?? 'Error desconocido'
-        firstError ??= message
-        await supabase.from('campaign_sends').insert(
-          batch.map((contact) => ({
-            campaign_id: campaign.id,
-            contact_id: contact.id,
-            email: contact.email,
-            locale: emailForContact(contact.locale).locale,
-            status: 'failed',
-            error: message,
-          })),
-        )
+    for (const contact of validRecipients) {
+      const email = emailForContact(contact.locale)
+      const result = await sendBrevoCampaignEmail({
+        sender: { name: 'Mundial de Collage', email: site.mailFrom.match(/<([^>]+)>/)?.[1] ?? site.email },
+        to: contact.email,
+        subject: email.subject,
+        htmlContent: withUnsubscribeFooter(personalizeHtmlWithValues(email.html, campaignRecipientValues(contact)), contact.id, email.locale),
+      })
+      if (result.error) {
+        failedCount += 1
+        firstError ??= result.error
+        await supabase.from('campaign_sends').insert({ campaign_id: campaign.id, contact_id: contact.id, email: contact.email, locale: email.locale, status: 'failed', error: result.error })
         continue
       }
-
-      sentCount += batch.length
-      await supabase.from('campaign_sends').insert(
-        batch.map((contact, i) => ({
-          campaign_id: campaign.id,
-          contact_id: contact.id,
-          email: contact.email,
-          locale: emailForContact(contact.locale).locale,
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-          resend_email_id: data.data[i]?.id ?? null,
-        })),
-      )
+      sentCount += 1
+      await supabase.from('campaign_sends').insert({ campaign_id: campaign.id, contact_id: contact.id, email: contact.email, locale: email.locale, status: 'sent', sent_at: new Date().toISOString(), resend_email_id: result.id })
     }
   } finally {
     // Whatever didn't get a campaign_sends row (a crash mid-way) counts as
