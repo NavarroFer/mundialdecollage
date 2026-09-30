@@ -134,13 +134,21 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           </Link>
         ))}
       </nav>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <StatPill label="Obras recibidas · Mundial" value={receivedCount} />
-        <StatPill label="Artistas · Sitio" value={artistStats?.totalArtists ?? 'No disponible'} />
-        <StatPill label="Con país registrado · Sitio" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
-        <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />
-        <StatPill label="Con técnica registrada · Sitio" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
-      </div>
+      <section className="mt-6 grid gap-3 lg:grid-cols-12" aria-label="Panorama de la convocatoria">
+        <div className="relative overflow-hidden rounded-3xl bg-collage-blue p-6 text-paper lg:col-span-4">
+          <p className="text-xs font-bold tracking-[0.18em] text-paper/70 uppercase">Panorama general</p>
+          <p className="font-display mt-3 text-6xl leading-none tracking-tight">{receivedCount}</p>
+          <p className="mt-2 text-sm font-semibold uppercase">Obras recibidas</p>
+          <p className="mt-5 max-w-xs text-sm leading-relaxed text-paper/75">Cada envío cuenta: incluye obras de la planilla y registros directos desde la página.</p>
+          <div className="absolute -right-9 -bottom-12 h-40 w-40 rounded-full border-[18px] border-paper/10" aria-hidden />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-4">
+          <StatPill label="Artistas · Sitio" value={artistStats?.totalArtists ?? 'No disponible'} />
+          <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />
+          <StatPill label="Con país registrado" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
+          <StatPill label="Con técnica registrada" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
+        </div>
+      </section>
 
       <section className="mt-8 overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">
         <div className="border-b-2 border-ink/10 bg-collage-blue px-5 py-5 text-paper sm:px-6">
@@ -239,8 +247,8 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         periodDays={periodDays}
       />
 
-      <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+      <div className="mt-12 grid items-start gap-6 xl:grid-cols-12">
+        <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 xl:col-span-5">
           <h2 className="font-display text-xl tracking-tight text-ink uppercase">Artistas por país</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Datos actuales del sitio: artistas con una obra seleccionada, publicada o pendiente, sin archivar.
@@ -257,13 +265,18 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
                   <strong>{countryLabel(leadingCountry.countryCode)}</strong> reúne el {formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.
                 </p>
               )}
-              <ul className="mt-6 space-y-4" aria-label="Distribución de artistas por país">
-                {artistStats.countries.map(({ countryCode, count }) => (
-                  <li key={countryCode ?? 'none'}>
-                    <StatBar label={countryLabel(countryCode)} value={count} maxValue={artistStats.countries[0]?.count ?? 0} total={artistStats.totalArtists} color="var(--color-collage-blue)" />
-                  </li>
-                ))}
-              </ul>
+              <div className="mt-6">
+                <DonutChart
+                  variant="pie"
+                  total={artistStats.totalArtists}
+                  label="artistas por país"
+                  slices={artistStats.countries.map(({ countryCode, count }, index) => ({
+                    label: countryLabel(countryCode),
+                    value: count,
+                    color: ['var(--color-collage-blue)', 'var(--color-collage-red)', 'var(--color-collage-yellow)', '#7a5af8', '#0f766e', '#c2410c', '#be185d', '#64748b'][index % 8],
+                  }))}
+                />
+              </div>
               <p className="mt-6 text-xs text-muted-foreground">
                 Base: {artistStats.totalArtists} artistas. {artistStats.totalArtists - artistStats.withCountry} sin país registrado.
               </p>
@@ -271,15 +284,15 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           )}
         </section>
 
-        <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-2 xl:col-span-7">
           {artworkStats && artworkStats.total > 0 && (
-            <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+            <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6">
               <h2 className="font-display text-xl tracking-tight text-ink uppercase">Técnicas, de un vistazo</h2>
               <p className="mt-2 text-sm text-muted-foreground">La proporción de cada técnica sobre las obras seleccionadas.</p>
               <div className="mt-5"><DonutChart total={artworkStats.total} label="obras" slices={artworkStats.techniques.map((technique, index) => ({ label: technique.label, value: technique.count, color: ['var(--color-collage-red)', 'var(--color-collage-yellow)', 'var(--color-collage-blue)', 'var(--muted-foreground)'][index] ?? 'var(--muted-foreground)' }))} /></div>
             </section>
           )}
-          <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+          <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 md:col-span-2">
             <h2 className="font-display text-xl tracking-tight text-ink uppercase">Obras por técnica</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Datos actuales del sitio: obras seleccionadas, con imagen, sin archivar.
@@ -307,13 +320,13 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           </section>
 
           {artworkStats && artworkStats.total > 0 && (
-            <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+            <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6">
               <h2 className="font-display text-xl tracking-tight text-ink uppercase">Estado de publicación</h2>
               <p className="mt-2 text-sm text-muted-foreground">Sobre las mismas {artworkStats.total} obras seleccionadas del sitio.</p>
               <div className="mt-5"><DonutChart total={artworkStats.total} label="obras" slices={[{ label: 'Publicadas', value: artworkStats.published, color: 'var(--color-collage-blue)' }, { label: 'Pendientes de publicar', value: artworkStats.pending, color: 'var(--color-collage-red)' }]} /></div>
             </section>
           )}
-          <p className="text-xs leading-relaxed text-muted-foreground">
+          <p className="md:col-span-2 text-xs leading-relaxed text-muted-foreground">
             Países cuenta artistas y técnicas cuenta obras, ambos sobre las mismas obras seleccionadas del sitio.
             Las barras de país y técnica se escalan al grupo más grande; los porcentajes usan el total de cada sección.
             Por redondeo, la suma puede diferir de 100%.

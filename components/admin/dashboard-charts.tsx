@@ -14,8 +14,19 @@ function arcPath(start: number, end: number) {
   return `M ${startPoint.x} ${startPoint.y} A 38 38 0 ${largeArc} 0 ${endPoint.x} ${endPoint.y}`
 }
 
-export function DonutChart({ slices, total, label }: { slices: Slice[]; total: number; label: string }) {
+export function DonutChart({
+  slices,
+  total,
+  label,
+  variant = 'donut',
+}: {
+  slices: Slice[]
+  total: number
+  label: string
+  variant?: 'donut' | 'pie'
+}) {
   if (!total) return <p className="py-12 text-center text-sm text-muted-foreground">Todavía no hay datos para graficar.</p>
+  const strokeWidth = variant === 'pie' ? 76 : 13
   const segments = slices.filter((slice) => slice.value > 0).reduce<{ slice: Slice; start: number; end: number }[]>((all, slice) => {
     const start = all.at(-1)?.end ?? 0
     return [...all, { slice, start, end: start + (slice.value / total) * 360 }]
@@ -24,13 +35,15 @@ export function DonutChart({ slices, total, label }: { slices: Slice[]; total: n
     <div className="grid items-center gap-5 sm:grid-cols-[10rem_1fr]">
       <div className="relative mx-auto h-40 w-40">
         <svg viewBox="0 0 100 100" className="h-full w-full" role="img" aria-label={label}>
-          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--muted)" strokeWidth="13" />
-          {segments.map(({ slice, start, end }) => <path key={slice.label} d={arcPath(start + 1, end - 1)} fill="none" stroke={slice.color} strokeWidth="13" />)}
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--muted)" strokeWidth={strokeWidth} />
+          {segments.map(({ slice, start, end }) => <path key={slice.label} d={arcPath(start + 0.7, end - 0.7)} fill="none" stroke={slice.color} strokeWidth={strokeWidth} />)}
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <strong className="font-display text-3xl leading-none text-ink">{total}</strong>
-          <span className="mt-1 max-w-20 text-[10px] font-bold leading-tight tracking-wide text-muted-foreground uppercase">{label}</span>
-        </div>
+        {variant === 'donut' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <strong className="font-display text-3xl leading-none text-ink">{total}</strong>
+            <span className="mt-1 max-w-20 text-[10px] font-bold leading-tight tracking-wide text-muted-foreground uppercase">{label}</span>
+          </div>
+        )}
       </div>
       <ul className="space-y-2.5" aria-label={`${label}: detalle`}>
         {slices.map((slice) => (
