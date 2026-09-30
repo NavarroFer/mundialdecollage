@@ -18,7 +18,7 @@ import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-transla
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl } from '@/lib/site'
 
-export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra'
+export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos'
 
 type SystemTemplateDefinition = {
   name: string
@@ -36,6 +36,23 @@ const footer = (): EmailBlock[] => [
 ]
 
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
+  confirmar_datos: {
+    name: 'Confirmación de datos: revisá tu participación',
+    subject: '¿Revisamos tus datos para el Mundial de Collage?',
+    description: 'Invita a cada artista a iniciar sesión, revisar los datos que tenemos de su participación y corregirlos si hace falta. El botón abre la confirmación segura con Google.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}}, queremos confirmar tus datos', align: 'left', size: 'md' },
+        { id: nextBlockId(), type: 'text', text: 'Estamos preparando la próxima etapa del Mundial de Collage. Entrá para revisar el nombre, país y título de obra que tenemos asociados a tu participación.', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Si algo cambió o falta un dato, podés editarlo ahí mismo. Si está todo bien, sólo confirmalo: nos ayuda a que tu obra y tu crédito aparezcan correctamente.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Revisar mis datos', url: `${siteUrl}/onboarding`, align: 'left', color: 'red' },
+        { id: nextBlockId(), type: 'text', text: 'Por seguridad, el botón te va a pedir ingresar con la misma cuenta de Google que usaste para participar.', align: 'left' },
+        ...footer(),
+      ],
+    }),
+  },
   museo_hoy: {
     name: 'Aviso diario: tu obra está en el museo',
     subject: 'Hoy tu obra está en el museo del Mundial de Collage',
