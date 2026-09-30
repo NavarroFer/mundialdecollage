@@ -121,6 +121,14 @@ export function ArtworkHistoryChart({
         {points.map((point) => <g key={point.label}><circle cx={point.x} cy={point.y} r="3.5" fill="var(--color-collage-red)"><title>{`${point.label}: ${point.value} obras`}</title></circle></g>)}
       </svg>
       <div className="mt-1 flex justify-between text-[10px] font-semibold tracking-wide text-muted-foreground uppercase"><span>{data[0]?.label}</span><span>{data.at(-1)?.label}</span></div>
+      <dl className="mt-5 grid max-h-48 grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto rounded-xl bg-muted/60 p-3 text-xs sm:grid-cols-3" aria-label={`Detalle de obras recibidas por ${periodLabel}`}>
+        {data.map((point) => (
+          <div key={point.label} className="flex items-baseline justify-between gap-2 border-b border-ink/10 pb-1.5">
+            <dt className="min-w-0 truncate text-muted-foreground">{point.label}</dt>
+            <dd className="shrink-0 font-bold tabular-nums text-ink">{point.value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   )
 }
