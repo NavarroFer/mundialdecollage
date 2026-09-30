@@ -299,10 +299,23 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
 
         <div className="grid gap-6 md:grid-cols-2 xl:col-span-7">
           {artworkStats && artworkStats.total > 0 && (
-            <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6">
-              <h2 className="font-display text-xl tracking-tight text-ink uppercase">Técnicas, de un vistazo</h2>
-              <p className="mt-2 text-sm text-muted-foreground">La proporción de cada técnica sobre las obras seleccionadas.</p>
-              <div className="mt-5"><DonutChart total={artworkStats.total} label="obras" slices={artworkStats.techniques.map((technique, index) => ({ label: technique.label, value: technique.count, color: ['var(--color-collage-red)', 'var(--color-collage-yellow)', 'var(--color-collage-blue)', 'var(--muted-foreground)'][index] ?? 'var(--muted-foreground)' }))} /></div>
+            <section className="relative overflow-hidden rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+              <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-collage-red/10" aria-hidden="true" />
+              <h2 className="font-display relative text-xl tracking-tight text-ink uppercase">Datos de técnica</h2>
+              <p className="relative mt-2 text-sm text-muted-foreground">Una señal rápida de qué tan completo está este dato.</p>
+              <div className="relative mt-6">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <strong className="font-display text-5xl leading-none tracking-tight text-collage-red">{formatShare(artworkStats.total - artworkStats.withTechnique, artworkStats.total)}</strong>
+                    <p className="mt-2 max-w-52 text-sm font-semibold leading-snug text-ink">sin técnica registrada</p>
+                  </div>
+                  <span className="rounded-full bg-collage-yellow px-3 py-1.5 text-xs font-bold text-ink">{artworkStats.withTechnique} completas</span>
+                </div>
+                <div className="mt-5 h-4 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                  <div className="h-full rounded-full bg-collage-red" style={{ width: `${((artworkStats.total - artworkStats.withTechnique) / artworkStats.total) * 100}%` }} />
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{artworkStats.total - artworkStats.withTechnique} de {artworkStats.total} obras necesitan completar este dato. El desglose de técnicas está abajo.</p>
+              </div>
             </section>
           )}
           <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 md:col-span-2">

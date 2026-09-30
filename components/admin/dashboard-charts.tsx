@@ -122,31 +122,30 @@ export function JourneyComparison({
         <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-red" />Últimos 7 días</span>
         {baseLabel && <span className="text-muted-foreground/80">La proporción se calcula sobre: {baseLabel}.</span>}
       </div>
-      <ol className="grid gap-3 sm:grid-cols-2" aria-label={`Actividad por paso, últimos ${periodDays} días`}>
+      <ol className="space-y-1.5" aria-label={`Embudo de actividad, últimos ${periodDays} días`}>
         {steps.map((step, index) => {
-          const monthWidth = (step.month / max) * 100
-          const weekWidth = (step.week / max) * 100
+          // Keep even small, non-zero stages legible. The widths are relative
+          // to the busiest stage, so routes whose events are not strictly
+          // sequential still read honestly as relative volume.
+          const funnelWidth = Math.max((step.month / max) * 100, step.month > 0 ? 34 : 24)
           return (
-            <li key={step.label} className="relative overflow-hidden rounded-2xl border-2 border-ink/10 bg-background p-4 shadow-[3px_3px_0_color-mix(in_oklab,var(--color-ink)_10%,transparent)] transition-transform hover:-translate-y-0.5">
-              <div className="absolute top-0 left-0 h-full w-1.5 bg-collage-blue" aria-hidden="true" />
-              <div className="flex items-start justify-between gap-3 pl-2">
+            <li
+              key={step.label}
+              className="relative mx-auto min-h-16 overflow-hidden bg-collage-blue px-5 py-3 text-primary-foreground shadow-[3px_3px_0_color-mix(in_oklab,var(--color-ink)_18%,transparent)] transition-[width] duration-300"
+              style={{ width: `${funnelWidth}%`, clipPath: 'polygon(4% 0, 96% 0, 100% 100%, 0 100%)' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-collage-blue via-collage-blue to-collage-red/70" aria-hidden="true" />
+              <div className="relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+                <span className="font-display flex h-7 w-7 items-center justify-center rounded-full bg-collage-yellow text-sm text-ink">{String(index + 1).padStart(2, '0')}</span>
                 <div className="min-w-0">
-                  <span className="font-display inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-collage-yellow px-1 text-sm text-ink">{String(index + 1).padStart(2, '0')}</span>
-                  <p className="mt-3 text-sm font-semibold leading-tight text-ink">{step.label}</p>
+                  <p className="text-sm font-bold leading-tight text-primary-foreground">{step.label}</p>
+                  <p className="mt-1 text-[10px] font-semibold tracking-wide text-primary-foreground/75 uppercase">
+                    {base ? `${formatShare(step.month, base)} del recorrido` : 'Actividad acumulada'}
+                  </p>
                 </div>
-                <div className="shrink-0 text-right">
-                  <strong className="font-display text-3xl leading-none tracking-tight text-ink">{step.month}</strong>
-                  <p className="mt-1 text-[10px] font-bold tracking-wide text-muted-foreground uppercase">en {periodDays} días</p>
-                </div>
-              </div>
-              <div className="mt-4 pl-2" aria-label={`${step.label}: ${step.month} en ${periodDays} días y ${step.week} en 7 días`}>
-                <div className="flex items-center justify-between gap-3 text-[11px] font-semibold text-muted-foreground">
-                  <span>{base ? `${formatShare(step.month, base)} del recorrido` : 'Actividad acumulada'}</span>
-                  <span><b className="text-collage-red">{step.week}</b> · 7 d</span>
-                </div>
-                <div className="mt-2 space-y-1.5" aria-hidden="true">
-                  <div className="h-3 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-collage-blue" style={{ width: `${monthWidth}%` }} /></div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted/70"><div className="h-full rounded-full bg-collage-red" style={{ width: `${weekWidth}%` }} /></div>
+                <div className="shrink-0 text-right tabular-nums">
+                  <strong className="font-display block text-3xl leading-none tracking-tight">{step.month}</strong>
+                  <span className="mt-1 block text-[10px] font-bold tracking-wide text-primary-foreground/75 uppercase"><b className="text-collage-yellow">{step.week}</b> · 7 d</span>
                 </div>
               </div>
             </li>
