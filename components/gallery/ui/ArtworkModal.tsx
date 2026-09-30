@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
+import { ArtworkStamp } from './ArtworkStamp'
 import { ArtworkComments } from './ArtworkComments'
 import { ArtworkShare } from './ArtworkShare'
 import { ArtistInvite } from './ArtistInvite'
@@ -135,6 +136,7 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
         <div aria-hidden="true" className={cn(pulse, 'mt-3 h-12 w-36')} />
       )}
       {inviteUnder('like')}
+      <ArtworkStamp slug={artwork.id} signedIn={social?.like.signedIn ?? false} />
       <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
       {social ? (
         <div className={reveal}><ArtworkComments slug={artwork.id} initial={social.comments} onSent={afterComment} /></div>

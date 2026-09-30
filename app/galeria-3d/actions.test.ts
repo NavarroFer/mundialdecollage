@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ rpc: vi.fn(), getUser: vi.fn(), from: vi.fn(), publicFrom: vi.fn() }))
+const mocks = vi.hoisted(() => ({ rpc: vi.fn(), sessionRpc: vi.fn(), getUser: vi.fn(), from: vi.fn(), publicFrom: vi.fn() }))
 vi.mock('@/lib/supabase/config', () => ({ isSupabaseConfigured: true }))
-vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser } }) }))
+vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, rpc: mocks.sessionRpc }) }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ rpc: mocks.rpc, from: mocks.from }) }))
 vi.mock('@/lib/supabase/public', () => ({ createPublicClient: () => ({ from: mocks.publicFrom }) }))
-import { addArtworkComment, getArtworkSocial, likeArtwork } from './actions'
+import { addArtworkComment, collectArtworkStamp, getArtworkSocial, likeArtwork } from './actions'
 
 // A chainable stand-in for a supabase-js query that resolves to `result`.
 function query(result: unknown) {
@@ -24,7 +24,20 @@ beforeEach(() => {
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-secret')
   mocks.getUser.mockResolvedValue({ data: { user: null } })
   mocks.rpc.mockResolvedValue({ error: null })
+  mocks.sessionRpc.mockReturnValue({ single: vi.fn(async () => ({ data: { status: 'collected', remaining: 2, resets_at: '2026-10-01T00:00:00Z' }, error: null })) })
   mocks.publicFrom.mockReturnValue(query({ data: { id: 'artwork-1' }, error: null }))
+})
+
+describe('gallery artwork stamps', () => {
+  it('asks anonymous visitors to sign in', async () => {
+    expect(await collectArtworkStamp('obra')).toEqual({ error: 'sign_in_required' })
+  })
+
+  it('collects an available stamp through the quota RPC', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user } })
+    expect(await collectArtworkStamp('obra')).toEqual({ status: 'collected', remaining: 2, resetsAt: '2026-10-01T00:00:00Z' })
+    expect(mocks.sessionRpc).toHaveBeenCalledWith('collect_gallery_artwork_stamp', { artwork_slug: 'obra' })
+  })
 })
 
 describe('gallery likes', () => {
