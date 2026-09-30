@@ -161,7 +161,9 @@ export function WorldMap({
               const code =
                 isoNumericToAlpha2[String(geo.id)] ?? alpha2ForUnnumberedShape[String(geo.properties?.name)]
               const count = code ? countsByCode.get(code) : undefined
-              const opacity = count ? 0.35 + 0.65 * (count / maxCount) : 1
+              // Countries without published obras intentionally recede so the
+              // participating countries and their relative volume stand out.
+              const opacity = count ? 0.35 + 0.65 * (count / maxCount) : 0.38
               const hasArtworks = code ? artworkCountries.has(code) : false
               const isSelected = code === selectedCountryCode
               const fill = isSelected ? 'var(--collage-red)' : count ? 'var(--collage-blue)' : 'var(--muted)'
@@ -226,7 +228,7 @@ export function WorldMap({
           <span className="mr-1" aria-hidden>
             <CountryFlag countryCode={tooltip.countryCode} svg={flags[tooltip.countryCode.toUpperCase()]} />
           </span>
-          {countryName(tooltip.countryCode)} · {tooltip.count}
+          {countryName(tooltip.countryCode)} · {plural(locale, tooltip.count, m.map.artworks)}
         </div>
       )}
 
