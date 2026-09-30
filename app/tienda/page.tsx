@@ -4,7 +4,9 @@ import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { ScrollToTop } from '@/components/scroll-to-top'
 import { Button } from '@/components/ui/button'
-import { formatArs, subscriptionPlans } from '@/lib/store'
+import { PaypalSubscriptionCheckout } from '@/components/paypal-subscription-checkout'
+import { formatUsd, subscriptionPlans } from '@/lib/store'
+import { isPayPalCheckoutConfigured } from '@/lib/payments/paypal/client'
 
 export default function StorePage() {
   return (
@@ -42,7 +44,7 @@ export default function StorePage() {
                 <h2 className="font-display mt-5 text-3xl tracking-tight uppercase">{plan.name}</h2>
                 <p className={`mt-3 min-h-12 text-sm ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{plan.description}</p>
                 <p className="mt-6 text-3xl font-bold tracking-tight">
-                  {formatArs(plan.priceArs)} <span className="text-base font-medium">/ month</span>
+                  {formatUsd(plan.priceUsd)} <span className="text-base font-medium">/ month</span>
                 </p>
                 <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
                   {plan.contents.map((content) => (
@@ -52,9 +54,11 @@ export default function StorePage() {
                     </li>
                   ))}
                 </ul>
-                <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full">
-                  <a href={plan.checkoutUrl}>Subscribe with Mercado Pago</a>
-                </Button>
+                {isPayPalCheckoutConfigured ? (
+                  <PaypalSubscriptionCheckout plan={plan.id} clientId={process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!} />
+                ) : (
+                  <Button size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full" disabled>Subscriptions coming soon</Button>
+                )}
                 <p className={`mt-4 text-center text-xs ${plan.featured ? 'text-paper/70' : 'text-muted-foreground'}`}>Cancel whenever you want.</p>
               </article>
             ))}
@@ -75,7 +79,7 @@ export default function StorePage() {
           <div className="mt-8 divide-y-2 divide-ink/10 border-y-2 border-ink/10">
             <details className="group py-5">
               <summary className="cursor-pointer list-none pr-8 text-base font-bold marker:hidden">Where do you ship?</summary>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Subscriptions currently ship within Argentina. International shipping will be announced when it is available.</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">We ship internationally. Delivery availability and cost are confirmed from your address before payment.</p>
             </details>
             <details className="group py-5">
               <summary className="cursor-pointer list-none pr-8 text-base font-bold marker:hidden">When will my edition arrive?</summary>
@@ -83,11 +87,11 @@ export default function StorePage() {
             </details>
             <details className="group py-5">
               <summary className="cursor-pointer list-none pr-8 text-base font-bold marker:hidden">Is shipping included?</summary>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Shipping is coordinated separately after the subscription is confirmed, so we can use the best option for your location.</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Shipping is included in the monthly PayPal plan price.</p>
             </details>
             <details className="group py-5">
               <summary className="cursor-pointer list-none pr-8 text-base font-bold marker:hidden">How do I cancel?</summary>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">You can cancel whenever you want from your Mercado Pago subscription settings. Your cancellation applies to future monthly charges.</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">You can cancel whenever you want from your PayPal subscription settings. Your cancellation applies to future monthly charges.</p>
             </details>
           </div>
         </section>

@@ -20,8 +20,8 @@ export default async function GraciasPage({ searchParams }: { searchParams: Prom
           </h1>
           <p className="mx-auto mt-6 max-w-lg text-lg text-muted-foreground">
             {isSubscription
-              ? "Your subscription request is on its way. Mercado Pago will email you with the payment details shortly."
-              : "We received your order. You'll get an email shortly once Mercado Pago confirms the payment."}
+              ? "Your subscription is being confirmed. We'll email you as soon as PayPal confirms the payment."
+              : "We received your order. You'll get an email shortly once PayPal confirms the payment."}
           </p>
           <Button asChild size="lg" className="mt-10"><Link href="/tienda">Back to the shop</Link></Button>
         </section>

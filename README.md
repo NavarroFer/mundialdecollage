@@ -41,6 +41,25 @@ RESEND_API_KEY=
 # NEXT_PUBLIC_MP_PUBLIC_KEY=
 # MERCADOPAGO_WEBHOOK_SECRET=
 
+# PayPal subscriptions (USD). Keep the client secret server-only. Create the
+# three plans with `node scripts/paypal-setup.mjs` after first setting the
+# credentials; it prints the plan IDs below. Register
+# https://your-domain/api/paypal/webhook in PayPal with: BILLING.SUBSCRIPTION.ACTIVATED,
+# BILLING.SUBSCRIPTION.UPDATED, BILLING.SUBSCRIPTION.CANCELLED,
+# BILLING.SUBSCRIPTION.SUSPENDED, BILLING.SUBSCRIPTION.EXPIRED,
+# BILLING.SUBSCRIPTION.PAYMENT.FAILED, PAYMENT.SALE.COMPLETED,
+# PAYMENT.SALE.REFUNDED, PAYMENT.SALE.REVERSED, PAYMENT.CAPTURE.COMPLETED,
+# PAYMENT.CAPTURE.REFUNDED and PAYMENT.CAPTURE.REVERSED.
+# PAYPAL_ENV=sandbox
+# PAYPAL_CLIENT_ID=
+# PAYPAL_CLIENT_SECRET=
+# NEXT_PUBLIC_PAYPAL_CLIENT_ID=  # same value as PAYPAL_CLIENT_ID
+# PAYPAL_WEBHOOK_ID=
+# PAYPAL_PLAN_ID_INICIAL=        # USD 10/month
+# PAYPAL_PLAN_ID_MIEMBRO=        # USD 36/month
+# PAYPAL_PLAN_ID_SOCIO_PREMIUM=  # USD 82/month
+# BRAND_NAME="Mundial de Collage"
+
 # Anthropic (Claude) — https://platform.claude.com/settings/keys. Traduce
 # solas las plantillas de mail a los 8 idiomas del sitio al guardarlas (ver
 # lib/email-translator.ts). Sin esto, las plantillas se guardan igual y las
