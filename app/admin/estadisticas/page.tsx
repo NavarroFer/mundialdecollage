@@ -18,7 +18,6 @@ async function getArtworkStats() {
       .select('technique, profiles!inner(id, is_public, country_code)')
       .eq('is_selected', true)
       .is('archived_at', null)
-      .not('title', 'is', null)
       .not('image_url', 'is', null)
       .order('id')
       .range(from, from + 999)
@@ -259,13 +258,13 @@ export default async function EstadisticasPage() {
           <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
             <h2 className="font-display text-xl tracking-tight text-ink uppercase">Obras por técnica</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Datos actuales del sitio: obras seleccionadas, con título e imagen, sin archivar.
+              Datos actuales del sitio: obras seleccionadas, con imagen, sin archivar.
               Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio.
             </p>
             {!artworkStats ? (
               <p role="status" className="mt-6 text-sm text-collage-red">No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</p>
             ) : artworkStats.total === 0 ? (
-              <p className="mt-6 text-sm text-muted-foreground">Todavía no hay obras seleccionadas con título e imagen para analizar.</p>
+              <p className="mt-6 text-sm text-muted-foreground">Todavía no hay obras seleccionadas con imagen para analizar.</p>
             ) : (
               <>
                 <ul className="mt-6 space-y-5" aria-label="Distribución de obras por técnica">

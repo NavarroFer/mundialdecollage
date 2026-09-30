@@ -28,6 +28,7 @@ type ArtworkRow = {
   technique: string | null
   is_selected: boolean
   is_entered: boolean
+  legacy_submission_id: string | null
   profiles: {
     name: string | null
     country_code: string | null
@@ -52,47 +53,18 @@ export default async function ObrasPage({
   const { data: artworkData } = await supabase
     .from('artworks')
     .select(
-      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
+      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, legacy_submission_id, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
     )
     .is('archived_at', null)
     .order('created_at', { ascending: true })
 
+  const artworkRows = (artworkData ?? []) as unknown as ArtworkRow[]
   const artworksByProfile = new Map<string, ArtworkRow[]>()
-  for (const row of (artworkData ?? []) as unknown as ArtworkRow[]) {
+  for (const row of artworkRows) {
     const list = artworksByProfile.get(row.profile_id) ?? []
     list.push(row)
     artworksByProfile.set(row.profile_id, list)
   }
-
-  const realSubmissions = [...artworksByProfile.entries()]
-    .map(([profileId, rows]) => {
-      const selected = rows.find((r) => r.is_selected)
-      const profile = selected?.profiles
-      if (!selected || !profile?.name || !profile.country_code || !selected.image_url) {
-        return null
-      }
-      return {
-        id: profileId,
-        name: profile.name,
-        countryCode: profile.country_code,
-        technique: selected.technique ?? undefined,
-        artworkTitle: selected.title ?? undefined,
-        imageUrl: selected.image_url,
-        slug: selected.slug ?? undefined,
-        isPublic: profile.is_public,
-        artworkCount: rows.length,
-        source: 'real' as const,
-        onboardedAt: profile.onboarded_at ?? '',
-        artworkId: selected.id,
-        instagram: profile.instagram ?? undefined,
-        siblings:
-          rows.length > 1
-            ? rows.map((r) => ({ id: r.id, title: r.title, imageUrl: r.image_url, isSelected: r.is_selected, isEntered: r.is_entered }))
-            : undefined,
-      }
-    })
-    .filter((s): s is NonNullable<typeof s> => s !== null)
-    .sort((a, b) => b.onboardedAt.localeCompare(a.onboardedAt))
 
   // Profiles with more than one artwork row — the ones that actually need
   // an admin's "Usar esta obra" curation (a lone artwork always
@@ -107,7 +79,7 @@ export default async function ObrasPage({
   const { data: legacyData } = await supabase
     .from('legacy_submissions')
     .select(
-      'id, email, name, drive_url, country_raw, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram',
+      'id, email, name, drive_url, country_raw, title, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram',
     )
     .is('archived_at', null)
     .order('email', { ascending: true })
@@ -132,14 +104,15 @@ export default async function ObrasPage({
   // instead of buried in whichever curation list it came from.
   const missingImageRows = legacyRows.filter((r) => r.image_fetch_failed_at && !r.image_url)
 
-  const promotedRows = legacyRows.filter((r) => r.promoted && r.image_url)
+  const legacyRowsWithImage = legacyRows.filter((r) => r.image_url)
+  const promotedRows = legacyRowsWithImage.filter((r) => r.promoted)
 
   // Rows already linked to a real profile — self-claimed via /onboarding, or
   // previously published from here (see provisionLegacyProfiles in
   // ./actions.ts) — so the gallery/viewer can show their real
   // "Participa"/"Ocultar" state instead of always looking unpublished.
   const claimedProfileIds = [
-    ...new Set(promotedRows.map((r) => r.claimed_by).filter((id): id is string => Boolean(id))),
+    ...new Set(legacyRowsWithImage.map((r) => r.claimed_by).filter((id): id is string => Boolean(id))),
   ]
   const { data: claimedProfiles } =
     claimedProfileIds.length > 0
@@ -147,25 +120,11 @@ export default async function ObrasPage({
       : { data: [] as { id: string; is_public: boolean }[] }
   const claimedPublicById = new Map((claimedProfiles ?? []).map((p) => [p.id, p.is_public]))
 
-  // The "Obras" gallery up top used to only ever show real registrations —
-  // a confirmed legacy submission had nowhere to live but its own separate
-  // grid further down the page, so an admin had to check two different
-  // spots to see everything that's actually been received and decided.
-  // Folding promotedRows in here (still no real `profiles` row behind them —
-  // see SubmissionsGallery's `source: 'legacy'` handling for what that
-  // rules out) gives one unified view. Every email group has a promoted row
-  // (supabase/migrations/20260923120000_auto_promote_legacy_submissions.sql),
-  // so nothing needs a separate curation list anymore.
-  // A claimed row already has its own `source: 'real'` card above (via
-  // artworksByProfile) once that publish/self-onboarding actually went
-  // through — showing it again here would duplicate the same obra. Only
-  // dropped when the real counterpart actually made it into realSubmissions
-  // (name/country/title/image all present); otherwise this stays the only
-  // visible copy instead of the obra silently disappearing from both lists.
-  const realProfileIds = new Set(realSubmissions.map((s) => s.id))
-
-  const legacyGalleryItems = promotedRows
-    .filter((row) => !(row.claimed_by && realProfileIds.has(row.claimed_by)))
+  // The review grid is intake, not a public-gallery mirror: show every
+  // Registro row, including an artist's additional works. A Registro-linked
+  // `artworks` row is deliberately represented by this source row only, so
+  // it cannot appear twice after the artist completes onboarding.
+  const legacyGalleryItems = legacyRowsWithImage
     .map((row) => {
       const groupRows = legacyGroups.get(row.email) ?? [row]
       return {
@@ -177,6 +136,7 @@ export default async function ObrasPage({
         // The viewer also uses this to decide whether "Estas participan" can
         // publish straight away or needs a country picked by hand first.
         countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
+        artworkTitle: row.title ?? undefined,
         imageUrl: row.image_url as string,
         driveUrl: row.drive_url ?? undefined,
         isPublic: row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false,
@@ -199,7 +159,33 @@ export default async function ObrasPage({
             : undefined,
       }
     })
-  const submissions = [...realSubmissions, ...legacyGalleryItems]
+
+  // Native onboarding entries have no Registro counterpart. They complete
+  // the same intake list while avoiding a double count for migrated rows.
+  const nativeGalleryItems = artworkRows
+    .filter((row) => row.is_entered && !row.legacy_submission_id && row.image_url)
+    .map((row) => {
+      const profile = row.profiles
+      const siblings = artworksByProfile.get(row.profile_id) ?? []
+      return {
+        id: row.id,
+        name: profile?.name ?? 'Sin nombre',
+        countryCode: profile?.country_code ?? undefined,
+        technique: row.technique ?? undefined,
+        artworkTitle: row.title ?? undefined,
+        imageUrl: row.image_url!,
+        slug: row.slug ?? undefined,
+        isPublic: Boolean(profile?.is_public),
+        artworkCount: siblings.length,
+        source: 'real' as const,
+        artworkId: row.id,
+        instagram: profile?.instagram ?? undefined,
+        siblings: siblings.length > 1
+          ? siblings.map((sibling) => ({ id: sibling.id, title: sibling.title, imageUrl: sibling.image_url, isSelected: sibling.is_selected, isEntered: sibling.is_entered }))
+          : undefined,
+      }
+    })
+  const submissions = [...legacyGalleryItems, ...nativeGalleryItems]
   const publicCount = submissions.filter((s) => s.isPublic).length
 
   // "Limpieza de nombres" (ROADMAP.md item 5) — every artist name that would
@@ -308,7 +294,7 @@ export default async function ObrasPage({
           <AdminPageHeader eyebrow="Curación" title="Artistas con varias obras" />
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
             Mandaron más de una obra — elegí cuál es la que cuenta con &quot;Usar esta
-            obra&quot;. La grilla de arriba solo muestra la elegida de cada uno.
+            obra&quot;. Todas aparecen en la grilla de arriba para la revisión.
           </p>
 
           <div className="mt-6 space-y-4">
