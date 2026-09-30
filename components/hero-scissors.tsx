@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Scissors } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/client'
 
@@ -9,13 +9,18 @@ const CUT_DURATION_MS = 2000
 export function HeroScissors() {
   const { m } = useI18n()
   const [cutting, setCutting] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   function cutPage() {
     if (cutting) return
     setCutting(true)
-    document.getElementById('site-content')?.classList.add('paper-cut-active')
+    const siteContent = document.getElementById('site-content')
+    const rect = buttonRef.current?.getBoundingClientRect()
+    if (rect) siteContent?.style.setProperty('--paper-cut-y', `${rect.top + rect.height / 2}px`)
+    siteContent?.classList.add('paper-cut-active')
     window.setTimeout(() => {
-      document.getElementById('site-content')?.classList.remove('paper-cut-active')
+      siteContent?.classList.remove('paper-cut-active')
+      siteContent?.style.removeProperty('--paper-cut-y')
       setCutting(false)
     }, CUT_DURATION_MS)
   }
@@ -23,6 +28,7 @@ export function HeroScissors() {
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={cutPage}
         disabled={cutting}
