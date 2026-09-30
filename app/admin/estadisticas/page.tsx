@@ -1,4 +1,5 @@
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
+import { CollapsibleSection } from '@/components/admin/collapsible-section'
 import { StatBar } from '@/components/admin/stat-bar'
 import { DailyActivityChart, DonutChart, FunnelChart, JourneyComparison } from '@/components/admin/dashboard-charts'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
@@ -88,14 +89,25 @@ function FunnelSection({
   periodDays: number
 }) {
   const base = baseStep ? month?.get(baseStep) ?? 0 : 0
+  const primaryStep = baseStep ?? steps[0]?.name
+  const primaryCount = primaryStep && month ? month.get(primaryStep) ?? 0 : null
+  const recentPrimaryCount = primaryStep && week ? week.get(primaryStep) ?? 0 : null
+  const finalCount = month?.get(steps.at(-1)?.name ?? '') ?? 0
+  const completion = baseStep && base > 0 ? finalCount / base : undefined
   return (
-    <section className="mt-10 rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
-      <h2 className="font-display text-xl tracking-tight text-ink uppercase">{title}</h2>
-      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{description}</p>
+    <CollapsibleSection
+      title={title}
+      description={description}
+      steps={steps.length}
+      kpi={primaryCount}
+      kpiLabel={steps.find((step) => step.name === primaryStep)?.label ?? 'Personas'}
+      recentKpi={recentPrimaryCount}
+      completion={completion}
+    >
       {!week || !month ? (
-        <p role="status" className="mt-6 text-sm text-collage-red">No pudimos cargar el circuito. Recargá la página para reintentar.</p>
+        <p role="status" className="text-sm text-collage-red">No pudimos cargar el circuito. Recargá la página para reintentar.</p>
       ) : (
-        <div className="mt-6">
+        <div>
           <JourneyComparison
             steps={steps.map((step) => ({ label: step.label, week: week.get(step.name) ?? 0, month: month.get(step.name) ?? 0 }))}
             base={baseStep ? base : undefined}
@@ -105,7 +117,7 @@ function FunnelSection({
           {footnote && <p className="mt-5 border-t border-ink/10 pt-4 text-xs leading-relaxed text-muted-foreground">{footnote}</p>}
         </div>
       )}
-    </section>
+    </CollapsibleSection>
   )
 }
 
