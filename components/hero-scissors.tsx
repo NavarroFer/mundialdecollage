@@ -4,7 +4,9 @@ import { useRef, useState } from 'react'
 import { Scissors } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/client'
 
-const CUT_DURATION_MS = 2000
+// The cut is deliberately a small interruption: the rest of the page drops
+// out of frame and stays there long enough for the gesture to register.
+const CUT_DURATION_MS = 3000
 
 export function HeroScissors() {
   const { m } = useI18n()

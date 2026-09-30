@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BookOpen, CircleCheck, Compass, LockKeyhole, Scissors, Send, X } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { useI18n } from '@/lib/i18n/client'
 import { MAP_SECTION_ID } from '@/lib/map-country-link'
+import { STAMP_UNLOCKED_EVENT, type StampKey } from '@/lib/stamps'
 
 const TUTORIAL_KEY = 'mundial-stamps-tutorial-seen'
 const stamps = [
@@ -14,11 +15,43 @@ const stamps = [
   { key: 'world', href: `#${MAP_SECTION_ID}`, Icon: Compass, tone: 'bg-collage-blue text-paper -rotate-1' },
 ] as const
 
-export function StampAlbumClient({ signedIn, unlockedStamps }: { signedIn: boolean; unlockedStamps: string[] }) {
+export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStamps }: { signedIn: boolean; unlockedStamps: string[] }) {
   const { m } = useI18n()
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [albumOpen, setAlbumOpen] = useState(false)
+  const [unlockedStamps, setUnlockedStamps] = useState(initialUnlockedStamps)
   const copy = { first: m.stamps.first, gallery: m.stamps.gallery, world: m.stamps.world }
+
+  const syncStamps = useCallback(async () => {
+    const response = await fetch('/api/stamps', { cache: 'no-store' })
+    if (!response.ok) return
+    const data = await response.json() as { signedIn: boolean; unlockedStamps: string[] }
+    if (data.signedIn) setUnlockedStamps(data.unlockedStamps)
+  }, [])
+
+  // A route can be restored from the browser/Next cache when returning to the
+  // homepage. Re-read the album then, so a stamp earned elsewhere is never
+  // hidden behind an older server render.
+  useEffect(() => {
+    if (!signedIn) return
+    const onReturn = () => void syncStamps()
+    window.addEventListener('focus', onReturn)
+    window.addEventListener('pageshow', onReturn)
+    return () => {
+      window.removeEventListener('focus', onReturn)
+      window.removeEventListener('pageshow', onReturn)
+    }
+  }, [signedIn, syncStamps])
+
+  useEffect(() => {
+    const onUnlocked = (event: Event) => {
+      const stamp = (event as CustomEvent<StampKey>).detail
+      setUnlockedStamps((current) => current.includes(stamp) ? current : [...current, stamp])
+      setAlbumOpen(true)
+    }
+    window.addEventListener(STAMP_UNLOCKED_EVENT, onUnlocked)
+    return () => window.removeEventListener(STAMP_UNLOCKED_EVENT, onUnlocked)
+  }, [])
 
   useEffect(() => {
     if (signedIn || window.localStorage.getItem(TUTORIAL_KEY)) return

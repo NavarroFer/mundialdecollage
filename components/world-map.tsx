@@ -16,6 +16,7 @@ import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
 import { StampConfetti } from '@/components/stamp-confetti'
+import { announceStampUnlocked } from '@/lib/stamps'
 
 // world-atlas ships this as a TopoJSON Topology, which react-simple-maps
 // handles at runtime (it converts to GeoJSON via topojson-client), but its
@@ -88,7 +89,7 @@ export function WorldMap({
     if (!artworkCountries.has(countryCode)) return
     void fetch('/api/stamps', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ stamp: 'world' }) })
       .then((response) => response.ok ? response.json() as Promise<{ awarded: boolean }> : null)
-      .then((data) => { if (data?.awarded) { setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) } })
+      .then((data) => { if (data?.awarded) { announceStampUnlocked('world'); setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) } })
     setSelectedCountryCode(countryCode)
     setTooltip(null)
   }
