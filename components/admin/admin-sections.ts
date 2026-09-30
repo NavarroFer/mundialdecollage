@@ -120,7 +120,7 @@ export const adminSections: {
         label: 'Contactos',
         icon: Users,
         description:
-          'La lista de suscriptores: importá contactos, pausalos o borralos.',
+          'La lista de suscriptores: pausalos, resuscribilos o borralos.',
       },
       {
         href: '/admin/campanas',

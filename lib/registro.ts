@@ -23,6 +23,10 @@ export type RegistroEntry = {
 // left titles and notes in this column.
 function registroInstagram(value: string | undefined): string | null {
   const raw = value?.trim() ?? ''
+  // A Gmail domain was accidentally pasted into the Instagram column during
+  // the initial import. It is not an artist handle and must never surface as
+  // @gmail.com on a participant card.
+  if (/^@?gmail\.com$/i.test(raw)) return null
   return /^@|instagram\.com\//i.test(raw) ? instagramHandle(raw) : null
 }
 

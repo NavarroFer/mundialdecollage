@@ -33,4 +33,12 @@ describe('parseRegistro header', () => {
     ])
     expect(entry).toMatchObject({ title: 'Sin fin', instagram: 'ana.collage' })
   })
+
+  it('does not treat @gmail.com as an Instagram handle', () => {
+    const [entry] = parseRegistro([
+      cells('Nombre', 'País', 'Email', 'Obra (Foto en Drive)', 'Titulo', 'Instagram'),
+      cells('Artista', 'Argentina', 'artista@example.com', 'https://drive.google.com/file/d/abc123/view', 'Obra', '@gmail.com'),
+    ])
+    expect(entry.instagram).toBeNull()
+  })
 })
