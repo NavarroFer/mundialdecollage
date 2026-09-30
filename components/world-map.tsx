@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import type { Feature, GeoJsonObject, MultiPolygon, Position } from 'geojson'
-import { X } from 'lucide-react'
+import { Expand, X } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { ObrasCollage } from '@/components/obras-collage'
 import type { Finalist } from '@/lib/finalists'
@@ -17,6 +18,10 @@ import { fmt, plural } from '@/lib/i18n/format'
 import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
 import { StampConfetti } from '@/components/stamp-confetti'
 import { announceStampUnlocked } from '@/lib/stamps'
+
+// The full explorer is loaded only when a visitor explicitly opens it, so the
+// summary map remains the only map-related code needed for the initial view.
+const MapExplorer = dynamic(() => import('@/components/map-explorer').then((m) => m.MapExplorer), { ssr: false })
 
 // world-atlas ships this as a TopoJSON Topology, which react-simple-maps
 // handles at runtime (it converts to GeoJSON via topojson-client), but its
@@ -62,6 +67,7 @@ export function WorldMap({
   const mapCanvasRef = useRef<HTMLDivElement>(null)
   const [tooltip, setTooltip] = useState<Tooltip | null>(null)
   const [celebrateStamp, setCelebrateStamp] = useState(false)
+  const [explorerOpen, setExplorerOpen] = useState(false)
   // Arriving on a #mapa-AR link (the flag ribbon, or a shared URL) opens
   // that country right away. Client-only component (ssr: false), so window
   // is always there.
@@ -192,6 +198,16 @@ export function WorldMap({
   return (
     <div ref={containerRef} className="relative">
       <StampConfetti visible={celebrateStamp} />
+      <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setExplorerOpen(true)}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-sm font-bold text-ink shadow-[3px_3px_0_var(--color-ink)] transition hover:-translate-y-0.5 hover:bg-collage-yellow focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue"
+        >
+          <Expand className="size-4" aria-hidden />
+          {m.map.openExplorer}
+        </button>
+      </div>
       <div ref={mapCanvasRef} className="origin-center will-change-transform motion-reduce:transform-none">
         <ComposableMap
           projection="geoEqualEarth"
@@ -323,6 +339,16 @@ export function WorldMap({
             <p className="mt-6 text-muted-foreground">{m.map.none}</p>
           )}
         </div>
+      )}
+      {explorerOpen && (
+        <MapExplorer
+          open={explorerOpen}
+          onOpenChange={setExplorerOpen}
+          breakdown={breakdown}
+          artworks={artworks}
+          flags={flags}
+          initialCountryCode={selectedCountryCode}
+        />
       )}
     </div>
   )

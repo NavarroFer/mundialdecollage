@@ -145,6 +145,7 @@ const ru: Messages = {
     close: 'Закрыть работы страны',
     countryArtworks: 'Работы: {country}',
     none: 'Из этой страны пока нет опубликованных работ.',
+    openExplorer: 'Открыть на весь экран', explorerEyebrow: 'Интерактивная карта', explorerTitle: 'Исследуйте чемпионат', closeExplorer: 'Закрыть карту', zoomIn: 'Увеличить карту', zoomOut: 'Уменьшить карту', resetView: 'Сбросить вид карты', explorerHint: 'Перетаскивайте карту · используйте колесо для масштаба', explorerEmptyTitle: 'Выберите страну', explorerEmpty: 'Увеличьте карту и выберите страну с работами.', explorerCountryHint: 'Опубликованные работы этого сообщества.',
   },
   jury: {
     eyebrow: 'Международное жюри',

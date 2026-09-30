@@ -140,6 +140,7 @@ const pt: Messages = {
     close: 'Fechar obras do país',
     countryArtworks: 'Obras de {country}',
     none: 'Ainda não há obras publicadas deste país.',
+    openExplorer: 'Explorar em tela cheia', explorerEyebrow: 'Mapa interativo', explorerTitle: 'Explore o Mundial', closeExplorer: 'Fechar explorador do mapa', zoomIn: 'Aproximar mapa', zoomOut: 'Afastar mapa', resetView: 'Restaurar visão mundial', explorerHint: 'Arraste para explorar · use a roda para aproximar', explorerEmptyTitle: 'Escolha um país', explorerEmpty: 'Aproxime, explore o mapa e selecione um país com obras.', explorerCountryHint: 'Obras publicadas desta comunidade.',
   },
   jury: {
     eyebrow: 'Júri internacional',

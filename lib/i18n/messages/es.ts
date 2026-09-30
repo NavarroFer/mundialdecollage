@@ -141,6 +141,7 @@ const es = {
     close: 'Cerrar obras del país',
     countryArtworks: 'Obras de {country}',
     none: 'Todavía no hay obras publicadas de este país.',
+    openExplorer: 'Explorar en pantalla completa', explorerEyebrow: 'Mapa interactivo', explorerTitle: 'Explorá el Mundial', closeExplorer: 'Cerrar explorador del mapa', zoomIn: 'Acercar mapa', zoomOut: 'Alejar mapa', resetView: 'Restablecer vista mundial', explorerHint: 'Arrastrá para recorrer · usá la rueda para acercar', explorerEmptyTitle: 'Elegí un país', explorerEmpty: 'Acercate, recorré el mapa y tocá un país con obras para descubrir a quienes participan.', explorerCountryHint: 'Obras publicadas de esta comunidad.',
   },
   jury: {
     eyebrow: 'Jurado internacional',

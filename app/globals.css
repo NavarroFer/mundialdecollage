@@ -212,6 +212,22 @@
   animation: float-slow 7s ease-in-out infinite;
 }
 
+.map-explorer-control {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  border-radius: 9999px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 150ms ease, background-color 150ms ease;
+}
+.map-explorer-control:hover { transform: translateY(-2px); background: var(--collage-yellow); }
+.map-explorer-control:focus-visible { outline: 2px solid var(--collage-blue); outline-offset: 4px; }
+
 @keyframes stamp-confetti-fall {
   from { transform: translate(0, -8vh) rotate(0); opacity: 1; }
   to { transform: translate(var(--x), 105vh) rotate(540deg); opacity: 0; }
