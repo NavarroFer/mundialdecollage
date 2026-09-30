@@ -18,6 +18,22 @@ const STATUS: Record<string, { label: string; icon: typeof Circle; className: st
   failed: { label: 'Falló', icon: CircleAlert, className: 'bg-collage-red/15 text-collage-red' },
 }
 
+function formatCampaignDate(value: string | null) {
+  if (!value) return null
+  return new Intl.DateTimeFormat('es-AR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Argentina/Buenos_Aires',
+  }).format(new Date(value))
+}
+
+function rate(value: number, total: number) {
+  return total > 0 ? `${Math.round((value / total) * 100)}%` : null
+}
+
 export default async function CampanasPage({
   searchParams,
 }: {
@@ -36,7 +52,7 @@ export default async function CampanasPage({
   const { data: campaigns } = await supabase
     .from('campaigns')
     .select(
-      'id, subject, status, audience, scheduled_for, recipient_count, sent_count, failed_count, delivered_count, opened_count, bounced_count, sent_at, created_at',
+      'id, subject, status, audience, scheduled_for, recipient_count, sent_count, failed_count, delivered_count, opened_count, clicked_count, bounced_count, complained_count, sent_at, created_at',
     )
     .order('created_at', { ascending: false })
 
@@ -109,6 +125,10 @@ export default async function CampanasPage({
             className: 'bg-ink/10 text-muted-foreground',
           }
           const StatusIcon = status.icon
+          const sentDate = formatCampaignDate(c.sent_at)
+          const deliveryRate = rate(c.delivered_count, c.sent_count)
+          const openRate = rate(c.opened_count, c.delivered_count || c.sent_count)
+          const clickRate = rate(c.clicked_count, c.delivered_count || c.sent_count)
           return (
             <div key={c.id} className="rounded-2xl border-2 border-ink/10 bg-card px-5 py-4">
               <div className="flex items-center justify-between">
@@ -126,14 +146,20 @@ export default async function CampanasPage({
                   {c.status === 'scheduled' ? ` a las ${SCHEDULED_SEND_TIME_LABEL}` : ''} · {audienceLabel(c.audience)}
                 </p>
               ) : (
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {c.recipient_count} destinatarios{c.audience && c.audience !== 'subscribed' ?` (${audienceLabel(c.audience)})` : ''} ·{' '}
-                  {c.sent_count} enviados
-                  {c.delivered_count > 0 ? ` · ${c.delivered_count} entregados` : ''}
-                  {c.opened_count > 0 ? ` · ${c.opened_count} abiertos` : ''}
-                  {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
-                  {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
-                </p>
+                <>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {sentDate ? `Enviada el ${sentDate}` : 'Sin fecha de envío'} · {c.recipient_count} destinatarios
+                    {c.audience && c.audience !== 'subscribed' ? ` (${audienceLabel(c.audience)})` : ''} · {c.sent_count} enviados
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {deliveryRate ? `Entregabilidad ${deliveryRate}` : 'Sin entregas confirmadas'}
+                    {openRate ? ` · Apertura ${openRate}` : ''}
+                    {clickRate ? ` · Clics ${clickRate}` : ''}
+                    {c.bounced_count > 0 ? ` · ${c.bounced_count} rebotaron` : ''}
+                    {c.failed_count > 0 ? ` · ${c.failed_count} fallaron` : ''}
+                    {c.complained_count > 0 ? ` · ${c.complained_count} marcaron como spam` : ''}
+                  </p>
+                </>
               )}
               {c.status === 'scheduled' && (
                 <form action={cancelScheduledCampaign} className="mt-3">

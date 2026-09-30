@@ -11,7 +11,7 @@ import { verifyResendSignature } from '@/lib/resend-signature'
 const EVENT_MAP: Record<string, string> = {
   'email.delivered': 'delivered',
   'email.opened': 'opened',
-  'email.clicked': 'opened', // a click implies an open, and some clients block the open pixel
+  'email.clicked': 'clicked',
   'email.bounced': 'bounced',
   'email.complained': 'complained',
 }
