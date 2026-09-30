@@ -89,7 +89,11 @@ export function WorldMap({
     if (!artworkCountries.has(countryCode)) return
     void fetch('/api/stamps', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ stamp: 'world' }) })
       .then((response) => response.ok ? response.json() as Promise<{ awarded: boolean }> : null)
-      .then((data) => { if (data?.awarded) { announceStampUnlocked('world'); setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) } })
+      .then((data) => {
+        if (!data) return
+        announceStampUnlocked('world')
+        if (data.awarded) { setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) }
+      })
     setSelectedCountryCode(countryCode)
     setTooltip(null)
   }

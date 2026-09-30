@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { BookOpen, CircleCheck, Compass, LockKeyhole, Scissors, Send, X } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { useI18n } from '@/lib/i18n/client'
 import { MAP_SECTION_ID } from '@/lib/map-country-link'
 import { STAMP_UNLOCKED_EVENT, type StampKey } from '@/lib/stamps'
+import type { CollectedArtworkStamp } from '@/components/stamp-album'
 
 const TUTORIAL_KEY = 'mundial-stamps-tutorial-seen'
 const stamps = [
@@ -15,18 +17,22 @@ const stamps = [
   { key: 'world', href: `#${MAP_SECTION_ID}`, Icon: Compass, tone: 'bg-collage-blue text-paper -rotate-1' },
 ] as const
 
-export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStamps }: { signedIn: boolean; unlockedStamps: string[] }) {
+export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStamps, artworkStamps }: { signedIn: boolean; unlockedStamps: string[]; artworkStamps: CollectedArtworkStamp[] }) {
   const { m } = useI18n()
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [albumOpen, setAlbumOpen] = useState(false)
   const [unlockedStamps, setUnlockedStamps] = useState(initialUnlockedStamps)
+  const [collectedArtworkStamps, setCollectedArtworkStamps] = useState(artworkStamps)
   const copy = { first: m.stamps.first, gallery: m.stamps.gallery, world: m.stamps.world }
 
   const syncStamps = useCallback(async () => {
     const response = await fetch('/api/stamps', { cache: 'no-store' })
     if (!response.ok) return
-    const data = await response.json() as { signedIn: boolean; unlockedStamps: string[] }
-    if (data.signedIn) setUnlockedStamps(data.unlockedStamps)
+    const data = await response.json() as { signedIn: boolean; unlockedStamps: string[]; artworkStamps: CollectedArtworkStamp[] }
+    if (data.signedIn) {
+      setUnlockedStamps(data.unlockedStamps)
+      setCollectedArtworkStamps(data.artworkStamps)
+    }
   }, [])
 
   // A route can be restored from the browser/Next cache when returning to the
@@ -34,12 +40,18 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
   // hidden behind an older server render.
   useEffect(() => {
     if (!signedIn) return
+    // Let hydration finish first. This forces a read even when Next restores
+    // the home route from its client cache instead of mounting it again.
+    const initialSync = window.setTimeout(() => void syncStamps(), 0)
     const onReturn = () => void syncStamps()
     window.addEventListener('focus', onReturn)
     window.addEventListener('pageshow', onReturn)
+    window.addEventListener('popstate', onReturn)
     return () => {
+      window.clearTimeout(initialSync)
       window.removeEventListener('focus', onReturn)
       window.removeEventListener('pageshow', onReturn)
+      window.removeEventListener('popstate', onReturn)
     }
   }, [signedIn, syncStamps])
 
@@ -102,6 +114,16 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
             )
           })}
               </div>
+              <section className="mt-9 border-t-2 border-ink pt-6">
+                <div className="flex items-baseline justify-between gap-4"><h4 className="font-display text-2xl uppercase">Obras que guardaste</h4><span className="text-sm font-bold">{collectedArtworkStamps.length}</span></div>
+                {collectedArtworkStamps.length ? <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {collectedArtworkStamps.map((stamp) => <Link key={stamp.slug} href={`/obras/${stamp.slug}`} className="group overflow-hidden border-2 border-dashed border-ink bg-collage-yellow/20 p-2 shadow-[3px_3px_0_var(--color-ink)]">
+                    {/* A real obra is the stamp artwork until the illustrated stamp set arrives. */}
+                    <Image src={stamp.image} alt={stamp.title} width={240} height={240} className="aspect-square w-full object-cover transition group-hover:scale-105" />
+                    <p className="mt-2 truncate font-display text-base uppercase">{stamp.title}</p><p className="truncate text-xs font-semibold text-muted-foreground">{stamp.artist}</p>
+                  </Link>)}
+                </div> : <p className="mt-3 text-sm text-muted-foreground">Entrá a la galería y guardá las obras que más te gusten.</p>}
+              </section>
             </>}
           </div>
         </div>
