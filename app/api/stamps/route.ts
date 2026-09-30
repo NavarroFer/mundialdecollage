@@ -11,6 +11,9 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return new NextResponse(null, { status: 401 })
-  const { error } = await supabase.from('profile_stamps').upsert({ profile_id: user.id, stamp_key: body.stamp }, { onConflict: 'profile_id,stamp_key', ignoreDuplicates: true })
-  return error ? new NextResponse(null, { status: 500 }) : new NextResponse(null, { status: 204 })
+  const { data: existing, error: readError } = await supabase.from('profile_stamps').select('stamp_key').eq('stamp_key', body.stamp).maybeSingle()
+  if (readError) return new NextResponse(null, { status: 500 })
+  if (existing) return NextResponse.json({ awarded: false })
+  const { error } = await supabase.from('profile_stamps').insert({ profile_id: user.id, stamp_key: body.stamp })
+  return error ? new NextResponse(null, { status: 500 }) : NextResponse.json({ awarded: true })
 }

@@ -212,6 +212,16 @@
   animation: float-slow 7s ease-in-out infinite;
 }
 
+@keyframes stamp-confetti-fall {
+  from { transform: translate(0, -8vh) rotate(0); opacity: 1; }
+  to { transform: translate(var(--x), 105vh) rotate(540deg); opacity: 0; }
+}
+.stamp-confetti { position: fixed; inset: 0; z-index: 80; pointer-events: none; overflow: hidden; }
+.stamp-confetti i { position: absolute; top: 0; left: calc((var(--i) + .5) * 4.5%); width: 10px; height: 15px; background: var(--collage-yellow); animation: stamp-confetti-fall 2.1s cubic-bezier(.2,.7,.4,1) both; animation-delay: calc(var(--i) * -70ms); --x: calc((var(--i) - 11) * 2vw); }
+.stamp-confetti i:nth-child(3n) { background: var(--collage-red); border-radius: 50%; }
+.stamp-confetti i:nth-child(3n + 1) { background: var(--collage-blue); transform: rotate(25deg); }
+@media (prefers-reduced-motion: reduce) { .stamp-confetti { display: none; } }
+
 @keyframes paper-cut-across {
   from { transform: translateX(-10vw) rotate(-8deg); }
   to { transform: translateX(110vw) rotate(8deg); }

@@ -15,6 +15,7 @@ import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
+import { StampConfetti } from '@/components/stamp-confetti'
 
 // world-atlas ships this as a TopoJSON Topology, which react-simple-maps
 // handles at runtime (it converts to GeoJSON via topojson-client), but its
@@ -58,6 +59,7 @@ export function WorldMap({
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [tooltip, setTooltip] = useState<Tooltip | null>(null)
+  const [celebrateStamp, setCelebrateStamp] = useState(false)
   // Arriving on a #mapa-AR link (the flag ribbon, or a shared URL) opens
   // that country right away. Client-only component (ssr: false), so window
   // is always there.
@@ -85,6 +87,8 @@ export function WorldMap({
   function selectCountry(countryCode: string) {
     if (!artworkCountries.has(countryCode)) return
     void fetch('/api/stamps', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ stamp: 'world' }) })
+      .then((response) => response.ok ? response.json() as Promise<{ awarded: boolean }> : null)
+      .then((data) => { if (data?.awarded) { setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) } })
     setSelectedCountryCode(countryCode)
     setTooltip(null)
   }
@@ -148,6 +152,7 @@ export function WorldMap({
 
   return (
     <div ref={containerRef} className="relative">
+      <StampConfetti visible={celebrateStamp} />
       <ComposableMap
         projection="geoEqualEarth"
         projectionConfig={{ scale: 148 }}
