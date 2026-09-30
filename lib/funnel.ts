@@ -20,6 +20,15 @@ export const FUNNEL_STEPS = [
   { name: 'signup_done', label: 'Terminaron o confirmaron la inscripción' },
 ] as const
 
+// The main, linear gallery experience. Shared links, likes, comments and
+// sign-in are entry sources or optional branches, so they belong in their
+// own comparisons rather than making the central exploration funnel grow.
+export const GALLERY_HAPPY_PATH = [
+  { name: 'gallery_view', label: 'Abrieron la galería' },
+  { name: 'gallery_enter', label: 'Entraron a recorrerla' },
+  { name: 'artwork_open', label: 'Abrieron una obra' },
+] as const
+
 // The home's calls to action, recorded the same way so /admin/estadisticas
 // can compare them against each other. home_view is the base the rest are
 // measured against; the header's «Participar» sits on every page, not only

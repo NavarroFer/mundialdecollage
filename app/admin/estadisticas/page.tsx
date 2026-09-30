@@ -6,7 +6,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -66,7 +66,7 @@ async function getGalleryHistory(days: number) {
   })
 }
 
-function FunnelSection({
+function JourneySection({
   week,
   month,
   title,
@@ -181,25 +181,73 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           </div>
           <div className="p-5 sm:p-6">
             <h3 className="font-display text-xl tracking-tight text-ink uppercase">Embudo principal</h3>
-            <p className="mt-1 text-sm text-muted-foreground">De abrir la galería a comenzar una participación, en los últimos {periodDays} días.</p>
-            <div className="mt-6">{funnelMonth ? <FunnelChart periodDays={periodDays} steps={FUNNEL_STEPS.slice(0, 5).map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0 }))} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el embudo.</p>}</div>
+            <p className="mt-1 text-sm text-muted-foreground">El camino principal para descubrir obras, en los últimos {periodDays} días.</p>
+            <div className="mt-6">{funnelMonth ? <FunnelChart periodDays={periodDays} steps={GALLERY_HAPPY_PATH.map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0 }))} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el embudo.</p>}</div>
           </div>
         </div>
       </section>
 
-      <FunnelSection
+      <section className="mt-12" aria-labelledby="linear-journeys-title">
+        <div className="border-l-4 border-collage-blue pl-4">
+          <p className="text-xs font-bold tracking-[0.18em] text-collage-blue uppercase">Recorridos lineales</p>
+          <h2 id="linear-journeys-title" className="font-display mt-1 text-2xl tracking-tight text-ink uppercase">Embudos</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Etapas consecutivas: cada bloque muestra el avance del mismo camino.</p>
+        </div>
+
+      <JourneySection
         week={funnelWeek}
         month={funnelMonth}
         title="Circuito de la galería"
-        description="Personas distintas que llegaron a cada paso, del recorrido por la Galería 3D a terminar la inscripción. Cada navegador cuenta como una persona (un identificador anónimo, sin nombre ni mail). Sirve para ver dónde se cae la gente antes de armar el plan mensual. Se mide desde el 25 de septiembre de 2026."
-        steps={FUNNEL_STEPS}
+        description="El camino central de descubrimiento: abrir la Galería 3D, entrar a recorrerla y descubrir una obra. Cada navegador cuenta una vez, con un identificador anónimo. Se mide desde el 25 de septiembre de 2026."
+        steps={GALLERY_HAPPY_PATH}
         baseStep="gallery_view"
         baseLabel="De quienes abrieron la galería"
-        footnote="Los pasos de la home y la inscripción también cuentan a quien llegó sin pasar por la galería, por eso pueden superar a los anteriores."
         periodDays={periodDays}
       />
 
-      <FunnelSection
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Invitación después de un like o comentario"
+        description="Quien da like o comenta una obra en la galería (muchas veces gente que llegó porque el artista la compartió) ve ahí mismo la invitación a mandar su propia obra. Se mide desde el 28 de septiembre de 2026."
+        steps={INVITE_EVENTS}
+        baseStep="artist_invite_view"
+        baseLabel="De quienes vieron la invitación"
+        periodDays={periodDays}
+      />
+
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Invitaciones de los artistas"
+        description="Los links que comparten los artistas llevan su invitación: quien llega por uno ve «te invita a participar» y, si se inscribe, cuenta para ese artista. Se mide desde el 28 de septiembre de 2026."
+        steps={REFERRAL_EVENTS}
+        baseStep="referral_open"
+        baseLabel="De quienes llegaron invitados"
+        periodDays={periodDays}
+      />
+
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Formulario de inscripción"
+        description="El recorrido lineal dentro del formulario: desde verlo hasta tocar «Enviar». Se mide desde el 28 de septiembre de 2026."
+        steps={ONBOARDING_FORM_EVENTS}
+        baseStep="onboarding_form_view"
+        baseLabel="De quienes vieron el formulario"
+        periodDays={periodDays}
+      />
+
+      </section>
+
+      <section className="mt-14" aria-labelledby="action-comparisons-title">
+        <div className="border-l-4 border-collage-red pl-4">
+          <p className="text-xs font-bold tracking-[0.18em] text-collage-red uppercase">Acciones alternativas</p>
+          <h2 id="action-comparisons-title" className="font-display mt-1 text-2xl tracking-tight text-ink uppercase">Comparativas</h2>
+          <p className="mt-1 text-sm text-muted-foreground">No son pasos consecutivos: sirven para comparar qué acción genera más movimiento.</p>
+        </div>
+
+      <JourneySection
         week={funnelWeek}
         month={funnelMonth}
         title="Botones de la home"
@@ -212,7 +260,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         variant="comparison"
       />
 
-      <FunnelSection
+      <JourneySection
         week={funnelWeek}
         month={funnelMonth}
         title="Compartir obras"
@@ -222,40 +270,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         variant="comparison"
       />
 
-      <FunnelSection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Invitación después de un like o comentario"
-        description="Quien da like o comenta una obra en la galería (muchas veces gente que llegó porque el artista la compartió) ve ahí mismo la invitación a mandar su propia obra. Se mide desde el 28 de septiembre de 2026."
-        steps={INVITE_EVENTS}
-        baseStep="artist_invite_view"
-        baseLabel="De quienes vieron la invitación"
-        periodDays={periodDays}
-      />
-
-      <FunnelSection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Invitaciones de los artistas"
-        description="Los links que comparten los artistas llevan su invitación: quien llega por uno ve «te invita a participar» y, si se inscribe, cuenta para ese artista. Se mide desde el 28 de septiembre de 2026."
-        steps={REFERRAL_EVENTS}
-        baseStep="referral_open"
-        baseLabel="De quienes llegaron invitados"
-        periodDays={periodDays}
-      />
-
-      <FunnelSection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Formulario de inscripción"
-        description="El recorrido lineal dentro del formulario: desde verlo hasta tocar «Enviar». Se mide desde el 28 de septiembre de 2026."
-        steps={ONBOARDING_FORM_EVENTS}
-        baseStep="onboarding_form_view"
-        baseLabel="De quienes vieron el formulario"
-        periodDays={periodDays}
-      />
-
-      <FunnelSection
+      <JourneySection
         week={funnelWeek}
         month={funnelMonth}
         title="Descubrimiento de obras y artistas"
@@ -266,6 +281,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         periodDays={periodDays}
         variant="comparison"
       />
+      </section>
 
       <div className="mt-12 grid items-start gap-6 xl:grid-cols-12">
         <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 xl:col-span-5">
