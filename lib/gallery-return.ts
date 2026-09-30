@@ -3,11 +3,11 @@
 // return link that says which obra and what they were doing; back in the
 // gallery (components/gallery/Game.tsx) that obra reopens and the action
 // finishes on its own — the like gets saved, the drafted comment gets sent.
-export type GalleryIntent = 'like' | 'comment'
+export type GalleryIntent = 'like' | 'comment' | 'stamp'
 
 export type GalleryReturn = { slug: string; intent: GalleryIntent }
 
-const INTENTS: GalleryIntent[] = ['like', 'comment']
+const INTENTS: GalleryIntent[] = ['like', 'comment', 'stamp']
 
 export function galleryReturnPath({ slug, intent }: GalleryReturn): string {
   return `/galeria-3d?${new URLSearchParams({ obra: slug, accion: intent })}`

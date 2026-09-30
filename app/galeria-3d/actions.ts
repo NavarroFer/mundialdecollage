@@ -74,6 +74,28 @@ export async function likeArtwork(slug: string) {
   }
 }
 
+export type ArtworkStampResult = {
+  status: 'collected' | 'already_collected' | 'limit_reached'
+  remaining: number
+  resetsAt: string | null
+}
+
+export async function collectArtworkStamp(slug: string): Promise<ArtworkStampResult | { error: string }> {
+  if (!isSupabaseConfigured || !validSlug(slug)) return { error: unavailable }
+  try {
+    const user = await getSessionUser()
+    if (!user) return { error: 'sign_in_required' }
+    const client = await createClient()
+    const { data, error } = await client.rpc('collect_gallery_artwork_stamp', { artwork_slug: slug }).single()
+    if (error || !data) return { error: 'save_failed' }
+    const row = data as { status: ArtworkStampResult['status']; remaining: number; resets_at: string | null }
+    if (!['collected', 'already_collected', 'limit_reached'].includes(row.status)) return { error: 'save_failed' }
+    return { status: row.status, remaining: row.remaining, resetsAt: row.resets_at }
+  } catch {
+    return { error: 'save_failed' }
+  }
+}
+
 export type GalleryComment = {
   id: string
   author: string
