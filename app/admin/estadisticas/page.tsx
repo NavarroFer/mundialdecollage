@@ -1,5 +1,6 @@
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { StatBar } from '@/components/admin/stat-bar'
+import { DailyActivityChart, DonutChart, FunnelChart } from '@/components/admin/dashboard-charts'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
@@ -31,6 +32,14 @@ async function getArtworkStats() {
 
 type FunnelCounts = Map<string, number>
 
+function buenosAiresDay(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date)
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? ''
+  return `${value('year')}-${value('month')}-${value('day')}`
+}
+
 // Distinct visitors per circuit step (lib/funnel.ts) since `days` ago.
 async function getFunnel(days: number): Promise<FunnelCounts | null> {
   if (!isSupabaseConfigured) return null
@@ -39,6 +48,21 @@ async function getFunnel(days: number): Promise<FunnelCounts | null> {
   const { data, error } = await supabase.rpc('funnel_summary', { since })
   if (error) return null
   return new Map(((data ?? []) as { name: string; visitors: number | string }[]).map((row) => [row.name, Number(row.visitors)]))
+}
+
+async function getGalleryHistory(days: number) {
+  if (!isSupabaseConfigured) return null
+  const supabase = await createClient()
+  const since = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase.rpc('funnel_daily_summary', { since, event_name: 'gallery_view' })
+  if (error) return null
+  const byDay = new Map(((data ?? []) as { day: string; visitors: number | string }[]).map((row) => [row.day, Number(row.visitors)]))
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date()
+    date.setDate(date.getDate() - (days - 1 - index))
+    const day = buenosAiresDay(date)
+    return { label: date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }), value: byDay.get(day) ?? 0 }
+  })
 }
 
 function FunnelSection({
@@ -105,7 +129,7 @@ function FunnelSection({
 }
 
 export default async function EstadisticasPage() {
-  const [siteStats, funnelWeek, funnelMonth] = await Promise.all([getArtworkStats(), getFunnel(7), getFunnel(30)])
+  const [siteStats, funnelWeek, funnelMonth, galleryHistory] = await Promise.all([getArtworkStats(), getFunnel(7), getFunnel(30), getGalleryHistory(14)])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
@@ -123,6 +147,25 @@ export default async function EstadisticasPage() {
         <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />
         <StatPill label="Con técnica registrada · Sitio" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
       </div>
+
+      <section className="mt-8 overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">
+        <div className="border-b-2 border-ink/10 bg-collage-blue px-5 py-5 text-paper sm:px-6">
+          <p className="text-xs font-bold tracking-[0.18em] text-paper/75 uppercase">Lectura rápida</p>
+          <h2 className="font-display mt-1 text-2xl tracking-tight uppercase">El pulso de la convocatoria</h2>
+        </div>
+        <div className="grid divide-y-2 divide-ink/10 lg:grid-cols-2 lg:divide-x-2 lg:divide-y-0">
+          <div className="p-5 sm:p-6">
+            <h3 className="font-display text-xl tracking-tight text-ink uppercase">Actividad reciente</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Una lectura diaria ayuda a detectar picos después de una publicación, difusión o campaña.</p>
+            <div className="mt-5">{galleryHistory ? <DailyActivityChart data={galleryHistory} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el histórico. Recargá la página para reintentar.</p>}</div>
+          </div>
+          <div className="p-5 sm:p-6">
+            <h3 className="font-display text-xl tracking-tight text-ink uppercase">Embudo principal</h3>
+            <p className="mt-1 text-sm text-muted-foreground">De abrir la galería a comenzar una participación, en los últimos 30 días.</p>
+            <div className="mt-6">{funnelMonth ? <FunnelChart steps={FUNNEL_STEPS.slice(0, 5).map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0 }))} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el embudo.</p>}</div>
+          </div>
+        </div>
+      </section>
 
       <FunnelSection
         week={funnelWeek}
@@ -228,6 +271,13 @@ export default async function EstadisticasPage() {
         </section>
 
         <div className="space-y-6">
+          {artworkStats && artworkStats.total > 0 && (
+            <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+              <h2 className="font-display text-xl tracking-tight text-ink uppercase">Técnicas, de un vistazo</h2>
+              <p className="mt-2 text-sm text-muted-foreground">La proporción de cada técnica sobre las obras seleccionadas.</p>
+              <div className="mt-5"><DonutChart total={artworkStats.total} label="obras" slices={artworkStats.techniques.map((technique, index) => ({ label: technique.label, value: technique.count, color: ['var(--color-collage-red)', 'var(--color-collage-yellow)', 'var(--color-collage-blue)', 'var(--muted-foreground)'][index] ?? 'var(--muted-foreground)' }))} /></div>
+            </section>
+          )}
           <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
             <h2 className="font-display text-xl tracking-tight text-ink uppercase">Obras por técnica</h2>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -259,10 +309,7 @@ export default async function EstadisticasPage() {
             <section className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
               <h2 className="font-display text-xl tracking-tight text-ink uppercase">Estado de publicación</h2>
               <p className="mt-2 text-sm text-muted-foreground">Sobre las mismas {artworkStats.total} obras seleccionadas del sitio.</p>
-              <ul className="mt-6 space-y-5" aria-label="Estado de publicación de las obras">
-                <li><StatBar label="Publicadas" value={artworkStats.published} maxValue={artworkStats.total} total={artworkStats.total} color="var(--color-collage-blue)" /></li>
-                <li><StatBar label="Pendientes de publicar" value={artworkStats.pending} maxValue={artworkStats.total} total={artworkStats.total} color="var(--color-collage-red)" /></li>
-              </ul>
+              <div className="mt-5"><DonutChart total={artworkStats.total} label="obras" slices={[{ label: 'Publicadas', value: artworkStats.published, color: 'var(--color-collage-blue)' }, { label: 'Pendientes de publicar', value: artworkStats.pending, color: 'var(--color-collage-red)' }]} /></div>
             </section>
           )}
           <p className="text-xs leading-relaxed text-muted-foreground">

@@ -2,12 +2,14 @@ import Link from 'next/link'
 import { Check, PackageOpen, Scissors } from 'lucide-react'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
+import { ScrollToTop } from '@/components/scroll-to-top'
 import { Button } from '@/components/ui/button'
 import { formatArs, subscriptionPlans } from '@/lib/store'
 
 export default function StorePage() {
   return (
     <>
+      <ScrollToTop />
       <SiteHeader />
       <main>
         <section className="bg-grain relative overflow-hidden border-b-2 border-ink/10 py-18 sm:py-24">
