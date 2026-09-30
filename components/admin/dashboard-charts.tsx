@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { formatShare } from '@/lib/artwork-stats'
 
 type Slice = { label: string; value: number; color: string }
@@ -94,6 +97,8 @@ export function ArtworkHistoryChart({
   data: { label: string; value: number }[]
   grouping: 'day' | 'week' | 'month'
 }) {
+  const [activePoint, setActivePoint] = useState<number | null>(null)
+  const [showValues, setShowValues] = useState(false)
   const periodLabel = grouping === 'day' ? 'día' : grouping === 'week' ? 'semana' : 'mes'
   const total = data.reduce((sum, point) => sum + point.value, 0)
   const width = 640
@@ -112,13 +117,49 @@ export function ArtworkHistoryChart({
     <div>
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <p className="text-sm text-muted-foreground">Obras recibidas por {periodLabel}</p>
-        <strong className="font-display shrink-0 text-2xl text-ink">{total}<span className="ml-1 font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">obras</span></strong>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => setShowValues((visible) => !visible)} className="rounded-full border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:border-collage-red hover:text-collage-red" aria-pressed={showValues}>
+            {showValues ? 'Ocultar valores' : 'Mostrar valores'}
+          </button>
+          <strong className="font-display shrink-0 text-2xl text-ink">{total}<span className="ml-1 font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">obras</span></strong>
+        </div>
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full overflow-visible" role="img" aria-label={`Histórico de obras recibidas por ${periodLabel}`}>
         {[0.25, 0.5, 0.75].map((step) => <line key={step} x1={inset} x2={width - inset} y1={height - inset - step * (height - inset * 2)} y2={height - inset - step * (height - inset * 2)} stroke="var(--border)" strokeDasharray="3 5" />)}
         <polygon points={area} fill="var(--color-collage-red)" opacity="0.12" />
         <polyline points={line} fill="none" stroke="var(--color-collage-red)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        {points.map((point) => <g key={point.label}><circle cx={point.x} cy={point.y} r="3.5" fill="var(--color-collage-red)"><title>{`${point.label}: ${point.value} obras`}</title></circle></g>)}
+        {points.map((point, index) => {
+          const isActive = activePoint === index
+          const tooltipX = Math.max(5, Math.min(point.x - 48, width - 101))
+          const tooltipY = Math.max(5, point.y - 44)
+          return (
+            <g key={point.label}>
+              <circle cx={point.x} cy={point.y} r="3.5" fill="var(--color-collage-red)" />
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="12"
+                fill="transparent"
+                className="cursor-pointer"
+                role="button"
+                tabIndex={0}
+                aria-label={`${point.label}: ${point.value} obras`}
+                onMouseEnter={() => setActivePoint(index)}
+                onMouseLeave={() => setActivePoint(null)}
+                onFocus={() => setActivePoint(index)}
+                onBlur={() => setActivePoint(null)}
+              />
+              {showValues && <text x={point.x} y={Math.max(12, point.y - 10)} textAnchor="middle" fill="var(--color-collage-red)" fontSize="11" fontWeight="700">{point.value}</text>}
+              {isActive && (
+                <g pointerEvents="none">
+                  <rect x={tooltipX} y={tooltipY} width="96" height="34" rx="7" fill="var(--color-ink)" />
+                  <text x={tooltipX + 48} y={tooltipY + 12} textAnchor="middle" fill="var(--color-paper)" fontSize="9" fontWeight="700">{point.label}</text>
+                  <text x={tooltipX + 48} y={tooltipY + 25} textAnchor="middle" fill="var(--color-paper)" fontSize="10" fontWeight="700">{point.value} obra{point.value === 1 ? '' : 's'}</text>
+                </g>
+              )}
+            </g>
+          )
+        })}
       </svg>
       <div className="mt-1 flex justify-between text-[10px] font-semibold tracking-wide text-muted-foreground uppercase"><span>{data[0]?.label}</span><span>{data.at(-1)?.label}</span></div>
       <dl className="mt-5 grid max-h-48 grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto rounded-xl bg-muted/60 p-3 text-xs sm:grid-cols-3" aria-label={`Detalle de obras recibidas por ${periodLabel}`}>
