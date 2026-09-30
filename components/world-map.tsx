@@ -84,6 +84,7 @@ export function WorldMap({
 
   function selectCountry(countryCode: string) {
     if (!artworkCountries.has(countryCode)) return
+    void fetch('/api/stamps', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ stamp: 'world' }) })
     setSelectedCountryCode(countryCode)
     setTooltip(null)
   }

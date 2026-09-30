@@ -33,7 +33,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
         <main>
           <HeroSection />
           <FlagRibbon />
-          <StampAlbum />
           <ParticipationStatus />
           {/* An artist's guest (lib/referral.ts), in the slot ParticipationStatus
               uses for the signed in — who get asked to finish there instead. */}
@@ -50,6 +49,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           <AboutSection />
         </main>
         <Footer />
+        <StampAlbum />
       </div>
     </>
   )

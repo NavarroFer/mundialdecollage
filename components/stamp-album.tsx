@@ -3,6 +3,11 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
 
 export async function StampAlbum() {
-  const signedIn = isSupabaseConfigured && Boolean((await (await createClient()).auth.getUser()).data.user)
-  return <StampAlbumClient signedIn={signedIn} />
+  if (!isSupabaseConfigured) return <StampAlbumClient signedIn={false} unlockedStamps={[]} />
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return <StampAlbumClient signedIn={false} unlockedStamps={[]} />
+  const { data } = await supabase.from('profile_stamps').select('stamp_key')
+  const unlockedStamps = (data ?? []).flatMap((row) => row.stamp_key === 'first' || row.stamp_key === 'gallery' || row.stamp_key === 'world' ? [row.stamp_key] : [])
+  return <StampAlbumClient signedIn unlockedStamps={unlockedStamps} />
 }
