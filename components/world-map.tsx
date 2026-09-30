@@ -59,6 +59,7 @@ export function WorldMap({
   flags: Record<string, string>
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const mapCanvasRef = useRef<HTMLDivElement>(null)
   const [tooltip, setTooltip] = useState<Tooltip | null>(null)
   const [celebrateStamp, setCelebrateStamp] = useState(false)
   // Arriving on a #mapa-AR link (the flag ribbon, or a shared URL) opens
@@ -118,6 +119,39 @@ export function WorldMap({
     return () => window.removeEventListener(MAP_COUNTRY_EVENT, onCountry)
   }, [artworks])
 
+  // A quiet scroll-driven camera move using the map that is already on the
+  // page. It intentionally never changes map controls or country hit areas.
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let frame: number | undefined
+    const update = () => {
+      frame = undefined
+      const container = containerRef.current
+      const canvas = mapCanvasRef.current
+      if (!container || !canvas) return
+      const rect = container.getBoundingClientRect()
+      const viewport = window.innerHeight
+      const progress = Math.max(0, Math.min(1, (viewport * 0.86 - rect.top) / (rect.height + viewport * 0.14)))
+      const x = (1 - progress) * -10
+      const y = (1 - progress) * 18
+      const scale = 0.965 + progress * 0.035
+      canvas.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+    }
+    const onScroll = () => {
+      if (frame === undefined) frame = window.requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (frame !== undefined) window.cancelAnimationFrame(frame)
+    }
+  }, [])
+
   function closeCountry() {
     setSelectedCountryCode(null)
     // Drop a #mapa-AR from the URL, so a reload doesn't reopen what was closed.
@@ -158,13 +192,14 @@ export function WorldMap({
   return (
     <div ref={containerRef} className="relative">
       <StampConfetti visible={celebrateStamp} />
-      <ComposableMap
-        projection="geoEqualEarth"
-        projectionConfig={{ scale: 148 }}
-        width={800}
-        height={420}
-        className="h-auto w-full"
-      >
+      <div ref={mapCanvasRef} className="origin-center will-change-transform motion-reduce:transform-none">
+        <ComposableMap
+          projection="geoEqualEarth"
+          projectionConfig={{ scale: 148 }}
+          width={800}
+          height={420}
+          className="h-auto w-full"
+        >
         <Geographies geography={worldTopology}>
           {({ geographies, path }) =>
             geographies.map((shape) => {
@@ -229,7 +264,8 @@ export function WorldMap({
             </Marker>
           )
         })}
-      </ComposableMap>
+        </ComposableMap>
+      </div>
 
       {tooltip && (
         <div

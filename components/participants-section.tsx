@@ -31,6 +31,7 @@ export async function ParticipantsSection() {
           <ObrasCollage
             finalists={collageFinalists}
             flags={flagSvgsFor(collageFinalists.map(({ countryCode }) => countryCode))}
+            scrollDriven
           />
         ) : (
           <p className="mt-8 text-center text-muted-foreground">

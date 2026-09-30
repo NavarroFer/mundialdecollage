@@ -34,6 +34,17 @@
   will-change: transform;
 }
 
+/* The page scroll changes only these variables. It keeps the original paper
+   stack intact at rest, then lets each existing card take a slightly
+   different path through the composition. */
+.obras-collage--scroll-driven .obras-collage__item {
+  transform: translate(
+    calc(var(--shift-x, 0px) + var(--scroll-delta-x, 0px)),
+    calc(var(--shift-y, 0px) + var(--scroll-delta-y, 0px))
+  ) rotate(calc(var(--tilt, -3deg) + var(--scroll-delta-rotation, 0deg))) scale(var(--scroll-scale, 1));
+  transition: transform 80ms linear, filter 220ms ease;
+}
+
 .obras-collage__item:nth-child(10n + 1) { --shift-x: 16px; --shift-y: 28px; --tilt: -7deg; }
 .obras-collage__item:nth-child(10n + 2) { --shift-x: -14px; --shift-y: -18px; --tilt: 5deg; }
 .obras-collage__item:nth-child(10n + 3) { --shift-x: 8px; --shift-y: 48px; --tilt: -3deg; }
@@ -62,6 +73,14 @@
   z-index: 999;
   transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0) - 24px)) rotate(0deg) scale(1.08);
   filter: drop-shadow(0 22px 18px #1b110c35);
+}
+
+.obras-collage--scroll-driven .obras-collage__item:hover,
+.obras-collage--scroll-driven .obras-collage__item:focus-within {
+  transform: translate(
+    calc(var(--shift-x, 0px) + var(--scroll-delta-x, 0px)),
+    calc(var(--shift-y, 0px) + var(--scroll-delta-y, 0px) - 24px)
+  ) rotate(0deg) scale(calc(var(--scroll-scale, 1) + .08));
 }
 
 .obras-collage__window {
@@ -140,6 +159,14 @@
   .obras-collage__item:hover,
   .obras-collage__item:focus-within {
     transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0) - 14px)) rotate(0deg) scale(1.04);
+  }
+
+  .obras-collage--scroll-driven .obras-collage__item:hover,
+  .obras-collage--scroll-driven .obras-collage__item:focus-within {
+    transform: translate(
+      calc(var(--shift-x, 0px) + var(--scroll-delta-x, 0px)),
+      calc(var(--shift-y, 0px) + var(--scroll-delta-y, 0px) - 14px)
+    ) rotate(0deg) scale(calc(var(--scroll-scale, 1) + .04));
   }
 }
 
