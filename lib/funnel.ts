@@ -12,6 +12,7 @@ export const FUNNEL_STEPS = [
   { name: 'sign_in_start', label: 'Fueron a ingresar con Google' },
   { name: 'sign_in_return', label: 'Volvieron logueados a la obra' },
   { name: 'like_saved', label: 'Dejaron un like' },
+  { name: 'artwork_stamp_saved', label: 'Guardaron una estampilla de obra' },
   { name: 'comment_sent', label: 'Escribieron un comentario' },
   { name: 'share_click', label: 'Compartieron una obra' },
   { name: 'home_from_gallery', label: 'Fueron de la galería al inicio' },
