@@ -8,6 +8,7 @@ const CLIENT_NAMESPACES = [
   'splash',
   'countdown',
   'hero',
+  'stamps',
   'collage',
   'map',
   'participantsPage',
