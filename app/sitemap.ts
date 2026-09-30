@@ -8,8 +8,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, changeFrequency: 'daily', priority: 1 },
+    { url: `${siteUrl}/edicion-2026`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/participantes`, changeFrequency: 'daily', priority: 0.6 },
     { url: `${siteUrl}/galeria-3d`, changeFrequency: 'daily', priority: 0.7 },
+    { url: `${siteUrl}/tienda`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${siteUrl}/taller/inscripcion`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${siteUrl}/terminos-y-condiciones`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${siteUrl}/politica-de-privacidad`, changeFrequency: 'yearly', priority: 0.3 },

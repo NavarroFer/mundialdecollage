@@ -30,6 +30,9 @@ SUPABASE_SERVICE_ROLE_KEY=
 # mandar mails (ver lib/resend.ts). Requiere mundialdecollage.com.ar
 # verificado como sending domain en Resend (ver mailFrom en lib/site.ts).
 RESEND_API_KEY=
+# Obligatorio al registrar /api/resend/webhook en Resend: sin este secreto
+# el endpoint rechaza todos los eventos para que nunca acepte eventos falsos.
+RESEND_WEBHOOK_SECRET=
 
 # Opcional: fuerza la URL usada en links de mail (ej. unsubscribe) en vez de
 # auto-detectar la URL de Vercel (ver getSiteUrl en lib/site.ts).
@@ -39,6 +42,8 @@ RESEND_API_KEY=
 # (ver lib/pricing.ts).
 # MERCADOPAGO_ACCESS_TOKEN=
 # NEXT_PUBLIC_MP_PUBLIC_KEY=
+# Obligatorio al registrar /api/mercadopago/webhook en Mercado Pago: sin este
+# secreto el endpoint rechaza las notificaciones sin firma.
 # MERCADOPAGO_WEBHOOK_SECRET=
 
 # PayPal subscriptions (USD). Keep the client secret server-only. Create the

@@ -20,17 +20,18 @@ export async function POST(request: NextRequest) {
   const body = await request.text()
 
   const secret = process.env.RESEND_WEBHOOK_SECRET
-  if (secret) {
-    const id = request.headers.get('svix-id')
-    const timestamp = request.headers.get('svix-timestamp')
-    const signature = request.headers.get('svix-signature')
+  if (!secret) {
+    console.error('resend webhook: RESEND_WEBHOOK_SECRET not set, refusing unsigned events')
+    return new NextResponse('Webhook is not configured', { status: 503 })
+  }
 
-    if (!id || !timestamp || !signature || !verifyResendSignature({ id, timestamp, signature, body, secret })) {
-      console.warn('resend webhook: signature missing or invalid, rejecting')
-      return new NextResponse('Invalid signature', { status: 401 })
-    }
-  } else {
-    console.warn('resend webhook: RESEND_WEBHOOK_SECRET not set, skipping signature verification')
+  const id = request.headers.get('svix-id')
+  const timestamp = request.headers.get('svix-timestamp')
+  const signature = request.headers.get('svix-signature')
+
+  if (!id || !timestamp || !signature || !verifyResendSignature({ id, timestamp, signature, body, secret })) {
+    console.warn('resend webhook: signature missing or invalid, rejecting')
+    return new NextResponse('Invalid signature', { status: 401 })
   }
 
   let payload: { type?: string; created_at?: string; data?: { email_id?: string } }

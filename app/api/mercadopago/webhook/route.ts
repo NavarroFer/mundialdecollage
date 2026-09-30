@@ -37,25 +37,24 @@ export async function POST(request: NextRequest) {
   }
 
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET
-  if (secret) {
-    const requestId = request.headers.get('x-request-id')
-    const { ts, v1 } = parseSignatureHeader(request.headers.get('x-signature'))
+  if (!secret) {
+    console.error('mercadopago webhook: MERCADOPAGO_WEBHOOK_SECRET not set, refusing unsigned notifications')
+    return new NextResponse('Webhook is not configured', { status: 503 })
+  }
 
-    if (!ts || !v1 || !requestId) {
-      console.warn('mercadopago webhook: missing signature headers, rejecting')
-      return new NextResponse('Invalid signature', { status: 401 })
-    }
+  const requestId = request.headers.get('x-request-id')
+  const { ts, v1 } = parseSignatureHeader(request.headers.get('x-signature'))
 
-    const valid = verifyMercadoPagoSignature({ paymentId, requestId, ts, v1, secret })
+  if (!ts || !v1 || !requestId) {
+    console.warn('mercadopago webhook: missing signature headers, rejecting')
+    return new NextResponse('Invalid signature', { status: 401 })
+  }
 
-    if (!valid) {
-      console.warn('mercadopago webhook: signature mismatch, rejecting')
-      return new NextResponse('Invalid signature', { status: 401 })
-    }
-  } else {
-    // Expected until the route is registered in the Mercado Pago dashboard
-    // and a secret gets generated — don't block processing on it today.
-    console.warn('mercadopago webhook: MERCADOPAGO_WEBHOOK_SECRET not set, skipping signature verification')
+  const valid = verifyMercadoPagoSignature({ paymentId, requestId, ts, v1, secret })
+
+  if (!valid) {
+    console.warn('mercadopago webhook: signature mismatch, rejecting')
+    return new NextResponse('Invalid signature', { status: 401 })
   }
 
   if (!isMercadoPagoConfigured) {
