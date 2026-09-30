@@ -65,6 +65,7 @@ const de: Messages = {
   stamps: {
     eyebrow: 'WM-Album', title: 'Sammle Briefmarken', body: 'Jeder Schritt hinterlässt eine Spur. Bald kannst du neue Erfolge freischalten.',
     first: { title: 'Erster Schnitt', body: 'Schick dein Werk' }, gallery: { title: 'Entdecker:in', body: 'Erkunde die 3D-Ausstellung' }, world: { title: 'Um die Welt', body: 'Entdecke die Community' },
+    howItWorks: 'So funktioniert es', stepRegister: 'Melde dich an, um dein Album zu starten.', stepExplore: 'Mach mit und entdecke die WM.', stepCollect: 'Schalte Briefmarken und neue Erfolge frei.', registerCta: 'Zum Sammeln anmelden', locked: 'Gesperrte Briefmarke', close: 'Tutorial schließen',
   },
   status: {
     badge: 'Du bist schon dabei',

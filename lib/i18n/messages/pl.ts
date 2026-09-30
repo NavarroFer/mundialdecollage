@@ -65,6 +65,7 @@ const pl: Messages = {
   stamps: {
     eyebrow: 'Album Mistrzostw', title: 'Zbieraj znaczki', body: 'Każdy krok zostawia ślad. Wkrótce odblokujesz nowe osiągnięcia.',
     first: { title: 'Pierwsze cięcie', body: 'Wyślij swoją pracę' }, gallery: { title: 'Odkrywca', body: 'Zwiedź wystawę 3D' }, world: { title: 'Dookoła świata', body: 'Poznaj społeczność' },
+    howItWorks: 'Jak to działa', stepRegister: 'Zarejestruj się, aby rozpocząć album.', stepExplore: 'Działaj i odkrywaj Mistrzostwa.', stepCollect: 'Odblokowuj znaczki i nowe osiągnięcia.', registerCta: 'Zarejestruj się, by zbierać', locked: 'Zablokowany znaczek', close: 'Zamknij samouczek',
   },
   status: {
     badge: 'Już bierzesz udział',

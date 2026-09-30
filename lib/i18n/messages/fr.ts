@@ -65,6 +65,7 @@ const fr: Messages = {
   stamps: {
     eyebrow: 'Album du Mondial', title: 'Collectionne les timbres', body: 'Chaque étape laisse une trace. Tu pourras bientôt débloquer de nouveaux succès.',
     first: { title: 'Première découpe', body: 'Envoie ton œuvre' }, gallery: { title: 'Explorateur·rice', body: 'Parcours l’exposition 3D' }, world: { title: 'Tour du monde', body: 'Découvre la communauté' },
+    howItWorks: 'Comment ça marche', stepRegister: 'Inscris-toi pour commencer ton album.', stepExplore: 'Agis et découvre le Mondial.', stepCollect: 'Débloque des timbres et de nouveaux succès.', registerCta: 'M inscrire pour collectionner', locked: 'Timbre verrouillé', close: 'Fermer le tutoriel',
   },
   status: {
     badge: 'Tu participes déjà',

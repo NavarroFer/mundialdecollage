@@ -65,6 +65,7 @@ const pt: Messages = {
   stamps: {
     eyebrow: 'Álbum do Mundial', title: 'Colecione selos', body: 'Cada passo deixa uma marca. Em breve você poderá desbloquear novas conquistas.',
     first: { title: 'Primeiro recorte', body: 'Envie sua obra' }, gallery: { title: 'Explorador/a', body: 'Visite a mostra 3D' }, world: { title: 'Volta ao mundo', body: 'Conheça a comunidade' },
+    howItWorks: 'Como funciona', stepRegister: 'Cadastre-se para começar seu álbum.', stepExplore: 'Faça ações e descubra o Mundial.', stepCollect: 'Desbloqueie selos e novas conquistas.', registerCta: 'Cadastrar para colecionar', locked: 'Selo bloqueado', close: 'Fechar tutorial',
   },
   status: {
     badge: 'Você já está participando',

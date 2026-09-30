@@ -65,6 +65,7 @@ const en: Messages = {
   stamps: {
     eyebrow: 'World Cup album', title: 'Collect stamps', body: 'Every step leaves a mark. You will soon be able to unlock new achievements.',
     first: { title: 'First cut', body: 'Send your artwork' }, gallery: { title: 'Explorer', body: 'Tour the 3D exhibition' }, world: { title: 'Around the world', body: 'Discover the community' },
+    howItWorks: 'How it works', stepRegister: 'Register to start your album.', stepExplore: 'Take actions and discover the World Cup.', stepCollect: 'Unlock stamps and new achievements.', registerCta: 'Register to collect', locked: 'Locked stamp', close: 'Close tutorial',
   },
   status: {
     badge: "You're taking part",

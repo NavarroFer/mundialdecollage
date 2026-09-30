@@ -65,6 +65,7 @@ const id: Messages = {
   stamps: {
     eyebrow: 'Album Piala Dunia', title: 'Koleksi perangko', body: 'Setiap langkah meninggalkan jejak. Segera kamu dapat membuka pencapaian baru.',
     first: { title: 'Potongan pertama', body: 'Kirim karyamu' }, gallery: { title: 'Penjelajah', body: 'Jelajahi pameran 3D' }, world: { title: 'Keliling dunia', body: 'Temukan komunitas' },
+    howItWorks: 'Cara kerjanya', stepRegister: 'Daftar untuk memulai album Anda.', stepExplore: 'Lakukan aksi dan temukan Piala Dunia.', stepCollect: 'Buka perangko dan pencapaian baru.', registerCta: 'Daftar untuk mengoleksi', locked: 'Perangko terkunci', close: 'Tutup tutorial',
   },
   status: {
     badge: 'Kamu sudah ikut serta',

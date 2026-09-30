@@ -66,6 +66,7 @@ const es = {
   stamps: {
     eyebrow: 'Álbum del Mundial', title: 'Coleccioná estampillas', body: 'Cada paso deja una marca. Muy pronto vas a poder desbloquear nuevos logros.',
     first: { title: 'Primer recorte', body: 'Mandá tu obra' }, gallery: { title: 'Explorador/a', body: 'Recorré la muestra 3D' }, world: { title: 'Vuelta al mundo', body: 'Descubrí la comunidad' },
+    howItWorks: 'Cómo funciona', stepRegister: 'Registrate para empezar tu álbum.', stepExplore: 'Hacé acciones y descubrí el Mundial.', stepCollect: 'Desbloqueá estampillas y nuevos logros.', registerCta: 'Registrarme para coleccionar', locked: 'Estampilla bloqueada', close: 'Cerrar tutorial',
   },
   status: {
     badge: 'Ya estás participando',

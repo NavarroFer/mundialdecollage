@@ -65,6 +65,7 @@ const it: Messages = {
   stamps: {
     eyebrow: 'Album del Mondiale', title: 'Colleziona francobolli', body: 'Ogni passo lascia un segno. Presto potrai sbloccare nuovi traguardi.',
     first: { title: 'Primo ritaglio', body: 'Invia la tua opera' }, gallery: { title: 'Esploratore', body: 'Visita la mostra 3D' }, world: { title: 'Giro del mondo', body: 'Scopri la comunità' },
+    howItWorks: 'Come funziona', stepRegister: 'Registrati per iniziare il tuo album.', stepExplore: 'Agisci e scopri il Mondiale.', stepCollect: 'Sblocca francobolli e nuovi traguardi.', registerCta: 'Registrati per collezionare', locked: 'Francobollo bloccato', close: 'Chiudi il tutorial',
   },
   status: {
     badge: 'Stai già partecipando',
