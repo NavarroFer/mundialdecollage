@@ -122,23 +122,32 @@ export function JourneyComparison({
         <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-red" />Últimos 7 días</span>
         {baseLabel && <span className="text-muted-foreground/80">La proporción se calcula sobre: {baseLabel}.</span>}
       </div>
-      <ol className="space-y-4" aria-label="Actividad por paso">
+      <ol className="grid gap-3 sm:grid-cols-2" aria-label={`Actividad por paso, últimos ${periodDays} días`}>
         {steps.map((step, index) => {
           const monthWidth = (step.month / max) * 100
           const weekWidth = (step.week / max) * 100
           return (
-            <li key={step.label} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3">
-              <span className="font-display pt-0.5 text-lg text-collage-blue">{String(index + 1).padStart(2, '0')}</span>
-              <div>
-                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <span className="text-sm font-semibold text-ink">{step.label}</span>
-                  <span className="text-xs tabular-nums text-muted-foreground">{base ? `${formatShare(step.month, base)} · ` : ''}<b className="text-ink">{step.month}</b> / {periodDays} d</span>
+            <li key={step.label} className="relative overflow-hidden rounded-2xl border-2 border-ink/10 bg-background p-4 shadow-[3px_3px_0_color-mix(in_oklab,var(--color-ink)_10%,transparent)] transition-transform hover:-translate-y-0.5">
+              <div className="absolute top-0 left-0 h-full w-1.5 bg-collage-blue" aria-hidden="true" />
+              <div className="flex items-start justify-between gap-3 pl-2">
+                <div className="min-w-0">
+                  <span className="font-display inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-collage-yellow px-1 text-sm text-ink">{String(index + 1).padStart(2, '0')}</span>
+                  <p className="mt-3 text-sm font-semibold leading-tight text-ink">{step.label}</p>
                 </div>
-                <div className="mt-2 space-y-1.5" aria-label={`${step.label}: ${step.month} en 30 días y ${step.week} en 7 días`}>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-collage-blue" style={{ width: `${monthWidth}%` }} /></div>
+                <div className="shrink-0 text-right">
+                  <strong className="font-display text-3xl leading-none tracking-tight text-ink">{step.month}</strong>
+                  <p className="mt-1 text-[10px] font-bold tracking-wide text-muted-foreground uppercase">en {periodDays} días</p>
+                </div>
+              </div>
+              <div className="mt-4 pl-2" aria-label={`${step.label}: ${step.month} en ${periodDays} días y ${step.week} en 7 días`}>
+                <div className="flex items-center justify-between gap-3 text-[11px] font-semibold text-muted-foreground">
+                  <span>{base ? `${formatShare(step.month, base)} del recorrido` : 'Actividad acumulada'}</span>
+                  <span><b className="text-collage-red">{step.week}</b> · 7 d</span>
+                </div>
+                <div className="mt-2 space-y-1.5" aria-hidden="true">
+                  <div className="h-3 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-collage-blue" style={{ width: `${monthWidth}%` }} /></div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted/70"><div className="h-full rounded-full bg-collage-red" style={{ width: `${weekWidth}%` }} /></div>
                 </div>
-                <p className="mt-1 text-right text-[11px] tabular-nums text-muted-foreground"><b className="text-collage-red">{step.week}</b> en 7 días</p>
               </div>
             </li>
           )

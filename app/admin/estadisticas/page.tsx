@@ -265,18 +265,19 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
                   <strong>{countryLabel(leadingCountry.countryCode)}</strong> reúne el {formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.
                 </p>
               )}
-              <div className="mt-6">
-                <DonutChart
-                  variant="pie"
-                  total={artistStats.totalArtists}
-                  label="artistas por país"
-                  slices={artistStats.countries.map(({ countryCode, count }, index) => ({
-                    label: countryLabel(countryCode),
-                    value: count,
-                    color: ['var(--color-collage-blue)', 'var(--color-collage-red)', 'var(--color-collage-yellow)', '#7a5af8', '#0f766e', '#c2410c', '#be185d', '#64748b'][index % 8],
-                  }))}
-                />
-              </div>
+              <ul className="mt-6 space-y-5" aria-label="Distribución de artistas por país">
+                {artistStats.countries.map(({ countryCode, count }) => (
+                  <li key={countryCode ?? 'missing-country'}>
+                    <StatBar
+                      label={countryLabel(countryCode)}
+                      value={count}
+                      maxValue={artistStats.countries[0]?.count ?? 0}
+                      total={artistStats.totalArtists}
+                      color="var(--color-collage-blue)"
+                    />
+                  </li>
+                ))}
+              </ul>
               <p className="mt-6 text-xs text-muted-foreground">
                 Base: {artistStats.totalArtists} artistas. {artistStats.totalArtists - artistStats.withCountry} sin país registrado.
               </p>
