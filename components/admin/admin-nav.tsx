@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ArrowUpRight, Minus, Plus } from 'lucide-react'
+import { ArrowUpRight, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { adminSections } from '@/components/admin/admin-sections'
 
@@ -26,27 +26,43 @@ export function AdminNav() {
         return (
           <div
             key={section.label}
-            className={cn('relative overflow-hidden rounded-xl border p-3 pt-4', section.tone.tile)}
+            className={cn(
+              'relative overflow-hidden rounded-xl border',
+              isMinimized ? 'h-24 w-24 self-start' : 'p-3 pt-4',
+              section.tone.tile,
+            )}
           >
-            <span className={cn('absolute inset-x-0 top-0 h-1', section.tone.bar)} aria-hidden />
-            <div className={cn('flex items-center justify-between gap-2 px-2', !isMinimized && 'mb-2')}>
-              <p className="flex items-center gap-1.5 text-[0.65rem] font-bold tracking-[0.2em] text-ink uppercase">
-                <span className={cn('h-2 w-2 rounded-full', section.tone.bar)} aria-hidden />
-                {section.label}
-              </p>
+            {isMinimized ? (
               <button
                 type="button"
                 onClick={() => toggleSection(section.label)}
-                aria-expanded={!isMinimized}
+                aria-expanded={false}
                 aria-controls={sectionId}
-                aria-label={isMinimized ? `Expandir ${section.label}` : `Minimizar ${section.label}`}
-                title={isMinimized ? 'Expandir panel' : 'Minimizar panel'}
-                className="rounded-md p-1 text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none"
+                aria-label={`Expandir ${section.label}`}
+                className="flex size-full items-center justify-center p-2 text-center text-[0.65rem] font-bold leading-tight tracking-[0.16em] text-ink uppercase transition-colors hover:bg-ink/10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink/50 focus-visible:outline-none"
               >
-                {isMinimized ? <Plus className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+                {section.label}
               </button>
-            </div>
-            {!isMinimized && (
+            ) : (
+              <>
+                <span className={cn('absolute inset-x-0 top-0 h-1', section.tone.bar)} aria-hidden />
+                <div className="mb-2 flex items-center justify-between gap-2 px-2">
+                  <p className="flex items-center gap-1.5 text-[0.65rem] font-bold tracking-[0.2em] text-ink uppercase">
+                    <span className={cn('h-2 w-2 rounded-full', section.tone.bar)} aria-hidden />
+                    {section.label}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.label)}
+                    aria-expanded
+                    aria-controls={sectionId}
+                    aria-label={`Minimizar ${section.label}`}
+                    title="Minimizar panel"
+                    className="rounded-md p-1 text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                </div>
               <ul id={sectionId} className="flex flex-wrap gap-1">
                 {section.items.map((item) => {
                   const isActive = !item.external && pathname?.startsWith(item.href)
@@ -71,6 +87,7 @@ export function AdminNav() {
                   )
                 })}
               </ul>
+              </>
             )}
           </div>
         )
