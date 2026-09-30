@@ -1,7 +1,7 @@
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { CollapsibleSection } from '@/components/admin/collapsible-section'
 import { StatBar } from '@/components/admin/stat-bar'
-import { DailyActivityChart, FunnelChart, JourneyComparison } from '@/components/admin/dashboard-charts'
+import { ArtworkHistoryChart, DailyActivityChart, FunnelChart, JourneyComparison } from '@/components/admin/dashboard-charts'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
@@ -63,6 +63,25 @@ async function getGalleryHistory(days: number) {
     date.setDate(date.getDate() - (days - 1 - index))
     const day = buenosAiresDay(date)
     return { label: date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }), value: byDay.get(day) ?? 0 }
+  })
+}
+
+type HistoryGrouping = 'day' | 'week' | 'month'
+
+async function getSubmissionHistory(days: number, grouping: HistoryGrouping) {
+  if (!isSupabaseConfigured) return null
+  const supabase = await createClient()
+  const since = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase.rpc('submission_history', { since, grouping })
+  if (error) return null
+  return ((data ?? []) as { bucket: string; works: number | string }[]).map(({ bucket, works }) => {
+    const date = new Date(`${bucket}T12:00:00-03:00`)
+    const options: Intl.DateTimeFormatOptions = grouping === 'month'
+      ? { month: 'short', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' }
+      : grouping === 'week'
+        ? { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }
+        : { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }
+    return { label: date.toLocaleDateString('es-AR', options), value: Number(works) }
   })
 }
 
@@ -129,11 +148,12 @@ function JourneySection({
 
 const PERIODS = [7, 30, 90] as const
 
-export default async function EstadisticasPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
-  const { period } = await searchParams
+export default async function EstadisticasPage({ searchParams }: { searchParams: Promise<{ period?: string; grouping?: string }> }) {
+  const { period, grouping: requestedGrouping } = await searchParams
   const periodDays = PERIODS.includes(Number(period) as (typeof PERIODS)[number]) ? Number(period) : 30
+  const grouping: HistoryGrouping = requestedGrouping === 'week' || requestedGrouping === 'month' ? requestedGrouping : 'day'
   const comparisonDays = periodDays === 7 ? 1 : 7
-  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays), getFunnel(periodDays), getGalleryHistory(periodDays)])
+  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays), getFunnel(periodDays), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping)])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
@@ -147,7 +167,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
       </p>
       <nav aria-label="Período de estadísticas" className="mt-5 flex flex-wrap gap-2">
         {PERIODS.map((days) => (
-          <Link key={days} href={`/admin/estadisticas?period=${days}`} className={`rounded-full px-4 py-2 text-sm font-semibold ${days === periodDays ? 'bg-collage-blue text-primary-foreground' : 'bg-card text-muted-foreground hover:text-ink'}`}>
+          <Link key={days} href={`/admin/estadisticas?period=${days}&grouping=${grouping}`} className={`rounded-full px-4 py-2 text-sm font-semibold ${days === periodDays ? 'bg-collage-blue text-primary-foreground' : 'bg-card text-muted-foreground hover:text-ink'}`}>
             Últimos {days} días
           </Link>
         ))}
@@ -165,6 +185,25 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />
           <StatPill label="Con país registrado" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
           <StatPill label="Con técnica registrada" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
+        </div>
+      </section>
+
+      <section className="mt-8 overflow-hidden rounded-3xl border-2 border-ink/10 bg-card" aria-labelledby="submission-history-title">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink/10 px-5 py-5 sm:px-6">
+          <div>
+            <p className="text-xs font-bold tracking-[0.18em] text-collage-red uppercase">Obras recibidas</p>
+            <h2 id="submission-history-title" className="font-display mt-1 text-2xl tracking-tight text-ink uppercase">Histórico de participaciones</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Incluye envíos desde Registro y participaciones directas, sin duplicarlas.</p>
+          </div>
+          <nav aria-label="Agrupación del histórico de obras" className="flex rounded-full bg-muted p-1">
+            {(['day', 'week', 'month'] as const).map((option) => {
+              const label = option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual'
+              return <Link key={option} href={`/admin/estadisticas?period=${periodDays}&grouping=${option}`} className={`rounded-full px-3 py-1.5 text-xs font-bold ${grouping === option ? 'bg-collage-red text-primary-foreground' : 'text-muted-foreground hover:text-ink'}`}>{label}</Link>
+            })}
+          </nav>
+        </div>
+        <div className="p-5 sm:p-6">
+          {submissionHistory ? <ArtworkHistoryChart data={submissionHistory} grouping={grouping} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el histórico de obras. Recargá la página para reintentar.</p>}
         </div>
       </section>
 

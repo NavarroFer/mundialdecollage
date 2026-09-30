@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import gsap from 'gsap'
 import './depth-carousel.css'
+import { useI18n } from '@/lib/i18n/client'
 
 export type DepthCarouselItem = { image: string; alt?: string }
 
@@ -86,6 +87,7 @@ export function DepthCarousel({
   onChange,
   className = '',
 }: DepthCarouselProps) {
+  const { m } = useI18n()
   const data = useMemo(() => items.map(normalizeItem), [items])
   const count = data.length
 
@@ -413,7 +415,7 @@ export function DepthCarousel({
       style={{ '--dc-perspective': `${perspective}px` } as React.CSSProperties}
       role="group"
       aria-roledescription="carousel"
-      aria-label="Depth carousel"
+      aria-label={m.common.carousel.label}
       tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -453,7 +455,7 @@ export function DepthCarousel({
           <button
             type="button"
             className="depth-carousel__arrow depth-carousel__arrow--prev"
-            aria-label="Previous slide"
+            aria-label={m.common.carousel.previous}
             onClick={() => navigateBy(-1)}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -470,7 +472,7 @@ export function DepthCarousel({
           <button
             type="button"
             className="depth-carousel__arrow depth-carousel__arrow--next"
-            aria-label="Next slide"
+            aria-label={m.common.carousel.next}
             onClick={() => navigateBy(1)}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -488,7 +490,7 @@ export function DepthCarousel({
       )}
 
       {showIndicators && count > 1 && (
-        <div className="depth-carousel__dots" role="tablist" aria-label="Slides">
+        <div className="depth-carousel__dots" role="tablist" aria-label={m.common.carousel.slides}>
           {data.map((_, i) => (
             <button
               key={i}

@@ -1,5 +1,5 @@
 import { p } from '../format'
-import type { Messages } from './es'
+import es, { type Messages } from './es'
 
 const pl: Messages = {
   meta: {
@@ -26,6 +26,7 @@ const pl: Messages = {
     artworkBy: '{title}, autor: {name}',
     instagramOf: 'Instagram: {name}',
     website: 'Strona internetowa',
+    carousel: { label: 'Karuzela prac', previous: 'Poprzednia praca', next: 'Następna praca', slides: 'Prace' },
     techniques: { Analógica: 'Analogowa', Mixta: 'Mieszana', Digital: 'Cyfrowa' },
   },
   language: {
@@ -464,6 +465,7 @@ const pl: Messages = {
       empty: 'Napisz coś przed wysłaniem.',
     },
   },
+  store: es.store,
   ar: {
     pageTitle: '{title} w rozszerzonej rzeczywistości',
     close: 'Zamknij',

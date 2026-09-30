@@ -1,5 +1,5 @@
 import { p } from '../format'
-import type { Messages } from './es'
+import es, { type Messages } from './es'
 
 const id: Messages = {
   meta: {
@@ -26,6 +26,7 @@ const id: Messages = {
     artworkBy: '{title}, karya {name}',
     instagramOf: 'Instagram {name}',
     website: 'Situs web',
+    carousel: { label: 'Karusel karya', previous: 'Karya sebelumnya', next: 'Karya berikutnya', slides: 'Karya' },
     techniques: { Analógica: 'Analog', Mixta: 'Campuran', Digital: 'Digital' },
   },
   language: {
@@ -439,6 +440,7 @@ const id: Messages = {
       empty: 'Tulis sesuatu sebelum mengirim.',
     },
   },
+  store: es.store,
   ar: {
     pageTitle: '{title} dalam augmented reality',
     close: 'Tutup',

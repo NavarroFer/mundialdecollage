@@ -1,5 +1,5 @@
 import { p } from '../format'
-import type { Messages } from './es'
+import es, { type Messages } from './es'
 
 const de: Messages = {
   meta: {
@@ -26,6 +26,7 @@ const de: Messages = {
     artworkBy: '{title} von {name}',
     instagramOf: 'Instagram von {name}',
     website: 'Website',
+    carousel: { label: 'Kunstwerk-Karussell', previous: 'Vorheriges Kunstwerk', next: 'Nächstes Kunstwerk', slides: 'Kunstwerke' },
     techniques: { Analógica: 'Analog', Mixta: 'Mischtechnik', Digital: 'Digital' },
   },
   language: {
@@ -442,6 +443,7 @@ const de: Messages = {
       empty: 'Schreib etwas, bevor du sendest.',
     },
   },
+  store: es.store,
   ar: {
     pageTitle: '{title} in Augmented Reality',
     close: 'Schließen',

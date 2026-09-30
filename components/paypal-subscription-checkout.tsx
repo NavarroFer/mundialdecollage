@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js'
 import { Button } from '@/components/ui/button'
 import type { PaypalPlanKey } from '@/lib/payments/paypal/plans'
+import { useI18n } from '@/lib/i18n/client'
 
 type FormValues = {
   given_name: string
@@ -32,26 +33,28 @@ export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPla
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(blankForm)
   const [error, setError] = useState<string | null>(null)
+  const { m } = useI18n()
+  const t = m.store.checkout
   const update = (field: keyof FormValues, value: string) => setForm((previous) => ({ ...previous, [field]: value }))
 
-  if (!open) return <Button size="lg" variant="primary" className="mt-8 w-full" onClick={() => setOpen(true)}>Subscribe with PayPal</Button>
+  if (!open) return <Button size="lg" variant="primary" className="mt-8 w-full" onClick={() => setOpen(true)}>{t.subscribe}</Button>
 
   return (
     <div className="mt-8 space-y-4 border-t-2 border-ink/10 pt-6 text-left">
-      <p className="text-center text-sm font-semibold">Your details for delivery</p>
+      <p className="text-center text-sm font-semibold">{t.details}</p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="First name" value={form.given_name} onChange={(value) => update('given_name', value)} />
-        <Field label="Last name" value={form.surname} onChange={(value) => update('surname', value)} />
+        <Field label={t.firstName} value={form.given_name} onChange={(value) => update('given_name', value)} />
+        <Field label={t.lastName} value={form.surname} onChange={(value) => update('surname', value)} />
       </div>
-      <Field label="Email" type="email" value={form.email} onChange={(value) => update('email', value)} />
-      <Field label="Full name for delivery" value={form.full_name} onChange={(value) => update('full_name', value)} />
-      <Field label="Address" value={form.address_line_1} onChange={(value) => update('address_line_1', value)} />
-      <Field label="Apartment / suite (optional)" value={form.address_line_2} onChange={(value) => update('address_line_2', value)} />
+      <Field label={t.email} type="email" value={form.email} onChange={(value) => update('email', value)} />
+      <Field label={t.fullName} value={form.full_name} onChange={(value) => update('full_name', value)} />
+      <Field label={t.address} value={form.address_line_1} onChange={(value) => update('address_line_1', value)} />
+      <Field label={t.apartment} value={form.address_line_2} onChange={(value) => update('address_line_2', value)} />
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="City" value={form.admin_area_2} onChange={(value) => update('admin_area_2', value)} />
-        <Field label="State / province" value={form.admin_area_1} onChange={(value) => update('admin_area_1', value)} />
-        <Field label="Postal code" value={form.postal_code} onChange={(value) => update('postal_code', value)} />
-        <Field label="Country code (AR, ES...)" value={form.country_code} maxLength={2} onChange={(value) => update('country_code', value.toUpperCase())} />
+        <Field label={t.city} value={form.admin_area_2} onChange={(value) => update('admin_area_2', value)} />
+        <Field label={t.state} value={form.admin_area_1} onChange={(value) => update('admin_area_1', value)} />
+        <Field label={t.postalCode} value={form.postal_code} onChange={(value) => update('postal_code', value)} />
+        <Field label={t.countryCode} value={form.country_code} maxLength={2} onChange={(value) => update('country_code', value.toUpperCase())} />
       </div>
       <PayPalScriptProvider options={{ clientId, currency: 'USD', intent: 'subscription', vault: true }}>
         <PayPalButtons
@@ -64,17 +67,17 @@ export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPla
               method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan, customer: { email: form.email, given_name: form.given_name, surname: form.surname }, shipping: { full_name: form.full_name, address_line_1: form.address_line_1, address_line_2: form.address_line_2, admin_area_2: form.admin_area_2, admin_area_1: form.admin_area_1, postal_code: form.postal_code, country_code: form.country_code } }),
             })
             if (!response.ok) {
-              setError('We could not start PayPal. Please try again.')
+              setError(t.startFailed)
               throw new Error('Could not create PayPal subscription')
             }
             return (await response.json() as { id: string }).id
           }}
           onApprove={async () => { router.push('/gracias?tipo=suscripcion') }}
-          onError={() => setError('PayPal could not complete the request. Please try again.')}
+          onError={() => setError(t.completeFailed)}
         />
       </PayPalScriptProvider>
       {error && <p role="alert" className="text-center text-sm text-destructive">{error}</p>}
-      <button type="button" className="w-full text-center text-xs underline" onClick={() => setOpen(false)}>Cancel</button>
+      <button type="button" className="w-full text-center text-xs underline" onClick={() => setOpen(false)}>{t.cancel}</button>
     </div>
   )
 }

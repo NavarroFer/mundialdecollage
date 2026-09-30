@@ -87,6 +87,44 @@ export function DailyActivityChart({ data, days }: { data: { label: string; valu
   )
 }
 
+export function ArtworkHistoryChart({
+  data,
+  grouping,
+}: {
+  data: { label: string; value: number }[]
+  grouping: 'day' | 'week' | 'month'
+}) {
+  const periodLabel = grouping === 'day' ? 'día' : grouping === 'week' ? 'semana' : 'mes'
+  const total = data.reduce((sum, point) => sum + point.value, 0)
+  const width = 640
+  const height = 190
+  const inset = 18
+  const max = Math.max(...data.map((point) => point.value), 1)
+  const points = data.map((point, index) => ({
+    ...point,
+    x: inset + (index * (width - inset * 2)) / Math.max(data.length - 1, 1),
+    y: height - inset - (point.value / max) * (height - inset * 2),
+  }))
+  const line = points.map((point) => `${point.x},${point.y}`).join(' ')
+  const area = `${inset},${height - inset} ${line} ${width - inset},${height - inset}`
+
+  return (
+    <div>
+      <div className="mb-4 flex items-baseline justify-between gap-4">
+        <p className="text-sm text-muted-foreground">Obras recibidas por {periodLabel}</p>
+        <strong className="font-display shrink-0 text-2xl text-ink">{total}<span className="ml-1 font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">obras</span></strong>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full overflow-visible" role="img" aria-label={`Histórico de obras recibidas por ${periodLabel}`}>
+        {[0.25, 0.5, 0.75].map((step) => <line key={step} x1={inset} x2={width - inset} y1={height - inset - step * (height - inset * 2)} y2={height - inset - step * (height - inset * 2)} stroke="var(--border)" strokeDasharray="3 5" />)}
+        <polygon points={area} fill="var(--color-collage-red)" opacity="0.12" />
+        <polyline points={line} fill="none" stroke="var(--color-collage-red)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((point) => <g key={point.label}><circle cx={point.x} cy={point.y} r="3.5" fill="var(--color-collage-red)"><title>{`${point.label}: ${point.value} obras`}</title></circle></g>)}
+      </svg>
+      <div className="mt-1 flex justify-between text-[10px] font-semibold tracking-wide text-muted-foreground uppercase"><span>{data[0]?.label}</span><span>{data.at(-1)?.label}</span></div>
+    </div>
+  )
+}
+
 export function FunnelChart({ steps, periodDays }: { steps: { label: string; value: number }[]; periodDays: number }) {
   const base = steps[0]?.value ?? 0
   return (
