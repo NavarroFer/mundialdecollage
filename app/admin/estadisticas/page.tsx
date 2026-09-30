@@ -6,7 +6,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -96,6 +96,7 @@ function FunnelSection({
   const recentPrimaryCount = primaryStep && week ? week.get(primaryStep) ?? 0 : null
   const finalCount = month?.get(steps.at(-1)?.name ?? '') ?? 0
   const completion = baseStep && base > 0 ? finalCount / base : undefined
+  const comparisonDays = periodDays === 7 ? 1 : 7
   return (
     <CollapsibleSection
       title={title}
@@ -104,6 +105,7 @@ function FunnelSection({
       kpi={primaryCount}
       kpiLabel={steps.find((step) => step.name === primaryStep)?.label ?? 'Personas'}
       recentKpi={recentPrimaryCount}
+      comparisonDays={comparisonDays}
       completion={completion}
     >
       {!week || !month ? (
@@ -115,6 +117,7 @@ function FunnelSection({
             base={baseStep ? base : undefined}
             baseLabel={baseLabel}
             periodDays={periodDays}
+            comparisonDays={comparisonDays}
             variant={variant}
           />
           {footnote && <p className="mt-5 border-t border-ink/10 pt-4 text-xs leading-relaxed text-muted-foreground">{footnote}</p>}
@@ -245,11 +248,10 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         week={funnelWeek}
         month={funnelMonth}
         title="Formulario de inscripción"
-        description="Cada paso dentro de /onboarding, entre tocar «Enviá tu obra» y terminar, para ver dónde se cae la gente. Se mide desde el 28 de septiembre de 2026."
-        steps={ONBOARDING_EVENTS}
+        description="El recorrido lineal dentro del formulario: desde verlo hasta tocar «Enviar». Se mide desde el 28 de septiembre de 2026."
+        steps={ONBOARDING_FORM_EVENTS}
         baseStep="onboarding_form_view"
         baseLabel="De quienes vieron el formulario"
-        footnote="Quien ya tenía la sesión iniciada llega directo al formulario, sin pasar por «Entrá con Google»."
         periodDays={periodDays}
       />
 

@@ -108,20 +108,23 @@ export function JourneyComparison({
   base,
   baseLabel,
   periodDays,
+  comparisonDays,
   variant = 'funnel',
 }: {
   steps: { label: string; week: number; month: number }[]
   base?: number
   baseLabel?: string
   periodDays: number
+  comparisonDays: number
   variant?: 'funnel' | 'comparison'
 }) {
   const max = Math.max(...steps.map((step) => step.month), 1)
+  const funnelStart = Math.max(steps[0]?.month ?? 0, 1)
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-muted-foreground">
         <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-blue" />Últimos {periodDays} días</span>
-        <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-red" />Últimos 7 días</span>
+        <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-red" />Últimos {comparisonDays} {comparisonDays === 1 ? 'día' : 'días'}</span>
         {baseLabel && <span className="text-muted-foreground/80">La proporción se calcula sobre: {baseLabel}.</span>}
       </div>
       {variant === 'funnel' ? (
@@ -130,15 +133,14 @@ export function JourneyComparison({
           // Keep even small, non-zero stages legible. The widths are relative
           // to the busiest stage, so routes whose events are not strictly
           // sequential still read honestly as relative volume.
-          const funnelWidth = Math.max((step.month / max) * 100, step.month > 0 ? 34 : 24)
+          const funnelWidth = Math.min(100, Math.max((step.month / funnelStart) * 100, step.month > 0 ? 48 : 34))
           return (
             <li
               key={step.label}
-              className="relative mx-auto min-h-16 overflow-hidden bg-collage-blue px-5 py-3 text-primary-foreground shadow-[3px_3px_0_color-mix(in_oklab,var(--color-ink)_18%,transparent)] transition-[width] duration-300"
+              className="relative mx-auto min-h-20 overflow-hidden bg-collage-blue px-8 py-4 text-primary-foreground shadow-[3px_3px_0_color-mix(in_oklab,var(--color-ink)_18%,transparent)] transition-[width] duration-300"
               style={{ width: `${funnelWidth}%`, clipPath: 'polygon(4% 0, 96% 0, 100% 100%, 0 100%)' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-collage-blue via-collage-blue to-collage-red/70" aria-hidden="true" />
-              <div className="relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+              <div className="relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4">
                 <span className="font-display flex h-7 w-7 items-center justify-center rounded-full bg-collage-yellow text-sm text-ink">{String(index + 1).padStart(2, '0')}</span>
                 <div className="min-w-0">
                   <p className="text-sm font-bold leading-tight text-primary-foreground">{step.label}</p>
@@ -147,8 +149,8 @@ export function JourneyComparison({
                   </p>
                 </div>
                 <div className="shrink-0 text-right tabular-nums">
-                  <strong className="font-display block text-3xl leading-none tracking-tight">{step.month}</strong>
-                  <span className="mt-1 block text-[10px] font-bold tracking-wide text-primary-foreground/75 uppercase"><b className="text-collage-yellow">{step.week}</b> · 7 d</span>
+                  <strong className="font-display flex h-12 min-w-12 items-center justify-center rounded-full bg-paper px-2 text-3xl leading-none tracking-tight text-collage-blue">{step.month}</strong>
+                  <span className="mt-1 block text-[10px] font-bold tracking-wide text-primary-foreground/80 uppercase"><b className="text-collage-yellow">{step.week}</b> · {comparisonDays} d</span>
                 </div>
               </div>
             </li>
@@ -164,7 +166,7 @@ export function JourneyComparison({
                 <div className="grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-start gap-3">
                   <span className="font-display flex h-7 w-7 items-center justify-center rounded-full bg-collage-yellow text-sm text-ink">{String(index + 1).padStart(2, '0')}</span>
                   <p className="pt-1 text-sm font-semibold leading-tight text-ink">{step.label}</p>
-                  <span className="text-right tabular-nums"><strong className="font-display text-2xl leading-none text-ink">{step.month}</strong><span className="mt-1 block text-[10px] font-bold tracking-wide text-collage-red uppercase">{step.week} · 7 d</span></span>
+                  <span className="text-right tabular-nums"><strong className="font-display text-2xl leading-none text-ink">{step.month}</strong><span className="mt-1 block text-[10px] font-bold tracking-wide text-collage-red uppercase">{step.week} · {comparisonDays} d</span></span>
                 </div>
                 <div className="mt-3 ml-10 h-3 overflow-hidden rounded-full bg-muted" aria-hidden="true"><div className="h-full rounded-full bg-collage-blue" style={{ width: `${width}%` }} /></div>
                 <p className="mt-1.5 ml-10 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">{base ? `${formatShare(step.month, base)} sobre la base` : 'Volumen relativo de la acción'}</p>

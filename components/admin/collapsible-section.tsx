@@ -11,6 +11,7 @@ export function CollapsibleSection({
   kpi,
   kpiLabel,
   recentKpi,
+  comparisonDays,
   completion,
   children,
 }: {
@@ -20,6 +21,7 @@ export function CollapsibleSection({
   kpi: number | null
   kpiLabel: string
   recentKpi: number | null
+  comparisonDays: number
   completion?: number
   children: ReactNode
 }) {
@@ -45,7 +47,7 @@ export function CollapsibleSection({
               <strong className="font-display block text-3xl leading-none text-collage-blue">{kpi}</strong>
               <span className="mt-1 block max-w-36 text-[10px] font-bold leading-tight tracking-wide text-muted-foreground uppercase">{kpiLabel}</span>
               <span className="mt-2 flex flex-wrap justify-end gap-x-2 gap-y-1 text-[10px] font-bold tracking-wide uppercase">
-                {recentKpi !== null && <span className="text-collage-red">{recentKpi} · 7 d</span>}
+                {recentKpi !== null && <span className="text-collage-red">{recentKpi} · {comparisonDays} d</span>}
                 {completion !== undefined && <span className="text-ink/65">{new Intl.NumberFormat('es-AR', { style: 'percent', maximumFractionDigits: 0 }).format(completion)} al final</span>}
               </span>
             </span>

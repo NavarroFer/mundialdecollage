@@ -70,6 +70,15 @@ export const ONBOARDING_EVENTS = [
   { name: 'signup_done', label: 'Terminaron o confirmaron la inscripción' },
 ] as const
 
+// The actual, linear form flow. Sign-in happens before this form, the error
+// event is a side branch, and signup_done can be reached through other
+// journeys; including any of those in a funnel would create false increases.
+export const ONBOARDING_FORM_EVENTS = [
+  { name: 'onboarding_form_view', label: 'Vieron el formulario de la obra' },
+  { name: 'onboarding_image_selected', label: 'Eligieron la imagen de su obra' },
+  { name: 'onboarding_submit', label: 'Tocaron «Enviar»' },
+] as const
+
 // Public artwork and artist pages turn discovery and shared traffic into a
 // path back to the artist and, from there, into a new free submission.
 export const DISCOVERY_EVENTS = [
