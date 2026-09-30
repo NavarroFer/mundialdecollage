@@ -3,6 +3,7 @@ import { SplashScreen } from '@/components/splash-screen'
 import { GalleryTour } from '@/components/gallery-tour'
 import { HeroSection } from '@/components/hero-section'
 import { FlagRibbon } from '@/components/flag-ribbon'
+import { StampAlbum } from '@/components/stamp-album'
 import { ParticipationStatus } from '@/components/participation-status'
 import { ReferralInvite } from '@/components/referral-invite'
 import { BasesBanner } from '@/components/bases-banner'
@@ -32,6 +33,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
         <main>
           <HeroSection />
           <FlagRibbon />
+          <StampAlbum />
           <ParticipationStatus />
           {/* An artist's guest (lib/referral.ts), in the slot ParticipationStatus
               uses for the signed in — who get asked to finish there instead. */}

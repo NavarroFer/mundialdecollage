@@ -59,8 +59,13 @@ const fr: Messages = {
     proof: 'Déjà en lice : {artworks} de {countries}',
     countries: p({ one: '{count} pays', other: '{count} pays' }),
     submit: 'Envoie ton œuvre',
+    scissorsLabel: 'Découper et réassembler la page',
   },
   countdown: { days: 'jours', hours: 'heures', minutes: 'min' },
+  stamps: {
+    eyebrow: 'Album du Mondial', title: 'Collectionne les timbres', body: 'Chaque étape laisse une trace. Tu pourras bientôt débloquer de nouveaux succès.',
+    first: { title: 'Première découpe', body: 'Envoie ton œuvre' }, gallery: { title: 'Explorateur·rice', body: 'Parcours l’exposition 3D' }, world: { title: 'Tour du monde', body: 'Découvre la communauté' },
+  },
   status: {
     badge: 'Tu participes déjà',
     body: 'Ton œuvre fait déjà partie du Mondial du Collage.',
@@ -137,8 +142,8 @@ const fr: Messages = {
   },
   jury: {
     eyebrow: 'Jury international',
-    title1: 'Des artistes reconnus',
-    title2: 'composent le jury',
+    title1: 'Bientôt',
+    title2: 'jury international',
     body: "Un jury au parcours international évaluera chaque œuvre reçue. Nous annoncerons très bientôt qui en fait partie.",
     prizes: 'Prix',
     showTitle: 'Grande Exposition en ligne',

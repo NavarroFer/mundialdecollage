@@ -59,8 +59,13 @@ const pt: Messages = {
     proof: 'Já participam {artworks} de {countries}',
     countries: p({ one: '{count} país', other: '{count} países' }),
     submit: 'Envie sua obra',
+    scissorsLabel: 'Cortar e remontar a página',
   },
   countdown: { days: 'dias', hours: 'horas', minutes: 'min' },
+  stamps: {
+    eyebrow: 'Álbum do Mundial', title: 'Colecione selos', body: 'Cada passo deixa uma marca. Em breve você poderá desbloquear novas conquistas.',
+    first: { title: 'Primeiro recorte', body: 'Envie sua obra' }, gallery: { title: 'Explorador/a', body: 'Visite a mostra 3D' }, world: { title: 'Volta ao mundo', body: 'Conheça a comunidade' },
+  },
   status: {
     badge: 'Você já está participando',
     body: 'Sua obra já faz parte do Mundial de Colagem.',
@@ -137,8 +142,8 @@ const pt: Messages = {
   },
   jury: {
     eyebrow: 'Júri internacional',
-    title1: 'Artistas renomados',
-    title2: 'fazem parte do júri',
+    title1: 'Em breve',
+    title2: 'júri internacional',
     body: 'Um júri com trajetória internacional vai avaliar cada obra recebida. Em breve anunciamos quem faz parte dele.',
     prizes: 'Prêmios',
     showTitle: 'Grande Mostra Online',

@@ -59,8 +59,13 @@ const de: Messages = {
     proof: 'Schon dabei: {artworks} aus {countries}',
     countries: p({ one: '{count} Land', other: '{count} Ländern' }),
     submit: 'Schick dein Werk',
+    scissorsLabel: 'Seite zerschneiden und neu zusammensetzen',
   },
   countdown: { days: 'Tage', hours: 'Std.', minutes: 'Min.' },
+  stamps: {
+    eyebrow: 'WM-Album', title: 'Sammle Briefmarken', body: 'Jeder Schritt hinterlässt eine Spur. Bald kannst du neue Erfolge freischalten.',
+    first: { title: 'Erster Schnitt', body: 'Schick dein Werk' }, gallery: { title: 'Entdecker:in', body: 'Erkunde die 3D-Ausstellung' }, world: { title: 'Um die Welt', body: 'Entdecke die Community' },
+  },
   status: {
     badge: 'Du bist schon dabei',
     body: 'Dein Werk ist jetzt Teil der Collage-WM.',
@@ -137,8 +142,8 @@ const de: Messages = {
   },
   jury: {
     eyebrow: 'Internationale Jury',
-    title1: 'Renommierte Künstler:innen',
-    title2: 'bilden die Jury',
+    title1: 'Demnächst',
+    title2: 'internationale Jury',
     body: 'Eine international erfahrene Jury bewertet jedes eingereichte Werk. Wer dazugehört, geben wir sehr bald bekannt.',
     prizes: 'Preise',
     showTitle: 'Große Online-Ausstellung',

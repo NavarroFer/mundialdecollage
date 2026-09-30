@@ -59,8 +59,13 @@ const id: Messages = {
     proof: 'Sudah ikut serta: {artworks} dari {countries}',
     countries: p({ other: '{count} negara' }),
     submit: 'Kirim karyamu',
+    scissorsLabel: 'Potong dan susun ulang halaman',
   },
   countdown: { days: 'hari', hours: 'jam', minutes: 'mnt' },
+  stamps: {
+    eyebrow: 'Album Piala Dunia', title: 'Koleksi perangko', body: 'Setiap langkah meninggalkan jejak. Segera kamu dapat membuka pencapaian baru.',
+    first: { title: 'Potongan pertama', body: 'Kirim karyamu' }, gallery: { title: 'Penjelajah', body: 'Jelajahi pameran 3D' }, world: { title: 'Keliling dunia', body: 'Temukan komunitas' },
+  },
   status: {
     badge: 'Kamu sudah ikut serta',
     body: 'Karyamu sudah menjadi bagian dari Piala Dunia Kolase.',
@@ -137,8 +142,8 @@ const id: Messages = {
   },
   jury: {
     eyebrow: 'Juri internasional',
-    title1: 'Seniman ternama',
-    title2: 'menjadi juri',
+    title1: 'Segera hadir',
+    title2: 'juri internasional',
     body: 'Juri berpengalaman internasional akan menilai setiap karya yang diterima. Kami akan segera mengumumkan siapa saja anggotanya.',
     prizes: 'Hadiah',
     showTitle: 'Pameran Besar Online',

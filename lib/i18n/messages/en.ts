@@ -59,8 +59,13 @@ const en: Messages = {
     proof: 'Already taking part: {artworks} from {countries}',
     countries: p({ one: '{count} country', other: '{count} countries' }),
     submit: 'Send your artwork',
+    scissorsLabel: 'Cut and reassemble the page',
   },
   countdown: { days: 'days', hours: 'hours', minutes: 'min' },
+  stamps: {
+    eyebrow: 'World Cup album', title: 'Collect stamps', body: 'Every step leaves a mark. You will soon be able to unlock new achievements.',
+    first: { title: 'First cut', body: 'Send your artwork' }, gallery: { title: 'Explorer', body: 'Tour the 3D exhibition' }, world: { title: 'Around the world', body: 'Discover the community' },
+  },
   status: {
     badge: "You're taking part",
     body: 'Your artwork is now part of the Collage World Cup.',
@@ -137,8 +142,8 @@ const en: Messages = {
   },
   jury: {
     eyebrow: 'International jury',
-    title1: 'Renowned artists',
-    title2: 'make up the jury',
+    title1: 'Coming soon',
+    title2: 'international jury',
     body: 'A jury with an international track record will review every artwork received. We will announce its members very soon.',
     prizes: 'Prizes',
     showTitle: 'Great Online Exhibition',

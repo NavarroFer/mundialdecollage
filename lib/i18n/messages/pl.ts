@@ -59,8 +59,13 @@ const pl: Messages = {
     proof: 'Już biorą udział: {artworks} z {countries}',
     countries: p({ one: '{count} kraju', few: '{count} krajów', many: '{count} krajów', other: '{count} kraju' }),
     submit: 'Wyślij swoją pracę',
+    scissorsLabel: 'Wytnij i ułóż stronę na nowo',
   },
   countdown: { days: 'dni', hours: 'godz.', minutes: 'min' },
+  stamps: {
+    eyebrow: 'Album Mistrzostw', title: 'Zbieraj znaczki', body: 'Każdy krok zostawia ślad. Wkrótce odblokujesz nowe osiągnięcia.',
+    first: { title: 'Pierwsze cięcie', body: 'Wyślij swoją pracę' }, gallery: { title: 'Odkrywca', body: 'Zwiedź wystawę 3D' }, world: { title: 'Dookoła świata', body: 'Poznaj społeczność' },
+  },
   status: {
     badge: 'Już bierzesz udział',
     body: 'Twoja praca jest już częścią Mistrzostw Świata w Kolażu.',
@@ -142,8 +147,8 @@ const pl: Messages = {
   },
   jury: {
     eyebrow: 'Międzynarodowe jury',
-    title1: 'Znani artyści',
-    title2: 'zasiadają w jury',
+    title1: 'Wkrótce',
+    title2: 'międzynarodowe jury',
     body: 'Jury z międzynarodowym doświadczeniem oceni każdą nadesłaną pracę. Już wkrótce ogłosimy jego skład.',
     prizes: 'Nagrody',
     showTitle: 'Wielka Wystawa Online',

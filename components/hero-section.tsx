@@ -1,13 +1,14 @@
 import Image from 'next/image'
-import { Scissors } from 'lucide-react'
 import { SubmitArtworkCta } from '@/components/submit-artwork-cta'
+import { AnimatedParticipationProof } from '@/components/animated-participation-proof'
+import { HeroScissors } from '@/components/hero-scissors'
 import { Countdown } from '@/components/countdown'
 import { ArtworkSearch } from '@/components/artwork-search'
 import { FadeIn } from '@/components/fade-in'
 import { TrackVisible } from '@/components/track'
 import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
-import { fmt, formatDayMonth, plural } from '@/lib/i18n/format'
+import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { getFinalists } from '@/lib/finalists'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
@@ -63,11 +64,8 @@ export async function HeroSection() {
         <div className="absolute top-3 -left-14 z-10 h-24 w-24 rounded-full bg-collage-red/90 sm:top-32 sm:left-[6%] sm:h-28 sm:w-28" />
         <div className="absolute top-10 right-[8%] z-10 h-16 w-16 rounded-full bg-collage-yellow sm:top-16" />
         <div className="animate-float-slow absolute -left-4 bottom-16 h-10 w-10 rounded-full bg-collage-blue/80 [--rot:-8deg] sm:left-[12%]" />
-        <Scissors
-          className="animate-float-slow absolute right-[10%] bottom-24 h-10 w-10 text-ink/20 [--rot:18deg] sm:h-14 sm:w-14"
-          strokeWidth={1.5}
-        />
       </div>
+      <HeroScissors />
 
       {/* Horizontal lockup (isotipo + wordmark), per the brand guide's
           "para el encabezado web y espacios apaisados" composition — now
@@ -104,12 +102,7 @@ export async function HeroSection() {
 
         {artworks.length > 0 && countries > 0 && (
           <FadeIn delay={225}>
-            <p className="mt-5 text-base font-semibold text-ink sm:text-lg">
-              {fmt(m.hero.proof, {
-                artworks: plural(locale, artworks.length, m.map.artworks),
-                countries: plural(locale, countries, m.hero.countries),
-              })}
-            </p>
+            <AnimatedParticipationProof artworks={artworks.length} countries={countries} />
           </FadeIn>
         )}
 

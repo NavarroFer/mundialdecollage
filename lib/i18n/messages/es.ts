@@ -60,8 +60,13 @@ const es = {
     proof: 'Ya participan {artworks} de {countries}',
     countries: p({ one: '{count} país', other: '{count} países' }),
     submit: 'Enviá tu obra',
+    scissorsLabel: 'Cortar y rearmar la página',
   },
   countdown: { days: 'días', hours: 'horas', minutes: 'min' },
+  stamps: {
+    eyebrow: 'Álbum del Mundial', title: 'Coleccioná estampillas', body: 'Cada paso deja una marca. Muy pronto vas a poder desbloquear nuevos logros.',
+    first: { title: 'Primer recorte', body: 'Mandá tu obra' }, gallery: { title: 'Explorador/a', body: 'Recorré la muestra 3D' }, world: { title: 'Vuelta al mundo', body: 'Descubrí la comunidad' },
+  },
   status: {
     badge: 'Ya estás participando',
     body: 'Tu obra ya forma parte del Mundial de Collage.',
@@ -138,8 +143,8 @@ const es = {
   },
   jury: {
     eyebrow: 'Jurado internacional',
-    title1: 'Artistas de renombre',
-    title2: 'forman parte del jurado',
+    title1: 'Próximamente',
+    title2: 'jurado internacional',
     body: 'Un jurado con trayectoria internacional va a evaluar cada obra recibida. Muy pronto anunciamos quiénes lo integran.',
     prizes: 'Premios',
     showTitle: 'Gran Muestra Online',
