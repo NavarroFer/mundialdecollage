@@ -1,7 +1,7 @@
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { CollapsibleSection } from '@/components/admin/collapsible-section'
 import { StatBar } from '@/components/admin/stat-bar'
-import { DailyActivityChart, DonutChart, FunnelChart, JourneyComparison } from '@/components/admin/dashboard-charts'
+import { DailyActivityChart, FunnelChart, JourneyComparison } from '@/components/admin/dashboard-charts'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
@@ -76,6 +76,7 @@ function FunnelSection({
   baseLabel,
   footnote,
   periodDays,
+  variant = 'funnel',
 }: {
   week: FunnelCounts | null
   month: FunnelCounts | null
@@ -87,6 +88,7 @@ function FunnelSection({
   baseLabel?: string
   footnote?: string
   periodDays: number
+  variant?: 'funnel' | 'comparison'
 }) {
   const base = baseStep ? month?.get(baseStep) ?? 0 : 0
   const primaryStep = baseStep ?? steps[0]?.name
@@ -113,6 +115,7 @@ function FunnelSection({
             base={baseStep ? base : undefined}
             baseLabel={baseLabel}
             periodDays={periodDays}
+            variant={variant}
           />
           {footnote && <p className="mt-5 border-t border-ink/10 pt-4 text-xs leading-relaxed text-muted-foreground">{footnote}</p>}
         </div>
@@ -203,6 +206,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         baseLabel="De quienes abrieron la home"
         footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
         periodDays={periodDays}
+        variant="comparison"
       />
 
       <FunnelSection
@@ -212,6 +216,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         description="Personas distintas que compartieron una obra desde su página, la tarjeta «Ya estás participando» de la home o la confirmación después de enviarla. Se mide desde el 26 de septiembre de 2026."
         steps={SHARE_EVENTS}
         periodDays={periodDays}
+        variant="comparison"
       />
 
       <FunnelSection
@@ -257,6 +262,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         baseStep="artwork_page_view"
         baseLabel="De quienes abrieron una obra"
         periodDays={periodDays}
+        variant="comparison"
       />
 
       <div className="mt-12 grid items-start gap-6 xl:grid-cols-12">
@@ -277,7 +283,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
                   <strong>{countryLabel(leadingCountry.countryCode)}</strong> reúne el {formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.
                 </p>
               )}
-              <ul className="mt-6 space-y-5" aria-label="Distribución de artistas por país">
+              <ul className="mt-6 max-h-96 space-y-5 overflow-y-auto pr-3" aria-label="Distribución de artistas por país">
                 {artistStats.countries.map(({ countryCode, count }) => (
                   <li key={countryCode ?? 'missing-country'}>
                     <StatBar
@@ -346,10 +352,27 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           </section>
 
           {artworkStats && artworkStats.total > 0 && (
-            <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6">
-              <h2 className="font-display text-xl tracking-tight text-ink uppercase">Estado de publicación</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Sobre las mismas {artworkStats.total} obras seleccionadas del sitio.</p>
-              <div className="mt-5"><DonutChart total={artworkStats.total} label="obras" slices={[{ label: 'Publicadas', value: artworkStats.published, color: 'var(--color-collage-blue)' }, { label: 'Pendientes de publicar', value: artworkStats.pending, color: 'var(--color-collage-red)' }]} /></div>
+            <section className="relative overflow-hidden rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 md:col-start-2 md:row-start-1">
+              <div className="absolute -right-7 -bottom-10 h-36 w-36 rounded-full border-[18px] border-collage-blue/10" aria-hidden="true" />
+              <h2 className="font-display relative text-xl tracking-tight text-ink uppercase">Estado de publicación</h2>
+              <p className="relative mt-2 text-sm text-muted-foreground">Sobre las mismas {artworkStats.total} obras seleccionadas del sitio.</p>
+              <div className="relative mt-6 flex items-end justify-between gap-4">
+                <div>
+                  <strong className="font-display text-5xl leading-none tracking-tight text-collage-blue">{artworkStats.published}</strong>
+                  <p className="mt-2 text-sm font-semibold text-ink">obras publicadas</p>
+                </div>
+                <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${artworkStats.pending === 0 ? 'bg-collage-blue text-primary-foreground' : 'bg-collage-red text-primary-foreground'}`}>
+                  {artworkStats.pending === 0 ? 'Todo al día' : `${artworkStats.pending} pendientes`}
+                </span>
+              </div>
+              <div className="relative mt-5 h-4 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                <div className="h-full rounded-full bg-collage-blue" style={{ width: `${(artworkStats.published / artworkStats.total) * 100}%` }} />
+              </div>
+              <p className="relative mt-3 text-xs leading-relaxed text-muted-foreground">
+                {artworkStats.pending === 0
+                  ? 'Las obras seleccionadas ya están visibles en el sitio.'
+                  : `${artworkStats.pending} obras todavía no están visibles para el público.`}
+              </p>
             </section>
           )}
           <p className="md:col-span-2 text-xs leading-relaxed text-muted-foreground">

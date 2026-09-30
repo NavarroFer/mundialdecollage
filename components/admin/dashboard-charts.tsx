@@ -108,11 +108,13 @@ export function JourneyComparison({
   base,
   baseLabel,
   periodDays,
+  variant = 'funnel',
 }: {
   steps: { label: string; week: number; month: number }[]
   base?: number
   baseLabel?: string
   periodDays: number
+  variant?: 'funnel' | 'comparison'
 }) {
   const max = Math.max(...steps.map((step) => step.month), 1)
   return (
@@ -122,6 +124,7 @@ export function JourneyComparison({
         <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-red" />Últimos 7 días</span>
         {baseLabel && <span className="text-muted-foreground/80">La proporción se calcula sobre: {baseLabel}.</span>}
       </div>
+      {variant === 'funnel' ? (
       <ol className="space-y-1.5" aria-label={`Embudo de actividad, últimos ${periodDays} días`}>
         {steps.map((step, index) => {
           // Keep even small, non-zero stages legible. The widths are relative
@@ -152,6 +155,24 @@ export function JourneyComparison({
           )
         })}
       </ol>
+      ) : (
+        <ol className="space-y-3" aria-label={`Comparación de acciones, últimos ${periodDays} días`}>
+          {steps.map((step, index) => {
+            const width = Math.max((step.month / max) * 100, step.month > 0 ? 5 : 0)
+            return (
+              <li key={step.label} className="rounded-xl border border-ink/10 bg-background p-3">
+                <div className="grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-start gap-3">
+                  <span className="font-display flex h-7 w-7 items-center justify-center rounded-full bg-collage-yellow text-sm text-ink">{String(index + 1).padStart(2, '0')}</span>
+                  <p className="pt-1 text-sm font-semibold leading-tight text-ink">{step.label}</p>
+                  <span className="text-right tabular-nums"><strong className="font-display text-2xl leading-none text-ink">{step.month}</strong><span className="mt-1 block text-[10px] font-bold tracking-wide text-collage-red uppercase">{step.week} · 7 d</span></span>
+                </div>
+                <div className="mt-3 ml-10 h-3 overflow-hidden rounded-full bg-muted" aria-hidden="true"><div className="h-full rounded-full bg-collage-blue" style={{ width: `${width}%` }} /></div>
+                <p className="mt-1.5 ml-10 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">{base ? `${formatShare(step.month, base)} sobre la base` : 'Volumen relativo de la acción'}</p>
+              </li>
+            )
+          })}
+        </ol>
+      )}
     </div>
   )
 }
