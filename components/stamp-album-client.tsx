@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Compass, LockKeyhole, Scissors, Send, X } from 'lucide-react'
+import { BookOpen, CircleCheck, Compass, LockKeyhole, Scissors, Send, X } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { useI18n } from '@/lib/i18n/client'
 import { MAP_SECTION_ID } from '@/lib/map-country-link'
@@ -30,7 +30,7 @@ export function StampAlbumClient({ signedIn, unlockedStamps }: { signedIn: boole
   return (
     <>
       <button type="button" onClick={() => { setTutorialOpen(false); setAlbumOpen(true) }} className="fixed right-3 bottom-5 z-40 flex items-center gap-2 rounded-full border-2 border-ink bg-collage-yellow px-4 py-3 text-sm font-bold text-ink shadow-[4px_4px_0_var(--color-ink)] transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue sm:right-6" aria-label={m.stamps.title}>
-        <BookOpen className="size-5" aria-hidden="true" /> <span className="hidden sm:inline">{m.stamps.eyebrow}</span>
+        <BookOpen className="size-5" aria-hidden="true" /> <span className="hidden sm:inline">{m.stamps.eyebrow}</span><span className="rounded-full border border-ink/25 bg-paper px-1.5 py-0.5 text-xs tabular-nums">{unlockedStamps.length}/3</span>
       </button>
 
       {(albumOpen || tutorialOpen) && (
@@ -54,7 +54,7 @@ export function StampAlbumClient({ signedIn, unlockedStamps }: { signedIn: boole
                 <Icon className="size-8 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12" strokeWidth={1.5} aria-hidden="true" />
                 <p className="font-display mt-2 text-xl tracking-wide uppercase">{copy[key].title}</p>
                 <p className="mt-1 text-xs font-semibold opacity-80">{copy[key].body}</p>
-                {!unlocked && <LockKeyhole className="absolute top-2 right-2 size-4" aria-label={m.stamps.locked} />}
+                {unlocked ? <CircleCheck className="absolute top-2 right-2 size-5" aria-label={m.stamps.title} /> : <LockKeyhole className="absolute top-2 right-2 size-4" aria-label={m.stamps.locked} />}
                 <span className="absolute -right-5 -bottom-5 size-14 rounded-full border-2 border-current opacity-25" />
               </div>
             )
