@@ -1,6 +1,6 @@
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { StatBar } from '@/components/admin/stat-bar'
-import { DailyActivityChart, DonutChart, FunnelChart } from '@/components/admin/dashboard-charts'
+import { DailyActivityChart, DonutChart, FunnelChart, JourneyComparison } from '@/components/admin/dashboard-charts'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
@@ -80,7 +80,7 @@ function FunnelSection({
   title: string
   description: string
   steps: readonly { name: string; label: string }[]
-  // Without a base step the share column is left out.
+  // Without a base step the share is left out.
   baseStep?: string
   baseLabel?: string
   footnote?: string
@@ -93,35 +93,13 @@ function FunnelSection({
       {!week || !month ? (
         <p role="status" className="mt-6 text-sm text-collage-red">No pudimos cargar el circuito. Recargá la página para reintentar.</p>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[32rem] text-left text-sm">
-            <thead className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              <tr>
-                <th className="py-2 pr-4 font-semibold">Paso</th>
-                <th className="py-2 pr-4 text-right font-semibold">7 días</th>
-                <th className="py-2 pr-4 text-right font-semibold">30 días</th>
-                {baseStep && <th className="py-2 text-right font-semibold">{baseLabel}</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {steps.map((step) => {
-                const monthCount = month.get(step.name) ?? 0
-                return (
-                  <tr key={step.name} className="border-t border-ink/10">
-                    <td className="py-2 pr-4 text-ink">{step.label}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums">{week.get(step.name) ?? 0}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums">{monthCount}</td>
-                    {baseStep && (
-                      <td className="py-2 text-right tabular-nums text-muted-foreground">
-                        {base ? formatShare(monthCount, base) : '—'}
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-          {footnote && <p className="mt-3 text-xs text-muted-foreground">{footnote}</p>}
+        <div className="mt-6">
+          <JourneyComparison
+            steps={steps.map((step) => ({ label: step.label, week: week.get(step.name) ?? 0, month: month.get(step.name) ?? 0 }))}
+            base={baseStep ? base : undefined}
+            baseLabel={baseLabel}
+          />
+          {footnote && <p className="mt-5 border-t border-ink/10 pt-4 text-xs leading-relaxed text-muted-foreground">{footnote}</p>}
         </div>
       )}
     </section>

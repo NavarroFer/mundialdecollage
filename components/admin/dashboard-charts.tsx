@@ -89,3 +89,46 @@ export function FunnelChart({ steps }: { steps: { label: string; value: number }
     </ol>
   )
 }
+
+export function JourneyComparison({
+  steps,
+  base,
+  baseLabel,
+}: {
+  steps: { label: string; week: number; month: number }[]
+  base?: number
+  baseLabel?: string
+}) {
+  const max = Math.max(...steps.map((step) => step.month), 1)
+  return (
+    <div>
+      <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-muted-foreground">
+        <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-blue" />Últimos 30 días</span>
+        <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-red" />Últimos 7 días</span>
+        {baseLabel && <span className="text-muted-foreground/80">La proporción se calcula sobre: {baseLabel}.</span>}
+      </div>
+      <ol className="space-y-4" aria-label="Actividad por paso">
+        {steps.map((step, index) => {
+          const monthWidth = (step.month / max) * 100
+          const weekWidth = (step.week / max) * 100
+          return (
+            <li key={step.label} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3">
+              <span className="font-display pt-0.5 text-lg text-collage-blue">{String(index + 1).padStart(2, '0')}</span>
+              <div>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <span className="text-sm font-semibold text-ink">{step.label}</span>
+                  <span className="text-xs tabular-nums text-muted-foreground">{base ? `${formatShare(step.month, base)} · ` : ''}<b className="text-ink">{step.month}</b> / 30 d</span>
+                </div>
+                <div className="mt-2 space-y-1.5" aria-label={`${step.label}: ${step.month} en 30 días y ${step.week} en 7 días`}>
+                  <div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-collage-blue" style={{ width: `${monthWidth}%` }} /></div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted/70"><div className="h-full rounded-full bg-collage-red" style={{ width: `${weekWidth}%` }} /></div>
+                </div>
+                <p className="mt-1 text-right text-[11px] tabular-nums text-muted-foreground"><b className="text-collage-red">{step.week}</b> en 7 días</p>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </div>
+  )
+}
