@@ -1,7 +1,7 @@
 -- Historical intake counts for the admin dashboard. Keep the definition in
 -- sync with get_total_submissions_count(): a Registro row is one received
 -- work, and a native entry without a Registro counterpart is another one.
-create or replace function public.submission_history(since timestamptz, grouping text)
+create or replace function public.submission_history(since timestamptz, granularity text)
 returns table (bucket date, works bigint)
 language sql
 stable
@@ -9,7 +9,7 @@ set search_path = public, pg_temp
 as $$
   with settings as (
     select
-      case when grouping in ('day', 'week', 'month') then grouping else 'day' end as resolution,
+      case when granularity in ('day', 'week', 'month') then granularity else 'day' end as resolution,
       'America/Argentina/Buenos_Aires'::text as timezone
   ),
   bounds as (

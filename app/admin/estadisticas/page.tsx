@@ -72,7 +72,7 @@ async function getSubmissionHistory(days: number, grouping: HistoryGrouping) {
   if (!isSupabaseConfigured) return null
   const supabase = await createClient()
   const since = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000).toISOString()
-  const { data, error } = await supabase.rpc('submission_history', { since, grouping })
+  const { data, error } = await supabase.rpc('submission_history', { since, granularity: grouping })
   if (error) return null
   return ((data ?? []) as { bucket: string; works: number | string }[]).map(({ bucket, works }) => {
     const date = new Date(`${bucket}T12:00:00-03:00`)
