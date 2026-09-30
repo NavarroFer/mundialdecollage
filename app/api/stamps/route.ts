@@ -41,6 +41,6 @@ export async function POST(request: NextRequest) {
   const { data: existing, error: readError } = await supabase.from('profile_stamps').select('stamp_key').eq('stamp_key', body.stamp).maybeSingle()
   if (readError) return new NextResponse(null, { status: 500 })
   if (existing) return NextResponse.json({ awarded: false })
-  const { error } = await supabase.from('profile_stamps').insert({ profile_id: user.id, stamp_key: body.stamp })
+  const { error } = await supabase.from('profile_stamps').insert({ user_id: user.id, stamp_key: body.stamp })
   return error ? new NextResponse(null, { status: 500 }) : NextResponse.json({ awarded: true, stamp: body.stamp })
 }
