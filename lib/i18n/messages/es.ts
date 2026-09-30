@@ -357,6 +357,10 @@ const es = {
     enter: 'ENTRAR A LA EXPOSICIÓN',
     resume: 'Click para continuar',
     hintTouch: 'Joystick para moverte · Arrastrá para mirar · Botón E para ver una obra',
+    orientation: {
+      title: 'Jugá en horizontal',
+      body: 'Girás el teléfono para recorrer la galería. Volvé a horizontal para continuar jugando.',
+    },
     hintDesktop:
       'WASD para moverte · Shift para correr · Mantené Control (Ctrl) para agacharte · Mouse para mirar · E para ver una obra',
     viewArtwork: 'Ver obra',
@@ -386,6 +390,7 @@ const es = {
     tutorial: {
       label: 'Tutorial de controles',
       title: 'Controles',
+      touchIntro: 'Usá los dos sticks: el izquierdo te mueve y el derecho gira la mirada. Acercate a una obra y tocá E.',
       done: '¡Listo! Buen recorrido',
       check: 'Hecho',
       steps: {

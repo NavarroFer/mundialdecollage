@@ -353,6 +353,10 @@ const it: Messages = {
     enter: 'ENTRA NELLA MOSTRA',
     resume: 'Clicca per continuare',
     hintTouch: "Joystick per muoverti · Trascina per guardare · Pulsante E per vedere un'opera",
+    orientation: {
+      title: 'Gioca in orizzontale',
+      body: 'Ruota il telefono in orizzontale per esplorare la galleria. Torna in orizzontale per continuare a giocare.',
+    },
     hintDesktop: "WASD per muoverti · Shift per correre · Tieni premuto Control (Ctrl) per abbassarti · Mouse per guardare · E per vedere un'opera",
     viewArtwork: 'Vedi opera',
     artworkTechnique: 'Tecnica: {technique}',
@@ -381,6 +385,7 @@ const it: Messages = {
     tutorial: {
       label: 'Tutorial dei comandi',
       title: 'Comandi',
+      touchIntro: 'Usa entrambi gli stick: quello sinistro ti muove e quello destro gira la visuale. Avvicinati a un’opera e tocca E.',
       done: 'Fatto! Buona visita',
       check: 'Fatto',
       steps: {

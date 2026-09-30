@@ -324,11 +324,46 @@
   box-shadow: var(--gallery-shadow);
 }
 
+.moveStick { left: 12%; bottom: 8%; }
+.lookStick { right: 12%; bottom: 8%; opacity: .72; }
+
+.orientationPrompt {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: var(--gallery-text);
+  background: var(--gallery-panel);
+  text-align: left;
+  backdrop-filter: blur(12px);
+}
+
+.orientationPrompt strong { display: block; font-size: 1.1rem; }
+.orientationPrompt p { max-width: 17rem; margin: .25rem 0 0; font-size: .86rem; line-height: 1.35; }
+
 .tutorialStep {
   display: flex;
   align-items: center;
   gap: .6rem;
   transition: opacity .25s ease;
+}
+
+.tutorialIntro {
+  margin: 0 0 .7rem;
+  color: var(--gallery-text);
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: .88;
+}
+
+@media (pointer: coarse) and (orientation: landscape) {
+  .moveStick { left: 7%; bottom: 7%; }
+  .lookStick { right: 7%; bottom: 7%; }
 }
 
 .tutorialKey {

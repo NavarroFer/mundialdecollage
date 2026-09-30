@@ -353,6 +353,10 @@ const id: Messages = {
     enter: 'MASUK KE PAMERAN',
     resume: 'Klik untuk melanjutkan',
     hintTouch: 'Joystick untuk bergerak · Geser untuk melihat · Tombol E untuk melihat karya',
+    orientation: {
+      title: 'Main dalam mode lanskap',
+      body: 'Putar ponsel ke samping untuk menjelajahi galeri. Kembali ke mode lanskap untuk melanjutkan permainan.',
+    },
     hintDesktop: 'WASD untuk bergerak · Shift untuk berlari · Tahan Control (Ctrl) untuk berjongkok · Mouse untuk melihat · E untuk melihat karya',
     viewArtwork: 'Lihat karya',
     artworkTechnique: 'Teknik: {technique}',
@@ -378,6 +382,7 @@ const id: Messages = {
     tutorial: {
       label: 'Tutorial kontrol',
       title: 'Kontrol',
+      touchIntro: 'Gunakan kedua stik: yang kiri untuk bergerak dan yang kanan untuk melihat. Dekati karya lalu ketuk E.',
       done: 'Siap! Selamat menjelajah',
       check: 'Selesai',
       steps: {

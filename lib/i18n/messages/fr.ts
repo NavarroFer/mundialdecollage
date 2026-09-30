@@ -353,6 +353,10 @@ const fr: Messages = {
     enter: "ENTRER DANS L'EXPOSITION",
     resume: 'Clique pour continuer',
     hintTouch: 'Joystick pour te déplacer · Glisse pour regarder · Bouton E pour voir une œuvre',
+    orientation: {
+      title: 'Joue à l’horizontale',
+      body: 'Tourne ton téléphone à l’horizontale pour parcourir la galerie. Reviens à l’horizontale pour continuer à jouer.',
+    },
     hintDesktop: 'WASD pour te déplacer · Maj pour courir · Maintiens Ctrl pour te baisser · Souris pour regarder · E pour voir une œuvre',
     viewArtwork: "Voir l'œuvre",
     artworkTechnique: 'Technique : {technique}',
@@ -381,6 +385,7 @@ const fr: Messages = {
     tutorial: {
       label: 'Tutoriel des commandes',
       title: 'Commandes',
+      touchIntro: 'Utilise les deux sticks : celui de gauche te déplace et celui de droite tourne la vue. Approche-toi d’une œuvre et touche E.',
       done: 'Prêt ! Bonne visite',
       check: 'Fait',
       steps: {

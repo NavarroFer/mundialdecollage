@@ -353,6 +353,10 @@ const de: Messages = {
     enter: 'AUSSTELLUNG BETRETEN',
     resume: 'Klicken zum Fortfahren',
     hintTouch: 'Joystick zum Bewegen · Ziehen zum Umsehen · E-Taste, um ein Werk anzusehen',
+    orientation: {
+      title: 'Im Querformat spielen',
+      body: 'Dreh dein Handy zur Seite, um die Galerie zu erkunden. Dreh es zurück ins Querformat, um weiterzuspielen.',
+    },
     hintDesktop: 'WASD zum Bewegen · Umschalt zum Rennen · Strg gedrückt halten zum Ducken · Maus zum Umsehen · E, um ein Werk anzusehen',
     viewArtwork: 'Werk ansehen',
     artworkTechnique: 'Technik: {technique}',
@@ -381,6 +385,7 @@ const de: Messages = {
     tutorial: {
       label: 'Steuerungs-Tutorial',
       title: 'Steuerung',
+      touchIntro: 'Nutze beide Sticks: der linke bewegt dich, der rechte dreht die Ansicht. Geh nah an ein Werk heran und tippe E.',
       done: 'Fertig! Viel Spaß beim Rundgang',
       check: 'Erledigt',
       steps: {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Smartphone } from 'lucide-react'
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
@@ -38,9 +39,19 @@ import { track } from '@/lib/track'
 const noopSubscribe = () => () => {}
 const getIsTouchDevice = () => window.matchMedia('(pointer: coarse)').matches
 const getServerSnapshot = () => false
+const subscribeToOrientation = (callback: () => void) => {
+  const query = window.matchMedia('(orientation: landscape)')
+  query.addEventListener('change', callback)
+  return () => query.removeEventListener('change', callback)
+}
+const getIsLandscape = () => window.matchMedia('(orientation: landscape)').matches
+// Render the game on the server; the orientation notice is a mobile-only
+// client enhancement and should not replace the initial page markup.
+const getLandscapeServerSnapshot = () => true
 
 export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
+  const isLandscape = useSyncExternalStore(subscribeToOrientation, getIsLandscape, getLandscapeServerSnapshot)
   const [locked, setLocked] = useState(false)
   const { m } = useI18n()
   const [hasStarted, setHasStarted] = useState(false)
@@ -53,7 +64,9 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   // Desktop has no concept of "started but not locked" — Pointer Lock IS
   // the active state. Touch has no Pointer Lock at all, so tapping ENTRAR
   // is the whole activation.
-  const isActive = isTouchDevice ? hasStarted : locked
+  // A 3D game needs the horizontal viewport: touch play pauses in portrait
+  // and resumes automatically as soon as the visitor turns the phone back.
+  const isActive = isTouchDevice ? hasStarted && isLandscape : locked
 
   // Reading an obra shouldn't feel like pausing. The modal needs the cursor,
   // so opening it releases Pointer Lock; closing it with E, the × or a click
@@ -153,7 +166,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <FloatingReactions artworks={artworks} />
         </Canvas>
       </KeyboardControls>
-      <GalleryPresence inside={hasStarted} artworks={artworks} />
+      <GalleryPresence inside={isActive} artworks={artworks} />
       {isTouchDevice && isActive && !openId && <TouchControls theme={theme} />}
       <BackgroundMusic ref={musicRef} theme={theme} />
       <Minimap theme={theme} artworks={artworks} />
@@ -161,6 +174,15 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
       <InteractionPrompt theme={theme} />
       <ArtworkModal artworks={artworks} theme={theme} />
+      {isTouchDevice && !isLandscape && (
+        <div className={styles.orientationPrompt} role="status" aria-live="polite">
+          <Smartphone aria-hidden="true" className="h-10 w-10 rotate-90" />
+          <div>
+            <strong>{m.gallery.orientation.title}</strong>
+            <p>{m.gallery.orientation.body}</p>
+          </div>
+        </div>
+      )}
       {!openId && <ThemePicker theme={theme} onChange={setTheme} />}
       {!isActive && !openId && !resuming && (
         <StartScreen

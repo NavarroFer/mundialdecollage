@@ -353,6 +353,10 @@ const pt: Messages = {
     enter: 'ENTRAR NA EXPOSIÇÃO',
     resume: 'Clique para continuar',
     hintTouch: 'Joystick para se mover · Arraste para olhar · Botão E para ver uma obra',
+    orientation: {
+      title: 'Jogue na horizontal',
+      body: 'Gire o celular para explorar a galeria. Volte à horizontal para continuar jogando.',
+    },
     hintDesktop: 'WASD para se mover · Shift para correr · Segure Control (Ctrl) para se agachar · Mouse para olhar · E para ver uma obra',
     viewArtwork: 'Ver obra',
     artworkTechnique: 'Técnica: {technique}',
@@ -381,6 +385,7 @@ const pt: Messages = {
     tutorial: {
       label: 'Tutorial de controles',
       title: 'Controles',
+      touchIntro: 'Use os dois sticks: o da esquerda move você e o da direita gira a visão. Aproxime-se de uma obra e toque em E.',
       done: 'Pronto! Bom passeio',
       check: 'Feito',
       steps: {

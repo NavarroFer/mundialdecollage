@@ -134,6 +134,7 @@ export function ControlsTutorial({ active, isTouchDevice }: { active: boolean; i
         <span>{allDone ? t.done : t.title}</span>
         {!allDone && <span className="opacity-60">{done.size}/{TUTORIAL_STEPS.length}</span>}
       </header>
+      {isTouchDevice && <p className={styles.tutorialIntro}>{t.touchIntro}</p>}
       <ul className="space-y-1.5">
         {TUTORIAL_STEPS.map((step) => {
           const stepDone = done.has(step)

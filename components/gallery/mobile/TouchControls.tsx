@@ -12,8 +12,8 @@ type Vec2 = { x: number; y: number }
 
 export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
   const layerRef = useRef<HTMLDivElement>(null)
-  const [joystickOrigin, setJoystickOrigin] = useState<Vec2 | null>(null)
-  const [knobOffset, setKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
+  const [moveKnobOffset, setMoveKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
+  const [lookKnobOffset, setLookKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
 
   // React's synthetic touchmove is registered passive (so page scrolling
   // stays smooth by default), which silently breaks preventDefault — these
@@ -35,12 +35,20 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
       for (const touch of Array.from(event.changedTouches)) {
         if (joystickTouchId.current === null && isMoveZone(touch.clientX, touch.clientY)) {
           joystickTouchId.current = touch.identifier
-          joystickOriginPoint.current = { x: touch.clientX, y: touch.clientY }
-          setJoystickOrigin({ x: touch.clientX, y: touch.clientY })
-          setKnobOffset({ x: 0, y: 0 })
+          // The stick remains visibly anchored on screen. Its knob follows the
+          // finger from the moment it lands, like a conventional gamepad.
+          const landscape = window.matchMedia('(orientation: landscape)').matches
+          const horizontalInset = landscape ? 0.07 : 0.12
+          const verticalInset = landscape ? 0.07 : 0.08
+          joystickOriginPoint.current = {
+            x: window.innerWidth * horizontalInset + JOYSTICK_RADIUS,
+            y: window.innerHeight * (1 - verticalInset) - JOYSTICK_RADIUS,
+          }
+          setMoveKnobOffset({ x: 0, y: 0 })
         } else if (lookTouchId.current === null && joystickTouchId.current !== touch.identifier) {
           lookTouchId.current = touch.identifier
           lookLast.current = { x: touch.clientX, y: touch.clientY }
+          setLookKnobOffset({ x: 0, y: 0 })
         }
       }
     }
@@ -58,13 +66,18 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
           const angle = Math.atan2(dy, dx)
           const offsetX = Math.cos(angle) * clamped
           const offsetY = Math.sin(angle) * clamped
-          setKnobOffset({ x: offsetX, y: offsetY })
+          setMoveKnobOffset({ x: offsetX, y: offsetY })
           useTouchStore.getState().setMove(offsetX / JOYSTICK_RADIUS, -offsetY / JOYSTICK_RADIUS)
         } else if (touch.identifier === lookTouchId.current) {
           handled = true
           const dx = touch.clientX - lookLast.current.x
           const dy = touch.clientY - lookLast.current.y
           lookLast.current = { x: touch.clientX, y: touch.clientY }
+          setLookKnobOffset((previous) => {
+            const nextX = Math.max(-JOYSTICK_RADIUS, Math.min(JOYSTICK_RADIUS, previous.x + dx))
+            const nextY = Math.max(-JOYSTICK_RADIUS, Math.min(JOYSTICK_RADIUS, previous.y + dy))
+            return { x: nextX, y: nextY }
+          })
           useTouchStore.getState().addLookDelta(dx, dy)
         }
       }
@@ -76,11 +89,11 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
         if (touch.identifier === joystickTouchId.current) {
           joystickTouchId.current = null
           joystickOriginPoint.current = null
-          setJoystickOrigin(null)
-          setKnobOffset({ x: 0, y: 0 })
+          setMoveKnobOffset({ x: 0, y: 0 })
           useTouchStore.getState().setMove(0, 0)
         } else if (touch.identifier === lookTouchId.current) {
           lookTouchId.current = null
+          setLookKnobOffset({ x: 0, y: 0 })
         }
       }
     }
@@ -100,20 +113,8 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
 
   return (
     <div ref={layerRef} className="absolute inset-0 z-20" style={{ touchAction: 'none' }}>
-      {joystickOrigin && (
-        <div
-          className="pointer-events-none absolute h-28 w-28 rounded-full border-2 border-paper/50 bg-paper/10"
-          style={{ left: joystickOrigin.x - 56, top: joystickOrigin.y - 56 }}
-        >
-          <div
-            className="absolute h-12 w-12 rounded-full bg-paper/70"
-            style={{
-              left: 56 - 24 + knobOffset.x,
-              top: 56 - 24 + knobOffset.y,
-            }}
-          />
-        </div>
-      )}
+      <VirtualStick className={styles.moveStick} offset={moveKnobOffset} />
+      <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
 
       <button
         type="button"
@@ -125,6 +126,17 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
       >
         E
       </button>
+    </div>
+  )
+}
+
+function VirtualStick({ className, offset }: { className: string; offset: Vec2 }) {
+  return (
+    <div className={`${className} pointer-events-none absolute h-28 w-28 rounded-full border-2 border-paper/45 bg-paper/10`} aria-hidden="true">
+      <div
+        className="absolute h-12 w-12 rounded-full border border-ink/15 bg-paper/70 shadow-sm transition-transform duration-75"
+        style={{ left: 32 + offset.x, top: 32 + offset.y }}
+      />
     </div>
   )
 }

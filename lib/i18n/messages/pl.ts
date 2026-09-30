@@ -363,6 +363,10 @@ const pl: Messages = {
     enter: 'WEJDŹ NA WYSTAWĘ',
     resume: 'Kliknij, aby kontynuować',
     hintTouch: 'Joystick — ruch · Przeciągnij — rozglądanie się · Przycisk E — zobacz pracę',
+    orientation: {
+      title: 'Graj poziomo',
+      body: 'Obróć telefon poziomo, aby zwiedzić galerię. Wróć do pozycji poziomej, aby kontynuować grę.',
+    },
     hintDesktop: 'WASD — ruch · Shift — bieg · Przytrzymaj Ctrl — przykucnij · Mysz — rozglądanie się · E — zobacz pracę',
     viewArtwork: 'Zobacz pracę',
     artworkTechnique: 'Technika: {technique}',
@@ -403,6 +407,7 @@ const pl: Messages = {
     tutorial: {
       label: 'Samouczek sterowania',
       title: 'Sterowanie',
+      touchIntro: 'Użyj obu drążków: lewy porusza postacią, a prawy obraca widok. Podejdź do pracy i stuknij E.',
       done: 'Gotowe! Miłego zwiedzania',
       check: 'Zrobione',
       steps: {

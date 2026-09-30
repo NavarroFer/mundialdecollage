@@ -354,6 +354,10 @@ const en: Messages = {
     enter: 'ENTER THE EXHIBITION',
     resume: 'Click to continue',
     hintTouch: 'Joystick to move · Drag to look · E button to view an artwork',
+    orientation: {
+      title: 'Play in landscape',
+      body: 'Turn your phone sideways to explore the gallery. Return to landscape to keep playing.',
+    },
     hintDesktop: 'WASD to move · Shift to run · Hold Control (Ctrl) to crouch · Mouse to look · E to view an artwork',
     viewArtwork: 'View artwork',
     artworkTechnique: 'Technique: {technique}',
@@ -382,6 +386,7 @@ const en: Messages = {
     tutorial: {
       label: 'Controls tutorial',
       title: 'Controls',
+      touchIntro: 'Use both sticks: the left one moves you and the right one turns your view. Get close to an artwork and tap E.',
       done: 'All set! Enjoy the visit',
       check: 'Done',
       steps: {
