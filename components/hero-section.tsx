@@ -8,7 +8,6 @@ import { TrackVisible } from '@/components/track'
 import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatDayMonth, plural } from '@/lib/i18n/format'
-import { getSubmissionsCount } from '@/lib/submissions'
 import { getFinalists } from '@/lib/finalists'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
@@ -21,10 +20,9 @@ async function isSignedIn() {
 }
 
 export async function HeroSection() {
-  const [{ locale, m }, signedIn, submissions, artworks] = await Promise.all([
+  const [{ locale, m }, signedIn, artworks] = await Promise.all([
     getI18n(),
     isSignedIn(),
-    getSubmissionsCount(),
     getFinalists(),
   ])
   // Live, like the edition banner and the map: every obra received, and the
@@ -104,11 +102,11 @@ export async function HeroSection() {
           </p>
         </FadeIn>
 
-        {submissions > 0 && countries > 0 && (
+        {artworks.length > 0 && countries > 0 && (
           <FadeIn delay={225}>
             <p className="mt-5 text-base font-semibold text-ink sm:text-lg">
               {fmt(m.hero.proof, {
-                artworks: plural(locale, submissions, m.map.artworks),
+                artworks: plural(locale, artworks.length, m.map.artworks),
                 countries: plural(locale, countries, m.hero.countries),
               })}
             </p>

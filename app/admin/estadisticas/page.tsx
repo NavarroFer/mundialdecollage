@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { DISCOVERY_EVENTS, FUNNEL_STEPS, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
+import { getSubmissionsCount } from '@/lib/submissions'
 
 async function getArtworkStats() {
   if (!isSupabaseConfigured) return null
@@ -114,7 +115,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
   const { period } = await searchParams
   const periodDays = PERIODS.includes(Number(period) as (typeof PERIODS)[number]) ? Number(period) : 30
   const comparisonDays = periodDays === 7 ? 1 : 7
-  const [siteStats, funnelWeek, funnelMonth, galleryHistory] = await Promise.all([getArtworkStats(), getFunnel(comparisonDays), getFunnel(periodDays), getGalleryHistory(periodDays)])
+  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays), getFunnel(periodDays), getGalleryHistory(periodDays)])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
@@ -133,7 +134,8 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           </Link>
         ))}
       </nav>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <StatPill label="Obras recibidas · Mundial" value={receivedCount} />
         <StatPill label="Artistas · Sitio" value={artistStats?.totalArtists ?? 'No disponible'} />
         <StatPill label="Con país registrado · Sitio" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
         <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />

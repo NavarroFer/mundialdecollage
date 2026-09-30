@@ -6,9 +6,11 @@ import { getFinalists } from '@/lib/finalists'
 import { flagSvgsFor } from '@/lib/flag-svg'
 import { getI18n } from '@/lib/i18n/server'
 import { MAP_SECTION_ID } from '@/lib/map-country-link'
+import { getSubmissionsCount } from '@/lib/submissions'
+import { formatNumber } from '@/lib/i18n/format'
 
 export async function MapSection() {
-  const [artworks, { m }] = await Promise.all([getFinalists(), getI18n()])
+  const [artworks, submissionsCount, { locale, m }] = await Promise.all([getFinalists(), getSubmissionsCount(), getI18n()])
   // Live from the database: the same published obras the map opens when a
   // country is tapped (getFinalists only returns ones with a country).
   const breakdown = countByCountry(artworks.map((artwork) => artwork.countryCode)).flatMap(
@@ -51,6 +53,9 @@ export async function MapSection() {
             />
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {m.map.legend}
+            </p>
+            <p className="mt-1 text-center text-xs font-semibold text-muted-foreground">
+              {formatNumber(locale, artworks.length)} / {formatNumber(locale, submissionsCount)} obras recibidas ubicadas por país
             </p>
           </div>
         </FadeIn>
