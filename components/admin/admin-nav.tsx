@@ -18,7 +18,7 @@ export function AdminNav() {
   }
 
   return (
-    <nav className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <nav className="flex flex-wrap items-stretch gap-3">
       {adminSections.map((section) => {
         const isMinimized = minimizedSections.includes(section.label)
         const sectionId = `admin-section-${section.label.toLowerCase().replaceAll(' ', '-')}`
@@ -28,7 +28,8 @@ export function AdminNav() {
             key={section.label}
             className={cn(
               'relative overflow-hidden rounded-xl border',
-              isMinimized ? 'h-24 w-24 self-start' : 'p-3 pt-4',
+              'min-h-48 transition-[width,flex-basis] duration-200 ease-out',
+              isMinimized ? 'w-24 self-stretch max-sm:min-h-20 max-sm:w-full' : 'min-w-64 flex-1 p-3 pt-4',
               section.tone.tile,
             )}
           >

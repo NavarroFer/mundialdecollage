@@ -28,6 +28,7 @@ type ArtworkRow = {
   technique: string | null
   is_selected: boolean
   is_entered: boolean
+  created_at: string
   legacy_submission_id: string | null
   review_status: 'unreviewed' | 'preselected' | 'rejected'
   profiles: {
@@ -54,7 +55,7 @@ export default async function ObrasPage({
   const { data: artworkData } = await supabase
     .from('artworks')
     .select(
-      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, legacy_submission_id, review_status, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
+      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, created_at, legacy_submission_id, review_status, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
     )
     .is('archived_at', null)
     .order('created_at', { ascending: true })
@@ -139,6 +140,7 @@ export default async function ObrasPage({
         countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
         artworkTitle: row.title ?? undefined,
         imageUrl: row.image_url as string,
+        createdAt: row.created_at,
         driveUrl: row.drive_url ?? undefined,
         isPublic: row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false,
         source: 'legacy' as const,
@@ -176,6 +178,7 @@ export default async function ObrasPage({
         technique: row.technique ?? undefined,
         artworkTitle: row.title ?? undefined,
         imageUrl: row.image_url!,
+        createdAt: row.created_at,
         slug: row.slug ?? undefined,
         isPublic: Boolean(profile?.is_public),
         artworkCount: siblings.length,

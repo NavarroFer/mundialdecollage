@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 async function setStatus(formData: FormData, status: 'approved' | 'rejected') {
   const id = String(formData.get('id') ?? '')
   const tab = String(formData.get('tab') ?? 'pendientes')
+  const next = String(formData.get('next') ?? '')
   if (!id) return
 
   const supabase = await createClient()
@@ -18,6 +19,7 @@ async function setStatus(formData: FormData, status: 'approved' | 'rejected') {
     .eq('id', id)
   if (error) redirect(`/admin/comentarios?tab=${tab}&error=${encodeURIComponent(error.message)}`)
 
+  if (next) redirect(`/admin/comentarios?tab=${tab}#comment-${encodeURIComponent(next)}`)
   revalidatePath('/admin/comentarios')
 }
 

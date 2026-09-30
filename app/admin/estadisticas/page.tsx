@@ -73,6 +73,7 @@ function FunnelSection({
   baseStep,
   baseLabel,
   footnote,
+  periodDays,
 }: {
   week: FunnelCounts | null
   month: FunnelCounts | null
@@ -83,6 +84,7 @@ function FunnelSection({
   baseStep?: string
   baseLabel?: string
   footnote?: string
+  periodDays: number
 }) {
   const base = baseStep ? month?.get(baseStep) ?? 0 : 0
   return (
@@ -97,6 +99,7 @@ function FunnelSection({
             steps={steps.map((step) => ({ label: step.label, week: week.get(step.name) ?? 0, month: month.get(step.name) ?? 0 }))}
             base={baseStep ? base : undefined}
             baseLabel={baseLabel}
+            periodDays={periodDays}
           />
           {footnote && <p className="mt-5 border-t border-ink/10 pt-4 text-xs leading-relaxed text-muted-foreground">{footnote}</p>}
         </div>
@@ -105,8 +108,13 @@ function FunnelSection({
   )
 }
 
-export default async function EstadisticasPage() {
-  const [siteStats, funnelWeek, funnelMonth, galleryHistory] = await Promise.all([getArtworkStats(), getFunnel(7), getFunnel(30), getGalleryHistory(14)])
+const PERIODS = [7, 30, 90] as const
+
+export default async function EstadisticasPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
+  const { period } = await searchParams
+  const periodDays = PERIODS.includes(Number(period) as (typeof PERIODS)[number]) ? Number(period) : 30
+  const comparisonDays = periodDays === 7 ? 1 : 7
+  const [siteStats, funnelWeek, funnelMonth, galleryHistory] = await Promise.all([getArtworkStats(), getFunnel(comparisonDays), getFunnel(periodDays), getGalleryHistory(periodDays)])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
@@ -118,6 +126,13 @@ export default async function EstadisticasPage() {
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         De dónde vienen los artistas, qué técnicas eligen, cómo avanza la publicación y cómo se mueve la gente por la galería.
       </p>
+      <nav aria-label="Período de estadísticas" className="mt-5 flex flex-wrap gap-2">
+        {PERIODS.map((days) => (
+          <Link key={days} href={`/admin/estadisticas?period=${days}`} className={`rounded-full px-4 py-2 text-sm font-semibold ${days === periodDays ? 'bg-collage-blue text-primary-foreground' : 'bg-card text-muted-foreground hover:text-ink'}`}>
+            Últimos {days} días
+          </Link>
+        ))}
+      </nav>
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatPill label="Artistas · Sitio" value={artistStats?.totalArtists ?? 'No disponible'} />
         <StatPill label="Con país registrado · Sitio" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
@@ -134,12 +149,12 @@ export default async function EstadisticasPage() {
           <div className="p-5 sm:p-6">
             <h3 className="font-display text-xl tracking-tight text-ink uppercase">Actividad reciente</h3>
             <p className="mt-1 text-sm text-muted-foreground">Una lectura diaria ayuda a detectar picos después de una publicación, difusión o campaña.</p>
-            <div className="mt-5">{galleryHistory ? <DailyActivityChart data={galleryHistory} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el histórico. Recargá la página para reintentar.</p>}</div>
+            <div className="mt-5">{galleryHistory ? <DailyActivityChart data={galleryHistory} days={periodDays} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el histórico. Recargá la página para reintentar.</p>}</div>
           </div>
           <div className="p-5 sm:p-6">
             <h3 className="font-display text-xl tracking-tight text-ink uppercase">Embudo principal</h3>
-            <p className="mt-1 text-sm text-muted-foreground">De abrir la galería a comenzar una participación, en los últimos 30 días.</p>
-            <div className="mt-6">{funnelMonth ? <FunnelChart steps={FUNNEL_STEPS.slice(0, 5).map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0 }))} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el embudo.</p>}</div>
+            <p className="mt-1 text-sm text-muted-foreground">De abrir la galería a comenzar una participación, en los últimos {periodDays} días.</p>
+            <div className="mt-6">{funnelMonth ? <FunnelChart periodDays={periodDays} steps={FUNNEL_STEPS.slice(0, 5).map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0 }))} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el embudo.</p>}</div>
           </div>
         </div>
       </section>
@@ -153,6 +168,7 @@ export default async function EstadisticasPage() {
         baseStep="gallery_view"
         baseLabel="De quienes abrieron la galería"
         footnote="Los pasos de la home y la inscripción también cuentan a quien llegó sin pasar por la galería, por eso pueden superar a los anteriores."
+        periodDays={periodDays}
       />
 
       <FunnelSection
@@ -164,6 +180,7 @@ export default async function EstadisticasPage() {
         baseStep="home_view"
         baseLabel="De quienes abrieron la home"
         footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
+        periodDays={periodDays}
       />
 
       <FunnelSection
@@ -172,6 +189,7 @@ export default async function EstadisticasPage() {
         title="Compartir obras"
         description="Personas distintas que compartieron una obra desde su página, la tarjeta «Ya estás participando» de la home o la confirmación después de enviarla. Se mide desde el 26 de septiembre de 2026."
         steps={SHARE_EVENTS}
+        periodDays={periodDays}
       />
 
       <FunnelSection
@@ -182,6 +200,7 @@ export default async function EstadisticasPage() {
         steps={INVITE_EVENTS}
         baseStep="artist_invite_view"
         baseLabel="De quienes vieron la invitación"
+        periodDays={periodDays}
       />
 
       <FunnelSection
@@ -192,6 +211,7 @@ export default async function EstadisticasPage() {
         steps={REFERRAL_EVENTS}
         baseStep="referral_open"
         baseLabel="De quienes llegaron invitados"
+        periodDays={periodDays}
       />
 
       <FunnelSection
@@ -203,6 +223,7 @@ export default async function EstadisticasPage() {
         baseStep="onboarding_form_view"
         baseLabel="De quienes vieron el formulario"
         footnote="Quien ya tenía la sesión iniciada llega directo al formulario, sin pasar por «Entrá con Google»."
+        periodDays={periodDays}
       />
 
       <FunnelSection
@@ -213,6 +234,7 @@ export default async function EstadisticasPage() {
         steps={DISCOVERY_EVENTS}
         baseStep="artwork_page_view"
         baseLabel="De quienes abrieron una obra"
+        periodDays={periodDays}
       />
 
       <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
@@ -299,3 +321,4 @@ export default async function EstadisticasPage() {
     </div>
   )
 }
+import Link from 'next/link'

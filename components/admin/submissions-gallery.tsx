@@ -6,6 +6,7 @@ import {
   Circle,
   CircleCheck,
   CircleX,
+  ChevronDown,
   ExternalLink,
   EyeOff,
   ImageOff,
@@ -14,6 +15,8 @@ import {
   ListChecks,
   Loader2,
   Megaphone,
+  Search,
+  SlidersHorizontal,
   Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,6 +30,7 @@ type Filter = 'all' | 'pending' | 'public'
 type ViewMode = 'list' | 'mosaic'
 type OriginFilter = 'all' | 'spreadsheet' | 'website'
 type ReviewFilter = 'all' | Submission['reviewStatus']
+type DateOrder = 'newest' | 'oldest'
 
 const REVIEW_LABELS: Record<Submission['reviewStatus'], string> = {
   unreviewed: 'Sin revisar',
@@ -55,12 +59,16 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   const [country, setCountry] = useState<string>('all')
   const [origin, setOrigin] = useState<OriginFilter>('all')
   const [review, setReview] = useState<ReviewFilter>('all')
+  const [filtersOpen, setFiltersOpen] = useState(true)
+  const [search, setSearch] = useState('')
+  const [dateOrder, setDateOrder] = useState<DateOrder>('newest')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
+  const activeFilterCount = [filter, technique, country, origin, review].filter((value) => value !== 'all').length
 
   // Only the countries actually represented — a full ISO-3166 dropdown would
   // be mostly empty options for a gallery of a few dozen submissions. A
@@ -80,8 +88,19 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
     if (origin === 'spreadsheet') list = list.filter((s) => s.source === 'legacy')
     else if (origin === 'website') list = list.filter((s) => s.source !== 'legacy')
     if (review !== 'all') list = list.filter((s) => s.reviewStatus === review)
-    return list
-  }, [submissions, filter, technique, country, origin, review])
+    const searchTerm = search.trim().toLocaleLowerCase()
+    if (searchTerm) {
+      list = list.filter((s) =>
+        [s.name, s.artworkTitle, s.email]
+          .filter((value): value is string => Boolean(value))
+          .some((value) => value.toLocaleLowerCase().includes(searchTerm)),
+      )
+    }
+    return [...list].sort((a, b) => {
+      const difference = Date.parse(a.createdAt ?? '') - Date.parse(b.createdAt ?? '')
+      return dateOrder === 'newest' ? -difference : difference
+    })
+  }, [submissions, filter, technique, country, origin, review, search, dateOrder])
 
   function toggle(id: string) {
     if (!selectMode) {
@@ -104,6 +123,14 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
   function selectAllVisible() {
     setSelected(new Set(visible.map((s) => s.id)))
+  }
+
+  function resetFilters() {
+    setFilter('all')
+    setTechnique('all')
+    setCountry('all')
+    setOrigin('all')
+    setReview('all')
   }
 
   function applyVisibility(isPublic: boolean) {
@@ -157,71 +184,33 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
   return (
     <div className={cn(selected.size > 0 && 'pb-24')}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {FILTERS.map((f) => (
+      <section className="rounded-2xl border-2 border-ink/10 bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 sm:p-4">
+          <div className="flex items-center gap-2">
             <button
-              key={f.key}
               type="button"
-              onClick={() => setFilter(f.key)}
-              className={cn(
-                'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                filter === f.key
-                  ? 'bg-collage-blue text-primary-foreground'
-                  : 'bg-card text-muted-foreground hover:text-ink',
+              onClick={() => setFiltersOpen((open) => !open)}
+              aria-expanded={filtersOpen}
+              aria-controls="obra-filters"
+              className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-bold text-ink hover:bg-ink/5 focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtros
+              {activeFilterCount > 0 && (
+                <span className="rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] text-primary-foreground">
+                  {activeFilterCount} activos
+                </span>
               )}
-            >
-              {f.label}
+              <ChevronDown className={cn('h-4 w-4 transition-transform', filtersOpen && 'rotate-180')} />
             </button>
-          ))}
-          <select
-            value={technique}
-            onChange={(e) => setTechnique(e.target.value as TechniqueFilter)}
-            className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
-          >
-            <option value="all">Toda técnica</option>
-            {TECHNIQUES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <select
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value as OriginFilter)}
-            className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
-          >
-            <option value="all">Todo origen</option>
-            <option value="spreadsheet">Importadas desde planilla</option>
-            <option value="website">Registradas en la página</option>
-          </select>
-          <select
-            value={review}
-            onChange={(e) => setReview(e.target.value as ReviewFilter)}
-            className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
-          >
-            <option value="all">Toda revisión</option>
-            <option value="unreviewed">Sin revisar</option>
-            <option value="preselected">Preseleccionadas</option>
-            <option value="rejected">Descartadas</option>
-          </select>
-          {countries.length > 1 && (
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
-            >
-              <option value="all">Todo país</option>
-              {countries.map((code) => (
-                <option key={code} value={code}>
-                  {countryCodeToFlag(code)} {countryCodeToName(code)}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+            {activeFilterCount > 0 && (
+              <button type="button" onClick={resetFilters} className="text-xs font-semibold text-muted-foreground hover:text-ink hover:underline">
+                Limpiar
+              </button>
+            )}
+          </div>
 
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
           <div className="flex rounded-full border-2 border-ink/15 bg-card p-0.5" aria-label="Vista de obras">
             <button
               type="button"
@@ -251,7 +240,64 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
             {selectMode ? 'Cancelar' : 'Seleccionar'}
           </button>
         </div>
-      </div>
+        </div>
+
+        {filtersOpen && (
+          <div id="obra-filters" className="flex flex-wrap gap-2 border-t-2 border-ink/10 p-3 sm:p-4">
+            <label className="flex min-w-64 flex-1 items-center gap-2 rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm text-ink focus-within:border-ink/40">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="sr-only">Buscar obras</span>
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar artista, título o email"
+                className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+              />
+            </label>
+            <select value={dateOrder} onChange={(event) => setDateOrder(event.target.value as DateOrder)} className="rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm font-semibold text-ink">
+              <option value="newest">Más recientes primero</option>
+              <option value="oldest">Más antiguas primero</option>
+            </select>
+            {FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilter(f.key)}
+                className={cn(
+                  'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+                  filter === f.key
+                    ? 'bg-collage-blue text-primary-foreground'
+                    : 'bg-background text-muted-foreground hover:text-ink',
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+            <select value={technique} onChange={(e) => setTechnique(e.target.value as TechniqueFilter)} className="rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm font-semibold text-ink">
+              <option value="all">Toda técnica</option>
+              {TECHNIQUES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={origin} onChange={(e) => setOrigin(e.target.value as OriginFilter)} className="rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm font-semibold text-ink">
+              <option value="all">Todo origen</option>
+              <option value="spreadsheet">Importadas desde planilla</option>
+              <option value="website">Registradas en la página</option>
+            </select>
+            <select value={review} onChange={(e) => setReview(e.target.value as ReviewFilter)} className="rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm font-semibold text-ink">
+              <option value="all">Toda revisión</option>
+              <option value="unreviewed">Sin revisar</option>
+              <option value="preselected">Preseleccionadas</option>
+              <option value="rejected">Descartadas</option>
+            </select>
+            {countries.length > 1 && (
+              <select value={country} onChange={(e) => setCountry(e.target.value)} className="rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm font-semibold text-ink">
+                <option value="all">Todo país</option>
+                {countries.map((code) => <option key={code} value={code}>{countryCodeToFlag(code)} {countryCodeToName(code)}</option>)}
+              </select>
+            )}
+          </div>
+        )}
+      </section>
 
       {selectMode && (
         <button

@@ -88,8 +88,10 @@ export default async function ComentariosPage({
             {tab.status === 'pending' ? 'No hay comentarios esperando moderación.' : 'Todavía no hay comentarios acá.'}
           </p>
         )}
-        {comments.map((comment) => (
-          <article key={comment.id} className="flex gap-4 rounded-2xl border-2 border-ink/10 bg-card p-4 sm:p-5">
+        {comments.map((comment, index) => {
+          const nextCommentId = tab.status === 'pending' ? comments[index + 1]?.id : undefined
+          return (
+          <article id={`comment-${comment.id}`} key={comment.id} className="scroll-mt-6 flex gap-4 rounded-2xl border-2 border-ink/10 bg-card p-4 sm:p-5">
             {comment.artworks && (
               <Link href={`/obras/${comment.artworks.slug}`} target="_blank" className="shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -111,9 +113,10 @@ export default async function ComentariosPage({
                   <form action={approveComment}>
                     <input type="hidden" name="id" value={comment.id} />
                     <input type="hidden" name="tab" value={tab.id} />
+                    {nextCommentId && <input type="hidden" name="next" value={nextCommentId} />}
                     <SubmitButton size="sm" className="gap-1.5" pendingLabel="Aprobando…">
                       <Check className="h-3.5 w-3.5" />
-                      Aprobar
+                      {nextCommentId ? 'Aprobar y seguir' : 'Aprobar'}
                     </SubmitButton>
                   </form>
                 )}
@@ -121,16 +124,18 @@ export default async function ComentariosPage({
                   <form action={rejectComment}>
                     <input type="hidden" name="id" value={comment.id} />
                     <input type="hidden" name="tab" value={tab.id} />
+                    {nextCommentId && <input type="hidden" name="next" value={nextCommentId} />}
                     <SubmitButton size="sm" variant="outline" className="gap-1.5" pendingLabel="Guardando…">
                       <X className="h-3.5 w-3.5" />
-                      {tab.status === 'approved' ? 'Ocultar' : 'Rechazar'}
+                      {tab.status === 'approved' ? 'Ocultar' : nextCommentId ? 'Rechazar y seguir' : 'Rechazar'}
                     </SubmitButton>
                   </form>
                 )}
               </div>
             </div>
           </article>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

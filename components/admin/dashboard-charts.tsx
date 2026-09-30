@@ -44,7 +44,7 @@ export function DonutChart({ slices, total, label }: { slices: Slice[]; total: n
   )
 }
 
-export function DailyActivityChart({ data }: { data: { label: string; value: number }[] }) {
+export function DailyActivityChart({ data, days }: { data: { label: string; value: number }[]; days: number }) {
   const width = 640
   const height = 190
   const inset = 18
@@ -61,7 +61,7 @@ export function DailyActivityChart({ data }: { data: { label: string; value: num
     <div>
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <p className="text-sm text-muted-foreground">Visitas únicas a la galería por día</p>
-        <strong className="font-display shrink-0 text-2xl text-ink">{total}<span className="ml-1 font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">en 14 días</span></strong>
+        <strong className="font-display shrink-0 text-2xl text-ink">{total}<span className="ml-1 font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">en {days} días</span></strong>
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full overflow-visible" role="img" aria-label="Evolución diaria de visitas únicas a la galería">
         {[0.25, 0.5, 0.75].map((step) => <line key={step} x1={inset} x2={width - inset} y1={height - inset - step * (height - inset * 2)} y2={height - inset - step * (height - inset * 2)} stroke="var(--border)" strokeDasharray="3 5" />)}
@@ -74,10 +74,10 @@ export function DailyActivityChart({ data }: { data: { label: string; value: num
   )
 }
 
-export function FunnelChart({ steps }: { steps: { label: string; value: number }[] }) {
+export function FunnelChart({ steps, periodDays }: { steps: { label: string; value: number }[]; periodDays: number }) {
   const base = steps[0]?.value ?? 0
   return (
-    <ol className="space-y-3" aria-label="Embudo de la galería, últimos 30 días">
+    <ol className="space-y-3" aria-label={`Embudo de la galería, últimos ${periodDays} días`}>
       {steps.map((step, index) => {
         const width = base ? Math.max((step.value / base) * 100, step.value ? 8 : 0) : 0
         return <li key={step.label} className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-3">
@@ -94,16 +94,18 @@ export function JourneyComparison({
   steps,
   base,
   baseLabel,
+  periodDays,
 }: {
   steps: { label: string; week: number; month: number }[]
   base?: number
   baseLabel?: string
+  periodDays: number
 }) {
   const max = Math.max(...steps.map((step) => step.month), 1)
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-muted-foreground">
-        <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-blue" />Últimos 30 días</span>
+        <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-blue" />Últimos {periodDays} días</span>
         <span className="flex items-center gap-1.5"><i aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-collage-red" />Últimos 7 días</span>
         {baseLabel && <span className="text-muted-foreground/80">La proporción se calcula sobre: {baseLabel}.</span>}
       </div>
@@ -117,7 +119,7 @@ export function JourneyComparison({
               <div>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-sm font-semibold text-ink">{step.label}</span>
-                  <span className="text-xs tabular-nums text-muted-foreground">{base ? `${formatShare(step.month, base)} · ` : ''}<b className="text-ink">{step.month}</b> / 30 d</span>
+                  <span className="text-xs tabular-nums text-muted-foreground">{base ? `${formatShare(step.month, base)} · ` : ''}<b className="text-ink">{step.month}</b> / {periodDays} d</span>
                 </div>
                 <div className="mt-2 space-y-1.5" aria-label={`${step.label}: ${step.month} en 30 días y ${step.week} en 7 días`}>
                   <div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-collage-blue" style={{ width: `${monthWidth}%` }} /></div>
