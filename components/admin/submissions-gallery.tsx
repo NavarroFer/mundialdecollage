@@ -19,12 +19,26 @@ import {
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { instagramHandle } from '@/lib/instagram'
-import { deleteSubmissions, setSubmissionsVisibility } from '@/app/admin/obras/actions'
+import { deleteSubmissions, setSubmissionsReviewStatus, setSubmissionsVisibility } from '@/app/admin/obras/actions'
 import { ObraViewer } from '@/components/admin/obra-viewer'
 import type { Submission } from '@/components/admin/submission-types'
 
 type Filter = 'all' | 'pending' | 'public'
 type ViewMode = 'list' | 'mosaic'
+type OriginFilter = 'all' | 'spreadsheet' | 'website'
+type ReviewFilter = 'all' | Submission['reviewStatus']
+
+const REVIEW_LABELS: Record<Submission['reviewStatus'], string> = {
+  unreviewed: 'Sin revisar',
+  preselected: 'Preseleccionada',
+  rejected: 'Descartada',
+}
+
+const REVIEW_CLASSES: Record<Submission['reviewStatus'], string> = {
+  unreviewed: 'bg-ink/10 text-ink',
+  preselected: 'bg-collage-blue/15 text-collage-blue',
+  rejected: 'bg-collage-red/10 text-collage-red',
+}
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'Todas' },
@@ -39,6 +53,8 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   const [filter, setFilter] = useState<Filter>('all')
   const [technique, setTechnique] = useState<TechniqueFilter>('all')
   const [country, setCountry] = useState<string>('all')
+  const [origin, setOrigin] = useState<OriginFilter>('all')
+  const [review, setReview] = useState<ReviewFilter>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -61,8 +77,11 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
     else if (filter === 'public') list = list.filter((s) => s.isPublic)
     if (technique !== 'all') list = list.filter((s) => s.technique === technique)
     if (country !== 'all') list = list.filter((s) => s.countryCode === country)
+    if (origin === 'spreadsheet') list = list.filter((s) => s.source === 'legacy')
+    else if (origin === 'website') list = list.filter((s) => s.source !== 'legacy')
+    if (review !== 'all') list = list.filter((s) => s.reviewStatus === review)
     return list
-  }, [submissions, filter, technique, country])
+  }, [submissions, filter, technique, country, origin, review])
 
   function toggle(id: string) {
     if (!selectMode) {
@@ -102,6 +121,15 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
         // account provisioning itself failed.
         setActionMessage(`${skipped.length} no se pudieron publicar, faltó la imagen o falló su cuenta (${names}).`)
       }
+      cancelSelection()
+    })
+  }
+
+  function applyReviewStatus(reviewStatus: Submission['reviewStatus']) {
+    const ids = Array.from(selected)
+    setActionMessage(null)
+    startTransition(async () => {
+      await setSubmissionsReviewStatus(ids, reviewStatus)
       cancelSelection()
     })
   }
@@ -157,6 +185,25 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 {t}
               </option>
             ))}
+          </select>
+          <select
+            value={origin}
+            onChange={(e) => setOrigin(e.target.value as OriginFilter)}
+            className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
+          >
+            <option value="all">Todo origen</option>
+            <option value="spreadsheet">Importadas desde planilla</option>
+            <option value="website">Registradas en la página</option>
+          </select>
+          <select
+            value={review}
+            onChange={(e) => setReview(e.target.value as ReviewFilter)}
+            className="rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink"
+          >
+            <option value="all">Toda revisión</option>
+            <option value="unreviewed">Sin revisar</option>
+            <option value="preselected">Preseleccionadas</option>
+            <option value="rejected">Descartadas</option>
           </select>
           {countries.length > 1 && (
             <select
@@ -311,8 +358,11 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                       {s.technique && ` · ${s.technique}`}
                     </p>
                     <p className="mt-1 text-[0.65rem] font-bold tracking-wide text-muted-foreground uppercase">
-                      Origen: {s.source === 'legacy' ? 'Registro' : 'Sitio'}
+                      Origen: {s.source === 'legacy' ? 'Importada desde planilla' : 'Registrada en la página'}
                     </p>
+                    <span className={cn('mt-1 inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-bold', REVIEW_CLASSES[s.reviewStatus])}>
+                      {REVIEW_LABELS[s.reviewStatus]}
+                    </span>
                     {!s.artworkTitle && s.source === 'real' && <p className="truncate text-xs text-collage-red">Sin datos (título)</p>}
                     {s.instagram && (
                       <p className="truncate text-xs text-collage-red">@{instagramHandle(s.instagram) ?? s.instagram}</p>
@@ -370,6 +420,30 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 {selected.size} seleccionada{selected.size === 1 ? '' : 's'}
               </p>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => applyReviewStatus('unreviewed')}
+                  className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30 disabled:opacity-50"
+                >
+                  Sin revisar
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => applyReviewStatus('preselected')}
+                  className="rounded-full border-2 border-collage-blue/30 px-4 py-2 text-sm font-semibold text-collage-blue hover:bg-collage-blue/10 disabled:opacity-50"
+                >
+                  Preseleccionar
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => applyReviewStatus('rejected')}
+                  className="rounded-full border-2 border-collage-red/30 px-4 py-2 text-sm font-semibold text-collage-red hover:bg-collage-red/10 disabled:opacity-50"
+                >
+                  Descartar
+                </button>
                 <button
                   type="button"
                   disabled={isPending}

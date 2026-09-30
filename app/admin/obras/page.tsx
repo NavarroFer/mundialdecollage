@@ -29,6 +29,7 @@ type ArtworkRow = {
   is_selected: boolean
   is_entered: boolean
   legacy_submission_id: string | null
+  review_status: 'unreviewed' | 'preselected' | 'rejected'
   profiles: {
     name: string | null
     country_code: string | null
@@ -53,7 +54,7 @@ export default async function ObrasPage({
   const { data: artworkData } = await supabase
     .from('artworks')
     .select(
-      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, legacy_submission_id, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
+      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, legacy_submission_id, review_status, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
     )
     .is('archived_at', null)
     .order('created_at', { ascending: true })
@@ -79,7 +80,7 @@ export default async function ObrasPage({
   const { data: legacyData } = await supabase
     .from('legacy_submissions')
     .select(
-      'id, email, name, drive_url, country_raw, title, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram',
+      'id, email, name, drive_url, country_raw, title, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram, review_status',
     )
     .is('archived_at', null)
     .order('email', { ascending: true })
@@ -141,6 +142,7 @@ export default async function ObrasPage({
         driveUrl: row.drive_url ?? undefined,
         isPublic: row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false,
         source: 'legacy' as const,
+        reviewStatus: row.review_status,
         legacyId: row.id,
         email: row.email,
         imageFetchFailedAt: row.image_fetch_failed_at,
@@ -178,6 +180,7 @@ export default async function ObrasPage({
         isPublic: Boolean(profile?.is_public),
         artworkCount: siblings.length,
         source: 'real' as const,
+        reviewStatus: row.review_status,
         artworkId: row.id,
         instagram: profile?.instagram ?? undefined,
         siblings: siblings.length > 1

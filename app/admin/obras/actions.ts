@@ -122,6 +122,32 @@ export async function setSubmissionsVisibility(
   return { skipped }
 }
 
+const REVIEW_STATUSES = new Set(['unreviewed', 'preselected', 'rejected'])
+
+// Editorial review is deliberately separate from public visibility and from
+// `is_selected` (an artist's representative artwork). The gallery sends its
+// mixed identifiers, so update the matching source table for each row.
+export async function setSubmissionsReviewStatus(
+  ids: string[],
+  reviewStatus: 'unreviewed' | 'preselected' | 'rejected',
+) {
+  if (ids.length === 0 || !REVIEW_STATUSES.has(reviewStatus)) return
+  await assertIsAdmin()
+
+  const artworkIds = ids.filter((id) => !id.startsWith('legacy-'))
+  const legacyIds = ids.filter((id) => id.startsWith('legacy-')).map((id) => id.slice('legacy-'.length))
+  const admin = createAdminClient()
+
+  const results = await Promise.all([
+    artworkIds.length > 0 ? admin.from('artworks').update({ review_status: reviewStatus }).in('id', artworkIds) : null,
+    legacyIds.length > 0 ? admin.from('legacy_submissions').update({ review_status: reviewStatus }).in('id', legacyIds) : null,
+  ])
+  const error = results.find((result) => result?.error)?.error
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/admin/obras')
+}
+
 type ParsedLegacyLine = {
   email: string
   name: string | null

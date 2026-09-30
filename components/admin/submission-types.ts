@@ -46,6 +46,9 @@ export type Submission = {
   // it at full size.
   driveUrl?: string
   isPublic: boolean
+  // Editorial review is independent of publication and of `is_selected`,
+  // which only chooses an artist's representative work.
+  reviewStatus: 'unreviewed' | 'preselected' | 'rejected'
   // How many artwork rows this artist has total (see
   // supabase/migrations/20260921040000_artworks.sql) — more than one means
   // the gallery viewer should expose the sibling picker.
