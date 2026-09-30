@@ -37,7 +37,7 @@ export default async function StorePage() {
               const localizedPlan = t.plans[plan.id]
               return (
               <article
-                key={plan.name}
+                key={plan.id}
                 className={`relative flex flex-col rounded-2xl border-2 p-6 shadow-sm ${plan.featured ? 'border-collage-blue bg-collage-blue text-primary-foreground lg:-translate-y-3' : 'border-ink/15 bg-card'}`}
               >
                 {plan.featured && (

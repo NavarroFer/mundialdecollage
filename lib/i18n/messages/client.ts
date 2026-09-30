@@ -19,6 +19,7 @@ const CLIENT_NAMESPACES = [
   'share',
   'gallery',
   'ar',
+  'store',
 ] as const
 
 export type ClientMessages = Pick<Messages, (typeof CLIENT_NAMESPACES)[number]>
