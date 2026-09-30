@@ -9,6 +9,8 @@ import {
   ExternalLink,
   EyeOff,
   ImageOff,
+  LayoutGrid,
+  List,
   ListChecks,
   Loader2,
   Megaphone,
@@ -22,6 +24,7 @@ import { ObraViewer } from '@/components/admin/obra-viewer'
 import type { Submission } from '@/components/admin/submission-types'
 
 type Filter = 'all' | 'pending' | 'public'
+type ViewMode = 'list' | 'mosaic'
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'Todas' },
@@ -36,6 +39,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   const [filter, setFilter] = useState<Filter>('all')
   const [technique, setTechnique] = useState<TechniqueFilter>('all')
   const [country, setCountry] = useState<string>('all')
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
@@ -170,14 +174,36 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => (selectMode ? cancelSelection() : setSelectMode(true))}
-          className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30"
-        >
-          {selectMode ? <CircleX className="h-4 w-4" /> : <ListChecks className="h-4 w-4" />}
-          {selectMode ? 'Cancelar' : 'Seleccionar'}
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-full border-2 border-ink/15 bg-card p-0.5" aria-label="Vista de obras">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={cn('rounded-full p-2', viewMode === 'list' ? 'bg-collage-blue text-primary-foreground' : 'text-muted-foreground hover:text-ink')}
+              aria-label="Ver como lista"
+              title="Vista de lista"
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('mosaic')}
+              className={cn('rounded-full p-2', viewMode === 'mosaic' ? 'bg-collage-blue text-primary-foreground' : 'text-muted-foreground hover:text-ink')}
+              aria-label="Ver como mosaico"
+              title="Vista de mosaico"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => (selectMode ? cancelSelection() : setSelectMode(true))}
+            className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30"
+          >
+            {selectMode ? <CircleX className="h-4 w-4" /> : <ListChecks className="h-4 w-4" />}
+            {selectMode ? 'Cancelar' : 'Seleccionar'}
+          </button>
+        </div>
       </div>
 
       {selectMode && (
@@ -198,13 +224,24 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
       ) : visible.length === 0 ? (
         <p className="mt-10 text-center text-muted-foreground">No hay obras en esta categoría.</p>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className={cn(
+          'mt-6',
+          viewMode === 'list'
+            ? 'space-y-2'
+            : 'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
+        )}>
           {visible.map((s, i) => {
             const isLegacy = s.source === 'legacy'
             const isSelected = selected.has(s.id)
 
             return (
-              <div key={s.id} className="group relative text-left">
+              <div
+                key={s.id}
+                className={cn(
+                  'group relative text-left',
+                  viewMode === 'list' && 'rounded-xl border-2 border-ink/10 bg-card transition-colors hover:border-ink/25',
+                )}
+              >
                 {/* Opens the detail viewer when browsing, toggles selection instead
                     once selectMode is on — a sibling of the selection checkbox and
                     Drive link below, not their ancestor, so nothing needs
@@ -212,7 +249,10 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 <button
                   type="button"
                   onClick={() => (selectMode ? toggle(s.id) : setViewerIndex(i))}
-                  className="block w-full text-left"
+                  className={cn(
+                    'text-left',
+                    viewMode === 'list' ? 'flex w-full min-w-0 items-center gap-4 p-3 pr-14 sm:pr-28' : 'block w-full',
+                  )}
                   aria-label={
                     selectMode
                       ? isSelected
@@ -223,7 +263,8 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 >
                   <div
                     className={cn(
-                      'relative aspect-square overflow-hidden rounded-xl border-2 bg-muted',
+                      'relative overflow-hidden rounded-xl border-2 bg-muted',
+                      viewMode === 'list' ? 'h-24 w-24 shrink-0 sm:h-28 sm:w-28' : 'aspect-square',
                       isSelected ? 'border-collage-blue' : 'border-ink/10',
                     )}
                   >
@@ -233,7 +274,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                       className={cn(
-                        'object-cover transition-opacity',
+                        'object-contain p-1 transition-opacity',
                         isSelected && 'opacity-70',
                       )}
                     />
@@ -261,15 +302,22 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                     )}
                   </div>
 
-                  <p className="mt-1.5 truncate text-sm font-semibold text-ink">
-                    {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)}</span>} {s.name}
-                  </p>
-                  {s.artworkTitle
-                    ? <p className="truncate text-xs text-muted-foreground">{s.artworkTitle}</p>
-                    : s.source === 'real' && <p className="truncate text-xs text-collage-red">Sin datos (título)</p>}
-                  {s.instagram && (
-                    <p className="truncate text-xs text-collage-red">@{instagramHandle(s.instagram) ?? s.instagram}</p>
-                  )}
+                  <div className={cn('min-w-0', viewMode === 'mosaic' && 'mt-1.5')}>
+                    <p className="truncate text-sm font-semibold text-ink">
+                      {s.artworkTitle ?? 'Sin título'}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)} </span>}{s.name}
+                      {s.technique && ` · ${s.technique}`}
+                    </p>
+                    <p className="mt-1 text-[0.65rem] font-bold tracking-wide text-muted-foreground uppercase">
+                      Origen: {s.source === 'legacy' ? 'Registro' : 'Sitio'}
+                    </p>
+                    {!s.artworkTitle && s.source === 'real' && <p className="truncate text-xs text-collage-red">Sin datos (título)</p>}
+                    {s.instagram && (
+                      <p className="truncate text-xs text-collage-red">@{instagramHandle(s.instagram) ?? s.instagram}</p>
+                    )}
+                  </div>
                 </button>
 
                 <div className="absolute top-2 right-2 flex items-center gap-1.5">
