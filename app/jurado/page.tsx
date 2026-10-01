@@ -60,9 +60,17 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
   const ordered = jurorOrder(pool, juror.id)
   const items = ordered.map((item) => ({ item, index: item.number })).filter(({ item }) => !onlyPending || !mine.has(item.key))
 
+  // Shown in both views: how long is left, or that voting closed.
+  const deadlineBanner = deadline && (
+    <p role={closed ? 'status' : undefined} className={`mb-4 rounded-xl border-2 px-4 py-3 text-sm font-semibold ${closed ? 'border-collage-red/30 bg-collage-red/10 text-collage-red' : 'border-collage-blue/20 bg-collage-blue/5 text-ink'}`}>
+      {closed ? `La votación cerró el ${deadline}. Tus puntajes quedaron guardados y ya no se pueden cambiar.` : `Tenés tiempo hasta el ${deadline}.`}
+    </p>
+  )
+
   if (!listView && pool.length > 0) {
     return (
       <Shell>
+        {deadlineBanner}
         <p className="text-muted-foreground">
           Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10: se guarda al tocar el número y pasás a la siguiente. Las obras se muestran sin el nombre ni el país de quien las hizo.
         </p>
@@ -71,6 +79,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
           items={ordered.map(({ key, number, imageUrl, title, technique }) => ({ key, number, imageUrl, title, technique }))}
           initialScores={Object.fromEntries([...mine].map(([key, row]) => [key, row.score]))}
           initialComments={Object.fromEntries([...mine].map(([key, row]) => [key, row.comment ?? '']))}
+          closed={closed}
         />
       </Shell>
     )
@@ -78,11 +87,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
 
   return (
     <Shell>
-      {deadline && (
-        <p role={closed ? 'status' : undefined} className={`mb-4 rounded-xl border-2 px-4 py-3 text-sm font-semibold ${closed ? 'border-collage-red/30 bg-collage-red/10 text-collage-red' : 'border-collage-blue/20 bg-collage-blue/5 text-ink'}`}>
-          {closed ? `La votación cerró el ${deadline}. Tus puntajes quedaron guardados y ya no se pueden cambiar.` : `Tenés tiempo hasta el ${deadline}.`}
-        </p>
-      )}
+      {deadlineBanner}
       <p className="text-muted-foreground">
         Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10; se guarda al tocar el número. Las obras se muestran sin el nombre ni el país de quien las hizo.
       </p>
@@ -121,6 +126,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
                 technique={item.technique}
                 initialScore={score?.score ?? null}
                 initialComment={score?.comment ?? null}
+                closed={closed}
               />
             )
           })}

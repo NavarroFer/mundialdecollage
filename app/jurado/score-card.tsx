@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 // One obra, blind: the image, its title and técnica, ten score buttons and
 // an optional comment. Tapping a score saves it right away (with whatever
 // comment is written); «Guardar» is for a comment edited afterwards.
-export function ScoreCard({ itemKey, index, imageUrl, title, technique, initialScore, initialComment }: {
+export function ScoreCard({ itemKey, index, imageUrl, title, technique, initialScore, initialComment, closed = false }: {
   itemKey: string
   index: number
   imageUrl: string
@@ -17,6 +17,7 @@ export function ScoreCard({ itemKey, index, imageUrl, title, technique, initialS
   technique: string | null
   initialScore: number | null
   initialComment: string | null
+  closed?: boolean
 }) {
   const [state, action, pending] = useActionState<ScoreState, FormData>(saveScore.bind(null, itemKey), { saved: false, error: null })
   const [score, setScore] = useState<number | null>(initialScore)
@@ -46,7 +47,7 @@ export function ScoreCard({ itemKey, index, imageUrl, title, technique, initialS
                 'flex h-11 cursor-pointer items-center justify-center rounded-lg border-2 text-sm font-bold transition-colors',
                 score === n ? 'border-collage-blue bg-collage-blue text-primary-foreground' : 'border-ink/15 text-ink hover:border-ink/40',
               )}>
-                <input type="radio" name="score" value={n} checked={score === n} onChange={() => { setScore(n); requestAnimationFrame(() => formRef.current?.requestSubmit()) }} className="sr-only" />
+                <input type="radio" name="score" value={n} checked={score === n} disabled={closed} onChange={() => { setScore(n); requestAnimationFrame(() => formRef.current?.requestSubmit()) }} className="sr-only" />
                 {n}
               </label>
             ))}
@@ -57,7 +58,7 @@ export function ScoreCard({ itemKey, index, imageUrl, title, technique, initialS
           <textarea name="comment" value={comment} onChange={(event) => setComment(event.target.value)} maxLength={1000} rows={2} className="mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
         </label>
         <div className="flex items-center gap-3">
-          <button type="submit" disabled={pending || score === null} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-paper disabled:opacity-40">
+          <button type="submit" disabled={closed || pending || score === null} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-paper disabled:opacity-40">
             {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
             Guardar
           </button>

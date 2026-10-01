@@ -22,10 +22,12 @@ const SCORES = Array.from({ length: 10 }, (_, i) => i + 1)
 // time, scored by tap or keyboard (1–9, 0 = 10, ← →). A first score saves and
 // jumps to the next obra still unscored; re-scoring one stays put, so a
 // review doesn't get yanked around.
-export function FocusView({ items, initialScores, initialComments }: {
+export function FocusView({ items, initialScores, initialComments, closed = false }: {
   items: FocusItem[]
   initialScores: Record<string, number>
   initialComments: Record<string, string>
+  // Past site.jury.deadlineISO: scores stay visible, nothing can be changed.
+  closed?: boolean
 }) {
   const [scores, setScores] = useState(initialScores)
   const [comments, setComments] = useState(initialComments)
@@ -90,7 +92,7 @@ export function FocusView({ items, initialScores, initialComments }: {
   }
 
   function pickScore(value: number) {
-    if (!item || saving) return
+    if (!item || saving || closed) return
     void save(item, value, { advance: true })
   }
 
@@ -244,10 +246,12 @@ function FocusCard({ item, position, total, score, comment, saving, onScore, onC
                 key={n}
                 type="button"
                 onClick={() => onScore(n)}
+                disabled={closed}
                 aria-pressed={score === n}
                 className={cn(
                   'flex h-14 items-center justify-center rounded-xl border-2 text-lg font-bold tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue',
                   score === n ? 'border-collage-blue bg-collage-blue text-primary-foreground' : 'border-ink/15 text-ink hover:border-ink/40',
+                  closed && 'cursor-not-allowed opacity-60',
                 )}
               >
                 {n}
@@ -261,9 +265,9 @@ function FocusCard({ item, position, total, score, comment, saving, onScore, onC
 
         <label className="block text-sm">
           <span className="text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">Comentario (opcional)</span>
-          <textarea value={comment} onChange={(event) => onComment(event.target.value)} maxLength={1000} rows={2} className="mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
+          <textarea value={comment} onChange={(event) => onComment(event.target.value)} readOnly={closed} maxLength={1000} rows={2} className="mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
         </label>
-        <button type="button" onClick={onSaveComment} disabled={saving || score === undefined} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue disabled:opacity-40">
+        <button type="button" onClick={onSaveComment} disabled={closed || saving || score === undefined} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue disabled:opacity-40">
           Guardar comentario
         </button>
         {score === undefined && <p className="text-xs text-muted-foreground">Puntuá la obra para poder guardar un comentario.</p>}
