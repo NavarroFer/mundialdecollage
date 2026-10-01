@@ -10,15 +10,18 @@ import { getJuryPool, isAdminUser, jurorFor, jurorOrder } from '@/lib/jury'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
 import { site } from '@/lib/site'
 import { ScoreCard } from './score-card'
+import { FocusView } from './focus-view'
 
 export const metadata: Metadata = { title: 'Jurado', robots: { index: false } }
 
 // The jury's own page: sign in with Google, and if that email is an active
 // juror (added from /admin/jurado), score every preselected obra, blind.
+// One obra at a time by default; ?vista=lista shows them all as a list, where
 // ?pendientes=1 shows only the ones not scored yet.
-export default async function JuradoPage({ searchParams }: { searchParams: Promise<{ pendientes?: string }> }) {
-  const { pendientes } = await searchParams
-  const onlyPending = pendientes === '1'
+export default async function JuradoPage({ searchParams }: { searchParams: Promise<{ pendientes?: string; vista?: string }> }) {
+  const { pendientes, vista } = await searchParams
+  const listView = vista === 'lista'
+  const onlyPending = listView && pendientes === '1'
   const user = isSupabaseConfigured ? (await (await createClient()).auth.getUser()).data.user : null
 
   if (!user) {
@@ -54,7 +57,24 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
   const scored = pool.filter((item) => mine.has(item.key)).length
   // In this juror's own shuffled order; «#12» is the obra's pool number, the
   // same for everyone (lib/jury.ts).
-  const items = jurorOrder(pool, juror.id).map((item) => ({ item, index: item.number })).filter(({ item }) => !onlyPending || !mine.has(item.key))
+  const ordered = jurorOrder(pool, juror.id)
+  const items = ordered.map((item) => ({ item, index: item.number })).filter(({ item }) => !onlyPending || !mine.has(item.key))
+
+  if (!listView && pool.length > 0) {
+    return (
+      <Shell>
+        <p className="text-muted-foreground">
+          Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10: se guarda al tocar el número y pasás a la siguiente. Las obras se muestran sin el nombre ni el país de quien las hizo.
+        </p>
+        <FocusView
+          // Picked field by field: artist and country must never reach the browser.
+          items={ordered.map(({ key, number, imageUrl, title, technique }) => ({ key, number, imageUrl, title, technique }))}
+          initialScores={Object.fromEntries([...mine].map(([key, row]) => [key, row.score]))}
+          initialComments={Object.fromEntries([...mine].map(([key, row]) => [key, row.comment ?? '']))}
+        />
+      </Shell>
+    )
+  }
 
   return (
     <Shell>
@@ -73,9 +93,14 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
             <div className="h-full rounded-full bg-collage-blue" style={{ width: `${pool.length ? (scored / pool.length) * 100 : 0}%` }} />
           </div>
         </div>
-        <Link href={onlyPending ? '/jurado' : '/jurado?pendientes=1'} className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30">
-          {onlyPending ? 'Ver todas' : 'Solo las que faltan'}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href={onlyPending ? '/jurado?vista=lista' : '/jurado?vista=lista&pendientes=1'} className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30">
+            {onlyPending ? 'Ver todas' : 'Solo las que faltan'}
+          </Link>
+          <Link href="/jurado" className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30">
+            Una por vez
+          </Link>
+        </div>
       </div>
 
       {pool.length === 0 ? (
