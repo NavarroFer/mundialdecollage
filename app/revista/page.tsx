@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { BookOpen, Check } from 'lucide-react'
+import { BookOpen, Check, Globe } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { ScrollToTop } from '@/components/scroll-to-top'
@@ -81,6 +82,21 @@ export default async function MagazinePage() {
                 <div className="mt-6">
                   <MagazineForm priceArs={priceArs} shippingAbroadArs={site.magazine.shippingAbroadArs} maxQuantity={site.magazine.maxQuantity} defaultName={defaultName} defaultEmail={defaultEmail} />
                 </div>
+                {/* Mercado Pago only charges Argentine buyers; abroad orders go by email for now. */}
+                {site.magazine.shippingAbroadArs === null && (
+                  <div className="mt-8 border-t-2 border-ink/10 pt-6">
+                    <h3 className="text-sm font-bold tracking-[0.16em] text-ink uppercase">{t.abroadTitle}</h3>
+                    <Button type="button" size="lg" variant="outline" disabled className="mt-3 h-auto min-h-14 w-full whitespace-normal py-3">
+                      <Globe className="size-4" aria-hidden="true" />
+                      {t.abroadButton}
+                    </Button>
+                    <p className="mt-3 text-center text-sm text-muted-foreground">
+                      {t.abroadBody.split('{email}').flatMap((part, index) => index === 0
+                        ? [part]
+                        : [<a key={index} href={`mailto:${site.email}?subject=${encodeURIComponent(t.title)}`} className="font-semibold text-ink underline underline-offset-2">{site.email}</a>, part])}
+                    </p>
+                  </div>
+                )}
               </>
             ) : (
               <>
