@@ -305,6 +305,7 @@ export async function selectLegacySubmission(formData: FormData) {
 
   await publishReadyLegacySubmissions()
   revalidatePath('/admin/obras')
+  revalidatePath('/galeria-3d')
 }
 
 // Pairs with components/admin/legacy-image-upload.tsx: an admin picks a
@@ -341,6 +342,7 @@ export async function setLegacyImageManually(formData: FormData) {
 
   await publishReadyLegacySubmissions()
   revalidatePath('/admin/obras')
+  revalidatePath('/galeria-3d')
 }
 
 // How many Drive files to fetch per call — kept small so one invocation
