@@ -7,6 +7,7 @@ import {
   magazineExternalReference,
   parseExternalReference,
   resolveEntryChoice,
+  subscriptionExternalReference,
 } from './entries'
 import { site } from './site'
 
@@ -70,6 +71,7 @@ describe('external reference', () => {
     expect(parseExternalReference(magazineExternalReference('abc'))).toEqual({ kind: 'magazine', id: 'abc' })
     expect(parseExternalReference('entry:')).toBeNull()
     expect(parseExternalReference('revista:')).toBeNull()
+    expect(parseExternalReference(subscriptionExternalReference('s1'))).toEqual({ kind: 'subscription', id: 's1' })
     expect(parseExternalReference(null)).toBeNull()
   })
 })

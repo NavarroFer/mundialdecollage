@@ -6,6 +6,7 @@ import { parseSignatureHeader, verifyMercadoPagoSignature } from '@/lib/mercadop
 import { parseExternalReference } from '@/lib/entries'
 import { applyEntryPayment } from '@/lib/entry-payments'
 import { applyMagazinePayment } from '@/lib/magazine-payments'
+import { recordAuthorizedPayment, syncPreapprovalById } from '@/lib/mp-subscriptions'
 
 // Mercado Pago's server-to-server notification. Historically sent both as a
 // JSON body (`{ type: 'payment', data: { id } }`) and as query params
@@ -32,8 +33,12 @@ export async function POST(request: NextRequest) {
     paymentId = params.get('data.id') ?? params.get('id')
   }
 
-  // Not a payment notification (e.g. merchant_order) — nothing to do.
-  if (type !== 'payment' || !paymentId) {
+  // Payments, plus the store subscriptions' preapprovals and their monthly
+  // charges (lib/mp-subscriptions.ts). Anything else (e.g. merchant_order) —
+  // nothing to do. For the subscription topics, paymentId is the
+  // preapproval's or the charge's id; the signature covers it the same way.
+  const SUBSCRIPTION_TOPICS = ['subscription_preapproval', 'subscription_authorized_payment']
+  if ((type !== 'payment' && !SUBSCRIPTION_TOPICS.includes(type ?? '')) || !paymentId) {
     return NextResponse.json({ ok: true })
   }
 
@@ -60,6 +65,15 @@ export async function POST(request: NextRequest) {
 
   if (!isMercadoPagoConfigured) {
     console.error('mercadopago webhook: MERCADOPAGO_ACCESS_TOKEN not set, cannot verify payment', paymentId)
+    return NextResponse.json({ ok: true })
+  }
+
+  if (type === 'subscription_preapproval') {
+    await syncPreapprovalById(paymentId)
+    return NextResponse.json({ ok: true })
+  }
+  if (type === 'subscription_authorized_payment') {
+    await recordAuthorizedPayment(paymentId)
     return NextResponse.json({ ok: true })
   }
 

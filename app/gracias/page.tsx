@@ -4,15 +4,21 @@ import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
 import { getI18n } from '@/lib/i18n/server'
+import { TrackView } from '@/components/track'
+import { syncPreapprovalById } from '@/lib/mp-subscriptions'
 
-export default async function GraciasPage({ searchParams }: { searchParams: Promise<{ tipo?: string }> }) {
-  const { tipo } = await searchParams
+// Mercado Pago comes back with ?preapproval_id= after authorizing a store
+// subscription: it's synced here too, in case the webhook is late.
+export default async function GraciasPage({ searchParams }: { searchParams: Promise<{ tipo?: string; preapproval_id?: string }> }) {
+  const { tipo, preapproval_id: preapprovalId } = await searchParams
   const isSubscription = tipo === 'suscripcion'
+  const mpStatus = isSubscription && preapprovalId ? await syncPreapprovalById(preapprovalId) : null
   const { m } = await getI18n()
   const t = m.store.thanks
 
   return (
     <>
+      {mpStatus === 'active' && <TrackView event="store_checkout_approved" />}
       <SiteHeader />
       <main className="bg-grain min-h-[70vh] py-24 sm:py-32">
         <section className="relative mx-auto max-w-2xl px-5 text-center sm:px-8">

@@ -1,20 +1,29 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { Check, PackageOpen, Scissors } from 'lucide-react'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { ScrollToTop } from '@/components/scroll-to-top'
 import { Button } from '@/components/ui/button'
 import { PaypalSubscriptionCheckout } from '@/components/paypal-subscription-checkout'
-import { formatUsd, subscriptionPlans } from '@/lib/store'
+import { MpSubscriptionCheckout } from '@/components/mp-subscription-checkout'
+import { formatArs, formatUsd, subscriptionPlans } from '@/lib/store'
+import { isMercadoPagoConfigured } from '@/lib/mercadopago'
+import { cn } from '@/lib/utils'
 import { isPayPalCheckoutConfigured } from '@/lib/payments/paypal/client'
 import { getI18n } from '@/lib/i18n/server'
 import { TrackView } from '@/components/track'
 import { WaitlistSignup } from '@/components/waitlist-signup'
 import { MagazinePromo } from '@/components/store-promo'
 
-export default async function StorePage({ searchParams }: { searchParams: Promise<{ desde?: string }> }) {
-  const [{ locale, m }, { desde }] = await Promise.all([getI18n(), searchParams])
+// Argentina pays in pesos with Mercado Pago, everywhere else in dollars with
+// PayPal. ?envio=ar|exterior picks one; without it, the visitor's country
+// (Vercel's geolocation header) decides, and Argentina when it's unknown.
+export default async function StorePage({ searchParams }: { searchParams: Promise<{ desde?: string; envio?: string }> }) {
+  const [{ locale, m }, { desde, envio }, requestHeaders] = await Promise.all([getI18n(), searchParams, headers()])
   const t = m.store
+  const visitorCountry = requestHeaders.get('x-vercel-ip-country')
+  const argentina = envio === 'ar' || (envio !== 'exterior' && (!visitorCountry || visitorCountry === 'AR'))
   return (
     <>
       <ScrollToTop />
@@ -39,6 +48,23 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
         <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20" aria-labelledby="plans-title">
           <MagazinePromo m={m} event="magazine_click_store" forArtist={false} className="mb-10" />
           <h2 id="plans-title" className="sr-only">{t.plansLabel}</h2>
+          <div className="mb-10 flex flex-col items-center gap-3 text-center">
+            <p className="text-sm font-bold tracking-[0.16em] text-ink uppercase">{t.regionLabel}</p>
+            <nav aria-label={t.regionLabel} className="flex rounded-full border-2 border-ink/15 bg-card p-1">
+              {([['ar', t.regionAr, argentina], ['exterior', t.regionAbroad, !argentina]] as const).map(([value, label, active]) => (
+                <Link
+                  key={value}
+                  href={`/tienda?envio=${value}`}
+                  scroll={false}
+                  aria-current={active ? 'true' : undefined}
+                  className={cn('rounded-full px-4 py-2 text-sm font-semibold transition-colors', active ? 'bg-ink text-paper' : 'text-muted-foreground hover:text-ink')}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+            <p className="max-w-md text-sm text-muted-foreground">{argentina ? t.regionArNote : t.regionAbroadNote}</p>
+          </div>
           <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
             {subscriptionPlans.map((plan) => {
               const localizedPlan = t.plans[plan.id]
@@ -56,7 +82,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 <h2 className="font-display mt-5 text-3xl tracking-tight uppercase">{localizedPlan.name}</h2>
                 <p className={`mt-3 min-h-12 text-sm ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{localizedPlan.description}</p>
                 <p className="mt-6 text-3xl font-bold tracking-tight">
-                  {formatUsd(plan.priceUsd, locale)} <span className="text-base font-medium">{t.perMonth}</span>
+                  {argentina ? formatArs(plan.priceArs) : formatUsd(plan.priceUsd, locale)} <span className="text-base font-medium">{t.perMonth}</span>
                 </p>
                 <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
                   {localizedPlan.contents.map((content) => (
@@ -66,7 +92,11 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                     </li>
                   ))}
                 </ul>
-                {isPayPalCheckoutConfigured ? (
+                {argentina ? (
+                  isMercadoPagoConfigured
+                    ? <MpSubscriptionCheckout plan={plan.id} featured={plan.featured} />
+                    : <Button size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full" disabled>{t.comingSoon}</Button>
+                ) : isPayPalCheckoutConfigured ? (
                   <PaypalSubscriptionCheckout plan={plan.id} clientId={process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!} />
                 ) : (
                   <Button size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full" disabled>{t.comingSoon}</Button>

@@ -53,10 +53,12 @@ export function resolveEntryChoice({
 }
 
 // Mercado Pago's external_reference is shared by every checkout on the site.
-// Obra payments carry an "entry:" prefix and magazine orders "revista:"; the
-// taller's registrations were created before both and use their bare id.
+// Obra payments carry an "entry:" prefix, magazine orders "revista:" and
+// Mercado Pago subscriptions "suscripcion:"; the taller's registrations were
+// created before all of them and use their bare id.
 const ENTRY_PREFIX = 'entry:'
 const MAGAZINE_PREFIX = 'revista:'
+const SUBSCRIPTION_PREFIX = 'suscripcion:'
 
 export function entryExternalReference(purchaseId: string) {
   return `${ENTRY_PREFIX}${purchaseId}`
@@ -66,11 +68,15 @@ export function magazineExternalReference(orderId: string) {
   return `${MAGAZINE_PREFIX}${orderId}`
 }
 
+export function subscriptionExternalReference(subscriptionId: string) {
+  return `${SUBSCRIPTION_PREFIX}${subscriptionId}`
+}
+
 export function parseExternalReference(
   reference: string | null | undefined,
-): { kind: 'entry' | 'magazine' | 'workshop'; id: string } | null {
+): { kind: 'entry' | 'magazine' | 'subscription' | 'workshop'; id: string } | null {
   if (!reference) return null
-  for (const [prefix, kind] of [[ENTRY_PREFIX, 'entry'], [MAGAZINE_PREFIX, 'magazine']] as const) {
+  for (const [prefix, kind] of [[ENTRY_PREFIX, 'entry'], [MAGAZINE_PREFIX, 'magazine'], [SUBSCRIPTION_PREFIX, 'subscription']] as const) {
     if (!reference.startsWith(prefix)) continue
     const id = reference.slice(prefix.length)
     return id ? { kind, id } : null
