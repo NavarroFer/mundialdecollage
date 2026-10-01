@@ -4,6 +4,7 @@ import { TrackedLink } from '@/components/track'
 import { getReferralInvite } from '@/lib/referral-server'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
+import { getCallState } from '@/lib/call-state'
 
 // Someone who opened an artist's shared link (lib/referral.ts) is greeted as
 // that artist's guest and asked, right there, to send their own obra — a
@@ -19,8 +20,9 @@ export async function ReferralInvite({
   hideForSignedIn?: boolean
   className?: string
 }) {
-  const [invite, { m }] = await Promise.all([getReferralInvite(refParam, { hideForSignedIn }), getI18n()])
-  if (!invite) return null
+  const [invite, { m }, { open }] = await Promise.all([getReferralInvite(refParam, { hideForSignedIn }), getI18n(), getCallState()])
+  // Nothing to invite to once the call is closed.
+  if (!invite || !open) return null
   const t = m.share.invite
 
   return (

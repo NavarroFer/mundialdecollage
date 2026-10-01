@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { normalizeLikeEmail } from '@/lib/gallery-identity'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { isCallOpen } from '@/lib/call-state'
 
 // Error codes, not sentences: the gallery shows them in the reader's language.
 const unavailable = 'unavailable'
@@ -136,6 +137,8 @@ async function commentsState(admin: AdminClient, artworkId: string, user: User |
 // artist" so a real one is never nagged.
 async function canJoin(admin: AdminClient, user: User | null): Promise<boolean> {
   if (!user || ADMIN_EMAILS.includes(user.email?.toLowerCase() ?? '')) return false
+  // Nothing to invite to once the call is closed.
+  if (!(await isCallOpen())) return false
   try {
     const { data, error } = await admin.from('profiles').select('onboarded_at').eq('id', user.id).maybeSingle()
     return !error && !data?.onboarded_at

@@ -329,6 +329,7 @@ const id: Messages = {
     removeArtwork: 'Hapus',
     chooseAmong: 'Pilih dari karyaku',
     errors: {
+      closed: "Pendaftaran sudah ditutup: karya yang ikut tidak bisa diubah lagi.",
       none: 'Pilih setidaknya satu karya.',
       too_many: 'Kamu bisa mengajukan hingga {limit} karya.',
       not_owned: 'Salah satu karya itu bukan milik akunmu.',
@@ -526,6 +527,19 @@ const id: Messages = {
     sectionBody: "Unduh diploma untuk dicetak dan gambar untuk dibagikan di Instagram.",
     downloadPdf: "Diploma untuk dicetak (PDF)",
     downloadImage: "Gambar untuk Instagram",
+  },
+  closed: {
+    participantSignIn: "Sudah ikut? Masuk untuk melihat dan mengonfirmasi karyamu.",
+    badge: "Pendaftaran ditutup",
+    intro: "Penerimaan karya edisi pertama telah berakhir. Terima kasih untuk setiap seniman yang ikut: finalis akan segera diumumkan.",
+    cta: "Jelajahi galeri",
+    headerCta: "Lihat karya",
+    note: "Finalis akan diumumkan setelah penilaian juri internasional.",
+    onboardingTitle: "Pendaftaran edisi pertama ditutup",
+    onboardingBody: "Kami tidak lagi menerima karya untuk edisi ini. Jelajahi galeri dengan semua karya peserta dan ketahui para finalis.",
+    onboardingCta: "Ke galeri",
+    joinTitle: "Pendaftaran ditutup",
+    joinBody: "Tinggalkan emailmu dan kami kabari soal finalis dan edisi berikutnya.",
   },
   ar: {
     pageTitle: '{title} dalam augmented reality',

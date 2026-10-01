@@ -13,6 +13,7 @@ import { fmt } from '@/lib/i18n/format'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { TrackedLink } from '@/components/track'
 import { SiteHeaderMotion } from '@/components/site-header-motion'
+import { getCallState } from '@/lib/call-state'
 
 async function AuthSlot() {
   if (!isSupabaseConfigured) return null
@@ -73,7 +74,8 @@ async function AuthSlot() {
 }
 
 export async function SiteHeader() {
-  const { m } = await getI18n()
+  // «Participar» becomes «Ver las obras» once the call closes.
+  const [{ m }, { open: callOpen }] = await Promise.all([getI18n(), getCallState()])
   return (
     <SiteHeaderMotion>
       <div className="mx-auto flex min-h-[4.75rem] max-w-6xl items-center justify-between gap-3 px-4 py-3 transition-[min-height,padding] duration-300 ease-out group-data-[scrolled=true]/header:min-h-[4.25rem] group-data-[scrolled=true]/header:py-2 motion-reduce:transition-none sm:px-8 lg:min-h-[5.5rem] lg:group-data-[scrolled=true]/header:min-h-[4.75rem]">
@@ -112,16 +114,16 @@ export async function SiteHeader() {
           <LanguageSwitcher className="px-2" />
           <AuthSlot />
           <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
-            <TrackedLink href="/onboarding" event="submit_click_header">
-              {m.header.participate}
+            <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
+              {callOpen ? m.header.participate : m.closed.headerCta}
             </TrackedLink>
           </Button>
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
           <Button asChild className="h-11 px-4 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
-            <TrackedLink href="/onboarding" event="submit_click_header">
-              {m.header.participate}
+            <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
+              {callOpen ? m.header.participate : m.closed.headerCta}
             </TrackedLink>
           </Button>
           <details className="group/menu relative">

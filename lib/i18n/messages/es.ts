@@ -332,6 +332,7 @@ const es = {
     removeArtwork: 'Quitar',
     chooseAmong: 'Elegir entre mis obras',
     errors: {
+      closed: "La convocatoria ya cerró: no se pueden cambiar las obras que participan.",
       none: 'Elegí al menos una obra.',
       too_many: 'Podés postular hasta {limit} obras.',
       not_owned: 'Una de esas obras no pertenece a tu cuenta.',
@@ -544,6 +545,19 @@ const es = {
     sectionBody: "Descargá tu diploma para imprimir y la imagen para compartir en Instagram.",
     downloadPdf: "Diploma para imprimir (PDF)",
     downloadImage: "Imagen para Instagram",
+  },
+  closed: {
+    participantSignIn: "¿Ya participás? Entrá para ver y confirmar tu obra.",
+    badge: "Convocatoria cerrada",
+    intro: "La recepción de obras de la 1ª edición terminó. Gracias a cada artista que participó: muy pronto anunciamos las finalistas.",
+    cta: "Recorré la galería",
+    headerCta: "Ver las obras",
+    note: "Las finalistas se anuncian después de la evaluación del jurado internacional.",
+    onboardingTitle: "La convocatoria de la 1ª edición cerró",
+    onboardingBody: "Ya no recibimos obras para esta edición. Recorré la galería con todas las obras participantes y enterate de las finalistas.",
+    onboardingCta: "Ir a la galería",
+    joinTitle: "La convocatoria cerró",
+    joinBody: "Dejanos tu mail y te avisamos de las finalistas y de la próxima edición.",
   },
   ar: {
     pageTitle: '{title} en realidad aumentada',

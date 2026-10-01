@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { parseRegistro, planRegistro, type RegistroCell } from '@/lib/registro'
+import { driveFileId, parseRegistro, planRegistro, type RegistroCell } from '@/lib/registro'
 import { guessCountryCodeFromName } from '@/lib/participants'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { reuseRegistroArtwork } from '@/lib/reuse-registro-artwork'
@@ -35,6 +35,9 @@ export type RegistroSyncOptions = {
   // stay pending and are retried on the next run.
   imageDeadline?: number
   log?: (line: Record<string, unknown>) => void
+  // false once the call is closed (/admin/convocatoria): rows the sheet gains
+  // afterwards aren't added; the ones already known keep syncing.
+  allowNew?: boolean
 }
 
 export type RegistroSyncReport = {
@@ -53,8 +56,16 @@ export type RegistroSyncReport = {
 
 export async function syncRegistro(db: SupabaseClient, rows: RegistroCell[][], options: RegistroSyncOptions): Promise<RegistroSyncReport> {
   const log = options.log ?? (() => {})
-  const entries = parseRegistroWithCountries(rows)
   const existing = await readAll(db, 'legacy_submissions')
+  const known = new Set((existing as { drive_url: string | null }[]).flatMap((row) => {
+    const id = row.drive_url ? driveFileId(row.drive_url) : null
+    return id ? [id] : []
+  }))
+  const entries = parseRegistroWithCountries(rows).filter((entry) => {
+    if (options.allowNew !== false) return true
+    const id = driveFileId(entry.drive_url)
+    return Boolean(id && known.has(id))
+  })
   const plan = planRegistro(entries, existing as { id: string; drive_url: string; archived_at: string | null }[])
   const report: RegistroSyncReport = { mode: options.apply ? 'apply' : 'dry-run', ...plan, archive: plan.archive.length }
   log({ ...report })

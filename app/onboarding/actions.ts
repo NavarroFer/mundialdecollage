@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { isCallOpen } from '@/lib/call-state'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -112,6 +113,15 @@ export async function completeOnboarding(formData: FormData) {
     .eq('id', user.id)
     .maybeSingle()
   const isFirstSubmission = !existingProfile?.onboarded_at
+
+  // Once the call is closed (/admin/convocatoria) only a first submission
+  // that claims an obra sent by mail before the close goes through.
+  if (!(await isCallOpen())) {
+    const { data: legacy } = isFirstSubmission && user.email
+      ? await supabase.from('legacy_submissions').select('id').eq('email', user.email.toLowerCase()).eq('selected', true).is('claimed_by', null).is('archived_at', null).limit(1)
+      : { data: [] }
+    if (!legacy?.length) redirect('/onboarding')
+  }
 
   // Artists can keep several obras and choose which take part, but not
   // upload without limit (site.entries.maxStored).

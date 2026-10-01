@@ -329,6 +329,7 @@ const fr: Messages = {
     removeArtwork: 'Retirer',
     chooseAmong: 'Choisir parmi mes œuvres',
     errors: {
+      closed: "L’appel est clos : les œuvres en compétition ne peuvent plus être modifiées.",
       none: 'Choisis au moins une œuvre.',
       too_many: "Tu peux présenter jusqu'à {limit} œuvres.",
       not_owned: "L'une de ces œuvres n'appartient pas à ton compte.",
@@ -529,6 +530,19 @@ const fr: Messages = {
     sectionBody: "Téléchargez votre diplôme à imprimer et l’image à partager sur Instagram.",
     downloadPdf: "Diplôme à imprimer (PDF)",
     downloadImage: "Image pour Instagram",
+  },
+  closed: {
+    participantSignIn: "Vous participez déjà ? Connectez-vous pour voir et confirmer votre œuvre.",
+    badge: "Appel clos",
+    intro: "La réception des œuvres de la 1ʳᵉ édition est terminée. Merci à chaque artiste qui a participé : nous annoncerons très bientôt les finalistes.",
+    cta: "Explorer la galerie",
+    headerCta: "Voir les œuvres",
+    note: "Les finalistes seront annoncés après l’évaluation du jury international.",
+    onboardingTitle: "L’appel de la 1ʳᵉ édition est clos",
+    onboardingBody: "Nous ne recevons plus d’œuvres pour cette édition. Explorez la galerie avec toutes les œuvres participantes et découvrez les finalistes.",
+    onboardingCta: "Aller à la galerie",
+    joinTitle: "L’appel est clos",
+    joinBody: "Laissez votre e-mail et nous vous informerons des finalistes et de la prochaine édition.",
   },
   ar: {
     pageTitle: '{title} en réalité augmentée',

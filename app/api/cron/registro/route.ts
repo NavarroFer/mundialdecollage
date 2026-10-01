@@ -6,6 +6,7 @@ import { syncRegistro, type RegistroSyncReport } from '@/lib/registro-sync'
 import { createResendClient, isResendConfigured } from '@/lib/resend'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { site } from '@/lib/site'
+import { isCallOpen } from '@/lib/call-state'
 
 // Image downloads are the slow part; anything left pending after the
 // deadline is retried on the next run instead of hitting the hard timeout.
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
     const rows = await readSheetGrid(process.env.REGISTRO_SHEET_ID || REGISTRO_SHEET_ID, REGISTRO_TAB)
     const report = await syncRegistro(db, rows, {
       apply: true,
+      allowNew: await isCallOpen(),
       imageDeadline: startedAt + IMAGE_BUDGET_MS,
       log: (line) => console.log(JSON.stringify(line)),
       async saveBackup(backup) {

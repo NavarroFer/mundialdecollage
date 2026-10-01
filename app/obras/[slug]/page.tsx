@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Globe, Instagram } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
 import { StorePromo } from '@/components/store-promo'
+import { getCallState } from '@/lib/call-state'
 import { ShareArtwork } from '@/components/share-artwork'
 import { ReferralInvite } from '@/components/referral-invite'
 import { TrackView, TrackedLink } from '@/components/track'
@@ -48,11 +49,12 @@ export default async function ObraPage({
   searchParams: Promise<{ ref?: string | string[] }>
 }) {
   const [{ slug }, { ref }] = await Promise.all([params, searchParams])
-  const [finalist, { locale, m }, shareState, finalists] = await Promise.all([
+  const [finalist, { locale, m }, shareState, finalists, { open: callOpen }] = await Promise.all([
     getFinalistBySlug(slug),
     getI18n(),
     getArtworkShareState(slug),
     getFinalists(),
+    getCallState(),
   ])
 
   if (!finalist) notFound()
@@ -201,7 +203,8 @@ export default async function ObraPage({
             </nav>
           )}
 
-          <section className="mt-14 rounded-3xl border-2 border-ink/10 bg-paper p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
+          {/* Inviting to participate only while the call is open. */}
+          {callOpen && <section className="mt-14 rounded-3xl border-2 border-ink/10 bg-paper p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
             <div>
               <h2 className="font-display text-2xl tracking-tight text-ink uppercase sm:text-3xl">
                 {m.status.joinTitle}
@@ -213,7 +216,7 @@ export default async function ObraPage({
                 {m.status.joinCta}
               </TrackedLink>
             </Button>
-          </section>
+          </section>}
 
           <StorePromo m={m} event="store_click_artwork" className="mt-6" />
         </div>

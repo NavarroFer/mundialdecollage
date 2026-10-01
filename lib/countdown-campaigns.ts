@@ -9,6 +9,7 @@ import { addDays, argentinaDay } from '@/lib/campaign-schedule'
 import { ensureSystemTemplate, translationsForLocales, type CountdownTemplateKey } from '@/lib/system-templates'
 import { TRANSLATED_LOCALES } from '@/lib/i18n/locales'
 import { site } from '@/lib/site'
+import { isCallOpen } from '@/lib/call-state'
 
 const STEPS: { key: CountdownTemplateKey; daysBefore: number }[] = [
   { key: 'cuenta_regresiva_15', daysBefore: 15 },
@@ -25,7 +26,8 @@ export function countdownSchedule(deadlineISO: string = site.deadlineISO) {
 /** Schedules the countdown campaigns still ahead (today included). */
 export async function ensureCountdownCampaigns(db: SupabaseClient, today = argentinaDay()): Promise<string[]> {
   const upcoming = countdownSchedule().filter(({ day }) => day >= today)
-  if (upcoming.length === 0) return []
+  // Closed early (/admin/convocatoria): nothing left to count down to.
+  if (upcoming.length === 0 || !(await isCallOpen())) return []
 
   const { data: existing, error } = await db.from('campaigns').select('system_key').in('system_key', upcoming.map(({ key }) => key))
   if (error) throw new Error(`no se pudo revisar la cuenta regresiva: ${error.message}`)

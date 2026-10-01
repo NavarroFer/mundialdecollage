@@ -8,6 +8,7 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { ShareArtwork } from '@/components/share-artwork'
 import { MagazinePromo } from '@/components/store-promo'
 import { site } from '@/lib/site'
+import { isCallOpen } from '@/lib/call-state'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -44,7 +45,8 @@ export async function ParticipationStatus() {
 
   // A read error must not look like "never signed up" and nag a real artist.
   if (profileError) return null
-  if (!profile?.onboarded_at) return <FinishSignUp m={m} />
+  // «Terminá tu inscripción» only while there's still a call to finish it for.
+  if (!profile?.onboarded_at) return (await isCallOpen()) ? <FinishSignUp m={m} /> : null
 
   // The artwork this artist is currently represented by — see
   // supabase/migrations/20260921040000_artworks.sql. Not necessarily set:

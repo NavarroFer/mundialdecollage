@@ -1,9 +1,10 @@
+import { getCallState } from '@/lib/call-state'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import { site } from '@/lib/site'
 
-export const alt = `${site.name} — Convocatoria abierta`
+export const alt = site.name
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -61,7 +62,12 @@ function toDataUrl(publicPath: string) {
   return `data:image/png;base64,${data}`
 }
 
-export default function OpengraphImage() {
+// Rendered per request so the preview follows the call's state
+// (/admin/convocatoria): open with its deadline, or closed.
+export const dynamic = 'force-dynamic'
+
+export default async function OpengraphImage() {
+  const { open } = await getCallState()
   const banner = toDataUrl('banner-mundial.png')
 
   return new ImageResponse(
@@ -98,10 +104,10 @@ export default function OpengraphImage() {
               color: INK,
             }}
           >
-            Convocatoria abierta
+            {open ? 'Convocatoria abierta' : 'Convocatoria cerrada'}
           </div>
           <div style={{ display: 'flex', fontSize: 22, color: INK, opacity: 0.65 }}>
-            Hasta el {site.deadlineLabel} · mundialdecollage.com.ar
+            {open ? `Hasta el ${site.deadlineLabel} · ` : 'Muy pronto, las finalistas · '}mundialdecollage.com.ar
           </div>
         </div>
 

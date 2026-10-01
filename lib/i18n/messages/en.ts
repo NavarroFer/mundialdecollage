@@ -330,6 +330,7 @@ const en: Messages = {
     removeArtwork: 'Remove',
     chooseAmong: 'Choose among my artworks',
     errors: {
+      closed: "The call is closed: the participating artworks can no longer be changed.",
       none: 'Choose at least one artwork.',
       too_many: 'You can enter up to {limit} artworks.',
       not_owned: "One of those artworks doesn't belong to your account.",
@@ -530,6 +531,19 @@ const en: Messages = {
     sectionBody: "Download your diploma to print and the image to share on Instagram.",
     downloadPdf: "Printable diploma (PDF)",
     downloadImage: "Instagram image",
+  },
+  closed: {
+    participantSignIn: "Already taking part? Sign in to see and confirm your artwork.",
+    badge: "Call closed",
+    intro: "Submissions for the 1st edition are over. Thank you to every artist who took part: the finalists will be announced very soon.",
+    cta: "Explore the gallery",
+    headerCta: "See the artworks",
+    note: "The finalists will be announced after the international jury’s evaluation.",
+    onboardingTitle: "The 1st edition’s call is closed",
+    onboardingBody: "We’re no longer accepting artworks for this edition. Explore the gallery with every participating artwork and hear about the finalists.",
+    onboardingCta: "Go to the gallery",
+    joinTitle: "The call is closed",
+    joinBody: "Leave your email and we’ll tell you about the finalists and the next edition.",
   },
   ar: {
     pageTitle: '{title} in augmented reality',

@@ -12,6 +12,9 @@ import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { getFinalists } from '@/lib/finalists'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
+import { getCallState } from '@/lib/call-state'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 // The search's sign-up invite is only for visitors without a session.
 async function isSignedIn() {
@@ -21,10 +24,11 @@ async function isSignedIn() {
 }
 
 export async function HeroSection() {
-  const [{ locale, m }, signedIn, artworks] = await Promise.all([
+  const [{ locale, m }, signedIn, artworks, { open }] = await Promise.all([
     getI18n(),
     isSignedIn(),
     getFinalists(),
+    getCallState(),
   ])
   // Live, like the edition banner and the map: every obra received, and the
   // countries of the published ones (the same flags the ribbon below shows).
@@ -35,8 +39,8 @@ export async function HeroSection() {
     <section id="top" className="bg-grain relative pt-16 pb-24 sm:pt-24 sm:pb-32">
       <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <FadeIn>
-          <span className="torn-strip inline-block -rotate-2 bg-collage-blue px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase sm:text-sm">
-            {m.hero.badge}
+          <span className={`torn-strip inline-block -rotate-2 px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase sm:text-sm ${open ? 'bg-collage-blue' : 'bg-collage-red'}`}>
+            {open ? m.hero.badge : m.closed.badge}
           </span>
         </FadeIn>
 
@@ -96,7 +100,7 @@ export async function HeroSection() {
       <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <FadeIn delay={200}>
           <p className="mx-auto mt-7 max-w-xl text-lg text-muted-foreground sm:text-xl">
-            {m.hero.intro}
+            {open ? m.hero.intro : m.closed.intro}
           </p>
         </FadeIn>
 
@@ -107,21 +111,37 @@ export async function HeroSection() {
         )}
 
         <FadeIn delay={250}>
+          {/* Once the call closes (/admin/convocatoria) the way in is the
+              gallery: no countdown, no «free until». */}
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <TrackVisible event="hero_cta_view" />
-            <SubmitArtworkCta />
-            <Countdown />
+            {open ? (
+              <>
+                <TrackVisible event="hero_cta_view" />
+                <SubmitArtworkCta />
+                <Countdown />
+              </>
+            ) : (
+              <Button asChild size="lg" variant="primary" className="h-auto min-h-14 px-8 text-base">
+                <Link href="/galeria-3d">{m.closed.cta}</Link>
+              </Button>
+            )}
           </div>
         </FadeIn>
 
         <FadeIn delay={300}>
           <div className="mx-auto mt-5 max-w-2xl">
-            <p className="text-sm font-bold text-ink">
-              {fmt(m.hero.free, { date: formatDayMonth(locale, site.deadlineISO) })}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {m.onboarding.signInNeeds}
-            </p>
+            {open ? (
+              <>
+                <p className="text-sm font-bold text-ink">
+                  {fmt(m.hero.free, { date: formatDayMonth(locale, site.deadlineISO) })}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {m.onboarding.signInNeeds}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">{m.closed.note}</p>
+            )}
           </div>
         </FadeIn>
 

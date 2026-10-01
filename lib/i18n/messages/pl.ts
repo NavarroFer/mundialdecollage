@@ -334,6 +334,7 @@ const pl: Messages = {
     removeArtwork: 'Usuń',
     chooseAmong: 'Wybierz spośród moich prac',
     errors: {
+      closed: "Nabór jest zakończony: nie można już zmieniać zgłoszonych prac.",
       none: 'Wybierz co najmniej jedną pracę.',
       too_many: 'Możesz zgłosić do {limit} prac.',
       not_owned: 'Jedna z tych prac nie należy do Twojego konta.',
@@ -551,6 +552,19 @@ const pl: Messages = {
     sectionBody: "Pobierz dyplom do wydruku i obraz do udostępnienia na Instagramie.",
     downloadPdf: "Dyplom do wydruku (PDF)",
     downloadImage: "Obraz na Instagram",
+  },
+  closed: {
+    participantSignIn: "Już bierzesz udział? Zaloguj się, aby zobaczyć i potwierdzić swoją pracę.",
+    badge: "Nabór zakończony",
+    intro: "Przyjmowanie prac do 1. edycji dobiegło końca. Dziękujemy każdej osobie, która wzięła udział: wkrótce ogłosimy finalistów.",
+    cta: "Zobacz galerię",
+    headerCta: "Zobacz prace",
+    note: "Finaliści zostaną ogłoszeni po ocenie międzynarodowego jury.",
+    onboardingTitle: "Nabór do 1. edycji zakończony",
+    onboardingBody: "Nie przyjmujemy już prac do tej edycji. Zobacz galerię ze wszystkimi pracami i poznaj finalistów.",
+    onboardingCta: "Przejdź do galerii",
+    joinTitle: "Nabór zakończony",
+    joinBody: "Zostaw e-mail, a damy znać o finalistach i następnej edycji.",
   },
   ar: {
     pageTitle: '{title} w rozszerzonej rzeczywistości',

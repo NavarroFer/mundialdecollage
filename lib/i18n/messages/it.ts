@@ -329,6 +329,7 @@ const it: Messages = {
     removeArtwork: 'Rimuovi',
     chooseAmong: 'Scegli tra le mie opere',
     errors: {
+      closed: "Il bando è chiuso: non si possono più cambiare le opere in gara.",
       none: "Scegli almeno un'opera.",
       too_many: 'Puoi candidare fino a {limit} opere.',
       not_owned: 'Una di quelle opere non appartiene al tuo account.',
@@ -529,6 +530,19 @@ const it: Messages = {
     sectionBody: "Scarica il diploma da stampare e l’immagine da condividere su Instagram.",
     downloadPdf: "Diploma da stampare (PDF)",
     downloadImage: "Immagine per Instagram",
+  },
+  closed: {
+    participantSignIn: "Partecipi già? Accedi per vedere e confermare la tua opera.",
+    badge: "Bando chiuso",
+    intro: "La ricezione delle opere della 1ª edizione è terminata. Grazie a ogni artista che ha partecipato: presto annunceremo i finalisti.",
+    cta: "Esplora la galleria",
+    headerCta: "Vedi le opere",
+    note: "I finalisti saranno annunciati dopo la valutazione della giuria internazionale.",
+    onboardingTitle: "Il bando della 1ª edizione è chiuso",
+    onboardingBody: "Non riceviamo più opere per questa edizione. Esplora la galleria con tutte le opere partecipanti e scopri i finalisti.",
+    onboardingCta: "Vai alla galleria",
+    joinTitle: "Il bando è chiuso",
+    joinBody: "Lasciaci la tua email e ti avviseremo dei finalisti e della prossima edizione.",
   },
   ar: {
     pageTitle: '{title} in realtà aumentata',

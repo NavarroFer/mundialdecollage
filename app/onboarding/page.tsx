@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { getCallState } from '@/lib/call-state'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -36,11 +37,12 @@ export default async function OnboardingPage({
 }) {
   if (!isSupabaseConfigured) redirect('/')
 
-  const { m } = await getI18n()
+  const [{ m }, { open: callOpen }] = await Promise.all([getI18n(), getCallState()])
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  if (!user && !callOpen) return <CallClosed m={m} />
   if (!user) {
     // Most arrive here from «Enviá tu obra» on a phone, often from
     // Instagram: say up front what the form will ask for and that it's
@@ -68,6 +70,7 @@ export default async function OnboardingPage({
   if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
 
   const { error, another } = await searchParams
+  if (another && !callOpen) return <CallClosed m={m} signedIn />
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -188,6 +191,10 @@ export default async function OnboardingPage({
     }
   }
 
+  // A brand-new obra after the call closed: no. Someone whose obra arrived
+  // by mail before the close (hasLegacyMatch) still gets to claim it.
+  if (!callOpen && !hasLegacyMatch) return <CallClosed m={m} signedIn />
+
   const suggestedName =
     profile?.name ||
     legacyName ||
@@ -233,6 +240,27 @@ export default async function OnboardingPage({
           maxArtworks={site.entries.maxStored - artworkCount}
           another={Boolean(another)}
         />
+      </div>
+    </main>
+  )
+}
+
+// /onboarding once the call is closed (/admin/convocatoria): no new obras.
+// Artists who already take part can still sign in to see and confirm theirs.
+function CallClosed({ m, signedIn = false }: { m: Messages; signedIn?: boolean }) {
+  return (
+    <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
+      <div className="w-full max-w-lg rounded-2xl bg-card p-8 text-center">
+        <span className="torn-strip inline-block -rotate-1 bg-collage-red px-4 py-1.5 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">{m.closed.badge}</span>
+        <h1 className="font-display mt-5 text-3xl uppercase">{m.closed.onboardingTitle}</h1>
+        <p className="mt-4 text-muted-foreground">{m.closed.onboardingBody}</p>
+        <Link href="/galeria-3d" className="mt-6 inline-flex min-h-12 items-center rounded-full bg-collage-blue px-6 font-semibold text-primary-foreground">{m.closed.onboardingCta}</Link>
+        {!signedIn && (
+          <div className="mt-8 border-t-2 border-ink/10 pt-6">
+            <p className="text-sm text-muted-foreground">{m.closed.participantSignIn}</p>
+            <div className="mt-3 flex justify-center"><OnboardingSignInButton /></div>
+          </div>
+        )}
       </div>
     </main>
   )

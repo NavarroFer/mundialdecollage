@@ -329,6 +329,7 @@ const de: Messages = {
     removeArtwork: 'Entfernen',
     chooseAmong: 'Aus meinen Werken wählen',
     errors: {
+      closed: "Die Ausschreibung ist beendet: Die teilnehmenden Werke können nicht mehr geändert werden.",
       none: 'Wähle mindestens ein Werk.',
       too_many: 'Du kannst bis zu {limit} Werke einreichen.',
       not_owned: 'Eines dieser Werke gehört nicht zu deinem Konto.',
@@ -529,6 +530,19 @@ const de: Messages = {
     sectionBody: "Lade deine Urkunde zum Ausdrucken und das Bild für Instagram herunter.",
     downloadPdf: "Urkunde zum Ausdrucken (PDF)",
     downloadImage: "Bild für Instagram",
+  },
+  closed: {
+    participantSignIn: "Du nimmst schon teil? Melde dich an, um dein Werk zu sehen und zu bestätigen.",
+    badge: "Ausschreibung beendet",
+    intro: "Die Einreichung für die 1. Ausgabe ist vorbei. Danke an alle, die teilgenommen haben: Die Finalisten geben wir sehr bald bekannt.",
+    cta: "Zur Galerie",
+    headerCta: "Werke ansehen",
+    note: "Die Finalisten werden nach der Bewertung durch die internationale Jury bekanntgegeben.",
+    onboardingTitle: "Die Ausschreibung der 1. Ausgabe ist beendet",
+    onboardingBody: "Für diese Ausgabe nehmen wir keine Werke mehr an. Entdecke die Galerie mit allen teilnehmenden Werken und erfahre, wer im Finale ist.",
+    onboardingCta: "Zur Galerie",
+    joinTitle: "Die Ausschreibung ist beendet",
+    joinBody: "Hinterlass deine E-Mail und wir informieren dich über die Finalisten und die nächste Ausgabe.",
   },
   ar: {
     pageTitle: '{title} in Augmented Reality',

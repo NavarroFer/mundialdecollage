@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { getArtistProfileBySlug } from '@/lib/artist-profiles'
 import { fmt } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
+import { getCallState } from '@/lib/call-state'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { ArtistArtworks } from './artist-artworks'
 
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ArtistPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const [artist, { locale, m }] = await Promise.all([getArtistProfileBySlug(slug), getI18n()])
+  const [artist, { locale, m }, { open: callOpen }] = await Promise.all([getArtistProfileBySlug(slug), getI18n(), getCallState()])
   if (!artist) notFound()
 
   const country = countryCodeToName(artist.countryCode, locale)
@@ -124,7 +125,8 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             />
           </section>
 
-          <section className="rounded-3xl border-2 border-ink/10 bg-paper p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
+          {/* Inviting to participate only while the call is open. */}
+          {callOpen && <section className="rounded-3xl border-2 border-ink/10 bg-paper p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">
             <div>
               <h2 className="font-display text-2xl tracking-tight text-ink uppercase sm:text-3xl">
                 {m.status.joinTitle}
@@ -136,7 +138,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
                 {m.status.joinCta}
               </TrackedLink>
             </Button>
-          </section>
+          </section>}
         </div>
       </main>
       <Footer />

@@ -4,10 +4,11 @@ import { TrackedLink } from '@/components/track'
 import { FadeIn } from '@/components/fade-in'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { getI18n } from '@/lib/i18n/server'
+import { getCallState } from '@/lib/call-state'
 import { formatNumber, plural } from '@/lib/i18n/format'
 
 export async function EditionSection() {
-  const [submissionsCount, { locale, m }] = await Promise.all([getSubmissionsCount(), getI18n()])
+  const [submissionsCount, { locale, m }, { open }] = await Promise.all([getSubmissionsCount(), getI18n(), getCallState()])
   const hasSubmissions = submissionsCount > 0
 
   return (
@@ -55,7 +56,9 @@ export async function EditionSection() {
         <FadeIn delay={400}>
           <div className="mt-8 flex flex-col items-center justify-center gap-5 sm:flex-row">
             <Button asChild size="lg" variant="primary">
-              <TrackedLink href="/onboarding" event="submit_click_edition">{m.edition.submit}</TrackedLink>
+              {open
+                ? <TrackedLink href="/onboarding" event="submit_click_edition">{m.edition.submit}</TrackedLink>
+                : <Link href="/galeria-3d">{m.closed.cta}</Link>}
             </Button>
             <Link href="#participantes" className="text-sm font-semibold text-collage-blue underline underline-offset-4">
               {m.edition.discover}

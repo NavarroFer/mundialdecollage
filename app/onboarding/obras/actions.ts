@@ -11,6 +11,7 @@ import { ADMIN_EMAILS } from '@/lib/admin'
 import { site, getSiteUrl } from '@/lib/site'
 import { entryExternalReference, entryLimit, resolveEntryChoice } from '@/lib/entries'
 import { hasPaidEntries } from '@/lib/entry-payments'
+import { isCallOpen } from '@/lib/call-state'
 
 // The artist picks which of their obras are postulated (one for free, more
 // after paying) and which one represents them on the site. artworks has no
@@ -24,6 +25,9 @@ export async function saveEntryChoice(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/onboarding/obras')
+
+  // Which obras take part is frozen once the call closes.
+  if (!(await isCallOpen())) redirect('/onboarding/obras?error=closed')
 
   const { data: owned, error: ownedError } = await supabase
     .from('artworks')
@@ -101,6 +105,7 @@ export async function startEntryCheckout() {
   if (!isSupabaseConfigured || !isMercadoPagoConfigured) {
     redirect('/onboarding/obras?error=not_configured')
   }
+  if (!(await isCallOpen())) redirect('/onboarding/obras?error=closed')
 
   const supabase = await createClient()
   const {

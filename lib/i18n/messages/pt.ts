@@ -329,6 +329,7 @@ const pt: Messages = {
     removeArtwork: 'Remover',
     chooseAmong: 'Escolher entre minhas obras',
     errors: {
+      closed: "A convocatória já foi encerrada: não é possível mudar as obras que participam.",
       none: 'Escolha pelo menos uma obra.',
       too_many: 'Você pode inscrever até {limit} obras.',
       not_owned: 'Uma dessas obras não pertence à sua conta.',
@@ -529,6 +530,19 @@ const pt: Messages = {
     sectionBody: "Baixe seu diploma para imprimir e a imagem para compartilhar no Instagram.",
     downloadPdf: "Diploma para imprimir (PDF)",
     downloadImage: "Imagem para o Instagram",
+  },
+  closed: {
+    participantSignIn: "Já participa? Entre para ver e confirmar sua obra.",
+    badge: "Convocatória encerrada",
+    intro: "O recebimento de obras da 1ª edição terminou. Obrigado a cada artista que participou: em breve anunciamos os finalistas.",
+    cta: "Percorra a galeria",
+    headerCta: "Ver as obras",
+    note: "Os finalistas serão anunciados após a avaliação do júri internacional.",
+    onboardingTitle: "A convocatória da 1ª edição foi encerrada",
+    onboardingBody: "Não recebemos mais obras para esta edição. Percorra a galeria com todas as obras participantes e saiba quem são os finalistas.",
+    onboardingCta: "Ir para a galeria",
+    joinTitle: "A convocatória foi encerrada",
+    joinBody: "Deixe seu e-mail e avisamos sobre os finalistas e a próxima edição.",
   },
   ar: {
     pageTitle: '{title} em realidade aumentada',

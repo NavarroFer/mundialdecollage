@@ -8,6 +8,7 @@ import { VercelAnalytics } from '@/components/vercel-analytics'
 import { ReferralCapture } from '@/components/referral-capture'
 import { getI18n } from '@/lib/i18n/server'
 import { I18nProvider } from '@/lib/i18n/client'
+import { getCallState } from '@/lib/call-state'
 import { pickClientMessages } from '@/lib/i18n/messages/client'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { LOCALE_INFO } from '@/lib/i18n/locales'
@@ -30,15 +31,17 @@ const oswald = Oswald({
 })
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { locale, m } = await getI18n()
+  const [{ locale, m }, { open }] = await Promise.all([getI18n(), getCallState()])
   const date = formatDayMonth(locale, site.deadlineISO)
+  // Once the call closes, previews stop inviting to «send your obra by …».
+  const description = (template: string) => (open ? fmt(template, { date }) : m.closed.intro)
   return {
     metadataBase: new URL(getSiteUrl()),
     title: m.meta.title,
-    description: fmt(m.meta.description, { date }),
+    description: description(m.meta.description),
     openGraph: {
       title: m.meta.title,
-      description: fmt(m.meta.ogDescription, { date }),
+      description: description(m.meta.ogDescription),
       siteName: site.name,
       locale: LOCALE_INFO[locale].og,
       type: 'website',
@@ -46,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: m.meta.title,
-      description: fmt(m.meta.twitterDescription, { date }),
+      description: description(m.meta.twitterDescription),
     },
   }
 }
