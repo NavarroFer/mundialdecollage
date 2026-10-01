@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { parseAudiences } from '@/lib/template-audiences'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isEmailDocument } from '@/lib/email-blocks'
@@ -60,7 +61,7 @@ export async function createTemplate(formData: FormData) {
   const supabase = await createClient()
   const { error } = await supabase
     .from('templates')
-    .insert({ name, subject, body_html: bodyHtml, body_json: bodyJson, ...translated })
+    .insert({ name, subject, body_html: bodyHtml, body_json: bodyJson, audiences: parseAudiences(formData.getAll('audiences')), ...translated })
 
   if (error) {
     redirect(`/admin/plantillas/nueva?error=${encodeURIComponent(error.message)}`)
@@ -94,7 +95,7 @@ export async function updateTemplate(formData: FormData) {
 
   const { error } = await supabase
     .from('templates')
-    .update({ name, subject, body_html: bodyHtml, body_json: bodyJson, ...translated, updated_at: new Date().toISOString() })
+    .update({ name, subject, body_html: bodyHtml, body_json: bodyJson, audiences: parseAudiences(formData.getAll('audiences')), ...translated, updated_at: new Date().toISOString() })
     .eq('id', id)
 
   if (error) {
@@ -146,7 +147,7 @@ export async function duplicateTemplate(formData: FormData) {
   const supabase = await createClient()
   const { data: original, error: fetchError } = await supabase
     .from('templates')
-    .select('name, subject, body_html, body_json, translations, translations_source')
+    .select('name, subject, body_html, body_json, translations, translations_source, audiences')
     .eq('id', id)
     .maybeSingle()
 
@@ -163,6 +164,7 @@ export async function duplicateTemplate(formData: FormData) {
       body_json: original.body_json,
       translations: original.translations,
       translations_source: original.translations_source,
+      audiences: original.audiences ?? [],
     })
     .select('id')
     .single()

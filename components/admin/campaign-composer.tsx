@@ -17,6 +17,8 @@ type Template = {
   body_json: EmailDocument | null
   translations: EmailTranslations | null
   translations_source: string | null
+  audiences?: string[] | null
+  system_key?: string | null
 }
 
 // Who gets which language: each contact reads their country's language when
@@ -73,6 +75,7 @@ export function CampaignComposer({
   recipientCount,
   localeCounts,
   translatorConfigured,
+  suggestedAudiences = [],
 }: {
   action: (formData: FormData) => void
   scheduleAction: (formData: FormData) => void
@@ -82,6 +85,8 @@ export function CampaignComposer({
   recipientCount: number
   localeCounts: Record<Locale, number>
   translatorConfigured: boolean
+  // The campaign audience's template tags: those templates are listed first.
+  suggestedAudiences?: string[]
 }) {
   const [templateId, setTemplateId] = useState('')
   const [subject, setSubject] = useState('')
@@ -153,10 +158,14 @@ export function CampaignComposer({
               className="mt-1 w-full rounded-xl border-2 border-ink/15 bg-background px-3 py-2 text-sm text-ink"
             >
               <option value="">— Escribir desde cero —</option>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
+              {templateGroups(templates, suggestedAudiences).map((group) => group.items.length > 0 && (
+                <optgroup key={group.label} label={group.label}>
+                  {group.items.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
@@ -321,4 +330,17 @@ export function CampaignComposer({
       </form>
     </div>
   )
+}
+
+// Templates tagged for this campaign's audience first, then the other
+// campaign templates, then the automatic ones (rarely a campaign's base).
+function templateGroups(templates: Template[], suggested: string[]) {
+  const automatic = templates.filter((t) => t.system_key)
+  const manual = templates.filter((t) => !t.system_key)
+  const fits = (t: Template) => (t.audiences ?? []).some((a) => suggested.includes(a))
+  return [
+    { label: 'Para este público', items: manual.filter(fits) },
+    { label: 'Otras plantillas', items: manual.filter((t) => !fits(t)) },
+    { label: 'Automáticas', items: automatic },
+  ]
 }

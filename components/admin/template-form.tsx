@@ -11,6 +11,8 @@ import {
   type EmailDocument,
 } from '@/lib/email-blocks'
 import { TRANSLATED_LOCALES } from '@/lib/i18n/locales'
+import { TEMPLATE_AUDIENCES } from '@/lib/template-audiences'
+import { cn } from '@/lib/utils'
 
 export function TemplateForm({
   action,
@@ -26,6 +28,7 @@ export function TemplateForm({
     subject: string
     body_html: string
     body_json?: EmailDocument | null
+    audiences?: string[] | null
   }
 }) {
   // Templates saved before the visual editor only have body_html — they keep
@@ -69,6 +72,25 @@ export function TemplateForm({
             className="mt-1 w-full rounded-xl border-2 border-ink/15 bg-background px-3 py-2 text-sm text-ink"
           />
         </div>
+
+        {/* Who it's for: catalogues it in /admin/plantillas. */}
+        <fieldset>
+          <legend className="text-sm font-semibold text-ink">Público</legend>
+          <p className="mt-0.5 text-xs text-muted-foreground">A quién le llega. Podés marcar varios; sirve para encontrarla y filtrarla.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {TEMPLATE_AUDIENCES.map((audience) => (
+              <label key={audience.value} title={audience.description} className="cursor-pointer">
+                <input type="checkbox" name="audiences" value={audience.value} defaultChecked={defaultValues?.audiences?.includes(audience.value)} className="peer sr-only" />
+                <span className={cn(
+                  'inline-flex items-center rounded-full border-2 border-ink/15 px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors',
+                  'peer-checked:border-collage-blue peer-checked:bg-collage-blue peer-checked:text-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-collage-blue/50',
+                )}>
+                  {audience.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         {isLegacyHtml ? (
           <div>

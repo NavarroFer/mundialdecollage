@@ -17,6 +17,7 @@ import {
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
+import type { TemplateAudience } from '@/lib/template-audiences'
 
 export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
@@ -28,6 +29,8 @@ type SystemTemplateDefinition = {
   subject: string
   /** Shown on /admin/plantillas under the template's name. */
   description: string
+  // Who it's for (lib/template-audiences.ts), stored on first creation.
+  audiences: TemplateAudience[]
   createDocument: (siteUrl: string) => EmailDocument
 }
 
@@ -87,6 +90,7 @@ const RECEIPT_DESCRIPTION = 'Se envía sola apenas se confirma el pago. '
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
   bienvenida_hincha: {
     name: 'Bienvenida: gracias por apoyar a un artista',
+    audiences: ['hinchas'],
     subject: '¡Gracias por apoyar a {{artista}} en el Mundial de Collage!',
     description:
       'Se envía sola a las 9 h, una única vez, a quien dio su primer like o comentario en la Galería 3D el día anterior y no participa como artista (casi siempre amigos y familia de los artistas). Usá {{nombre}} (si comentó), {{artista}}, {{obra}} y {{link_obra}}; el bloque con {{convocatoria}} (la fecha de cierre) no se envía si la convocatoria ya cerró.',
@@ -123,6 +127,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   // Transactional: no unsubscribe link.
   jurado_invitacion: {
     name: 'Jurado: invitación',
+    audiences: ['jurado'],
     subject: 'Te invitamos a ser jurado del Mundial de Collage',
     description:
       'Se envía sola al sumar (o reactivar) un jurado en Jurado, y con «Reenviar invitación». Usá {{nombre}}, {{obras}} (cuántas obras evalúa) y {{fecha_limite}} (o «a confirmar»).',
@@ -146,6 +151,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   jurado_recordatorio: {
     name: 'Jurado: recordatorio',
+    audiences: ['jurado'],
     subject: 'Te quedan obras por puntuar en el jurado del Mundial de Collage',
     description:
       'Se envía sola a las 9 h, 3 días y 1 día antes del cierre de la votación, a los jurados activos que tienen obras sin puntuar. Usá {{nombre}}, {{faltan}} (obras sin puntuar) y {{fecha_limite}}.',
@@ -164,6 +170,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   compra_revista: {
     name: 'Compra: Revista 1ª Edición',
+    audiences: ['clientes'],
     subject: '¡Gracias! Tu Revista del Mundial de Collage está reservada',
     description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{ejemplares}}, {{total}}, {{direccion}}, {{fecha_salida}} y {{pedido}}.',
     createDocument: (siteUrl) => ({
@@ -181,6 +188,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   compra_suscripcion: {
     name: 'Compra: suscripción Papel por correo',
+    audiences: ['clientes'],
     subject: '¡Bienvenida al club Papel por correo!',
     description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{plan}}, {{total}} (lo que se cobra por mes) y {{direccion}}.',
     createDocument: (siteUrl) => ({
@@ -198,6 +206,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   compra_obras: {
     name: 'Compra: postular más obras',
+    audiences: ['artistas', 'clientes'],
     subject: 'Listo: ya podés postular más obras al Mundial de Collage',
     description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{total}} y {{limite}} (cuántas obras puede postular).',
     createDocument: (siteUrl) => ({
@@ -214,6 +223,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   cuenta_regresiva_15: {
     name: 'Cuenta regresiva: quedan 15 días',
+    audiences: ['interesados', 'hinchas'],
     subject: 'Quedan 15 días para participar del Mundial de Collage',
     description: COUNTDOWN_DESCRIPTION,
     createDocument: countdown(
@@ -223,6 +233,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   cuenta_regresiva_7: {
     name: 'Cuenta regresiva: queda una semana',
+    audiences: ['interesados', 'hinchas'],
     subject: 'Queda una semana: sumá tu obra al Mundial de Collage',
     description: COUNTDOWN_DESCRIPTION,
     createDocument: countdown(
@@ -232,6 +243,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   cuenta_regresiva_1: {
     name: 'Cuenta regresiva: último día',
+    audiences: ['interesados', 'hinchas'],
     subject: 'Mañana cierra el Mundial de Collage',
     description: COUNTDOWN_DESCRIPTION,
     createDocument: countdown(
@@ -241,6 +253,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   confirmar_datos: {
     name: 'Confirmación de datos: revisá tu participación',
+    audiences: ['artistas'],
     subject: '¿Revisamos tus datos para el Mundial de Collage?',
     description: 'Para el público «Datos por confirmar». Personaliza {{nombre_dato}}, {{pais_dato}}, {{obra_dato}} y {{datos_faltantes}} para cada artista. El botón abre la confirmación segura con Google.',
     createDocument: (siteUrl) => ({
@@ -261,6 +274,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   // (lib/certificate-token.ts), so they work without signing in.
   certificado: {
     name: 'Certificado de participación',
+    audiences: ['artistas'],
     subject: 'Tu certificado de participación en el Mundial de Collage',
     description:
       'Se envía una vez a cada artista participante al finalizar la convocatoria (o con «Enviar certificados pendientes» en Convocatoria). Usá {{nombre}} y {{obra}}, y {{link_pdf}} y {{link_imagen}} como links de los botones: abren el diploma y la imagen para Instagram sin iniciar sesión.',
@@ -285,6 +299,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   museo_hoy: {
     name: 'Aviso diario: tu obra está en el museo',
+    audiences: ['artistas'],
     subject: 'Hoy tu obra está en el museo del Mundial de Collage',
     description:
       'Se envía sola todos los días a las 9 h a los artistas que exponen ese día en la Galería 3D. Usá {{nombre}} y {{obra}} para el nombre y el título de la obra, y {{link_obra}} como link de un botón para que abra su obra directo en la galería.',
@@ -320,6 +335,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
   },
   novedades_obra: {
     name: 'Aviso diario: así le fue a tu obra',
+    audiences: ['artistas'],
     subject: 'Así le fue a tu obra en el museo del Mundial de Collage',
     description:
       'Se envía sola a las 9 h a cada artista cuya obra recibió likes o comentarios aprobados en las últimas 24 horas (uno por día como máximo). Usá {{nombre}}, {{obra}}, {{likes}} (likes del día), {{likes_total}} y {{comentarios}}; el bloque con {{comentarios}} no se envía si no hubo comentarios nuevos.',
@@ -401,6 +417,7 @@ export async function ensureSystemTemplate(db: SupabaseClient, key: SystemTempla
   const { data, error } = await db.from('templates')
     .insert({
       name: definition.name,
+      audiences: definition.audiences,
       system_key: key,
       subject: definition.subject,
       body_json: doc,

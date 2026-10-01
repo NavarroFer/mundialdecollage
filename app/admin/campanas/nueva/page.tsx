@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { isResendConfigured, getDomainStatus } from '@/lib/resend'
 import { CampaignComposer } from '@/components/admin/campaign-composer'
+import { CAMPAIGN_TEMPLATE_AUDIENCES } from '@/lib/template-audiences'
 import { AdminPageHeader } from '@/components/admin/page-header'
 import { sendCampaign, scheduleCampaign, sendTestEmail, enableOpenTracking } from '../actions'
 import { earliestScheduleDay } from '@/lib/campaign-schedule'
@@ -46,7 +47,7 @@ export default async function NuevaCampanaPage({
   const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, { data: contactCountries }, domainStatus] = await Promise.all([
     supabase
       .from('templates')
-      .select('id, name, subject, body_html, body_json, translations, translations_source')
+      .select('id, name, subject, body_html, body_json, translations, translations_source, audiences, system_key')
       .order('name'),
     audienceContacts(supabase, 'subscribed'),
     audienceContacts(supabase, 'no_artwork'),
@@ -180,6 +181,7 @@ export default async function NuevaCampanaPage({
           recipientCount={count}
           localeCounts={localeCounts}
           translatorConfigured={isTranslatorConfigured}
+          suggestedAudiences={CAMPAIGN_TEMPLATE_AUDIENCES[audience] ?? []}
         />
       </div>
     </div>
