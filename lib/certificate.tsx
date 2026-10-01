@@ -15,7 +15,8 @@ import { BANNER_RATIO, BLUE, DOMAIN, INK, RED, banner, fonts, loadArtwork } from
 
 // Participation certificates, one per obra (app/obras/[slug]/certificado):
 // a printable A4 diploma (PDF) and a 1080x1350 image for an Instagram post.
-// Gated by site.certificates.enabled.
+// Artists get theirs once the call closes (lib/call-state.ts); admins can
+// preview them any time.
 
 const PAPER = '#FBF7EC'
 const GOLD = '#A8832F'
@@ -45,16 +46,18 @@ export function certificateCode(slug: string) {
   return `MIC-2026-${createHash('sha256').update(slug).digest('hex').slice(0, 6).toUpperCase()}`
 }
 
-export type CertificateInput = { finalist: Finalist; locale: Locale; m: Messages; verifyUrl: string }
+// issuedISO: the date printed on it — the day the call closed (the route
+// passes call_state.closed_at, or site.certificates.issuedISO before that).
+export type CertificateInput = { finalist: Finalist; locale: Locale; m: Messages; verifyUrl: string; issuedISO: string }
 
-function details({ finalist, locale, m }: CertificateInput) {
+function details({ finalist, locale, m, issuedISO }: CertificateInput) {
   return {
     name: finalist.name,
     country: countryCodeToName(finalist.countryCode, locale),
     title: finalist.artworkTitle ?? m.common.untitled,
     code: certificateCode(finalist.slug),
     date: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })
-      .format(new Date(site.certificates.issuedISO)),
+      .format(new Date(issuedISO)),
   }
 }
 

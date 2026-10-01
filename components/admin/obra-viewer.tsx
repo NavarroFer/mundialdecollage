@@ -248,7 +248,7 @@ function ArLinks({ slug, countryCode }: { slug: string; countryCode?: string }) 
         </a>
       </div>
       {/* app/obras/[slug]/certificado — admins can always preview it; artists
-          get it once site.certificates.enabled is on. Same language picker. */}
+          get it once the call is closed (/admin/convocatoria). Same language picker. */}
       <p className="mt-3 text-xs font-bold tracking-wide text-muted-foreground uppercase">Certificado de participación</p>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
         <a href={`/obras/${slug}/certificado?formato=pdf&idioma=${lang}`} className={link}>

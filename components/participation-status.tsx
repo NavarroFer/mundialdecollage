@@ -7,8 +7,7 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { ShareArtwork } from '@/components/share-artwork'
 import { MagazinePromo } from '@/components/store-promo'
-import { site } from '@/lib/site'
-import { isCallOpen } from '@/lib/call-state'
+import { getCallState, isCallOpen } from '@/lib/call-state'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -81,6 +80,8 @@ export async function ParticipationStatus() {
   const needsTitle = !artwork.title?.trim()
   const needsConfirmation = needsTitle || (Boolean(artwork.legacy_submission_id) && !profile.details_confirmed_at)
   const needsCountry = !needsConfirmation && !profile.country_code
+  // Certificates are handed out once the call closes (/admin/convocatoria).
+  const certificatesReady = !(await getCallState()).open
   const countries = needsCountry
     ? getAllCountryCodes()
         .map((code) => ({ code, name: countryCodeToName(code, locale) }))
@@ -170,7 +171,7 @@ export async function ParticipationStatus() {
                 </form>
               )}
 
-              {site.certificates.enabled && !needsConfirmation && (
+              {certificatesReady && !needsConfirmation && (
                 <div className="mt-5 rounded-xl border-2 border-collage-yellow/40 bg-collage-yellow/10 p-4 text-left">
                   <p className="flex items-center gap-2 font-semibold text-ink"><Award className="h-5 w-5 text-collage-red" aria-hidden="true" />{m.certificate.sectionTitle}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{m.certificate.sectionBody}</p>

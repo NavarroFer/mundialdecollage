@@ -56,11 +56,12 @@ export const site = {
     releaseISO: '2026-12-10T12:00:00-03:00',
   },
   // Participation certificates (lib/certificate.tsx): a printable diploma
-  // and an Instagram image per obra. While enabled is false only admins can
-  // open them (preview from /admin/obras); flip it to hand them out.
+  // and an Instagram image per obra. Artists get them once the call closes
+  // (/admin/convocatoria, lib/call-state.ts), which also mails them out;
+  // until then only admins can open them (preview from /admin/obras).
   certificates: {
-    enabled: false,
-    // The date printed on every certificate.
+    // The date printed while the call is still open (admin previews); once
+    // it closes, the closing date is printed instead.
     issuedISO: '2026-11-16T12:00:00-03:00',
   },
   // Jury (app/jurado, app/admin/jurado): the organizers preselect poolSize

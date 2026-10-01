@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { createPublicClient } from '@/lib/supabase/public'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 export { countryCodeToName } from '@/lib/participants'
@@ -150,4 +151,22 @@ export async function getArtworkShareState(slug: string): Promise<{ isPublic: bo
     isOwn = data?.profile_id === user.id
   }
   return { isPublic: Boolean(published.data), isOwn }
+}
+
+// The obra behind a signed certificate link (app/obras/[slug]/certificado
+// ?t=): read with the service role, since the reader has no session and the
+// profile may not be published, but only while it's still a curated,
+// unarchived participation — the same rule certificate_recipients() mails by.
+export async function getCertificateFinalistBySlug(slug: string): Promise<Finalist | undefined> {
+  if (!isSupabaseConfigured) return undefined
+
+  const { data } = await createAdminClient()
+    .from('artworks')
+    .select(SELECT_COLUMNS)
+    .eq('slug', slug)
+    .eq('is_selected', true)
+    .is('archived_at', null)
+    .maybeSingle()
+
+  return data ? rowToFinalist(data as unknown as FinalistRow) : undefined
 }

@@ -18,7 +18,7 @@ import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-transla
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
 
-export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey
+export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
@@ -218,6 +218,33 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         { id: nextBlockId(), type: 'text', text: 'Necesitamos revisar: {{datos_faltantes}}. Si algo está mal o incompleto, podés corregirlo ahí mismo. Si está todo bien, sólo confirmalo.', align: 'left' },
         { id: nextBlockId(), type: 'button', text: 'Corregir o confirmar mis datos', url: `${siteUrl}/onboarding`, align: 'left', color: 'red' },
         { id: nextBlockId(), type: 'text', text: 'Por seguridad, el botón te va a pedir ingresar con la misma cuenta de Google que usaste para participar.', align: 'left' },
+        ...footer(),
+      ],
+    }),
+  },
+  // Mailed to every participant when the call closes (lib/certificate-mail.ts,
+  // from /admin/convocatoria). The buttons' links carry a signed token
+  // (lib/certificate-token.ts), so they work without signing in.
+  certificado: {
+    name: 'Certificado de participación',
+    subject: 'Tu certificado de participación en el Mundial de Collage',
+    description:
+      'Se envía una vez a cada artista participante al finalizar la convocatoria (o con «Enviar certificados pendientes» en Convocatoria). Usá {{nombre}} y {{obra}}, y {{link_pdf}} y {{link_imagen}} como links de los botones: abren el diploma y la imagen para Instagram sin iniciar sesión.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: '¡Gracias, {{nombre}}!', align: 'left', size: 'md' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'Cerró la convocatoria de la 1ª edición del Mundial Internacional de Collage y queremos agradecerte por haber participado con «{{obra}}». Llegaron obras de artistas de todo el mundo, y la tuya es parte de esta primera edición.',
+          align: 'left',
+        },
+        { id: nextBlockId(), type: 'text', text: 'Acá tenés tu certificado de participación: el diploma para imprimir y una imagen lista para compartir en Instagram.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Descargar el diploma (PDF)', url: '{{link_pdf}}', align: 'left', color: 'red' },
+        { id: nextBlockId(), type: 'button', text: 'Imagen para Instagram', url: '{{link_imagen}}', align: 'left', color: 'blue' },
+        { id: nextBlockId(), type: 'text', text: 'Ahora el jurado internacional evalúa las obras. Muy pronto anunciamos a los finalistas: estate atento a tu mail y a nuestras redes.', align: 'left' },
         ...footer(),
       ],
     }),
