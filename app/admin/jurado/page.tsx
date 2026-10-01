@@ -6,6 +6,7 @@ import { adminDescription } from '@/components/admin/admin-sections'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { FINALISTS, getJuryPool, rankJuryPool, type ScoreRow } from '@/lib/jury'
+import { site } from '@/lib/site'
 import { addJuror, setJurorActive } from './actions'
 
 // Jury MVP: who judges, how far along each juror is, and the ranking of the
@@ -36,13 +37,21 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
       )}
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <StatPill label="Obras a evaluar" value={pool.length} />
+        <StatPill label="Obras preseleccionadas" value={`${pool.length} de ${site.jury.poolSize}`} />
         <StatPill label="Jurados activos" value={active.length} />
         <StatPill label="Terminaron de puntuar" value={`${complete} de ${active.length}`} />
       </div>
+      {pool.length !== site.jury.poolSize && (
+        <p className="mt-3 rounded-lg bg-collage-yellow/20 p-3 text-sm text-ink">
+          {pool.length < site.jury.poolSize
+            ? `Faltan ${site.jury.poolSize - pool.length} obras para completar la curaduría de ${site.jury.poolSize}.`
+            : `Hay ${pool.length - site.jury.poolSize} obras de más: la curaduría es de ${site.jury.poolSize}.`}{' '}
+          Se preseleccionan en <Link href="/admin/obras" className="underline">Obras</Link>.
+        </p>
+      )}
       <p className="mt-2 text-sm text-muted-foreground">
         Las obras a evaluar son las <Link href="/admin/obras" className="underline">preseleccionadas</Link>. Cada jurado entra con Google a{' '}
-        <Link href="/jurado" className="font-semibold underline">/jurado</Link> y las puntúa del 1 al 10, sin ver el nombre ni el país del artista.
+        <Link href="/jurado" className="font-semibold underline">/jurado</Link> y las puntúa del 1 al 10, sin ver el nombre ni el país del artista, cada jurado en su propio orden al azar.
       </p>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.4fr]" aria-labelledby="jurors-title">
@@ -94,7 +103,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
                   <Image src={item.imageUrl} alt="" fill sizes="64px" className="object-contain p-1" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-ink">{item.title?.trim() || 'Sin título'}</p>
+                  <p className="truncate font-semibold text-ink"><span className="mr-1.5 text-muted-foreground">#{item.number}</span>{item.title?.trim() || 'Sin título'}</p>
                   <p className="truncate text-sm text-muted-foreground">
                     {item.countryCode && <span aria-hidden>{countryCodeToFlag(item.countryCode)} </span>}
                     {item.artist ?? '—'}{item.countryCode ? ` · ${countryCodeToName(item.countryCode)}` : ''}{item.technique ? ` · ${item.technique}` : ''}

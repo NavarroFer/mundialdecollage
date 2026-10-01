@@ -63,6 +63,14 @@ export const site = {
     // The date printed on every certificate.
     issuedISO: '2026-11-16T12:00:00-03:00',
   },
+  // Jury (app/jurado, app/admin/jurado): the organizers preselect poolSize
+  // obras in /admin/obras and the jurors' scores pick the best `finalists`.
+  // deadlineISO closes the voting (null: open until set).
+  jury: {
+    poolSize: 50,
+    finalists: 30,
+    deadlineISO: null as string | null,
+  },
 } as const
 
 export function isMagazineSaleOpen() {

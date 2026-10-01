@@ -6,7 +6,7 @@ import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { getJuryPool, isAdminUser, jurorFor } from '@/lib/jury'
+import { getJuryPool, isAdminUser, jurorFor, jurorOrder } from '@/lib/jury'
 import { ScoreCard } from './score-card'
 
 export const metadata: Metadata = { title: 'Jurado', robots: { index: false } }
@@ -47,8 +47,9 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
   ])
   const mine = new Map((scores ?? []).map((row) => [row.item_key, row]))
   const scored = pool.filter((item) => mine.has(item.key)).length
-  // Numbered on the full pool, so «#12» is the same obra with or without the filter.
-  const items = pool.map((item, i) => ({ item, index: i + 1 })).filter(({ item }) => !onlyPending || !mine.has(item.key))
+  // In this juror's own shuffled order; «#12» is the obra's pool number, the
+  // same for everyone (lib/jury.ts).
+  const items = jurorOrder(pool, juror.id).map((item) => ({ item, index: item.number })).filter(({ item }) => !onlyPending || !mine.has(item.key))
 
   return (
     <Shell>
