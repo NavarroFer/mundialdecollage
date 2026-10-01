@@ -141,6 +141,8 @@ const PREVIEW_TAG_VALUES: Record<string, string> = {
   pais_dato: 'Argentina',
   obra_dato: 'La ciudad que imaginé',
   datos_faltantes: 'confirmar el país y el título de la obra',
+  artista: 'Julieta Romero',
+  convocatoria: '15 de noviembre',
 }
 
 function previewValueForTag(tag: string) {

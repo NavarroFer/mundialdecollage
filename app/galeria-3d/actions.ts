@@ -210,6 +210,17 @@ export async function addArtworkComment(slug: string, body: string): Promise<{ c
       .select('id, author_name, body, created_at, status')
       .single()
     if (error || !data) return { error: 'save_failed' }
+    // Same as a like (like_gallery_artwork): the commenter joins the mailing
+    // list — the «Gracias por el aguante» welcome (lib/supporter-welcome.ts)
+    // and the news. Never re-subscribes someone who opted out; best-effort.
+    if (user.email) {
+      try {
+        await admin.from('contacts')
+          .upsert({ email: user.email.toLowerCase(), source: 'galeria-3d' }, { onConflict: 'email', ignoreDuplicates: true })
+      } catch {
+        // The comment is saved; joining the list can wait for their next like.
+      }
+    }
     return { comment: toComment(data) }
   } catch {
     return { error: 'save_failed' }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sendSupporterWelcomes } from '@/lib/supporter-welcome'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createResendClient, isResendConfigured, RESEND_BATCH_SIZE } from '@/lib/resend'
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
     ['museum', 'Aviso "hoy tu obra está en el museo"', () => sendMuseumNotices(db, dryRun)],
     ['digest', 'Aviso "así le fue a tu obra"', () => sendArtistDigests(db, dryRun)],
     ['pendingComments', 'Recordatorio de comentarios', () => remindPendingComments(db, dryRun)],
+    ['supporters', 'Bienvenida a hinchas', () => sendSupporterWelcomes(db, dryRun)],
   ]
   for (const [key, label, job] of jobs) {
     try {

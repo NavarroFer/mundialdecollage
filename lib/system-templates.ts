@@ -18,7 +18,7 @@ import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-transla
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
 
-export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey
+export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
@@ -85,6 +85,40 @@ const COUNTDOWN_DESCRIPTION =
 const RECEIPT_DESCRIPTION = 'Se envía sola apenas se confirma el pago. '
 
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
+  bienvenida_hincha: {
+    name: 'Bienvenida: gracias por apoyar a un artista',
+    subject: '¡Gracias por apoyar a {{artista}} en el Mundial de Collage!',
+    description:
+      'Se envía sola a las 9 h, una única vez, a quien dio su primer like o comentario en la Galería 3D el día anterior y no participa como artista (casi siempre amigos y familia de los artistas). Usá {{nombre}} (si comentó), {{artista}}, {{obra}} y {{link_obra}}; el bloque con {{convocatoria}} (la fecha de cierre) no se envía si la convocatoria ya cerró.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: '¡Gracias por el aguante, {{nombre}}!', align: 'left', size: 'md' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'Tu apoyo a «{{obra}}», de {{artista}}, suma: cada like y cada comentario ayudan a que su obra llegue más lejos en el Mundial Internacional de Collage.',
+          align: 'left',
+        },
+        { id: nextBlockId(), type: 'button', text: 'Ver la obra y compartirla', url: '{{link_obra}}', align: 'left', color: 'red' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'Un jurado internacional va a elegir las 30 obras finalistas, que se publican en la Revista 1ª Edición del Mundial. Te avisamos cuando las anunciemos.',
+          align: 'left',
+        },
+        { id: nextBlockId(), type: 'button', text: 'Conocé la revista', url: `${siteUrl}/revista`, align: 'left', color: 'blue' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: '¿Vos también hacés collage? La convocatoria está abierta hasta el {{convocatoria}} y participar es gratis: entrá a mundialdecollage.com.ar y mandá tu obra.',
+          align: 'left',
+        },
+        ...footer(),
+      ],
+    }),
+  },
   // The jury's mails (lib/jury-mail.ts), sent through Resend to each juror.
   // Transactional: no unsubscribe link.
   jurado_invitacion: {
