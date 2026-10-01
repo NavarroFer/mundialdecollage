@@ -90,27 +90,88 @@ export function jurorOrder<T extends { key: string }>(items: T[], jurorId: strin
 
 export type ScoreRow = { juror_id: string; item_key: string; score: number; comment: string | null }
 
-export type RankedItem = JuryItem & { average: number | null; votes: number; comments: string[] }
+export type RankedItem = JuryItem & {
+  average: number | null
+  // Mean of the obra's per-juror z-scores (see rankJuryPool); null when unscored.
+  normalized: number | null
+  votes: number
+  // Sample standard deviation of the raw scores; null with fewer than 2 votes.
+  spread: number | null
+  min: number | null
+  max: number | null
+  // The jury split on it: worth talking about before closing the finalists.
+  disputed: boolean
+  comments: string[]
+}
+
+export type RankingMode = 'promedio' | 'normalizado'
+
+// An obra «divided the jury» when two jurors are this far apart on the 1–10
+// scale, or when its scores are this scattered overall.
+export const DISPUTED_MIN_GAP = 5
+export const DISPUTED_MIN_SPREAD = 2.5
+
+const mean = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length
+// Sample sd (n − 1). The population sd is at most half the range, so with it
+// the spread rule could never fire without the gap rule already firing.
+// Callers guarantee ≥ 2 values.
+const stdDev = (values: number[]) => {
+  const m = mean(values)
+  return Math.sqrt(values.reduce((sum, v) => sum + (v - m) ** 2, 0) / (values.length - 1))
+}
 
 /**
  * The pool ranked by average score (unscored last), ties broken by more
- * votes. Only active jurors count.
+ * votes; or, in 'normalizado' mode, by each obra's mean z-score, so a strict
+ * juror (3–5) and a generous one (7–9) pull with the same weight. Only active
+ * jurors and scores on obras still in the pool count.
  */
-export function rankJuryPool(pool: JuryItem[], scores: ScoreRow[], activeJurorIds: Set<string>): RankedItem[] {
-  const byItem = new Map<string, ScoreRow[]>()
-  for (const score of scores) {
-    if (!activeJurorIds.has(score.juror_id)) continue
-    const list = byItem.get(score.item_key) ?? []
-    list.push(score)
-    byItem.set(score.item_key, list)
+export function rankJuryPool(pool: JuryItem[], scores: ScoreRow[], activeJurorIds: Set<string>, mode: RankingMode = 'promedio'): RankedItem[] {
+  const poolKeys = new Set(pool.map((item) => item.key))
+  const counted = scores.filter((s) => activeJurorIds.has(s.juror_id) && poolKeys.has(s.item_key))
+
+  // Each juror's own scale over the current pool. With a single score or no
+  // variation there is no scale to correct for, so their z is 0 (neutral).
+  const byJuror = new Map<string, number[]>()
+  for (const s of counted) byJuror.set(s.juror_id, [...(byJuror.get(s.juror_id) ?? []), s.score])
+  const scale = new Map([...byJuror].map(([id, values]) => [id, { mean: mean(values), sd: values.length > 1 ? stdDev(values) : 0 }]))
+  const z = (s: ScoreRow) => {
+    const { mean: m, sd } = scale.get(s.juror_id)!
+    return sd > 0 ? (s.score - m) / sd : 0
   }
-  return pool
-    .map((item) => {
-      const rows = byItem.get(item.key) ?? []
-      const average = rows.length ? rows.reduce((sum, row) => sum + row.score, 0) / rows.length : null
-      return { ...item, average, votes: rows.length, comments: rows.flatMap((row) => (row.comment?.trim() ? [row.comment.trim()] : [])) }
-    })
-    .sort((a, b) => (b.average ?? -1) - (a.average ?? -1) || b.votes - a.votes)
+
+  const byItem = new Map<string, ScoreRow[]>()
+  for (const s of counted) byItem.set(s.item_key, [...(byItem.get(s.item_key) ?? []), s])
+
+  const ranked = pool.map((item): RankedItem => {
+    const rows = byItem.get(item.key) ?? []
+    const values = rows.map((r) => r.score)
+    const min = values.length ? Math.min(...values) : null
+    const max = values.length ? Math.max(...values) : null
+    const spread = values.length >= 2 ? stdDev(values) : null
+    return {
+      ...item,
+      average: values.length ? mean(values) : null,
+      normalized: rows.length ? mean(rows.map(z)) : null,
+      votes: rows.length,
+      spread,
+      min,
+      max,
+      disputed: spread !== null && (max! - min! >= DISPUTED_MIN_GAP || spread >= DISPUTED_MIN_SPREAD),
+      comments: rows.flatMap((row) => (row.comment?.trim() ? [row.comment.trim()] : [])),
+    }
+  })
+
+  // Unscored obras always go last. Averages are ≥ 1, so -1 is enough there;
+  // z-scores can be any sign, so nulls are handled explicitly.
+  const byAverage = (a: RankedItem, b: RankedItem) => (b.average ?? -1) - (a.average ?? -1)
+  const byNormalized = (a: RankedItem, b: RankedItem) => {
+    if (a.normalized === null || b.normalized === null) return (a.normalized === null ? 1 : 0) - (b.normalized === null ? 1 : 0)
+    return b.normalized - a.normalized
+  }
+  return ranked.sort(mode === 'normalizado'
+    ? (a, b) => byNormalized(a, b) || b.votes - a.votes || byAverage(a, b)
+    : (a, b) => byAverage(a, b) || b.votes - a.votes)
 }
 
 export const FINALISTS = site.jury.finalists
