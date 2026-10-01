@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b-2 border-ink/10 bg-card">
-        <div className="mx-auto max-w-6xl px-5 py-6 sm:px-8">
+        <div className="mx-auto max-w-6xl px-5 py-4 sm:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link href="/admin" className="flex items-center gap-2.5">
               <Image
@@ -45,7 +45,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Volver al sitio
             </Link>
           </div>
-          <div className="mt-6 border-t border-ink/10 pt-5">
+          <div className="mt-4 border-t border-ink/10 pt-3">
             <AdminNav />
           </div>
         </div>
