@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   Landmark,
   Mail,
+  Flag,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -84,6 +85,12 @@ export const adminSections: {
         icon: BarChart3,
         description:
           'Cuántas obras llegaron, desde qué países y con qué técnicas.',
+      },
+      {
+        href: '/admin/convocatoria',
+        label: 'Estado',
+        icon: Flag,
+        description: 'Si la convocatoria sigue abierta, y el botón para finalizarla cuando se cierra la recepción de obras.',
       },
       {
         href: '/admin/jurado',
