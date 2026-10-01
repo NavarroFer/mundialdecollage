@@ -6,6 +6,7 @@ import { TrackedLink, TrackView } from '@/components/track'
 import { CountrySelect } from '@/components/ui/country-select'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { ShareArtwork } from '@/components/share-artwork'
+import { MagazinePromo } from '@/components/store-promo'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -201,6 +202,9 @@ export async function ParticipationStatus() {
               </div>
             </div>
           </div>
+          {/* Every artist is in the magazine's index — once they're in for
+              real (confirmed), the pre-sale is for them. */}
+          {!needsConfirmation && <MagazinePromo m={m} event="magazine_click_status" className="mt-4" />}
         </FadeIn>
       </div>
     </section>

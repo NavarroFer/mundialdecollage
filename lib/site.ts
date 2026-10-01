@@ -43,7 +43,20 @@ export const site = {
     priceArs: 30000,
     priceUsd: 15,
   },
+  // Preventa de la Revista 1ª Edición (app/revista). Printed only, shipped
+  // within Argentina. priceArs is per copy with shipping included; until
+  // it's set, /revista collects emails («Avisame») instead of selling.
+  magazine: {
+    priceArs: null as number | null,
+    maxQuantity: 5,
+    // Publication day, shown on /revista in the reader's language.
+    releaseISO: '2026-12-10T12:00:00-03:00',
+  },
 } as const
+
+export function isMagazineSaleOpen() {
+  return site.magazine.priceArs !== null
+}
 
 export function isWorkshopPaymentConfigured() {
   return site.workshop.totalPrice !== null && site.workshop.minDeposit !== null

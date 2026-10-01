@@ -10,7 +10,9 @@ import { cn } from '@/lib/utils'
 
 // «Avisame» for visitors who aren't artists: the finalists, the magazine and
 // the Mundial's news by email (app/aviso/actions.ts).
-export function WaitlistSignup({ source, className }: { source: WaitlistSource; className?: string }) {
+// title/body replace the default «Enterate de las finalistas» wording where
+// the page asks for something more specific (the magazine's pre-sale).
+export function WaitlistSignup({ source, className, title, body }: { source: WaitlistSource; className?: string; title?: string; body?: string }) {
   const { m } = useI18n()
   const t = m.growth
   const [state, action, pending] = useActionState<WaitlistState, FormData>(joinWaitlist.bind(null, source), 'idle')
@@ -26,8 +28,8 @@ export function WaitlistSignup({ source, className }: { source: WaitlistSource; 
 
   return (
     <form action={action} className={cn('w-full max-w-md', className)}>
-      <p className="font-display text-xl tracking-tight text-ink uppercase">{t.waitlistTitle}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{t.waitlistBody}</p>
+      <p className="font-display text-xl tracking-tight text-ink uppercase">{title ?? t.waitlistTitle}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{body ?? t.waitlistBody}</p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <label className="sr-only" htmlFor={`waitlist-${source}`}>{t.waitlistEmail}</label>
         <input

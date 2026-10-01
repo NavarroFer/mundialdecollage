@@ -6,7 +6,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -288,6 +288,17 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         periodDays={periodDays}
       />
 
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Preventa de la revista"
+        description="Desde abrir /revista hasta pagar con Mercado Pago. Mientras la preventa no tenga precio, la página junta mails (ver «Avisame»). Se mide desde el 1 de octubre de 2026."
+        steps={MAGAZINE_FUNNEL_EVENTS}
+        baseStep="magazine_view"
+        baseLabel="De quienes abrieron la revista"
+        periodDays={periodDays}
+      />
+
       </section>
 
       <section className="mt-14" aria-labelledby="action-comparisons-title">
@@ -336,8 +347,18 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         week={funnelWeek}
         month={funnelMonth}
         title="Cómo llegan a la tienda"
-        description="Personas distintas que fueron a la tienda desde cada lugar del sitio o desde el mail diario «Así le fue a tu obra». Se mide desde el 1 de octubre de 2026."
+        description="Personas distintas que fueron a la tienda desde el encabezado, una página de obra o el mail diario «Así le fue a tu obra». Se mide desde el 1 de octubre de 2026."
         steps={STORE_ENTRY_EVENTS}
+        periodDays={periodDays}
+        variant="comparison"
+      />
+
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Cómo llegan a la revista"
+        description="Personas distintas que fueron a /revista desde la tienda, después de inscribirse o desde la tarjeta «Ya estás participando» de la home. Se mide desde el 1 de octubre de 2026."
+        steps={MAGAZINE_ENTRY_EVENTS}
         periodDays={periodDays}
         variant="comparison"
       />

@@ -111,7 +111,6 @@ export const STORE_FUNNEL_EVENTS = [
 // Where the people who reach the store come from.
 export const STORE_ENTRY_EVENTS = [
   { name: 'store_click_header', label: 'Fueron a la tienda desde el encabezado' },
-  { name: 'store_click_confirmation', label: 'Fueron a la tienda después de inscribirse' },
   { name: 'store_click_artwork', label: 'Fueron a la tienda desde la página de una obra' },
   { name: 'store_from_email', label: 'Llegaron a la tienda desde el mail diario' },
 ] as const
@@ -122,6 +121,22 @@ export const WAITLIST_EVENTS = [
   { name: 'waitlist_signup_footer', label: 'Dejaron su mail en el pie de página' },
   { name: 'waitlist_signup_tienda', label: 'Dejaron su mail en la tienda' },
   { name: 'waitlist_signup_galeria', label: 'Pidieron el aviso después de un like o comentario' },
+  { name: 'waitlist_signup_revista', label: 'Pidieron el aviso de la preventa de la revista' },
+] as const
+
+// Preventa de la Revista 1ª Edición (app/revista), from the page to a
+// Mercado Pago payment.
+export const MAGAZINE_FUNNEL_EVENTS = [
+  { name: 'magazine_view', label: 'Abrieron la página de la revista' },
+  { name: 'magazine_checkout_start', label: 'Completaron el envío y fueron a Mercado Pago' },
+  { name: 'magazine_paid', label: 'Pagaron la revista' },
+] as const
+
+// Where the people who reach /revista come from.
+export const MAGAZINE_ENTRY_EVENTS = [
+  { name: 'magazine_click_store', label: 'Fueron a la revista desde la tienda' },
+  { name: 'magazine_click_confirmation', label: 'Fueron a la revista después de inscribirse' },
+  { name: 'magazine_click_status', label: 'Fueron a la revista desde «Ya estás participando»' },
 ] as const
 
 export type FunnelEvent =
@@ -135,11 +150,13 @@ export type FunnelEvent =
   | (typeof STORE_FUNNEL_EVENTS)[number]['name']
   | (typeof STORE_ENTRY_EVENTS)[number]['name']
   | (typeof WAITLIST_EVENTS)[number]['name']
+  | (typeof MAGAZINE_FUNNEL_EVENTS)[number]['name']
+  | (typeof MAGAZINE_ENTRY_EVENTS)[number]['name']
 
 const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
-    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS,
   ].map((step) => step.name),
 )
 

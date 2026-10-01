@@ -8,6 +8,7 @@ import {
   MessageSquare,
   CreditCard,
   Boxes,
+  BookOpen,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -82,6 +83,12 @@ export const adminSections: {
         label: 'Pagos',
         icon: CreditCard,
         description: 'Pagos de quienes postularon más de una obra.',
+      },
+      {
+        href: '/admin/revista',
+        label: 'Revista',
+        icon: BookOpen,
+        description: 'Pedidos de la preventa de la revista impresa: a quién y adónde despacharla.',
       },
     ],
   },

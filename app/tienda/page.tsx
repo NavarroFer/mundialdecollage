@@ -10,6 +10,7 @@ import { isPayPalCheckoutConfigured } from '@/lib/payments/paypal/client'
 import { getI18n } from '@/lib/i18n/server'
 import { TrackView } from '@/components/track'
 import { WaitlistSignup } from '@/components/waitlist-signup'
+import { MagazinePromo } from '@/components/store-promo'
 
 export default async function StorePage({ searchParams }: { searchParams: Promise<{ desde?: string }> }) {
   const [{ locale, m }, { desde }] = await Promise.all([getI18n(), searchParams])
@@ -36,6 +37,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
         </section>
 
         <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20" aria-labelledby="plans-title">
+          <MagazinePromo m={m} event="magazine_click_store" forArtist={false} className="mb-10" />
           <h2 id="plans-title" className="sr-only">{t.plansLabel}</h2>
           <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
             {subscriptionPlans.map((plan) => {

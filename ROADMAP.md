@@ -114,6 +114,17 @@ Probablemente reemplaza/define la "obra mensual" del ítem 4.
   suelto, cobro recurrente (Mercado Pago Preapproval) vs. compras puntuales,
   y cómo se entregan los productos digitales.
 
+## 7b. Preventa de la Revista 1ª Edición — ✅ armada, falta precio (2026-10-01)
+
+Revista impresa (sale el 10 de diciembre), con las 30 finalistas y un índice
+con todos los participantes. `/revista` vende por Mercado Pago Checkout Pro
+(envío incluido a todo Argentina) y los pedidos con dirección se ven en
+`/admin/revista`. Mientras `site.magazine.priceArs` (`lib/site.ts`) sea
+`null`, la página junta mails («Avisame», contactos `aviso_revista`).
+
+Pendiente: definir el precio por ejemplar (con envío) y avisar a la lista
+de espera el día que abra.
+
 ## 8. Perfil del artista — pendiente (2026-09-29)
 
 Una página propia de cada artista (hoy no existe: solo `/onboarding/obras`

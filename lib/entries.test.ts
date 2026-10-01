@@ -4,6 +4,7 @@ import {
   entryLimit,
   entryPaymentOutcome,
   needsEntryChoice,
+  magazineExternalReference,
   parseExternalReference,
   resolveEntryChoice,
 } from './entries'
@@ -66,7 +67,9 @@ describe('external reference', () => {
   it('tells obra payments apart from the taller registrations', () => {
     expect(parseExternalReference(entryExternalReference('123'))).toEqual({ kind: 'entry', id: '123' })
     expect(parseExternalReference('9b2f-uuid')).toEqual({ kind: 'workshop', id: '9b2f-uuid' })
+    expect(parseExternalReference(magazineExternalReference('abc'))).toEqual({ kind: 'magazine', id: 'abc' })
     expect(parseExternalReference('entry:')).toBeNull()
+    expect(parseExternalReference('revista:')).toBeNull()
     expect(parseExternalReference(null)).toBeNull()
   })
 })

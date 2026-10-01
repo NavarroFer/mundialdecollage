@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ShareArtwork } from '@/components/share-artwork'
 import { getArtworkShareState } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
-import { StorePromo } from '@/components/store-promo'
+import { MagazinePromo } from '@/components/store-promo'
 import { OnboardingSteps } from '../onboarding-steps'
 
 export default async function ConfirmationPage() {
@@ -36,7 +36,7 @@ export default async function ConfirmationPage() {
           <Button asChild size="lg"><Link href={`/obras/${artwork.slug}`}>{m.common.viewMyArtwork}</Link></Button>
           <Button asChild variant="outline"><Link href="/">{m.confirmation.backToMundial}</Link></Button>
         </div>
-        <StorePromo m={m} event="store_click_confirmation" forArtist className="mt-8" />
+        <MagazinePromo m={m} event="magazine_click_confirmation" className="mt-8" />
       </div>
     </main>
   )

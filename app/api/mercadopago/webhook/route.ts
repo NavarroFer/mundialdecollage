@@ -5,6 +5,7 @@ import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago
 import { parseSignatureHeader, verifyMercadoPagoSignature } from '@/lib/mercadopago-signature'
 import { parseExternalReference } from '@/lib/entries'
 import { applyEntryPayment } from '@/lib/entry-payments'
+import { applyMagazinePayment } from '@/lib/magazine-payments'
 
 // Mercado Pago's server-to-server notification. Historically sent both as a
 // JSON body (`{ type: 'payment', data: { id } }`) and as query params
@@ -81,6 +82,12 @@ export async function POST(request: NextRequest) {
   // The one-time payment to postulate more obras (app/onboarding/obras).
   if (reference.kind === 'entry') {
     await applyEntryPayment(payment)
+    return NextResponse.json({ ok: true })
+  }
+
+  // Preventa de la Revista 1ª Edición (app/revista).
+  if (reference.kind === 'magazine') {
+    await applyMagazinePayment(payment)
     return NextResponse.json({ ok: true })
   }
 

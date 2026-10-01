@@ -53,21 +53,27 @@ export function resolveEntryChoice({
 }
 
 // Mercado Pago's external_reference is shared by every checkout on the site.
-// Obra payments carry an "entry:" prefix; the taller's registrations were
-// created before it and use their bare id.
+// Obra payments carry an "entry:" prefix and magazine orders "revista:"; the
+// taller's registrations were created before both and use their bare id.
 const ENTRY_PREFIX = 'entry:'
+const MAGAZINE_PREFIX = 'revista:'
 
 export function entryExternalReference(purchaseId: string) {
   return `${ENTRY_PREFIX}${purchaseId}`
 }
 
+export function magazineExternalReference(orderId: string) {
+  return `${MAGAZINE_PREFIX}${orderId}`
+}
+
 export function parseExternalReference(
   reference: string | null | undefined,
-): { kind: 'entry' | 'workshop'; id: string } | null {
+): { kind: 'entry' | 'magazine' | 'workshop'; id: string } | null {
   if (!reference) return null
-  if (reference.startsWith(ENTRY_PREFIX)) {
-    const id = reference.slice(ENTRY_PREFIX.length)
-    return id ? { kind: 'entry', id } : null
+  for (const [prefix, kind] of [[ENTRY_PREFIX, 'entry'], [MAGAZINE_PREFIX, 'magazine']] as const) {
+    if (!reference.startsWith(prefix)) continue
+    const id = reference.slice(prefix.length)
+    return id ? { kind, id } : null
   }
   return { kind: 'workshop', id: reference }
 }
