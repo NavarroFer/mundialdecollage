@@ -8,9 +8,10 @@ alter table public.profile_stamps
 update public.profile_stamps set user_id = profile_id where user_id is null;
 
 alter table public.profile_stamps alter column user_id set not null;
-alter table public.profile_stamps alter column profile_id drop not null;
 
+-- profile_id can't lose its not null while it's part of the primary key.
 alter table public.profile_stamps drop constraint profile_stamps_pkey;
+alter table public.profile_stamps alter column profile_id drop not null;
 alter table public.profile_stamps add constraint profile_stamps_user_stamp_key unique (user_id, stamp_key);
 
 drop policy "profile_stamps: owner read own" on public.profile_stamps;
