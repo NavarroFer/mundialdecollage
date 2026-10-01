@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Globe, Instagram } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
+import { StorePromo } from '@/components/store-promo'
 import { ShareArtwork } from '@/components/share-artwork'
 import { ReferralInvite } from '@/components/referral-invite'
 import { TrackView, TrackedLink } from '@/components/track'
@@ -213,6 +214,8 @@ export default async function ObraPage({
               </TrackedLink>
             </Button>
           </section>
+
+          <StorePromo m={m} event="store_click_artwork" className="mt-6" />
         </div>
       </main>
       <Footer />

@@ -8,13 +8,18 @@ import { PaypalSubscriptionCheckout } from '@/components/paypal-subscription-che
 import { formatUsd, subscriptionPlans } from '@/lib/store'
 import { isPayPalCheckoutConfigured } from '@/lib/payments/paypal/client'
 import { getI18n } from '@/lib/i18n/server'
+import { TrackView } from '@/components/track'
+import { WaitlistSignup } from '@/components/waitlist-signup'
 
-export default async function StorePage() {
-  const { locale, m } = await getI18n()
+export default async function StorePage({ searchParams }: { searchParams: Promise<{ desde?: string }> }) {
+  const [{ locale, m }, { desde }] = await Promise.all([getI18n(), searchParams])
   const t = m.store
   return (
     <>
       <ScrollToTop />
+      <TrackView event="store_view" />
+      {/* The daily «Así le fue a tu obra» mail links here with ?desde=mail. */}
+      {desde === 'mail' && <TrackView event="store_from_email" />}
       <SiteHeader />
       <main>
         <section className="bg-grain relative overflow-hidden border-b-2 border-ink/10 py-18 sm:py-24">
@@ -75,6 +80,7 @@ export default async function StorePage() {
           <div className="mx-auto max-w-3xl px-5 text-center sm:px-8">
             <h2 className="font-display text-3xl tracking-tight uppercase">{t.moreTitle}</h2>
             <p className="mt-4 text-muted-foreground">{t.moreBody}</p>
+            <WaitlistSignup source="tienda" className="mx-auto mt-8 text-left" />
             <Link href="/" className="mt-7 inline-block text-sm font-semibold text-collage-blue underline underline-offset-4">{t.back}</Link>
           </div>
         </section>
@@ -87,7 +93,7 @@ export default async function StorePage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer showWaitlist={false} />
     </>
   )
 }

@@ -99,6 +99,31 @@ export const DISCOVERY_EVENTS = [
   { name: 'artist_profile_participate_click', label: 'Fueron de un perfil de artista a participar' },
 ] as const
 
+// The store's own path, from opening /tienda to PayPal approving the
+// subscription, to see where a sale gets lost.
+export const STORE_FUNNEL_EVENTS = [
+  { name: 'store_view', label: 'Abrieron la tienda' },
+  { name: 'store_checkout_open', label: 'Tocaron «Suscribirme» en un plan' },
+  { name: 'store_checkout_start', label: 'Completaron sus datos y abrieron PayPal' },
+  { name: 'store_checkout_approved', label: 'PayPal aprobó la suscripción' },
+] as const
+
+// Where the people who reach the store come from.
+export const STORE_ENTRY_EVENTS = [
+  { name: 'store_click_header', label: 'Fueron a la tienda desde el encabezado' },
+  { name: 'store_click_confirmation', label: 'Fueron a la tienda después de inscribirse' },
+  { name: 'store_click_artwork', label: 'Fueron a la tienda desde la página de una obra' },
+  { name: 'store_from_email', label: 'Llegaron a la tienda desde el mail diario' },
+] as const
+
+// «Avisame»: visitors who aren't artists leave their email to hear about
+// the finalists and the magazine (app/aviso/actions.ts → contacts).
+export const WAITLIST_EVENTS = [
+  { name: 'waitlist_signup_footer', label: 'Dejaron su mail en el pie de página' },
+  { name: 'waitlist_signup_tienda', label: 'Dejaron su mail en la tienda' },
+  { name: 'waitlist_signup_galeria', label: 'Pidieron el aviso después de un like o comentario' },
+] as const
+
 export type FunnelEvent =
   | (typeof FUNNEL_STEPS)[number]['name']
   | (typeof HOME_EVENTS)[number]['name']
@@ -107,9 +132,15 @@ export type FunnelEvent =
   | (typeof REFERRAL_EVENTS)[number]['name']
   | (typeof ONBOARDING_EVENTS)[number]['name']
   | (typeof DISCOVERY_EVENTS)[number]['name']
+  | (typeof STORE_FUNNEL_EVENTS)[number]['name']
+  | (typeof STORE_ENTRY_EVENTS)[number]['name']
+  | (typeof WAITLIST_EVENTS)[number]['name']
 
 const NAMES = new Set<string>(
-  [...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS].map((step) => step.name),
+  [
+    ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS,
+  ].map((step) => step.name),
 )
 
 export function isFunnelEvent(value: unknown): value is FunnelEvent {

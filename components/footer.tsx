@@ -4,12 +4,15 @@ import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { WaitlistSignup } from '@/components/waitlist-signup'
 
-export async function Footer() {
+// showWaitlist: off on pages that already have their own «Avisame» form.
+export async function Footer({ showWaitlist = true }: { showWaitlist?: boolean } = {}) {
   const { m } = await getI18n()
   return (
     <footer className="border-t-2 border-ink/10 bg-paper py-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-5 text-center sm:px-8">
+        {showWaitlist && <WaitlistSignup source="footer" className="mb-6 border-b-2 border-ink/10 pb-8" />}
         <p className="font-display text-2xl tracking-tight text-ink uppercase">
           {site.shortName}
         </p>

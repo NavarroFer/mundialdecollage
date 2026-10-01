@@ -6,6 +6,7 @@ import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js'
 import { Button } from '@/components/ui/button'
 import type { PaypalPlanKey } from '@/lib/payments/paypal/plans'
 import { useI18n } from '@/lib/i18n/client'
+import { track } from '@/lib/track'
 
 type FormValues = {
   given_name: string
@@ -37,7 +38,7 @@ export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPla
   const t = m.store.checkout
   const update = (field: keyof FormValues, value: string) => setForm((previous) => ({ ...previous, [field]: value }))
 
-  if (!open) return <Button size="lg" variant="primary" className="mt-8 w-full" onClick={() => setOpen(true)}>{t.subscribe}</Button>
+  if (!open) return <Button size="lg" variant="primary" className="mt-8 w-full" onClick={() => { track('store_checkout_open'); setOpen(true) }}>{t.subscribe}</Button>
 
   return (
     <div className="mt-8 space-y-4 border-t-2 border-ink/10 pt-6 text-left">
@@ -63,6 +64,7 @@ export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPla
           style={{ layout: 'vertical', label: 'subscribe' }}
           createSubscription={async () => {
             setError(null)
+            track('store_checkout_start')
             const response = await fetch('/api/paypal/subscriptions', {
               method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan, customer: { email: form.email, given_name: form.given_name, surname: form.surname }, shipping: { full_name: form.full_name, address_line_1: form.address_line_1, address_line_2: form.address_line_2, admin_area_2: form.admin_area_2, admin_area_1: form.admin_area_1, postal_code: form.postal_code, country_code: form.country_code } }),
             })
@@ -72,7 +74,7 @@ export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPla
             }
             return (await response.json() as { id: string }).id
           }}
-          onApprove={async () => { router.push('/gracias?tipo=suscripcion') }}
+          onApprove={async () => { track('store_checkout_approved'); router.push('/gracias?tipo=suscripcion') }}
           onError={() => setError(t.completeFailed)}
         />
       </PayPalScriptProvider>

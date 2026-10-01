@@ -89,10 +89,10 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center rounded-full bg-ink/[0.06] p-1.5 text-[15px] font-semibold transition-[padding] duration-300 ease-out group-data-[scrolled=true]/header:p-1 lg:flex motion-reduce:transition-none" aria-label={m.header.nav}>
-          <Link href="/tienda" className="flex h-11 items-center gap-2 rounded-full bg-paper px-4 text-ink shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-collage-yellow/20 hover:shadow-md active:translate-y-0 motion-reduce:transition-none">
+          <TrackedLink href="/tienda" event="store_click_header" className="flex h-11 items-center gap-2 rounded-full bg-paper px-4 text-ink shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-collage-yellow/20 hover:shadow-md active:translate-y-0 motion-reduce:transition-none">
             <Store className="h-4 w-4" aria-hidden="true" />
             {m.header.shop}
-          </Link>
+          </TrackedLink>
           <Link href="/#participantes" className="flex h-11 items-center rounded-full px-4 text-ink/70 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
             {m.header.participants}
           </Link>
@@ -137,9 +137,9 @@ export async function SiteHeader() {
                   {m.header.gallery3d}
                   <span aria-hidden="true">↗</span><span className="sr-only"> {m.common.opensInNewTab}</span>
                 </Link>
-                <Link href="/tienda" className="flex min-h-14 items-center rounded-xl px-4 font-display text-2xl tracking-wide transition-all duration-200 hover:bg-paper/10 hover:pl-5 motion-reduce:transition-none">
+                <TrackedLink href="/tienda" event="store_click_header" className="flex min-h-14 items-center rounded-xl px-4 font-display text-2xl tracking-wide transition-all duration-200 hover:bg-paper/10 hover:pl-5 motion-reduce:transition-none">
                   {m.header.shop}
-                </Link>
+                </TrackedLink>
                 <Link href="/#participantes" className="flex min-h-14 items-center rounded-xl px-4 font-display text-2xl tracking-wide transition-all duration-200 hover:bg-paper/10 hover:pl-5 motion-reduce:transition-none">
                   {m.header.participants}
                 </Link>

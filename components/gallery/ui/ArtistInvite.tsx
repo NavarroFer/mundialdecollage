@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useId, useRef } from 'react'
 import { track } from '@/lib/track'
 import { useI18n } from '@/lib/i18n/client'
+import { WaitlistOneClick } from '@/components/waitlist-signup'
 
 // Friends of an artist sign in with Google to like or comment their obra,
 // and then leave. Right after they do, while the account is fresh, ask
@@ -35,6 +36,9 @@ export function ArtistInvite({ onDismiss }: { onDismiss: () => void }) {
           {t.dismiss}
         </button>
       </div>
+      {/* Most of them are the artist's friends, not artists: keep them
+          around for the finalists and the magazine instead. */}
+      <WaitlistOneClick className="border-t border-ink/10 pt-2" />
     </section>
   )
 }

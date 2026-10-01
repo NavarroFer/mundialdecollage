@@ -6,7 +6,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -277,6 +277,17 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         periodDays={periodDays}
       />
 
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Tienda"
+        description="Desde abrir la tienda hasta que PayPal aprueba la suscripción, para ver en qué paso se pierde la venta. Se mide desde el 1 de octubre de 2026."
+        steps={STORE_FUNNEL_EVENTS}
+        baseStep="store_view"
+        baseLabel="De quienes abrieron la tienda"
+        periodDays={periodDays}
+      />
+
       </section>
 
       <section className="mt-14" aria-labelledby="action-comparisons-title">
@@ -317,6 +328,26 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         steps={DISCOVERY_EVENTS}
         baseStep="artwork_page_view"
         baseLabel="De quienes abrieron una obra"
+        periodDays={periodDays}
+        variant="comparison"
+      />
+
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Cómo llegan a la tienda"
+        description="Personas distintas que fueron a la tienda desde cada lugar del sitio o desde el mail diario «Así le fue a tu obra». Se mide desde el 1 de octubre de 2026."
+        steps={STORE_ENTRY_EVENTS}
+        periodDays={periodDays}
+        variant="comparison"
+      />
+
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="«Avisame» de finalistas y revista"
+        description="Personas que dejaron su mail para enterarse de las finalistas y la revista, según dónde lo hicieron. Quedan en Contactos con el origen «aviso_…». Se mide desde el 1 de octubre de 2026."
+        steps={WAITLIST_EVENTS}
         periodDays={periodDays}
         variant="comparison"
       />

@@ -35,6 +35,25 @@ const footer = (): EmailBlock[] => [
   { id: nextBlockId(), type: 'text', text: 'Mundial Internacional de Collage', align: 'center' },
 ]
 
+// The store, at the end of the daily «Así le fue a tu obra»: the artists
+// reading it are the Mundial's warmest audience. ?desde=mail is how
+// /tienda counts these visits (store_from_email in lib/funnel.ts).
+const storeBlocks = (siteUrl: string): EmailBlock[] => [
+  { id: nextBlockId(), type: 'divider' },
+  {
+    id: nextBlockId(),
+    type: 'text',
+    text: 'Papel por correo: el club mensual del Mundial de Collage. Cuadernos, láminas, fanzines y stickers armados a mano en Mar del Plata.',
+    align: 'left',
+  },
+  { id: nextBlockId(), type: 'button', text: 'Ver la tienda', url: `${siteUrl}/tienda?desde=mail`, align: 'left', color: 'blue' },
+]
+
+// Stored novedades_obra templates last saved before the store blocks
+// existed get them added once (see ensureSystemTemplate). Saved later, the
+// stored version wins — an admin who removes them keeps it that way.
+const STORE_BLOCKS_SHIPPED_AT = '2026-10-01T18:00:00Z'
+
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
   confirmar_datos: {
     name: 'Confirmación de datos: revisá tu participación',
@@ -113,6 +132,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
           align: 'left',
         },
         { id: nextBlockId(), type: 'button', text: 'Visitar el museo', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'red' },
+        ...storeBlocks(siteUrl),
         ...footer(),
       ],
     }),
@@ -158,6 +178,10 @@ export async function ensureSystemTemplate(db: SupabaseClient, key: SystemTempla
       }).eq('id', existing.id).select(COLUMNS).single()
       if (upgraded) return upgraded as StoredTemplate
     }
+    if (key === 'novedades_obra' && isEmailDocument(existing.body_json) && !existing.body_html.includes('/tienda')) {
+      const upgraded = await addStoreBlocks(db, existing.id, existing.body_json)
+      if (upgraded) return upgraded
+    }
     return existing as StoredTemplate
   }
 
@@ -179,6 +203,23 @@ export async function ensureSystemTemplate(db: SupabaseClient, key: SystemTempla
   const { data: raced } = await find()
   if (raced) return raced as StoredTemplate
   throw new Error(`No se pudo crear la plantilla: ${error?.message}`)
+}
+
+async function addStoreBlocks(db: SupabaseClient, id: string, doc: EmailDocument): Promise<StoredTemplate | null> {
+  const { data: meta } = await db.from('templates').select('updated_at').eq('id', id).single()
+  if (!meta || new Date(meta.updated_at) >= new Date(STORE_BLOCKS_SHIPPED_AT)) return null
+  // Before the closing footer (its divider) when there is one, else at the end.
+  const footerAt = doc.blocks.findLastIndex((block) => block.type === 'divider')
+  const at = footerAt === -1 ? doc.blocks.length : footerAt
+  const upgradedDoc: EmailDocument = { ...doc, blocks: [...doc.blocks.slice(0, at), ...storeBlocks(getSiteUrl()), ...doc.blocks.slice(at)] }
+  // Translations are keyed to the wording (translations_source), so the
+  // next send notices the new text and translates it.
+  const { data } = await db.from('templates').update({
+    body_json: upgradedDoc,
+    body_html: renderEmailDocumentToHtml(upgradedDoc),
+    updated_at: new Date().toISOString(),
+  }).eq('id', id).select(COLUMNS).single()
+  return (data as StoredTemplate | null) ?? null
 }
 
 // Translations for the languages about to be sent: the template's own while
