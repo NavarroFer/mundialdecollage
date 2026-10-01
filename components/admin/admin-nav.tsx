@@ -21,6 +21,7 @@ export function AdminNav() {
           const hasActiveItem = section.items.some(
             (item) => !item.external && pathname?.startsWith(item.href),
           )
+          const SectionIcon = section.icon
 
           return (
             <div
@@ -32,12 +33,11 @@ export function AdminNav() {
               )}
             >
               <span
-                className={cn(
-                  'rounded-full px-2.5 py-1 text-[0.6rem] font-bold tracking-[0.18em] uppercase',
-                  section.tone.badge,
-                )}
+                title={section.label}
+                className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full', section.tone.badge)}
               >
-                {section.label}
+                <SectionIcon className="h-4 w-4" aria-hidden />
+                <span className="sr-only">{section.label}</span>
               </span>
               <ul className="flex items-center gap-1" aria-label={`Sección ${section.label}`}>
                 {section.items.map((item) => {

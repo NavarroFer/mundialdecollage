@@ -11,6 +11,11 @@ import {
   BookOpen,
   Package,
   Gavel,
+  Megaphone,
+  ShoppingBag,
+  Landmark,
+  Scissors,
+  Mail,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -59,11 +64,13 @@ export type AdminTone = (typeof tones)[keyof typeof tones]
 // Group labels match the eyebrows each admin page shows above its title.
 export const adminSections: {
   label: string
+  icon: typeof Images
   tone: AdminTone
   items: AdminNavItem[]
 }[] = [
   {
     label: 'Convocatoria',
+    icon: Megaphone,
     tone: tones.blue,
     items: [
       {
@@ -96,6 +103,7 @@ export const adminSections: {
   },
   {
     label: 'Tienda',
+    icon: ShoppingBag,
     tone: tones.yellow,
     items: [
       {
@@ -114,6 +122,7 @@ export const adminSections: {
   },
   {
     label: 'Galería 3D',
+    icon: Landmark,
     tone: tones.red,
     items: [
       {
@@ -128,6 +137,7 @@ export const adminSections: {
   },
   {
     label: 'Taller',
+    icon: Scissors,
     tone: tones.yellow,
     items: [
       {
@@ -140,6 +150,7 @@ export const adminSections: {
   },
   {
     label: 'Newsletter',
+    icon: Mail,
     tone: tones.ink,
     items: [
       {
