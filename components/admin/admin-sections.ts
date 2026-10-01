@@ -10,6 +10,7 @@ import {
   Boxes,
   BookOpen,
   Package,
+  Gavel,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -78,6 +79,12 @@ export const adminSections: {
         icon: BarChart3,
         description:
           'Cuántas obras llegaron, desde qué países y con qué técnicas.',
+      },
+      {
+        href: '/admin/jurado',
+        label: 'Jurado',
+        icon: Gavel,
+        description: 'Jurados, su avance y el ranking de las obras preseleccionadas hasta las 30 finalistas.',
       },
       {
         href: '/admin/pagos',
