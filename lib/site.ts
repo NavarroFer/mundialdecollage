@@ -44,13 +44,24 @@ export const site = {
     priceUsd: 15,
   },
   // Preventa de la Revista 1ª Edición (app/revista). Printed only, shipped
-  // within Argentina. priceArs is per copy with shipping included; until
+  // worldwide. priceArs is per copy with shipping in Argentina; until
   // it's set, /revista collects emails («Avisame») instead of selling.
   magazine: {
     priceArs: null as number | null,
+    // Added once per order shipped outside Argentina. While null, the form
+    // only ships within Argentina and asks buyers abroad to write.
+    shippingAbroadArs: null as number | null,
     maxQuantity: 5,
     // Publication day, shown on /revista in the reader's language.
     releaseISO: '2026-12-10T12:00:00-03:00',
+  },
+  // Participation certificates (lib/certificate.tsx): a printable diploma
+  // and an Instagram image per obra. While enabled is false only admins can
+  // open them (preview from /admin/obras); flip it to hand them out.
+  certificates: {
+    enabled: false,
+    // The date printed on every certificate.
+    issuedISO: '2026-11-16T12:00:00-03:00',
   },
 } as const
 

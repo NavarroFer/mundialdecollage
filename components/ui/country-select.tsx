@@ -15,6 +15,7 @@ export function CountrySelect({
   defaultValue = '',
   required,
   placeholder,
+  onChange,
 }: {
   id?: string
   name: string
@@ -22,6 +23,7 @@ export function CountrySelect({
   defaultValue?: string
   required?: boolean
   placeholder?: string
+  onChange?: (code: string) => void
 }) {
   const [open, setOpen] = useState(false)
   const { m } = useI18n()
@@ -57,6 +59,7 @@ export function CountrySelect({
 
   function select(code: string) {
     setValue(code)
+    onChange?.(code)
     setOpen(false)
     setQuery('')
   }

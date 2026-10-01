@@ -16,6 +16,14 @@ export const CAMPAIGN_AUDIENCES = [
     description: 'Entraron con Google pero no mandaron su obra (suscriptos, sin admins).',
   },
   {
+    value: 'not_participating',
+    label: 'No participan todavía',
+    // Everyone on the list minus whoever already sent an obra (on the site or
+    // through the form/sheet): «Avisame» sign-ups, likers, old contacts.
+    // The countdown to the deadline goes here (lib/countdown-campaigns.ts).
+    description: 'Suscriptos que todavía no mandaron una obra, por el sitio ni por el formulario (sin admins).',
+  },
+  {
     value: 'profile_review',
     label: 'Datos por confirmar',
     description: 'Artistas con obra que todavía deben confirmar o completar nombre, país o título.',
@@ -50,6 +58,17 @@ export function contactsWithoutArtwork<T extends { email: string }>(
   })
 }
 
+// The subscribed contacts whose address isn't among `participantEmails`
+// (participant_emails()), never an admin's.
+export function contactsNotParticipating<T extends { email: string }>(
+  subscribed: T[],
+  participantEmails: Iterable<string>,
+  adminEmails: readonly string[] = ADMIN_EMAILS,
+): T[] {
+  const excluded = new Set([...participantEmails, ...adminEmails].map(normalize))
+  return subscribed.filter((contact) => !excluded.has(normalize(contact.email)))
+}
+
 // The same list for the composer's count (app/admin/campanas/nueva) and for
 // the send itself (sendCampaign), so what the admin is shown is what goes out.
 // `error` is set when the audience couldn't be worked out — never fall back
@@ -80,6 +99,13 @@ export async function audienceContacts(
       }),
       error: null,
     }
+  }
+
+  if (audience === 'not_participating') {
+    const { data: participants, error: participantsError } = await supabase.rpc('participant_emails')
+    if (participantsError) return { contacts: [], error: participantsError.message }
+    const emails = ((participants ?? []) as { email: string | null }[]).flatMap((row) => (row.email ? [row.email] : []))
+    return { contacts: contactsNotParticipating(subscribed ?? [], emails), error: null }
   }
 
   const { data: accounts, error: accountsError } = await supabase.rpc('accounts_without_artwork_emails')

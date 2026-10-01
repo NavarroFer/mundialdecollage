@@ -219,7 +219,7 @@ function ArLinks({ slug, countryCode }: { slug: string; countryCode?: string }) 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Realidad aumentada</p>
         <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          Tarjetas en
+          Idioma
           <select
             value={lang}
             onChange={(event) => setLang(event.target.value as Locale)}
@@ -245,6 +245,19 @@ function ArLinks({ slug, countryCode }: { slug: string; countryCode?: string }) 
         <a href={`/ar/${slug}`} target="_blank" rel="noreferrer" className={link}>
           <ScanLine className="h-4 w-4" />
           Abrir AR
+        </a>
+      </div>
+      {/* app/obras/[slug]/certificado — admins can always preview it; artists
+          get it once site.certificates.enabled is on. Same language picker. */}
+      <p className="mt-3 text-xs font-bold tracking-wide text-muted-foreground uppercase">Certificado de participación</p>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
+        <a href={`/obras/${slug}/certificado?formato=pdf&idioma=${lang}`} className={link}>
+          <Download className="h-4 w-4" />
+          Diploma PDF
+        </a>
+        <a href={`/obras/${slug}/certificado?formato=imagen&idioma=${lang}`} className={link}>
+          <Download className="h-4 w-4" />
+          Imagen Instagram
         </a>
       </div>
     </div>

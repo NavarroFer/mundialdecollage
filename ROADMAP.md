@@ -122,8 +122,24 @@ con todos los participantes. `/revista` vende por Mercado Pago Checkout Pro
 `/admin/revista`. Mientras `site.magazine.priceArs` (`lib/site.ts`) sea
 `null`, la página junta mails («Avisame», contactos `aviso_revista`).
 
-Pendiente: definir el precio por ejemplar (con envío) y avisar a la lista
-de espera el día que abra.
+Envíos a todo el mundo: el precio incluye el envío en Argentina y
+`site.magazine.shippingAbroadArs` se suma una vez por pedido al exterior
+(mientras sea `null`, solo se vende dentro de Argentina).
+
+Pendiente: definir el precio por ejemplar y el envío al exterior, y avisar a
+la lista de espera el día que abra.
+
+## 7c. Cuenta regresiva y certificados — ✅ (2026-10-01)
+
+- **Cuenta regresiva**: el cron de campañas programa solo tres campañas
+  (15, 7 y 1 días antes del cierre) para el público «No participan
+  todavía». Se editan en `/admin/plantillas` y se cancelan en
+  `/admin/campanas`.
+- **Certificado de participación** (`/obras/[slug]/certificado`): diploma A4
+  en PDF y una imagen 1080x1350 para Instagram, en el idioma del artista.
+  **Desactivado** (`site.certificates.enabled = false`): por ahora solo lo
+  ven los admins desde `/admin/obras`. Al activarlo aparece en «Ya estás
+  participando». La fecha impresa es `site.certificates.issuedISO`.
 
 ## 8. Perfil del artista — pendiente (2026-09-29)
 

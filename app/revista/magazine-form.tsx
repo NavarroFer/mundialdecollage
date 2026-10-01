@@ -1,17 +1,22 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useMemo, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { startMagazineCheckout, type MagazineCheckoutState } from './actions'
-import type { MagazineField } from '@/lib/magazine'
+import { CountrySelect } from '@/components/ui/country-select'
+import { magazineOrderAmount, shipsAbroad, type MagazineField } from '@/lib/magazine'
+import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
+import { fmt } from '@/lib/i18n/format'
 import { useI18n } from '@/lib/i18n/client'
 import { cn } from '@/lib/utils'
 
 const initial: MagazineCheckoutState = { error: null, invalid: [], values: {} }
 
-export function MagazineForm({ priceArs, maxQuantity, defaultName, defaultEmail }: {
+export function MagazineForm({ priceArs, shippingAbroadArs, maxQuantity, defaultName, defaultEmail }: {
   priceArs: number
+  // null: only Argentina for now (site.magazine.shippingAbroadArs).
+  shippingAbroadArs: number | null
   maxQuantity: number
   defaultName: string
   defaultEmail: string
@@ -20,6 +25,12 @@ export function MagazineForm({ priceArs, maxQuantity, defaultName, defaultEmail 
   const t = m.magazine
   const [state, action, pending] = useActionState(startMagazineCheckout, initial)
   const [quantity, setQuantity] = useState(1)
+  const [country, setCountry] = useState(state.values.country_code || 'AR')
+  const abroad = shipsAbroad(country)
+  const countries = useMemo(
+    () => getAllCountryCodes().map((code) => ({ code, name: countryCodeToName(code, locale) })).sort((a, b) => a.name.localeCompare(b.name, locale)),
+    [locale],
+  )
   const ars = (amount: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount)
   const invalid = (field: MagazineField) => state.invalid.includes(field)
 
@@ -48,6 +59,15 @@ export function MagazineForm({ priceArs, maxQuantity, defaultName, defaultEmail 
       </div>
       {field('address_line_1', t.address, { required: true, autoComplete: 'address-line1', maxLength: 200 })}
       {field('address_line_2', t.apartment, { autoComplete: 'address-line2', maxLength: 100 })}
+      {shippingAbroadArs !== null ? (
+        <div className="text-sm font-medium">
+          <label htmlFor="magazine-country">{t.country}</label>
+          <CountrySelect id="magazine-country" name="country_code" countries={countries} defaultValue={country} onChange={setCountry} required />
+          {abroad && <p className="mt-1.5 text-xs text-muted-foreground">{fmt(t.shippingAbroad, { price: ars(shippingAbroadArs) })}</p>}
+        </div>
+      ) : (
+        <input type="hidden" name="country_code" value="AR" />
+      )}
       <div className="grid gap-4 sm:grid-cols-3">
         {field('city', t.city, { required: true, autoComplete: 'address-level2', maxLength: 100 })}
         {field('province', t.province, { required: true, autoComplete: 'address-level1', maxLength: 100 })}
@@ -70,7 +90,7 @@ export function MagazineForm({ priceArs, maxQuantity, defaultName, defaultEmail 
         </label>
         <p className="text-right">
           <span className="block text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">{t.total}</span>
-          <span className="text-2xl font-bold tracking-tight">{ars(priceArs * quantity)}</span>
+          <span className="text-2xl font-bold tracking-tight">{ars(magazineOrderAmount(priceArs, quantity, country, shippingAbroadArs))}</span>
         </p>
       </div>
 

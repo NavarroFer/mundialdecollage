@@ -4,6 +4,7 @@ import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { SubmitButton } from '@/components/admin/submit-button'
 import type { MagazineShipping } from '@/lib/magazine'
+import { countryCodeToName } from '@/lib/participants'
 import { setMagazineShipped } from './actions'
 
 // Preventa de la Revista 1ª Edición (app/revista): who paid, where to send
@@ -31,7 +32,8 @@ function formatArs(amount: number) {
 
 function formatAddress(address: MagazineShipping) {
   const street = [address.address_line_1, address.address_line_2].filter(Boolean).join(', ')
-  return `${street} — ${address.city}, ${address.province} (${address.postal_code})`
+  // Orders from before shipping abroad have no country: Argentina.
+  return `${street} — ${address.city}, ${address.province} (${address.postal_code}), ${countryCodeToName(address.country_code ?? 'AR')}`
 }
 
 export default async function RevistaAdminPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
@@ -56,7 +58,7 @@ export default async function RevistaAdminPage({ searchParams }: { searchParams:
       <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
         {site.magazine.priceArs === null
           ? 'La preventa todavía no tiene precio: /revista junta mails («Avisame», en Contactos con origen aviso_revista). Cargá el precio en lib/site.ts (site.magazine.priceArs) para abrirla.'
-          : `Preventa abierta a ${formatArs(site.magazine.priceArs)} por ejemplar, envío incluido.`}
+          : `Preventa abierta a ${formatArs(site.magazine.priceArs)} por ejemplar con envío en Argentina${site.magazine.shippingAbroadArs === null ? '; fuera de Argentina todavía no se vende (cargá site.magazine.shippingAbroadArs).' : `, más ${formatArs(site.magazine.shippingAbroadArs)} por pedido al exterior.`}`}
       </p>
       {(error || loadError) && (
         <p role="alert" className="mt-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{error ?? loadError?.message}</p>

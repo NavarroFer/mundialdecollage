@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { audienceLabel, contactsWithoutArtwork, parseAudience } from './campaign-audience'
+import { audienceLabel, contactsNotParticipating, contactsWithoutArtwork, parseAudience } from './campaign-audience'
 
 describe('parseAudience', () => {
   it('defaults to every subscriber for anything unknown', () => {
@@ -37,5 +37,16 @@ describe('contactsWithoutArtwork', () => {
 
   it('is empty when every account already sent an obra', () => {
     expect(contactsWithoutArtwork(subscribed, [], [])).toEqual([])
+  })
+})
+
+describe('contactsNotParticipating', () => {
+  it('leaves out participants (any casing) and admins', () => {
+    const subscribed = [
+      { id: '1', email: 'fan@example.com' },
+      { id: '2', email: 'Artist@Example.com' },
+      { id: '3', email: 'admin@example.com' },
+    ]
+    expect(contactsNotParticipating(subscribed, [' artist@example.com '], ['admin@example.com']).map((c) => c.id)).toEqual(['1'])
   })
 })

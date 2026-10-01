@@ -15,7 +15,7 @@ export function argentinaDay(now: Date = new Date()): string {
   return argentinaClock(now).toISOString().slice(0, 10)
 }
 
-function addDays(day: string, days: number): string {
+export function addDays(day: string, days: number): string {
   const date = new Date(`${day}T00:00:00Z`)
   date.setUTCDate(date.getUTCDate() + days)
   return date.toISOString().slice(0, 10)

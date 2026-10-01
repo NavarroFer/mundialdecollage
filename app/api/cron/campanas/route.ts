@@ -5,6 +5,7 @@ import { campaignRecipients, deliverCampaign } from '@/lib/campaign-delivery'
 import { argentinaDay } from '@/lib/campaign-schedule'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { getSiteUrl, site } from '@/lib/site'
+import { ensureCountdownCampaigns } from '@/lib/countdown-campaigns'
 
 export const maxDuration = 300
 
@@ -21,6 +22,19 @@ export async function GET(request: NextRequest) {
   const dryRun = request.nextUrl.searchParams.get('dry') === '1'
   const db = createAdminClient()
   const today = argentinaDay()
+
+  // The countdown to the deadline schedules itself (lib/countdown-campaigns.ts),
+  // before looking for what's due, so one due today also goes out today.
+  let countdownProblem: string | null = null
+  let countdownCreated: string[] = []
+  if (!dryRun) {
+    try {
+      countdownCreated = await ensureCountdownCampaigns(db, today)
+    } catch (err) {
+      countdownProblem = `Cuenta regresiva: ${err instanceof Error ? err.message : String(err)}`
+      console.error('countdown campaigns failed', countdownProblem)
+    }
+  }
 
   const { data: due, error: dueError } = await db
     .from('campaigns')
@@ -44,7 +58,7 @@ export async function GET(request: NextRequest) {
   }
 
   const report: Record<string, unknown>[] = []
-  const problems: string[] = []
+  const problems: string[] = countdownProblem ? [countdownProblem] : []
   for (const { id } of due ?? []) {
     const { data: campaign } = await db
       .from('campaigns')
@@ -77,7 +91,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (problems.length) await notifyAdmins(problems)
-  return NextResponse.json({ today, campaigns: report }, { status: problems.length ? 500 : 200 })
+  return NextResponse.json({ today, countdownCreated, campaigns: report }, { status: problems.length ? 500 : 200 })
 }
 
 async function notifyAdmins(problems: string[]) {

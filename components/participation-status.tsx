@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { AlertCircle, ArrowRight, CheckCircle2, Users } from 'lucide-react'
+import { AlertCircle, ArrowRight, Award, CheckCircle2, Download, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
 import { TrackedLink, TrackView } from '@/components/track'
@@ -7,6 +7,7 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { ShareArtwork } from '@/components/share-artwork'
 import { MagazinePromo } from '@/components/store-promo'
+import { site } from '@/lib/site'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -165,6 +166,21 @@ export async function ParticipationStatus() {
                     </SubmitButton>
                   </div>
                 </form>
+              )}
+
+              {site.certificates.enabled && !needsConfirmation && (
+                <div className="mt-5 rounded-xl border-2 border-collage-yellow/40 bg-collage-yellow/10 p-4 text-left">
+                  <p className="flex items-center gap-2 font-semibold text-ink"><Award className="h-5 w-5 text-collage-red" aria-hidden="true" />{m.certificate.sectionTitle}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{m.certificate.sectionBody}</p>
+                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                    <a href={`/obras/${artwork.slug}/certificado?formato=pdf`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-collage-blue underline underline-offset-4">
+                      <Download className="h-4 w-4" aria-hidden="true" />{m.certificate.downloadPdf}
+                    </a>
+                    <a href={`/obras/${artwork.slug}/certificado?formato=imagen`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-collage-blue underline underline-offset-4">
+                      <Download className="h-4 w-4" aria-hidden="true" />{m.certificate.downloadImage}
+                    </a>
+                  </div>
+                </div>
               )}
 
               <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">

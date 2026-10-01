@@ -61,7 +61,12 @@ export default async function MagazinePage() {
                 date: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date(site.magazine.releaseISO)),
               })}
             </p>
-            <p className="mt-2 text-sm text-muted-foreground">{fmt(t.shipping, { email: site.email })}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t.shipping}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {site.magazine.shippingAbroadArs !== null
+                ? fmt(t.shippingAbroad, { price: ars(site.magazine.shippingAbroadArs) })
+                : fmt(t.shippingAbroadSoon, { email: site.email })}
+            </p>
           </section>
 
           <section className="rounded-3xl border-2 border-ink/10 bg-card p-6 shadow-sm sm:p-8" aria-labelledby="magazine-order-title">
@@ -74,7 +79,7 @@ export default async function MagazinePage() {
                   <span className="text-sm text-muted-foreground">{t.perCopy} · {t.priceLabel}</span>
                 </p>
                 <div className="mt-6">
-                  <MagazineForm priceArs={priceArs} maxQuantity={site.magazine.maxQuantity} defaultName={defaultName} defaultEmail={defaultEmail} />
+                  <MagazineForm priceArs={priceArs} shippingAbroadArs={site.magazine.shippingAbroadArs} maxQuantity={site.magazine.maxQuantity} defaultName={defaultName} defaultEmail={defaultEmail} />
                 </div>
               </>
             ) : (

@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { magazineExternalReference } from '@/lib/entries'
-import { MAGAZINE_FIELDS, parseMagazineOrder, type MagazineField } from '@/lib/magazine'
+import { MAGAZINE_FIELDS, magazineOrderAmount, parseMagazineOrder, shipsAbroad, type MagazineField } from '@/lib/magazine'
 import { getSiteUrl, isMagazineSaleOpen, site } from '@/lib/site'
 import { trackServer } from '@/lib/track-server'
 
@@ -37,12 +37,14 @@ export async function startMagazineCheckout(_previous: MagazineCheckoutState, fo
     return unavailable
   }
 
-  const parsed = parseMagazineOrder((field) => formData.get(field), site.magazine.maxQuantity)
+  const { shippingAbroadArs } = site.magazine
+  const parsed = parseMagazineOrder((field) => formData.get(field), site.magazine.maxQuantity, shippingAbroadArs !== null)
   if (!parsed.ok) return { error: 'invalid', invalid: parsed.invalid, values }
   const { order } = parsed
 
   const { data: { user } } = await (await createClient()).auth.getUser()
-  const amount = priceArs * order.quantity
+  const abroad = shipsAbroad(order.shipping.country_code)
+  const amount = magazineOrderAmount(priceArs, order.quantity, order.shipping.country_code, shippingAbroadArs)
   const admin = createAdminClient()
   const { data: row, error: insertError } = await admin
     .from('magazine_orders')
@@ -72,11 +74,14 @@ export async function startMagazineCheckout(_previous: MagazineCheckoutState, fo
         items: [
           {
             id: 'mundial-revista-1',
-            title: 'Revista Mundial de Collage — 1ª edición (impresa, envío incluido)',
+            title: 'Revista Mundial de Collage — 1ª edición (impresa)',
             quantity: order.quantity,
             unit_price: priceArs,
             currency_id: 'ARS',
           },
+          ...(abroad && shippingAbroadArs
+            ? [{ id: 'mundial-revista-envio', title: 'Envío internacional', quantity: 1, unit_price: shippingAbroadArs, currency_id: 'ARS' }]
+            : []),
         ],
         payer: { email: order.email, name: order.name },
         external_reference: magazineExternalReference(row.id),

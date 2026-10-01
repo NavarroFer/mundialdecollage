@@ -16,9 +16,10 @@ import {
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
-import { getSiteUrl } from '@/lib/site'
+import { getSiteUrl, site } from '@/lib/site'
 
-export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos'
+export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | CountdownTemplateKey
+export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
 
 type SystemTemplateDefinition = {
   name: string
@@ -54,7 +55,57 @@ const storeBlocks = (siteUrl: string): EmailBlock[] => [
 // stored version wins — an admin who removes them keeps it that way.
 const STORE_BLOCKS_SHIPPED_AT = '2026-10-01T18:00:00Z'
 
+// The countdown to the deadline (lib/countdown-campaigns.ts), sent to the
+// contacts who haven't taken part yet. Same body, a different opening.
+const countdown = (heading: string, opening: string) => (siteUrl: string): EmailDocument => ({
+  blocks: [
+    logo(siteUrl),
+    { id: nextBlockId(), type: 'spacer', size: 'sm' },
+    { id: nextBlockId(), type: 'heading', text: heading, align: 'left', size: 'md' },
+    { id: nextBlockId(), type: 'text', text: opening, align: 'left' },
+    {
+      id: nextBlockId(),
+      type: 'text',
+      text: 'Participar es gratis: mandás una obra original y entrás en la evaluación del jurado internacional, en la Gran Muestra Online y en el índice de la Revista 1ª Edición, junto a artistas de todo el mundo.',
+      align: 'left',
+    },
+    { id: nextBlockId(), type: 'button', text: 'Mandar mi obra', url: `${siteUrl}/onboarding`, align: 'left', color: 'red' },
+    { id: nextBlockId(), type: 'text', text: '¿Conocés a alguien que hace collage? Reenviale este mail.', align: 'left' },
+    ...footer(),
+  ],
+})
+
+const COUNTDOWN_DESCRIPTION =
+  'Se programa sola en Campañas para el público «No participan todavía» (cuenta regresiva al cierre de la convocatoria). Editala acá antes de su fecha; para no mandarla, cancelala en Campañas. Usá {{nombre}}.'
+
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
+  cuenta_regresiva_15: {
+    name: 'Cuenta regresiva: quedan 15 días',
+    subject: 'Quedan 15 días para participar del Mundial de Collage',
+    description: COUNTDOWN_DESCRIPTION,
+    createDocument: countdown(
+      'Hola {{nombre}}, quedan 15 días',
+      `La convocatoria del Mundial Internacional de Collage cierra el ${site.deadlineLabel}. Todavía estás a tiempo de sumar tu obra.`,
+    ),
+  },
+  cuenta_regresiva_7: {
+    name: 'Cuenta regresiva: queda una semana',
+    subject: 'Queda una semana: sumá tu obra al Mundial de Collage',
+    description: COUNTDOWN_DESCRIPTION,
+    createDocument: countdown(
+      'Hola {{nombre}}, queda una semana',
+      `El ${site.deadlineLabel} cierra la convocatoria del Mundial Internacional de Collage. Si tenés una obra en mente, este es el momento.`,
+    ),
+  },
+  cuenta_regresiva_1: {
+    name: 'Cuenta regresiva: último día',
+    subject: 'Mañana cierra el Mundial de Collage',
+    description: COUNTDOWN_DESCRIPTION,
+    createDocument: countdown(
+      'Hola {{nombre}}, mañana cierra la convocatoria',
+      `Es tu última oportunidad: el ${site.deadlineLabel} a medianoche (hora argentina) cerramos la recepción de obras del Mundial Internacional de Collage.`,
+    ),
+  },
   confirmar_datos: {
     name: 'Confirmación de datos: revisá tu participación',
     subject: '¿Revisamos tus datos para el Mundial de Collage?',
