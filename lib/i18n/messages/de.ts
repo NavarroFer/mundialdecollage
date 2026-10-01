@@ -163,6 +163,8 @@ const de: Messages = {
     note: 'Begrenzte Plätze – Anmeldung mit Online-Zahlung (Anzahlung oder Gesamtbetrag).',
   },
   footer: {
+    followUs: 'Folge uns',
+    contact: 'Kontakt',
     terms: 'Nutzungsbedingungen',
     privacy: 'Datenschutzerklärung',
     googleWhy:

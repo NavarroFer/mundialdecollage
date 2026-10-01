@@ -163,6 +163,8 @@ const it: Messages = {
     note: 'Posti limitati — iscrizione con pagamento online (acconto o totale).',
   },
   footer: {
+    followUs: 'Seguici',
+    contact: 'Contatti',
     terms: 'Termini e Condizioni',
     privacy: 'Informativa sulla Privacy',
     googleWhy:

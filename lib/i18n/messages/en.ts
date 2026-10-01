@@ -163,6 +163,8 @@ const en: Messages = {
     note: 'Limited places — registration with online payment (deposit or full amount).',
   },
   footer: {
+    followUs: 'Follow us',
+    contact: 'Contact',
     terms: 'Terms and Conditions',
     privacy: 'Privacy Policy',
     googleWhy:

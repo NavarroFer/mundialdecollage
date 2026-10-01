@@ -168,6 +168,8 @@ const pl: Messages = {
     note: 'Liczba miejsc ograniczona — zapisy z płatnością online (zaliczka lub całość).',
   },
   footer: {
+    followUs: 'Obserwuj nas',
+    contact: 'Kontakt',
     terms: 'Regulamin',
     privacy: 'Polityka prywatności',
     googleWhy:

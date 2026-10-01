@@ -10,13 +10,21 @@ import { WaitlistSignup } from '@/components/waitlist-signup'
 export async function Footer({ showWaitlist = true }: { showWaitlist?: boolean } = {}) {
   const { m } = await getI18n()
   return (
-    <footer className="border-t-2 border-ink/10 bg-paper py-10">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-5 text-center sm:px-8">
-        {showWaitlist && <WaitlistSignup source="footer" className="mb-6 border-b-2 border-ink/10 pb-8" />}
-        <p className="font-display text-2xl tracking-tight text-ink uppercase">
+    <>
+      {showWaitlist && (
+        <section aria-label={m.growth.waitlistTitle} className="border-t border-ink/10 bg-collage-blue/5 px-5 py-10 sm:px-8 sm:py-12">
+          <WaitlistSignup source="footer" className="mx-auto text-center" />
+        </section>
+      )}
+      <footer className="border-t border-ink/10 bg-paper">
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <div className="grid gap-7 py-8 md:grid-cols-[1fr_1fr_1.2fr] md:gap-8 md:py-10">
+        <p className="font-display text-2xl tracking-tight text-ink uppercase md:text-3xl">
           {site.shortName}
         </p>
-        <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+        <div>
+        <h2 className="mb-2 text-xs font-semibold tracking-widest text-muted-foreground uppercase">{m.footer.followUs}</h2>
+        <ul className="flex flex-col items-start">
           {site.organizers.map(({ name, instagram }) => (
             <li key={name}>
               <a
@@ -24,7 +32,7 @@ export async function Footer({ showWaitlist = true }: { showWaitlist?: boolean }
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={fmt(m.common.instagramOf, { name })}
-                className="inline-flex min-h-11 items-center gap-1.5 font-display text-sm tracking-[0.3em] text-ink uppercase underline-offset-4 hover:underline"
+                className="inline-flex min-h-11 items-center gap-2 text-sm text-ink underline-offset-4 hover:underline"
               >
                 <Instagram className="size-4 text-collage-red" aria-hidden />
                 {name}
@@ -32,28 +40,35 @@ export async function Footer({ showWaitlist = true }: { showWaitlist?: boolean }
             </li>
           ))}
         </ul>
+        </div>
+        <div className="min-w-0">
+        <h2 className="mb-2 text-xs font-semibold tracking-widest text-muted-foreground uppercase">{m.footer.contact}</h2>
         <a
           href={`mailto:${site.email}`}
-          className="text-sm text-muted-foreground underline underline-offset-4"
+          className="inline-flex min-h-11 max-w-full items-center text-sm text-ink underline underline-offset-4 [overflow-wrap:anywhere]"
         >
           {site.email}
         </a>
-        <nav className="flex items-center gap-4 text-xs text-muted-foreground/80">
-          <Link href="/terminos-y-condiciones" className="underline-offset-4 hover:underline">
+        </div>
+        </div>
+        <div className="flex flex-col gap-3 border-t border-ink/10 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 lg:order-2">
+        <nav className="flex flex-wrap items-center gap-x-5 text-xs text-muted-foreground">
+          <Link href="/terminos-y-condiciones" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">
             {m.footer.terms}
           </Link>
-          <Link href="/politica-de-privacidad" className="underline-offset-4 hover:underline">
+          <Link href="/politica-de-privacidad" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">
             {m.footer.privacy}
           </Link>
         </nav>
-        <p className="max-w-xl text-xs leading-relaxed text-muted-foreground/80">
-          {m.footer.googleWhy}
-        </p>
         <LanguageSwitcher />
-        <p className="text-xs text-muted-foreground/70">
+        </div>
+        <p className="text-xs text-muted-foreground">
           © {new Date().getFullYear()} {site.name}
         </p>
+        </div>
       </div>
     </footer>
+    </>
   )
 }

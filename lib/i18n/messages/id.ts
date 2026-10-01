@@ -163,6 +163,8 @@ const id: Messages = {
     note: 'Tempat terbatas — pendaftaran dengan pembayaran online (uang muka atau penuh).',
   },
   footer: {
+    followUs: 'Ikuti kami',
+    contact: 'Kontak',
     terms: 'Syarat dan Ketentuan',
     privacy: 'Kebijakan Privasi',
     googleWhy:

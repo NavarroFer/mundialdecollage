@@ -164,6 +164,8 @@ const es = {
     note: 'Cupos limitados — inscripción con pago online (seña o total).',
   },
   footer: {
+    followUs: 'Seguinos',
+    contact: 'Contacto',
     terms: 'Términos y Condiciones',
     privacy: 'Política de Privacidad',
     googleWhy:

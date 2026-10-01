@@ -163,6 +163,8 @@ const pt: Messages = {
     note: 'Vagas limitadas — inscrição com pagamento online (sinal ou valor total).',
   },
   footer: {
+    followUs: 'Siga a gente',
+    contact: 'Contato',
     terms: 'Termos e Condições',
     privacy: 'Política de Privacidade',
     googleWhy:

@@ -163,6 +163,8 @@ const fr: Messages = {
     note: 'Places limitées — inscription avec paiement en ligne (acompte ou totalité).',
   },
   footer: {
+    followUs: 'Suivez-nous',
+    contact: 'Contact',
     terms: 'Conditions générales',
     privacy: 'Politique de confidentialité',
     googleWhy:
