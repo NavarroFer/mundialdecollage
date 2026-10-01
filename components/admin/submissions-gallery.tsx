@@ -23,7 +23,7 @@ import {
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { instagramHandle } from '@/lib/instagram'
-import { deleteSubmissions, setSubmissionsReviewStatus, setSubmissionsVisibility } from '@/app/admin/obras/actions'
+import { deleteSubmissions, setSubmissionsReviewStatus, setSubmissionsTechnique, setSubmissionsVisibility } from '@/app/admin/obras/actions'
 import { ObraViewer } from '@/components/admin/obra-viewer'
 import type { Submission } from '@/components/admin/submission-types'
 
@@ -177,6 +177,15 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
     setActionMessage(null)
     startTransition(async () => {
       await setSubmissionsReviewStatus(ids, reviewStatus)
+      cancelSelection()
+    })
+  }
+
+  function applyTechnique(value: string) {
+    const ids = Array.from(selected)
+    setActionMessage(null)
+    startTransition(async () => {
+      await setSubmissionsTechnique(ids, value === 'none' ? null : value)
       cancelSelection()
     })
   }
@@ -498,6 +507,17 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                 {selected.size} seleccionada{selected.size === 1 ? '' : 's'}
               </p>
               <div className="flex flex-wrap gap-2">
+                <select
+                  value=""
+                  disabled={isPending}
+                  onChange={(event) => event.target.value && applyTechnique(event.target.value)}
+                  aria-label="Asignar técnica a las seleccionadas"
+                  className="rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50"
+                >
+                  <option value="">Técnica…</option>
+                  {TECHNIQUES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  <option value="none">Quitar técnica</option>
+                </select>
                 <button
                   type="button"
                   disabled={isPending}

@@ -81,7 +81,7 @@ export default async function ObrasPage({
   const { data: legacyData } = await supabase
     .from('legacy_submissions')
     .select(
-      'id, email, name, drive_url, country_raw, title, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram, review_status',
+      'id, email, name, drive_url, country_raw, title, technique, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram, review_status',
     )
     .is('archived_at', null)
     .order('email', { ascending: true })
@@ -138,6 +138,7 @@ export default async function ObrasPage({
         // The viewer also uses this to decide whether "Estas participan" can
         // publish straight away or needs a country picked by hand first.
         countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
+        technique: row.technique ?? undefined,
         artworkTitle: row.title ?? undefined,
         imageUrl: row.image_url as string,
         createdAt: row.created_at,

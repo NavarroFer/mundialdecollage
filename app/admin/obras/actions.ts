@@ -148,6 +148,33 @@ export async function setSubmissionsReviewStatus(
   revalidatePath('/admin/obras')
 }
 
+const TECHNIQUE_VALUES = new Set(['Analógica', 'Mixta', 'Digital'])
+
+// Bulk «Técnica» from the obras gallery: the three fixed categories, or null
+// to clear it. A sheet row (legacy-…) also passes it to the artwork already
+// linked from it, since the grid shows that artwork through its sheet row;
+// rows linked later inherit it (inherit_legacy_technique).
+export async function setSubmissionsTechnique(ids: string[], technique: string | null) {
+  if (ids.length === 0 || (technique !== null && !TECHNIQUE_VALUES.has(technique))) return
+  await assertIsAdmin()
+
+  const artworkIds = ids.filter((id) => !id.startsWith('legacy-'))
+  const legacyIds = ids.filter((id) => id.startsWith('legacy-')).map((id) => id.slice('legacy-'.length))
+  const admin = createAdminClient()
+
+  const results = await Promise.all([
+    artworkIds.length > 0 ? admin.from('artworks').update({ technique }).in('id', artworkIds) : null,
+    legacyIds.length > 0 ? admin.from('legacy_submissions').update({ technique }).in('id', legacyIds) : null,
+    legacyIds.length > 0 ? admin.from('artworks').update({ technique }).in('legacy_submission_id', legacyIds) : null,
+  ])
+  const error = results.find((result) => result?.error)?.error
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/admin/obras')
+  revalidatePath('/participantes')
+  revalidatePath('/')
+}
+
 type ParsedLegacyLine = {
   email: string
   name: string | null
