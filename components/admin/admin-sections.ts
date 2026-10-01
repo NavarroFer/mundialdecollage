@@ -9,6 +9,7 @@ import {
   CreditCard,
   Boxes,
   BookOpen,
+  Package,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -83,6 +84,18 @@ export const adminSections: {
         label: 'Pagos',
         icon: CreditCard,
         description: 'Pagos de quienes postularon más de una obra.',
+      },
+    ],
+  },
+  {
+    label: 'Tienda',
+    tone: tones.yellow,
+    items: [
+      {
+        href: '/admin/tienda',
+        label: 'Club y envíos',
+        icon: Package,
+        description: 'Suscriptores de Papel por correo, lo que hay que despachar y lo cobrado en el mes.',
       },
       {
         href: '/admin/revista',
