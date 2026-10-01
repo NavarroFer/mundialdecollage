@@ -2,7 +2,6 @@ import {
   Users,
   FileText,
   Send,
-  ClipboardList,
   Images,
   BarChart3,
   MessageSquare,
@@ -14,7 +13,6 @@ import {
   Megaphone,
   ShoppingBag,
   Landmark,
-  Scissors,
   Mail,
 } from 'lucide-react'
 
@@ -133,19 +131,6 @@ export const adminSections: {
           'Aprobá o rechazá lo que la gente comenta en el recorrido 3D.',
       },
       { href: '/galeria-3d', label: 'Recorrido', icon: Boxes, external: true },
-    ],
-  },
-  {
-    label: 'Taller',
-    icon: Scissors,
-    tone: tones.yellow,
-    items: [
-      {
-        href: '/admin/inscripciones',
-        label: 'Inscripciones',
-        icon: ClipboardList,
-        description: 'Quiénes se anotaron al taller de collage.',
-      },
     ],
   },
   {
