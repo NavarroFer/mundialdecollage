@@ -2,6 +2,8 @@ import { Payment } from 'mercadopago'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { entryPaymentOutcome, parseExternalReference, type EntryPurchaseStatus } from '@/lib/entries'
+import { formatAddress, formatMoney, localeFromCountry, sendReceiptOnce } from '@/lib/receipts'
+import { site } from '@/lib/site'
 
 type MercadoPagoPayment = Awaited<ReturnType<Payment['get']>>
 
@@ -34,6 +36,8 @@ export async function applyMagazinePayment(payment: MercadoPagoPayment): Promise
     return order.status
   }
   if (outcome === order.status && (outcome !== 'pending' || order.mp_payment_id === String(payment.id))) {
+    // Already paid: the receipt may still be owed if its first send failed.
+    if (outcome === 'paid') await sendMagazineReceipt(order.id)
     return outcome
   }
 
@@ -45,7 +49,35 @@ export async function applyMagazinePayment(payment: MercadoPagoPayment): Promise
     console.error('magazine payment: failed to update order', order.id, error)
     return order.status
   }
+  if (outcome === 'paid') await sendMagazineReceipt(order.id)
   return outcome
+}
+
+// «¡Gracias! Tu revista está reservada» (compra_revista).
+function sendMagazineReceipt(orderId: string) {
+  return sendReceiptOnce('magazine_orders', orderId, 'compra_revista', async (db) => {
+    const { data: order } = await db.from('magazine_orders')
+      .select('id, name, email, quantity, amount, currency, shipping_address')
+      .eq('id', orderId)
+      .single()
+    if (!order) return null
+    const address = order.shipping_address as Record<string, unknown>
+    const locale = localeFromCountry(typeof address?.country_code === 'string' ? address.country_code : 'AR')
+    const total = formatMoney(Number(order.amount), order.currency, locale)
+    return {
+      to: order.email,
+      name: order.name,
+      locale,
+      tags: {
+        ejemplares: String(order.quantity),
+        total,
+        direccion: formatAddress(address, locale),
+        pedido: order.id.slice(0, 8).toUpperCase(),
+        fecha_salida: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date(site.magazine.releaseISO)),
+      },
+      summary: `Revista · ${order.quantity} ${order.quantity === 1 ? 'ejemplar' : 'ejemplares'} · ${total} · ${order.name}`,
+    }
+  })
 }
 
 export async function syncMagazinePaymentById(paymentId: string) {

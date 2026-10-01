@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendSubscriptionReceipt } from '@/lib/subscription-receipts'
 
 type PaypalEvent = { event_type: string; resource: Record<string, unknown> }
 
@@ -24,8 +25,9 @@ export async function handlePaypalEvent(event: PaypalEvent) {
     const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
     if (subscriptionStatuses[event.event_type]) update.status = subscriptionStatuses[event.event_type]
     if (text(billingInfo?.next_billing_time)) update.next_billing_at = text(billingInfo?.next_billing_time)
-    const { error } = await supabase.from('subscriptions').update(update).eq('provider_subscription_id', subscriptionId)
+    const { data: updated, error } = await supabase.from('subscriptions').update(update).eq('provider_subscription_id', subscriptionId).select('id')
     if (error) throw new Error(`Could not update subscription: ${error.message}`)
+    if (update.status === 'active') for (const { id } of updated ?? []) await sendSubscriptionReceipt(id)
     return
   }
 

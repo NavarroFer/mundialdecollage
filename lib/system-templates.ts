@@ -18,7 +18,8 @@ import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-transla
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
 
-export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | CountdownTemplateKey
+export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | CountdownTemplateKey | ReceiptTemplateKey
+export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
 
 type SystemTemplateDefinition = {
@@ -78,7 +79,61 @@ const countdown = (heading: string, opening: string) => (siteUrl: string): Email
 const COUNTDOWN_DESCRIPTION =
   'Se programa sola en Campañas para el público «No participan todavía» (cuenta regresiva al cierre de la convocatoria). Editala acá antes de su fecha; para no mandarla, cancelala en Campañas. Usá {{nombre}}.'
 
+// Thank-you and confirmation after a purchase (lib/receipts.ts), sent once
+// the payment is confirmed. Transactional: no unsubscribe link.
+const RECEIPT_DESCRIPTION = 'Se envía sola apenas se confirma el pago. '
+
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
+  compra_revista: {
+    name: 'Compra: Revista 1ª Edición',
+    subject: '¡Gracias! Tu Revista del Mundial de Collage está reservada',
+    description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{ejemplares}}, {{total}}, {{direccion}}, {{fecha_salida}} y {{pedido}}.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: '¡Gracias, {{nombre}}!', align: 'left', size: 'md' },
+        { id: nextBlockId(), type: 'text', text: 'Recibimos tu pago: tu ejemplar de la Revista del Mundial de Collage · 1ª edición está reservado.', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Pedido: {{pedido}}\nEjemplares: {{ejemplares}}\nTotal pagado: {{total}}\nEnvío a: {{direccion}}', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'La revista sale el {{fecha_salida}}. Te volvemos a escribir cuando la despachemos. Si algo de la dirección está mal, respondé este mail.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Visitar el Mundial', url: siteUrl, align: 'left', color: 'red' },
+        ...footer(),
+      ],
+    }),
+  },
+  compra_suscripcion: {
+    name: 'Compra: suscripción Papel por correo',
+    subject: '¡Bienvenida al club Papel por correo!',
+    description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{plan}}, {{total}} (lo que se cobra por mes) y {{direccion}}.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: '¡Gracias, {{nombre}}! Ya sos parte del club', align: 'left', size: 'md' },
+        { id: nextBlockId(), type: 'text', text: 'Confirmamos tu suscripción a Papel por correo, el club mensual del Mundial de Collage.', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Plan: {{plan}}\nCobro mensual: {{total}}\nEnvío a: {{direccion}}', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Armamos cada edición a mano en Mar del Plata. Te avisamos por mail cuando despachemos la primera. Podés cancelar cuando quieras desde tu cuenta de pago; si necesitás cambiar la dirección, respondé este mail.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Ver la tienda', url: `${siteUrl}/tienda`, align: 'left', color: 'blue' },
+        ...footer(),
+      ],
+    }),
+  },
+  compra_obras: {
+    name: 'Compra: postular más obras',
+    subject: 'Listo: ya podés postular más obras al Mundial de Collage',
+    description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{total}} y {{limite}} (cuántas obras puede postular).',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: '¡Gracias, {{nombre}}!', align: 'left', size: 'md' },
+        { id: nextBlockId(), type: 'text', text: 'Recibimos tu pago de {{total}}. Ya podés postular hasta {{limite}} obras al Mundial Internacional de Collage.', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Entrá a tus obras para cargarlas y elegir cuáles participan.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Elegir mis obras', url: `${siteUrl}/onboarding/obras`, align: 'left', color: 'red' },
+        ...footer(),
+      ],
+    }),
+  },
   cuenta_regresiva_15: {
     name: 'Cuenta regresiva: quedan 15 días',
     subject: 'Quedan 15 días para participar del Mundial de Collage',

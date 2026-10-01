@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { entryPaymentOutcome, parseExternalReference, type EntryPurchaseStatus } from '@/lib/entries'
+import { formatMoney, localeFromCountry, sendReceiptOnce } from '@/lib/receipts'
 
 // Works with the artist's own session (RLS lets them read their rows) or the
 // service-role client.
@@ -51,6 +52,8 @@ export async function applyEntryPayment(payment: MercadoPagoPayment): Promise<En
   // A payment still in process is recorded too: its id is what tells the
   // page "your payment is on its way" apart from a checkout left unpaid.
   if (outcome === purchase.status && (outcome !== 'pending' || purchase.mp_payment_id === String(payment.id))) {
+    // Already paid: the receipt may still be owed if its first send failed.
+    if (outcome === 'paid') await sendEntryReceipt(purchase.id)
     return outcome
   }
 
@@ -62,7 +65,29 @@ export async function applyEntryPayment(payment: MercadoPagoPayment): Promise<En
     console.error('entry payment: failed to update purchase', purchase.id, error)
     return purchase.status
   }
+  if (outcome === 'paid') await sendEntryReceipt(purchase.id)
   return outcome
+}
+
+// «Ya podés postular más obras» (compra_obras).
+function sendEntryReceipt(purchaseId: string) {
+  return sendReceiptOnce('entry_purchases', purchaseId, 'compra_obras', async (db) => {
+    const { data: purchase } = await db.from('entry_purchases')
+      .select('user_id, email, amount, currency, entries_allowed')
+      .eq('id', purchaseId)
+      .single()
+    if (!purchase) return null
+    const { data: profile } = await db.from('profiles').select('name, country_code').eq('id', purchase.user_id).maybeSingle()
+    const locale = localeFromCountry(profile?.country_code)
+    const total = formatMoney(Number(purchase.amount), purchase.currency, locale)
+    return {
+      to: purchase.email,
+      name: profile?.name ?? null,
+      locale,
+      tags: { total, limite: String(purchase.entries_allowed) },
+      summary: `Obras extra · ${total} · ${profile?.name ?? purchase.email}`,
+    }
+  })
 }
 
 export async function syncEntryPaymentById(paymentId: string) {
