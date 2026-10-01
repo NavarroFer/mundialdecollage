@@ -7,7 +7,8 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { DISPUTED_MIN_GAP, FINALISTS, getJuryPool, rankJuryPool, type RankingMode, type ScoreRow } from '@/lib/jury'
 import { site } from '@/lib/site'
-import { addJuror, setJurorActive } from './actions'
+import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
+import { addJuror, resendJuryInvitation, setJurorActive } from './actions'
 
 // Jury MVP: who judges, how far along each juror is, and the ranking of the
 // preselected obras by average score, with the cut at the 30 finalists.
@@ -20,7 +21,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
   const db = createAdminClient()
   const [pool, jurorsResult, scoresResult] = await Promise.all([
     getJuryPool(db),
-    db.from('jurors').select('id, email, name, active, created_at').order('created_at'),
+    db.from('jurors').select('id, email, name, active, created_at, invited_at').order('created_at'),
     db.from('jury_scores').select('juror_id, item_key, score, comment'),
   ])
   const jurors = jurorsResult.data ?? []
@@ -35,6 +36,9 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
   const poolKeys = new Set(pool.map((item) => item.key))
   const progress = (jurorId: string) => scores.filter((s) => s.juror_id === jurorId && poolKeys.has(s.item_key)).length
   const complete = active.filter((j) => pool.length > 0 && progress(j.id) >= pool.length).length
+  const deadline = formatJuryDeadline(site.jury.deadlineISO)
+  const invitedOn = (iso: string) =>
+    new Date(iso).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: 'numeric', month: 'long' })
 
   return (
     <div>
@@ -48,6 +52,11 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
         <StatPill label="Jurados activos" value={active.length} />
         <StatPill label="Terminaron de puntuar" value={`${complete} de ${active.length}`} />
       </div>
+      <p className="mt-3 text-sm text-ink">
+        {deadline
+          ? <><strong>{isVotingClosed(site.jury.deadlineISO) ? 'La votación cerró el' : 'Fecha límite:'}</strong> {deadline}. Los jurados con obras sin puntuar reciben un recordatorio 3 días y 1 día antes.</>
+          : <span className="text-muted-foreground">Sin fecha límite: se configura en site.jury.deadlineISO.</span>}
+      </p>
       {pool.length !== site.jury.poolSize && (
         <p className="mt-3 rounded-lg bg-collage-yellow/20 p-3 text-sm text-ink">
           {pool.length < site.jury.poolSize
@@ -64,7 +73,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
       <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.4fr]" aria-labelledby="jurors-title">
         <div className="rounded-2xl border-2 border-ink/10 bg-card p-5">
           <h2 id="jurors-title" className="font-display text-xl tracking-tight text-ink uppercase">Sumar un jurado</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Con el mail de la cuenta de Google con la que va a entrar.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Con el mail de la cuenta de Google con la que va a entrar. Le llega una invitación con el link a /jurado.</p>
           <form action={addJuror} className="mt-4 space-y-3">
             <input name="email" type="email" required placeholder="email@gmail.com" className="w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
             <input name="name" placeholder="Nombre (opcional)" maxLength={120} className="w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
@@ -80,9 +89,15 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
               {jurors.length === 0 && <tr><td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">Todavía no hay jurados.</td></tr>}
               {jurors.map((j) => (
                 <tr key={j.id} className={`border-t border-ink/10 ${j.active ? '' : 'opacity-50'}`}>
-                  <td className="px-4 py-3"><p className="font-medium text-ink">{j.name ?? '—'}</p><p className="text-muted-foreground">{j.email}</p></td>
+                  <td className="px-4 py-3"><p className="font-medium text-ink">{j.name ?? '—'}</p><p className="text-muted-foreground">{j.email}</p><p className="text-xs text-muted-foreground">{j.invited_at ? `Invitado el ${invitedOn(j.invited_at)}` : 'Sin invitar'}</p></td>
                   <td className="px-4 py-3 whitespace-nowrap text-ink">{progress(j.id)} / {pool.length}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="space-y-2 px-4 py-3 text-right">
+                    {j.active && (
+                      <form action={resendJuryInvitation}>
+                        <input type="hidden" name="id" value={j.id} />
+                        <SubmitButton size="sm" variant="outline" pendingLabel="Enviando…">{j.invited_at ? 'Reenviar invitación' : 'Mandar invitación'}</SubmitButton>
+                      </form>
+                    )}
                     <form action={setJurorActive}>
                       <input type="hidden" name="id" value={j.id} />
                       <input type="hidden" name="active" value={j.active ? '0' : '1'} />

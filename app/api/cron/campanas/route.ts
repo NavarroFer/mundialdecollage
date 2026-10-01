@@ -6,6 +6,7 @@ import { argentinaDay } from '@/lib/campaign-schedule'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { getSiteUrl, site } from '@/lib/site'
 import { ensureCountdownCampaigns } from '@/lib/countdown-campaigns'
+import { sendJuryReminders } from '@/lib/jury-mail'
 
 export const maxDuration = 300
 
@@ -36,6 +37,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Reminders to the jurors with obras left to score, 3 days and 1 day before
+  // the voting deadline (lib/jury-mail.ts). Nothing without site.jury.deadlineISO.
+  const jury = await sendJuryReminders(db, today, { dryRun })
+
   const { data: due, error: dueError } = await db
     .from('campaigns')
     .select('id, subject, audience, scheduled_for')
@@ -50,7 +55,7 @@ export async function GET(request: NextRequest) {
       const { recipients, error } = await campaignRecipients(db, campaign.audience)
       campaigns.push({ ...campaign, recipients: error ? { error } : recipients.length })
     }
-    return NextResponse.json({ dryRun, today, campaigns })
+    return NextResponse.json({ dryRun, today, campaigns, juryReminders: jury.due })
   }
   if ((due ?? []).length > 0 && !isResendConfigured) {
     await notifyAdmins(['Resend no está configurado: las campañas programadas quedaron sin enviar.'])
@@ -58,7 +63,7 @@ export async function GET(request: NextRequest) {
   }
 
   const report: Record<string, unknown>[] = []
-  const problems: string[] = countdownProblem ? [countdownProblem] : []
+  const problems: string[] = [...(countdownProblem ? [countdownProblem] : []), ...jury.problems]
   for (const { id } of due ?? []) {
     const { data: campaign } = await db
       .from('campaigns')
@@ -91,7 +96,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (problems.length) await notifyAdmins(problems)
-  return NextResponse.json({ today, countdownCreated, campaigns: report }, { status: problems.length ? 500 : 200 })
+  return NextResponse.json({ today, countdownCreated, campaigns: report, juryReminders: { sent: jury.sent, due: jury.due } }, { status: problems.length ? 500 : 200 })
 }
 
 async function notifyAdmins(problems: string[]) {

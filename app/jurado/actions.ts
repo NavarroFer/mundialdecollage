@@ -3,13 +3,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ITEM_KEY_PATTERN, jurorFor } from '@/lib/jury'
+import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
+import { site } from '@/lib/site'
 
 export type ScoreState = { saved: boolean; error: string | null }
 
 // One juror's score (1–10) and optional comment for one obra. The juror is
 // whoever is signed in — never taken from the form — and must still be
-// active; the obra key is checked against its pattern.
+// active; the obra key is checked against its pattern. Once the voting
+// deadline (site.jury.deadlineISO) has passed, scores can't change.
 export async function saveScore(itemKey: string, _previous: ScoreState, formData: FormData): Promise<ScoreState> {
+  if (isVotingClosed(site.jury.deadlineISO)) {
+    return { saved: false, error: `La votación cerró el ${formatJuryDeadline(site.jury.deadlineISO)}. Ya no se pueden cambiar los puntajes.` }
+  }
   const score = Number(formData.get('score'))
   const comment = String(formData.get('comment') ?? '').trim().slice(0, 1000)
   if (!ITEM_KEY_PATTERN.test(itemKey) || !Number.isInteger(score) || score < 1 || score > 10) {

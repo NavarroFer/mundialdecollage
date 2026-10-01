@@ -18,7 +18,8 @@ import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-transla
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
 
-export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | CountdownTemplateKey | ReceiptTemplateKey
+export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey
+export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
 
@@ -84,6 +85,49 @@ const COUNTDOWN_DESCRIPTION =
 const RECEIPT_DESCRIPTION = 'Se envía sola apenas se confirma el pago. '
 
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
+  // The jury's mails (lib/jury-mail.ts), sent through Resend to each juror.
+  // Transactional: no unsubscribe link.
+  jurado_invitacion: {
+    name: 'Jurado: invitación',
+    subject: 'Te invitamos a ser jurado del Mundial de Collage',
+    description:
+      'Se envía sola al sumar (o reactivar) un jurado en Jurado, y con «Reenviar invitación». Usá {{nombre}}, {{obras}} (cuántas obras evalúa) y {{fecha_limite}} (o «a confirmar»).',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}}, te invitamos a ser jurado', align: 'left', size: 'md' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'Gracias por sumarte al jurado del Mundial Internacional de Collage. Vas a evaluar {{obras}} obras preseleccionadas y puntuar cada una del 1 al 10. Las vas a ver sin el nombre ni el país de quien las hizo.',
+          align: 'left',
+        },
+        { id: nextBlockId(), type: 'text', text: 'Fecha límite para votar: {{fecha_limite}}. Podés puntuar de a poco: lo que vas guardando queda registrado.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Empezar a evaluar', url: `${siteUrl}/jurado`, align: 'left', color: 'red' },
+        { id: nextBlockId(), type: 'text', text: 'Para entrar, iniciá sesión con la cuenta de Google de este mail. Si tenés alguna duda, respondé este mensaje.', align: 'left' },
+        ...footer(),
+      ],
+    }),
+  },
+  jurado_recordatorio: {
+    name: 'Jurado: recordatorio',
+    subject: 'Te quedan obras por puntuar en el jurado del Mundial de Collage',
+    description:
+      'Se envía sola a las 9 h, 3 días y 1 día antes del cierre de la votación, a los jurados activos que tienen obras sin puntuar. Usá {{nombre}}, {{faltan}} (obras sin puntuar) y {{fecha_limite}}.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}}, te quedan obras por puntuar', align: 'left', size: 'md' },
+        { id: nextBlockId(), type: 'text', text: 'La votación del jurado cierra el {{fecha_limite}}. Obras sin puntuar: {{faltan}}.', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Lo que ya puntuaste quedó guardado: seguí desde donde dejaste.', align: 'left' },
+        { id: nextBlockId(), type: 'button', text: 'Seguir evaluando', url: `${siteUrl}/jurado`, align: 'left', color: 'red' },
+        { id: nextBlockId(), type: 'text', text: 'Entrá con la cuenta de Google de este mail.', align: 'left' },
+        ...footer(),
+      ],
+    }),
+  },
   compra_revista: {
     name: 'Compra: Revista 1ª Edición',
     subject: '¡Gracias! Tu Revista del Mundial de Collage está reservada',

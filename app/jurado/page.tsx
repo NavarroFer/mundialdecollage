@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getJuryPool, isAdminUser, jurorFor, jurorOrder } from '@/lib/jury'
+import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
+import { site } from '@/lib/site'
 import { ScoreCard } from './score-card'
 
 export const metadata: Metadata = { title: 'Jurado', robots: { index: false } }
@@ -30,6 +32,9 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
 
   const db = createAdminClient()
   const juror = await jurorFor(db, user)
+  // After the deadline saveScore refuses; the scores stay visible.
+  const closed = isVotingClosed(site.jury.deadlineISO)
+  const deadline = formatJuryDeadline(site.jury.deadlineISO)
   if (!juror) {
     return (
       <Shell>
@@ -53,6 +58,11 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
 
   return (
     <Shell>
+      {deadline && (
+        <p role={closed ? 'status' : undefined} className={`mb-4 rounded-xl border-2 px-4 py-3 text-sm font-semibold ${closed ? 'border-collage-red/30 bg-collage-red/10 text-collage-red' : 'border-collage-blue/20 bg-collage-blue/5 text-ink'}`}>
+          {closed ? `La votación cerró el ${deadline}. Tus puntajes quedaron guardados y ya no se pueden cambiar.` : `Tenés tiempo hasta el ${deadline}.`}
+        </p>
+      )}
       <p className="text-muted-foreground">
         Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10; se guarda al tocar el número. Las obras se muestran sin el nombre ni el país de quien las hizo.
       </p>
