@@ -212,7 +212,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   }
 
   return (
-    <div className={cn(selected.size > 0 && 'pb-24')}>
+    <div className={cn(selected.size > 0 && 'pb-[23rem] sm:pb-[20rem] lg:pb-52')}>
       <section className="rounded-2xl border-2 border-ink/10 bg-card">
         {/* 1 · Find and arrange: always at hand. */}
         <div className="flex flex-wrap items-center gap-2 p-3 sm:p-4">
@@ -495,34 +495,54 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
       )}
 
       {selected.size > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t-2 border-ink/10 bg-card/95 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-5 py-4 sm:px-8">
+        <div className="fixed inset-x-0 bottom-0 z-20 max-h-[70svh] overflow-y-auto border-t-2 border-ink/10 bg-card/95 shadow-[0_-12px_30px_rgb(35_30_27_/_0.10)] backdrop-blur">
+          <div className="mx-auto max-w-6xl px-5 py-3 sm:px-8 sm:py-4">
             {actionMessage && (
               <p className="mb-3 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-3 py-2 text-xs text-ink">
                 {actionMessage}
               </p>
             )}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-ink">
-                {selected.size} seleccionada{selected.size === 1 ? '' : 's'}
-              </p>
-              <div className="flex flex-wrap gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-ink">
+                  {selected.size} obra{selected.size === 1 ? '' : 's'} seleccionada{selected.size === 1 ? '' : 's'}
+                </p>
+                <p className="text-xs text-muted-foreground">Elegí una acción para todas las seleccionadas.</p>
+              </div>
+              <button
+                type="button"
+                onClick={cancelSelection}
+                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-ink/5 hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none"
+              >
+                <X className="h-3.5 w-3.5" />
+                Cancelar
+              </button>
+            </div>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[1.2fr_1.65fr_1fr]">
+              <fieldset className="rounded-xl border border-ink/10 bg-background/70 p-2.5">
+                <legend className="px-1 text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Técnica</legend>
                 <select
                   value=""
                   disabled={isPending}
                   onChange={(event) => event.target.value && applyTechnique(event.target.value)}
                   aria-label="Asignar técnica a las seleccionadas"
-                  className="rounded-full border-2 border-ink/15 bg-background px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50"
+                  className="h-10 w-full rounded-lg border border-ink/15 bg-card px-3 text-sm font-semibold text-ink transition-colors hover:border-ink/30 focus:border-ink/40 focus:outline-none disabled:opacity-50"
                 >
-                  <option value="">Técnica…</option>
+                  <option value="">Asignar técnica…</option>
                   {TECHNIQUES.map((t) => <option key={t} value={t}>{t}</option>)}
                   <option value="none">Quitar técnica</option>
                 </select>
+              </fieldset>
+
+              <fieldset className="rounded-xl border border-ink/10 bg-background/70 p-2.5 sm:col-span-2 lg:col-span-1">
+                <legend className="px-1 text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Revisión</legend>
+                <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
                   disabled={isPending}
                   onClick={() => applyReviewStatus('unreviewed')}
-                  className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30 disabled:opacity-50"
+                  className="h-10 rounded-lg border border-ink/15 bg-card px-2 text-xs font-semibold text-ink transition-colors hover:border-ink/30 hover:bg-ink/5 focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none disabled:opacity-50"
                 >
                   Sin revisar
                 </button>
@@ -530,7 +550,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                   type="button"
                   disabled={isPending}
                   onClick={() => applyReviewStatus('preselected')}
-                  className="rounded-full border-2 border-collage-blue/30 px-4 py-2 text-sm font-semibold text-collage-blue hover:bg-collage-blue/10 disabled:opacity-50"
+                  className="h-10 rounded-lg border border-collage-blue/30 bg-collage-blue/5 px-2 text-xs font-semibold text-collage-blue transition-colors hover:bg-collage-blue/15 focus-visible:ring-2 focus-visible:ring-collage-blue/50 focus-visible:outline-none disabled:opacity-50"
                 >
                   Preseleccionar
                 </button>
@@ -538,38 +558,46 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
                   type="button"
                   disabled={isPending}
                   onClick={() => applyReviewStatus('rejected')}
-                  className="rounded-full border-2 border-collage-red/30 px-4 py-2 text-sm font-semibold text-collage-red hover:bg-collage-red/10 disabled:opacity-50"
+                  className="h-10 rounded-lg border border-collage-red/25 bg-collage-red/5 px-2 text-xs font-semibold text-collage-red transition-colors hover:bg-collage-red/15 focus-visible:ring-2 focus-visible:ring-collage-red/50 focus-visible:outline-none disabled:opacity-50"
                 >
                   Descartar
                 </button>
+                </div>
+              </fieldset>
+
+              <fieldset className="rounded-xl border border-ink/10 bg-background/70 p-2.5">
+                <legend className="px-1 text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Publicación</legend>
+                <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
                   disabled={isPending}
-                  onClick={applyDelete}
-                  className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-collage-red hover:border-collage-red/40 hover:bg-collage-red/10 disabled:opacity-50"
+                  onClick={() => applyVisibility(true)}
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-collage-blue px-2 text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:bg-collage-blue/90 focus-visible:ring-2 focus-visible:ring-collage-blue/50 focus-visible:outline-none disabled:opacity-50"
                 >
-                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                  Borrar
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
+                  Publicar
                 </button>
                 <button
                   type="button"
                   disabled={isPending}
                   onClick={() => applyVisibility(false)}
-                  className="flex items-center gap-2 rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30 disabled:opacity-50"
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-ink/15 bg-card px-2 text-xs font-semibold text-ink transition-colors hover:border-ink/30 hover:bg-ink/5 focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none disabled:opacity-50"
                 >
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <EyeOff className="h-4 w-4" />}
                   Ocultar
                 </button>
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => applyVisibility(true)}
-                  className="flex items-center gap-2 rounded-full bg-collage-blue px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-collage-blue/90 disabled:opacity-50"
-                >
-                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
-                  Estas participan
-                </button>
-              </div>
+                </div>
+              </fieldset>
+
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={applyDelete}
+                className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-collage-red/25 bg-collage-red/[0.03] px-3 text-xs font-semibold text-collage-red transition-colors hover:border-collage-red/45 hover:bg-collage-red/10 focus-visible:ring-2 focus-visible:ring-collage-red/50 focus-visible:outline-none disabled:opacity-50 sm:col-span-2 lg:col-span-3"
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Borrar definitivamente
+              </button>
             </div>
           </div>
         </div>
