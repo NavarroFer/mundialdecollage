@@ -423,6 +423,7 @@ const en: Messages = {
       pasting: 'Pasting…',
       review: 'We review every photo before showing it: you see it right away, everyone else once we approve it.',
       done: 'Done! Your photo is on the collage. Everyone else will see it once we approve it.',
+      doneNow: 'Done! Your photo is on the collage, for everyone to see.',
       close: 'Keep walking',
       previewAlt: 'The photo you\'re about to paste',
       errors: {

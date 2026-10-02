@@ -422,6 +422,7 @@ const id: Messages = {
       pasting: 'Menempel…',
       review: 'Kami memeriksa setiap foto sebelum ditampilkan: kamu langsung melihatnya, yang lain setelah kami setujui.',
       done: 'Selesai! Fotomu sudah ada di kolase. Yang lain akan melihatnya setelah kami setujui.',
+      doneNow: 'Selesai! Fotomu sudah ada di kolase dan bisa dilihat semua orang.',
       close: 'Lanjut jelajah',
       previewAlt: 'Foto yang akan kamu tempel',
       errors: {

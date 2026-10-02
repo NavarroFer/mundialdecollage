@@ -422,6 +422,7 @@ const it: Messages = {
       pasting: 'Incollo…',
       review: 'Controlliamo ogni foto prima di mostrarla: tu la vedi subito, gli altri quando la approviamo.',
       done: 'Fatto! La tua foto è nel quadro. Gli altri la vedranno quando la approviamo.',
+      doneNow: 'Fatto! La tua foto è nel quadro, visibile a tutti.',
       close: 'Continua la visita',
       previewAlt: 'La foto che stai per incollare',
       errors: {

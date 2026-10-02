@@ -422,6 +422,7 @@ const fr: Messages = {
       pasting: 'Collage…',
       review: 'Nous vérifions chaque photo avant de la montrer : tu la vois tout de suite, les autres une fois approuvée.',
       done: 'C\'est fait ! Ta photo est sur le tableau. Les autres la verront une fois approuvée.',
+      doneNow: 'C\'est fait ! Ta photo est sur le tableau, visible par tous.',
       close: 'Continuer la visite',
       previewAlt: 'La photo que tu vas coller',
       errors: {

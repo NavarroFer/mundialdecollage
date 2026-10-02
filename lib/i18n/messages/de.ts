@@ -422,6 +422,7 @@ const de: Messages = {
       pasting: 'Wird aufgeklebt…',
       review: 'Wir prüfen jedes Foto, bevor es gezeigt wird: Du siehst es sofort, alle anderen nach der Freigabe.',
       done: 'Fertig! Dein Foto ist auf der Collage. Alle anderen sehen es nach der Freigabe.',
+      doneNow: 'Fertig! Dein Foto ist auf der Collage, für alle sichtbar.',
       close: 'Weiter umsehen',
       previewAlt: 'Das Foto, das du aufklebst',
       errors: {

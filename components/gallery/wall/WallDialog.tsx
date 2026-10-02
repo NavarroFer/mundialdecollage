@@ -102,7 +102,7 @@ function WallDialogContent({ theme, point }: { theme: GalleryTheme; point: { x: 
         ) : !available ? (
           <p role="alert" className="text-sm">{t.errors.unavailable}</p>
         ) : done ? (
-          <p role="status" className="text-sm font-semibold">{t.done}</p>
+          <p role="status" className="text-sm font-semibold">{lives?.unlimited ? t.doneNow : t.done}</p>
         ) : !userId ? (
           <>
             <p className="text-sm">{t.intro}</p>
@@ -135,7 +135,7 @@ function WallDialogContent({ theme, point }: { theme: GalleryTheme; point: { x: 
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">{t.review}</p>
+                {!lives?.unlimited && <p className="text-xs text-muted-foreground">{t.review}</p>}
               </>
             )}
           </>

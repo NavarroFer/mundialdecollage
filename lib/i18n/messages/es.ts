@@ -427,6 +427,7 @@ const es = {
       pasting: 'Pegando…',
       review: 'Revisamos cada foto antes de mostrarla: vos la ves enseguida, y los demás cuando la aprobemos.',
       done: '¡Listo! Tu foto ya está en el cuadro. Los demás la van a ver cuando la aprobemos.',
+      doneNow: '¡Listo! Tu foto ya está en el cuadro, a la vista de todos.',
       close: 'Seguir recorriendo',
       previewAlt: 'La foto que vas a pegar',
       errors: {

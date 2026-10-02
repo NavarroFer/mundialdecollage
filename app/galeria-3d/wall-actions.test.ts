@@ -65,6 +65,14 @@ describe('placeWallPiece', () => {
     expect(result).toMatchObject({ piece: { id: 'p2', cutout: true } })
   })
 
+  it("puts an admin's piece up already approved, with no limit", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { ...user, email: 'mundialdecollage@gmail.com' } } })
+    mocks.rpc.mockReturnValue(placed({ status: 'placed', piece_id: 'p3', piece_rotation: 0, lives: 0, next_life_at: null }))
+    const result = await placeWallPiece({ path: `${id}/${file}`, x: 0.5, y: 0.5 })
+    expect(mocks.rpc).toHaveBeenCalledWith('place_wall_piece', expect.objectContaining({ unlimited: true }))
+    expect(result).toMatchObject({ piece: { id: 'p3', pending: false }, lives: { unlimited: true } })
+  })
+
   it('deletes the uploaded photo when there are no lives left', async () => {
     mocks.rpc.mockReturnValue(placed({ status: 'no_lives', piece_id: null, piece_rotation: null, lives: 0, next_life_at: '2026-10-02T20:00:00Z' }))
     const result = await placeWallPiece({ path: `${id}/${file}`, x: 0.5, y: 0.5 })

@@ -432,6 +432,7 @@ const pl: Messages = {
       pasting: 'Przyklejamy…',
       review: 'Sprawdzamy każde zdjęcie przed pokazaniem: ty widzisz je od razu, inni po zatwierdzeniu.',
       done: 'Gotowe! Twoje zdjęcie jest już na obrazie. Inni zobaczą je po zatwierdzeniu.',
+      doneNow: 'Gotowe! Twoje zdjęcie jest już na obrazie, widoczne dla wszystkich.',
       close: 'Zwiedzaj dalej',
       previewAlt: 'Zdjęcie, które przyklejasz',
       errors: {

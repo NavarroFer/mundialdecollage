@@ -422,6 +422,7 @@ const pt: Messages = {
       pasting: 'Colando…',
       review: 'Revisamos cada foto antes de mostrá-la: você a vê na hora, e os outros quando a aprovarmos.',
       done: 'Pronto! Sua foto já está no quadro. Os outros vão vê-la quando a aprovarmos.',
+      doneNow: 'Pronto! Sua foto já está no quadro, à vista de todos.',
       close: 'Continuar o passeio',
       previewAlt: 'A foto que você vai colar',
       errors: {

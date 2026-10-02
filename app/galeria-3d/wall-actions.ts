@@ -131,7 +131,8 @@ export async function placeWallPiece(input: { path: string; x: number; y: number
       x: input.x,
       y: input.y,
       rotation: row.piece_rotation ?? 0,
-      status: 'pending',
+      // An admin's piece goes up approved (place_wall_piece).
+      status: isUnlimited(user) ? 'approved' : 'pending',
       created_at: new Date().toISOString(),
     })
     return { piece, lives: toLives(row, user) }
