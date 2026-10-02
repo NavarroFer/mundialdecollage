@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
   const jobs: [string, string, () => Promise<{ result: unknown; problem?: string }>][] = [
     ['museum', 'Aviso "hoy tu obra está en el museo"', () => sendMuseumNotices(db, dryRun)],
     ['digest', 'Aviso "así le fue a tu obra"', () => sendArtistDigests(db, dryRun)],
-    ['pendingComments', 'Recordatorio de comentarios', () => remindPendingComments(db, dryRun)],
+    ['pendingComments', 'Recordatorio de moderación', () => remindPendingComments(db, dryRun)],
     ['supporters', 'Bienvenida a hinchas', () => sendSupporterWelcomes(db, dryRun)],
   ]
   for (const [key, label, job] of jobs) {
@@ -205,16 +205,26 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
 // Comments sit unpublished until an admin approves them; a daily nudge keeps
 // visitors from waiting days to see theirs.
 async function remindPendingComments(db: SupabaseClient, dryRun: boolean) {
-  const { count, error } = await db.from('artwork_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending')
-  if (error) throw new Error(error.message)
-  const pending = count ?? 0
-  if (pending > 0 && !dryRun) {
-    await notifyAdmins(
-      `Mundial de Collage · ${pending} ${pending === 1 ? 'comentario' : 'comentarios'} para moderar`,
-      `Hay ${pending} ${pending === 1 ? 'comentario esperando' : 'comentarios esperando'} aprobación en la Galería 3D. Quien lo escribió lo ve como pendiente hasta que lo aprobás.\n\n${getSiteUrl()}/admin/comentarios`,
-    )
+  const [comments, photos] = await Promise.all([
+    db.from('artwork_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    db.from('wall_pieces').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  ])
+  if (comments.error) throw new Error(comments.error.message)
+  if (photos.error) throw new Error(photos.error.message)
+  const pending = comments.count ?? 0
+  const pendingPhotos = photos.count ?? 0
+  if ((pending > 0 || pendingPhotos > 0) && !dryRun) {
+    const parts = [
+      pending > 0 && `${pending} ${pending === 1 ? 'comentario' : 'comentarios'}`,
+      pendingPhotos > 0 && `${pendingPhotos} ${pendingPhotos === 1 ? 'foto del collage colectivo' : 'fotos del collage colectivo'}`,
+    ].filter(Boolean)
+    const lines = [
+      pending > 0 && `Hay ${pending} ${pending === 1 ? 'comentario esperando' : 'comentarios esperando'} aprobación en la Galería 3D. Quien lo escribió lo ve como pendiente hasta que lo aprobás.\n${getSiteUrl()}/admin/comentarios`,
+      pendingPhotos > 0 && `Hay ${pendingPhotos} ${pendingPhotos === 1 ? 'foto esperando' : 'fotos esperando'} aprobación en el collage colectivo. Quien la pegó la ve hasta que la aprobás.\n${getSiteUrl()}/admin/muro`,
+    ].filter(Boolean)
+    await notifyAdmins(`Mundial de Collage · ${parts.join(' y ')} para moderar`, lines.join('\n\n'))
   }
-  return { result: { pending } }
+  return { result: { pending, pendingPhotos } }
 }
 
 async function notifyAdmins(subject: string, text: string) {

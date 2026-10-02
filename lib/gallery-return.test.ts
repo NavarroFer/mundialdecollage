@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { galleryArtworkPath, galleryReturnPath, readGalleryReturn, readSharedArtwork } from './gallery-return'
+import { galleryArtworkPath, galleryReturnPath, galleryWallReturnPath, readGalleryReturn, readSharedArtwork, readWallReturn } from './gallery-return'
 
 describe('gallery return link', () => {
   it('round-trips the obra and the pending action', () => {
@@ -20,5 +20,14 @@ describe('gallery return link', () => {
     expect(readGalleryReturn('?obra=x')).toBeNull()
     expect(readGalleryReturn('?obra=x&accion=borrar')).toBeNull()
     expect(readGalleryReturn('')).toBeNull()
+  })
+})
+
+describe('wall sign-in return', () => {
+  it('round-trips the point on the frame', () => {
+    const path = galleryWallReturnPath({ x: 0.12345, y: 0.9 })
+    expect(readWallReturn(path.split('?')[1])).toEqual({ x: 0.123, y: 0.9 })
+    expect(readWallReturn('muro=2,0.5')).toBeNull()
+    expect(readWallReturn('muro=abc')).toBeNull()
   })
 })

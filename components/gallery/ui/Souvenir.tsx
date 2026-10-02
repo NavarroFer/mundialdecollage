@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { useInteractionStore } from '../interaction/store'
 import { composeSouvenir, SOUVENIR_SIZE } from '../souvenir/compose'
 import { useSouvenirStore } from '../souvenir/store'
+import { canvasFonts } from '../fonts'
+import { useWallStore } from '../wall/store'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
 import { cn } from '@/lib/utils'
@@ -32,17 +34,6 @@ function loadBanner() {
   return bannerPromise
 }
 
-// next/font hashes the family names; the CSS variables on <html> carry them.
-// Anton has no Cyrillic, so Russian uses the same fallback as the site.
-function souvenirFonts(cyrillic: boolean) {
-  const style = getComputedStyle(document.documentElement)
-  const read = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback
-  return {
-    display: read(cyrillic ? '--font-display-cyrillic' : '--font-anton', 'Impact, sans-serif'),
-    body: read('--font-geist-sans', 'sans-serif'),
-  }
-}
-
 /**
  * A photo of what the visitor is looking at, ready for Instagram stories:
  * the camera button, or F while walking. Taking it lets go of the mouse so
@@ -53,6 +44,7 @@ export function Souvenir({ theme, isTouchDevice, onResume }: { theme: GalleryThe
   const t = m.gallery.souvenir
   const open = useSouvenirStore((state) => state.open)
   const artworkOpen = useInteractionStore((state) => state.openId !== null)
+  const wallOpen = useWallStore((state) => state.placing !== null)
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [failed, setFailed] = useState(false)
   const wasLocked = useRef(false)
@@ -60,7 +52,7 @@ export function Souvenir({ theme, isTouchDevice, onResume }: { theme: GalleryThe
 
   const take = useCallback(async () => {
     const { capture, setOpen } = useSouvenirStore.getState()
-    if (!capture || busy.current || useSouvenirStore.getState().open || useInteractionStore.getState().openId) return
+    if (!capture || busy.current || useSouvenirStore.getState().open || useInteractionStore.getState().openId || useWallStore.getState().placing) return
     busy.current = true
     // Shot first, while the view is exactly what the visitor framed.
     const shot = capture()
@@ -71,7 +63,7 @@ export function Souvenir({ theme, isTouchDevice, onResume }: { theme: GalleryThe
     track('souvenir_photo')
     try {
       if (!shot) throw new Error('capture')
-      const fonts = souvenirFonts(locale === 'ru')
+      const fonts = canvasFonts(locale === 'ru')
       const headline = t.headline.toUpperCase()
       await Promise.all([document.fonts.load(`96px ${fonts.display}`, headline), document.fonts.load(`700 40px ${fonts.body}`)])
       const card = composeSouvenir(shot, await loadBanner(), {
@@ -128,7 +120,7 @@ export function Souvenir({ theme, isTouchDevice, onResume }: { theme: GalleryThe
 
   return (
     <>
-      {!artworkOpen && !open && (
+      {!artworkOpen && !wallOpen && !open && (
         <button
           type="button"
           onClick={() => void take()}

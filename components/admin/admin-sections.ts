@@ -16,6 +16,7 @@ import {
   Mail,
   Flag,
   Gauge,
+  Scissors,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -137,6 +138,12 @@ export const adminSections: {
         icon: MessageSquare,
         description:
           'Aprobá o rechazá lo que la gente comenta en el recorrido 3D.',
+      },
+      {
+        href: '/admin/muro',
+        label: 'Collage colectivo',
+        icon: Scissors,
+        description: 'Aprobá o rechazá las fotos que la gente pega en el cuadro grande de la Sala 1.',
       },
       { href: '/galeria-3d', label: 'Recorrido', icon: Boxes, external: true },
     ],

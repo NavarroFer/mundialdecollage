@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import type { Artwork } from '@/data/artworks'
 import type { Controls } from '../player/controls'
 import { useSouvenirStore } from '../souvenir/store'
+import { interact } from './interact'
 import { useInteractionStore } from './store'
 
 const MAX_DISTANCE = 3.5
@@ -51,7 +52,7 @@ export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
       (pressed) => {
         const element = document.activeElement
         if (element instanceof HTMLElement && (element.matches('input, textarea, select') || element.isContentEditable)) return
-        if (pressed && !useSouvenirStore.getState().open) useInteractionStore.getState().toggle()
+        if (pressed && !useSouvenirStore.getState().open) interact()
       },
     )
   }, [subscribeKeys])

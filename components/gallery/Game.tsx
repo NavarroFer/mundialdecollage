@@ -26,13 +26,17 @@ import { StartScreen } from './ui/StartScreen'
 import { ThemePicker } from './ui/ThemePicker'
 import { useInteractionStore } from './interaction/store'
 import { SouvenirCapture } from './souvenir/SouvenirCapture'
+import { CollageWall, WallAim } from './wall/CollageWall'
+import { WallDialog } from './wall/WallDialog'
+import { loadWall, useWallStore } from './wall/store'
 import { useSouvenirStore } from './souvenir/store'
 import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
-import { readGalleryReturn, readSharedArtwork } from '@/lib/gallery-return'
+import { fmt, formatDayMonth } from '@/lib/i18n/format'
+import { readGalleryReturn, readSharedArtwork, readWallReturn } from '@/lib/gallery-return'
 import { readReferralParam, withReferral } from '@/lib/referral'
 import { track } from '@/lib/track'
 
@@ -56,11 +60,13 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const isLandscape = useSyncExternalStore(subscribeToOrientation, getIsLandscape, getLandscapeServerSnapshot)
   const [locked, setLocked] = useState(false)
-  const { m } = useI18n()
+  const { locale, m } = useI18n()
   const [hasStarted, setHasStarted] = useState(false)
   const [theme, setTheme] = useState<GalleryTheme>('collage')
   const openId = useInteractionStore((state) => state.openId)
   const souvenirOpen = useSouvenirStore((state) => state.open)
+  const wallOpen = useWallStore((state) => state.placing !== null)
+  const wallWeek = useWallStore((state) => state.weekStart)
   const musicRef = useRef<BackgroundMusicHandle>(null)
   const controlsRef = useRef<FirstPersonCameraHandle>(null)
   const [resuming, setResuming] = useState(false)
@@ -82,22 +88,31 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
     let resumeOnClose = false
     const stopResuming = () => setResuming(false)
     document.addEventListener('pointerlockerror', stopResuming)
-    const unsubscribe = useInteractionStore.subscribe((state, previous) => {
-      if (state.openId && !previous.openId) {
+    // The collage's dialog (E on the big frame) works the same way.
+    const isOpen = () => Boolean(useInteractionStore.getState().openId || useWallStore.getState().placing)
+    let wasOpen = isOpen()
+    const onChange = () => {
+      const open = isOpen()
+      if (open === wasOpen) return
+      wasOpen = open
+      if (open) {
         resumeOnClose = document.pointerLockElement !== null
         if (resumeOnClose) document.exitPointerLock()
         return
       }
-      if (state.openId || !previous.openId || !resumeOnClose) return
+      if (!resumeOnClose) return
       resumeOnClose = false
       const element = controlsRef.current?.domElement
       if (!element || navigator.userActivation?.isActive === false) return
       setResuming(true)
       // Chrome returns a promise here; Safari/Firefox return nothing and only fire pointerlockerror.
       Promise.resolve(element.requestPointerLock()).catch(stopResuming)
-    })
+    }
+    const unsubscribeInteraction = useInteractionStore.subscribe(onChange)
+    const unsubscribeWall = useWallStore.subscribe(onChange)
     return () => {
-      unsubscribe()
+      unsubscribeInteraction()
+      unsubscribeWall()
       document.removeEventListener('pointerlockerror', stopResuming)
     }
   }, [isTouchDevice])
@@ -108,6 +123,16 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   // (the day rotated meanwhile) is just skipped.
   useEffect(() => {
     track('gallery_view')
+    void loadWall()
+    // Back from signing in to paste on the collective collage: reopen its
+    // dialog at the same spot of the frame.
+    const wallReturn = readWallReturn(window.location.search)
+    if (wallReturn) {
+      window.history.replaceState(null, '', window.location.pathname)
+      track('sign_in_return')
+      useWallStore.getState().open(wallReturn)
+      return
+    }
     // A shared link to one obra (or the one in the museum mail): open it if
     // it's on the walls today, else show its own page — it's still an obra
     // of the Mundial, just not hanging right now.
@@ -178,10 +203,17 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <PlayerTracker />
           <FloatingReactions artworks={artworks} />
           <SouvenirCapture />
+          <WallAim />
+          <CollageWall
+            theme={theme}
+            title={m.gallery.wall.plaque}
+            subtitle={wallWeek ? fmt(m.gallery.wall.week, { date: formatDayMonth(locale, `${wallWeek}T12:00:00-03:00`) }) : ''}
+            cyrillic={locale === 'ru'}
+          />
         </Canvas>
       </KeyboardControls>
       <GalleryPresence inside={isActive} artworks={artworks} />
-      {isTouchDevice && isActive && !openId && !souvenirOpen && <TouchControls theme={theme} />}
+      {isTouchDevice && isActive && !openId && !souvenirOpen && !wallOpen && <TouchControls theme={theme} />}
       <BackgroundMusic ref={musicRef} theme={theme} />
       {hasStarted && <Souvenir theme={theme} isTouchDevice={isTouchDevice} onResume={resumeWalk} />}
       <Minimap theme={theme} artworks={artworks} />
@@ -189,6 +221,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
       <InteractionPrompt theme={theme} />
       <ArtworkModal artworks={artworks} theme={theme} />
+      <WallDialog theme={theme} />
       {isTouchDevice && !isLandscape && (
         <div className={styles.orientationPrompt} role="status" aria-live="polite">
           <Smartphone aria-hidden="true" className="h-10 w-10 rotate-90" />
@@ -198,8 +231,8 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           </div>
         </div>
       )}
-      {!openId && !souvenirOpen && <ThemePicker theme={theme} onChange={setTheme} />}
-      {!isActive && !openId && !souvenirOpen && !resuming && (
+      {!openId && !souvenirOpen && !wallOpen && <ThemePicker theme={theme} onChange={setTheme} />}
+      {!isActive && !openId && !souvenirOpen && !wallOpen && !resuming && (
         <StartScreen
           artworks={artworks}
           label={hasStarted ? m.gallery.resume : m.gallery.enter}

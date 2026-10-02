@@ -33,6 +33,19 @@ export function readGalleryReturn(search: string): GalleryReturn | null {
   return { slug, intent }
 }
 
+// Pasting on the collective collage needs a Google session too: the return
+// link carries where on the frame (components/gallery/wall), and the gallery
+// reopens the dialog there.
+export function galleryWallReturnPath({ x, y }: { x: number; y: number }): string {
+  return `/galeria-3d?${new URLSearchParams({ muro: `${x.toFixed(3)},${y.toFixed(3)}` })}`
+}
+
+export function readWallReturn(search: string): { x: number; y: number } | null {
+  const value = new URLSearchParams(search).get('muro')
+  const match = value && /^(0(?:\.\d{1,3})?|1(?:\.0{1,3})?),(0(?:\.\d{1,3})?|1(?:\.0{1,3})?)$/.exec(value)
+  return match ? { x: Number(match[1]), y: Number(match[2]) } : null
+}
+
 // The comment typed before signing in, kept for the round trip through
 // Google (same tab, so sessionStorage survives it). Storage can be off or
 // full — losing the draft then is acceptable, breaking the gallery isn't.

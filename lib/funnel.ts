@@ -60,6 +60,14 @@ export const SOUVENIR_EVENTS = [
   { name: 'souvenir_download', label: 'La descargaron' },
 ] as const
 
+// The collective collage on Room 1's end wall (components/gallery/wall).
+export const WALL_EVENTS = [
+  { name: 'wall_open', label: 'Abrieron el collage colectivo (E frente al cuadro)' },
+  { name: 'wall_sign_in', label: 'Fueron a ingresar con Google para pegar' },
+  { name: 'wall_piece_placed', label: 'Pegaron una foto' },
+  { name: 'wall_no_lives', label: 'Intentaron pegar sin vidas' },
+] as const
+
 // Someone who just liked or commented an obra (mostly friends of the artist
 // who shared it) is invited, right there, to send their own.
 export const INVITE_EVENTS = [
@@ -152,6 +160,7 @@ export type FunnelEvent =
   | (typeof HOME_EVENTS)[number]['name']
   | (typeof SHARE_EVENTS)[number]['name']
   | (typeof SOUVENIR_EVENTS)[number]['name']
+  | (typeof WALL_EVENTS)[number]['name']
   | (typeof INVITE_EVENTS)[number]['name']
   | (typeof REFERRAL_EVENTS)[number]['name']
   | (typeof ONBOARDING_EVENTS)[number]['name']
@@ -164,7 +173,7 @@ export type FunnelEvent =
 
 const NAMES = new Set<string>(
   [
-    ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
+    ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS,
   ].map((step) => step.name),
 )

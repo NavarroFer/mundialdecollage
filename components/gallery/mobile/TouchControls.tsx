@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useInteractionStore } from '../interaction/store'
+import { interact } from '../interaction/interact'
 import { useTouchStore } from './touchStore'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
@@ -120,7 +120,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
         type="button"
         onTouchStart={(event) => {
           event.stopPropagation()
-          useInteractionStore.getState().toggle()
+          interact()
         }}
         className={`${styles.hudButton} pointer-events-auto absolute right-8 bottom-10 flex h-16 w-16 items-center justify-center text-xl active:scale-95`}
       >

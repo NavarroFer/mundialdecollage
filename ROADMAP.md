@@ -141,6 +141,19 @@ la lista de espera el día que abra.
   ven los admins desde `/admin/obras`. Al activarlo aparece en «Ya estás
   participando». La fecha impresa es `site.certificates.issuedISO`.
 
+## 7d. Galería 3D: foto souvenir y collage colectivo — ✅ (2026-10-02)
+
+- **Foto souvenir**: botón de cámara (o tecla F) que arma una imagen
+  1080x1920 para historias con lo que se está mirando. Se mide en
+  `/admin/estadisticas`.
+- **Collage colectivo**: un cuadro grande en la pared del fondo de la Sala 1
+  donde la gente pega fotos (con Google), en el lugar que elige. Cada lunes
+  arranca uno nuevo. 3 vidas por persona; cada una vuelve 8 horas después
+  de usarla (las fotos rechazadas devuelven la vida). Las fotos se moderan
+  antes de mostrarse en `/admin/muro` y entran en el recordatorio diario.
+- Pendiente: decidir qué hacer con los cuadros de semanas anteriores
+  (hoy quedan guardados, sin mostrarse).
+
 ## 8. Perfil del artista — pendiente (2026-09-29)
 
 Una página propia de cada artista (hoy no existe: solo `/onboarding/obras`

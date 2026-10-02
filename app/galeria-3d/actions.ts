@@ -8,6 +8,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { normalizeLikeEmail } from '@/lib/gallery-identity'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { isCallOpen } from '@/lib/call-state'
+import { authorName } from '@/lib/gallery-author'
 
 // Error codes, not sentences: the gallery shows them in the reader's language.
 const unavailable = 'unavailable'
@@ -167,16 +168,6 @@ export async function getArtworkSocial(slug: string): Promise<ArtworkSocial | { 
   } catch {
     return { error: unavailable }
   }
-}
-
-// The name comments are signed with: what the artist wrote in their profile,
-// else their Google name, else the part of the email before the @.
-async function authorName(user: User): Promise<string> {
-  const { data: profile } = await createAdminClient().from('profiles').select('name').eq('id', user.id).maybeSingle()
-  const metadata = user.user_metadata ?? {}
-  const candidates = [profile?.name, metadata.full_name, metadata.name, user.email?.split('@')[0]]
-  const name = candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0)
-  return (name ?? 'Visitante').trim().slice(0, 80)
 }
 
 export async function addArtworkComment(slug: string, body: string): Promise<{ comment: GalleryComment } | { error: string }> {
