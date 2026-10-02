@@ -15,6 +15,9 @@ const fr: Messages = {
   },
   common: {
     backHome: "Retour à l'accueil",
+    errorTitle: "Quelque chose s'est décollé",
+    errorBody: "Un découpage s'est détaché du collage. Réessaie ; si le problème persiste, écris-nous.",
+    tryAgain: 'Réessayer',
     untitled: 'Sans titre',
     optional: '(facultatif)',
     opensInNewTab: "(s'ouvre dans un nouvel onglet)",

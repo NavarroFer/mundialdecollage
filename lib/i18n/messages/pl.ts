@@ -15,6 +15,9 @@ const pl: Messages = {
   },
   common: {
     backHome: 'Wróć na stronę główną',
+    errorTitle: 'Coś się odkleiło',
+    errorBody: 'Jeden wycinek wypadł z kolażu. Spróbuj ponownie; jeśli błąd się powtarza, napisz do nas.',
+    tryAgain: 'Spróbuj ponownie',
     untitled: 'Bez tytułu',
     optional: '(opcjonalnie)',
     opensInNewTab: '(otwiera się w nowej karcie)',

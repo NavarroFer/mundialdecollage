@@ -15,6 +15,9 @@ const de: Messages = {
   },
   common: {
     backHome: 'Zur Startseite',
+    errorTitle: 'Da hat sich etwas gelöst',
+    errorBody: 'Ein Schnipsel ist aus der Collage gefallen. Versuch es noch einmal; wenn es weiter nicht klappt, schreib uns.',
+    tryAgain: 'Noch einmal versuchen',
     untitled: 'Ohne Titel',
     optional: '(optional)',
     opensInNewTab: '(öffnet in einem neuen Tab)',

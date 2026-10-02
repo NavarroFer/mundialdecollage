@@ -15,6 +15,9 @@ const pt: Messages = {
   },
   common: {
     backHome: 'Voltar ao início',
+    errorTitle: 'Algo se descolou',
+    errorBody: 'Um recorte escapou da colagem. Tente de novo; se continuar falhando, escreva para nós.',
+    tryAgain: 'Tentar de novo',
     untitled: 'Sem título',
     optional: '(opcional)',
     opensInNewTab: '(abre em uma nova aba)',

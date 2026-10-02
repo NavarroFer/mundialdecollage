@@ -15,6 +15,9 @@ const en: Messages = {
   },
   common: {
     backHome: 'Back to home',
+    errorTitle: 'Something came unstuck',
+    errorBody: 'A cut-out slipped off the collage. Try again; if it keeps failing, write to us.',
+    tryAgain: 'Try again',
     untitled: 'Untitled',
     optional: '(optional)',
     opensInNewTab: '(opens in a new tab)',

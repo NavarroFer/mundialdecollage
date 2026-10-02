@@ -15,6 +15,9 @@ const id: Messages = {
   },
   common: {
     backHome: 'Kembali ke beranda',
+    errorTitle: 'Ada yang terlepas',
+    errorBody: 'Satu potongan terlepas dari kolase. Coba lagi; jika masih gagal, hubungi kami.',
+    tryAgain: 'Coba lagi',
     untitled: 'Tanpa judul',
     optional: '(opsional)',
     opensInNewTab: '(terbuka di tab baru)',

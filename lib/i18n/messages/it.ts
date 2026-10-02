@@ -15,6 +15,9 @@ const it: Messages = {
   },
   common: {
     backHome: 'Torna alla home',
+    errorTitle: 'Qualcosa si è staccato',
+    errorBody: 'Un ritaglio è scivolato via dal collage. Riprova; se continua a non funzionare, scrivici.',
+    tryAgain: 'Riprova',
     untitled: 'Senza titolo',
     optional: '(facoltativo)',
     opensInNewTab: '(si apre in una nuova scheda)',

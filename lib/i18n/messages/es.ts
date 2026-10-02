@@ -16,6 +16,9 @@ const es = {
   },
   common: {
     backHome: 'Volver al inicio',
+    errorTitle: 'Algo se despegó',
+    errorBody: 'Un recorte se nos salió del collage. Probá de nuevo; si sigue fallando, escribinos.',
+    tryAgain: 'Probar de nuevo',
     untitled: 'Sin título',
     optional: '(opcional)',
     opensInNewTab: '(se abre en una pestaña nueva)',
