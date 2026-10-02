@@ -2,11 +2,13 @@ import { SectionEyebrow } from '@/components/admin/section-eyebrow'
 
 export function AdminPageHeader({
   eyebrow,
+  eyebrowHref,
   title,
   description,
   action,
 }: {
   eyebrow: string
+  eyebrowHref?: string
   title: string
   description?: string
   action?: React.ReactNode
@@ -14,7 +16,7 @@ export function AdminPageHeader({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div>
-        <SectionEyebrow>{eyebrow}</SectionEyebrow>
+        <SectionEyebrow href={eyebrowHref}>{eyebrow}</SectionEyebrow>
         <h1 className="font-display mt-2 text-3xl tracking-tight text-ink uppercase sm:text-4xl">
           {title}
         </h1>

@@ -50,7 +50,7 @@ export default async function ComentariosPage({
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Galería 3D" title="Comentarios" description={adminDescription('/admin/comentarios')} />
+      <AdminPageHeader eyebrow="Galería 3D" eyebrowHref="/galeria-3d" title="Comentarios" description={adminDescription('/admin/comentarios')} />
 
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Los comentarios que la gente deja en las obras de la Galería 3D (con su cuenta de Google) solo se publican
