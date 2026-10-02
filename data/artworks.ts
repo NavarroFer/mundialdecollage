@@ -26,7 +26,6 @@ export type GallerySlot = {
 
 const NORTH_Z = -4.9
 const SOUTH_Z = 4.9
-const WEST_X = -17.9
 const EAST_X = 17.9
 const FIRST_DIVIDER_WEST_X = -6.1
 const FIRST_DIVIDER_EAST_X = -5.9
@@ -98,13 +97,14 @@ function wallSlotsAlongZ(
 }
 
 // 20 spots distributed across every kind of usable wall (7 / 6 / 7 per
-// room): the long north/south runs, both dead ends, and the transverse wall
-// segments beside the doors. Door-wall pieces alternate faces so each room
-// gets artwork without hanging two frames back-to-back on the same segment.
+// room): the long north/south runs, Room 3's dead end, and the transverse
+// wall segments beside the doors. Room 1's dead end is the collective collage
+// (components/gallery/wall), so its long runs take three obras each instead.
+// Door-wall pieces alternate faces so each room gets artwork without hanging
+// two frames back-to-back on the same segment.
 export const gallerySlots: GallerySlot[] = [
-  ...wallSlotsAlongX('room-01', -18, -6, NORTH_Z, NORTH_ROTATION, 2, 0),
-  ...wallSlotsAlongX('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 2, 2),
-  ...wallSlotsAlongZ('room-01', -5, 5, WEST_X, WEST_ROTATION, 2, 1),
+  ...wallSlotsAlongX('room-01', -18, -6, NORTH_Z, NORTH_ROTATION, 3, 0),
+  ...wallSlotsAlongX('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 3, 2),
   ...wallSlotsAlongZ('room-01', -5, -DOOR_HALF_WIDTH, FIRST_DIVIDER_WEST_X, EAST_ROTATION, 1, 0),
 
   ...wallSlotsAlongX('room-02', -6, 6, NORTH_Z, NORTH_ROTATION, 2, 1),

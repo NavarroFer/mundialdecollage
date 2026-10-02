@@ -4,7 +4,6 @@ import { gallerySlots } from './artworks'
 const WALLS = [
   { roomId: 'room-01', axis: 'x', fixed: -4.9, from: -18, to: -6 },
   { roomId: 'room-01', axis: 'x', fixed: 4.9, from: -18, to: -6 },
-  { roomId: 'room-01', axis: 'z', fixed: -17.9, from: -5, to: 5 },
   { roomId: 'room-01', axis: 'z', fixed: -6.1, from: -5, to: -1.2 },
   { roomId: 'room-02', axis: 'x', fixed: -4.9, from: -6, to: 6 },
   { roomId: 'room-02', axis: 'x', fixed: 4.9, from: -6, to: 6 },
@@ -19,7 +18,9 @@ const WALLS = [
 describe('gallerySlots', () => {
   it('keeps 20 works while using long, end, and doorway walls', () => {
     expect(gallerySlots).toHaveLength(20)
-    expect(gallerySlots.filter((slot) => Math.abs(slot.position[0]) > 17)).toHaveLength(4)
+    // Only Room 3's dead end: Room 1's is the collective collage.
+    expect(gallerySlots.filter((slot) => Math.abs(slot.position[0]) > 17)).toHaveLength(2)
+    expect(gallerySlots.filter((slot) => slot.position[0] < -17)).toHaveLength(0)
     expect(gallerySlots.filter((slot) => Math.abs(slot.position[0]) > 5 && Math.abs(slot.position[0]) < 7)).toHaveLength(4)
   })
 
