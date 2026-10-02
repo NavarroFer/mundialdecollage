@@ -8,7 +8,7 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { ShareArtwork } from '@/components/share-artwork'
 import { MagazinePromo } from '@/components/store-promo'
 import { getCallState, isCallOpen } from '@/lib/call-state'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
@@ -30,9 +30,7 @@ export async function ParticipationStatus() {
 
   const { locale, m } = await getI18n()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return null
   if (ADMIN_EMAILS.includes(user.email ?? '')) return null
 

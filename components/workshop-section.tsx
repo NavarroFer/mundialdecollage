@@ -5,7 +5,7 @@ import { FadeIn } from '@/components/fade-in'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { getI18n } from '@/lib/i18n/server'
 
 // Async so it can check the session server-side before deciding whether the
@@ -15,11 +15,7 @@ async function WorkshopCta() {
   const { m } = await getI18n()
   let isLoggedIn = false
   if (isSupabaseConfigured) {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    isLoggedIn = Boolean(user)
+    isLoggedIn = Boolean(await getCurrentUser())
   }
 
   if (isLoggedIn) {

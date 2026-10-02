@@ -1,6 +1,6 @@
 import { cache } from 'react'
 import { createPublicClient } from '@/lib/supabase/public'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 
@@ -140,14 +140,13 @@ export async function getPublishedFinalistBySlug(slug: string): Promise<Finalist
 export async function getArtworkShareState(slug: string): Promise<{ isPublic: boolean; isOwn: boolean }> {
   if (!isSupabaseConfigured) return { isPublic: false, isOwn: false }
 
-  const supabase = await createClient()
-  const [published, { data: { user } }] = await Promise.all([
+  const [published, user] = await Promise.all([
     createPublicClient().from('artworks').select('slug').eq('slug', slug).maybeSingle(),
-    supabase.auth.getUser(),
+    getCurrentUser(),
   ])
   let isOwn = false
   if (user) {
-    const { data } = await supabase.from('artworks').select('profile_id').eq('slug', slug).maybeSingle()
+    const { data } = await (await createClient()).from('artworks').select('profile_id').eq('slug', slug).maybeSingle()
     isOwn = data?.profile_id === user.id
   }
   return { isPublic: Boolean(published.data), isOwn }

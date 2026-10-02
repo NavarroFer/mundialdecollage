@@ -1,6 +1,6 @@
 import { StampAlbumClient } from '@/components/stamp-album-client'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isStampKey } from '@/lib/stamps'
 import { createPublicClient } from '@/lib/supabase/public'
 
@@ -9,7 +9,7 @@ export type CollectedArtworkStamp = { slug: string; title: string; artist: strin
 export async function StampAlbum() {
   if (!isSupabaseConfigured) return <StampAlbumClient signedIn={false} unlockedStamps={[]} artworkStamps={[]} />
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return <StampAlbumClient signedIn={false} unlockedStamps={[]} artworkStamps={[]} />
   const { data } = await supabase.from('profile_stamps').select('stamp_key')
   const unlockedStamps = (data ?? []).flatMap((row) => isStampKey(row.stamp_key) ? [row.stamp_key] : [])

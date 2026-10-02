@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CheckCircle2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { Button } from '@/components/ui/button'
 import { ShareArtwork } from '@/components/share-artwork'
@@ -13,7 +13,7 @@ import { OnboardingSteps } from '../onboarding-steps'
 export default async function ConfirmationPage() {
   if (!isSupabaseConfigured) redirect('/')
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) redirect('/onboarding')
   const { data: artwork } = await supabase.from('artworks').select('slug, title')
     .eq('profile_id', user.id).order('is_selected', { ascending: false })

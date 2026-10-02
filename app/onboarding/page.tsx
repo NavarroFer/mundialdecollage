@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCallState } from '@/lib/call-state'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { fetchAndStoreLegacyArtwork } from '@/lib/legacy-submissions'
@@ -39,9 +39,7 @@ export default async function OnboardingPage({
 
   const [{ m }, { open: callOpen }] = await Promise.all([getI18n(), getCallState()])
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user && !callOpen) return <CallClosed m={m} />
   if (!user) {
     // Most arrive here from «Enviá tu obra» on a phone, often from

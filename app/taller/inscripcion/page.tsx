@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { isMercadoPagoConfigured } from '@/lib/mercadopago'
@@ -48,9 +48,7 @@ export default async function InscripcionPage({
   if (totalPrice === null || minDeposit === null) redirect('/')
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) redirect('/')
 
   const { data: registration } = await supabase

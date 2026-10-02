@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Gavel } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getJuryPool, isAdminUser, jurorFor, jurorOrder } from '@/lib/jury'
@@ -22,7 +22,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
   const { pendientes, vista } = await searchParams
   const listView = vista === 'lista'
   const onlyPending = listView && pendientes === '1'
-  const user = isSupabaseConfigured ? (await (await createClient()).auth.getUser()).data.user : null
+  const user = isSupabaseConfigured ? await getCurrentUser() : null
 
   if (!user) {
     return (

@@ -3,7 +3,7 @@
 // lib/track-server.ts, nothing here throws — an invitation must never break
 // the page it's on, let alone a submission.
 import { cookies } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -49,11 +49,9 @@ export async function getReferralInvite(
     const slug = parseReferral(urlRef) ?? (await cookieReferral())
     if (!slug || !isSupabaseConfigured) return null
 
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (user) {
+      const supabase = await createClient()
       if (hideForSignedIn || ADMIN_EMAILS.includes(user.email ?? '')) return null
       const { data: profile, error } = await supabase
         .from('profiles')

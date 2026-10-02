@@ -6,7 +6,7 @@ import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
@@ -20,9 +20,7 @@ async function AuthSlot() {
 
   const { m } = await getI18n()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
   // Hidden on phones, where «Participar» needs the room — it leads to the
   // same Google sign-in through /onboarding anyway.

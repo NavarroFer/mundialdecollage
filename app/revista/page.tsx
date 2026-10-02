@@ -7,7 +7,7 @@ import { ScrollToTop } from '@/components/scroll-to-top'
 import { TrackView } from '@/components/track'
 import { WaitlistSignup } from '@/components/waitlist-signup'
 import { MagazineForm } from './magazine-form'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { isMagazineSaleOpen, site } from '@/lib/site'
@@ -30,7 +30,7 @@ export default async function MagazinePage() {
   let defaultName = ''
   let defaultEmail = ''
   if (selling && isSupabaseConfigured) {
-    const { data: { user } } = await (await createClient()).auth.getUser()
+    const user = await getCurrentUser()
     defaultName = typeof user?.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : ''
     defaultEmail = user?.email ?? ''
   }

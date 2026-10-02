@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CheckCircle2, Clock, Plus } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -36,9 +36,7 @@ export default async function EntriesPage({
 
   const { locale, m } = await getI18n()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) {
     return (
       <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">

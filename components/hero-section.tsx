@@ -11,7 +11,7 @@ import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { getFinalists } from '@/lib/finalists'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { getCallState } from '@/lib/call-state'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -19,8 +19,7 @@ import Link from 'next/link'
 // The search's sign-up invite is only for visitors without a session.
 async function isSignedIn() {
   if (!isSupabaseConfigured) return false
-  const { data: { user } } = await (await createClient()).auth.getUser()
-  return Boolean(user)
+  return Boolean(await getCurrentUser())
 }
 
 export async function HeroSection() {
