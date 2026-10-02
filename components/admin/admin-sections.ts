@@ -15,6 +15,7 @@ import {
   Landmark,
   Mail,
   Flag,
+  Gauge,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -165,6 +166,12 @@ export const adminSections: {
         icon: FileText,
         description:
           'Diseños de email para reusar en las campañas, traducidos a cada idioma.',
+      },
+      {
+        href: '/admin/envios',
+        label: 'Cupos de envío',
+        icon: Gauge,
+        description: 'Cuántos mails le quedan hoy y este mes a Resend y a Brevo, y por cuál sale cada tipo de envío.',
       },
     ],
   },
