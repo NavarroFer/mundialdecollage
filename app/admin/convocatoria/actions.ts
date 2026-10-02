@@ -55,7 +55,7 @@ export async function sendPendingCertificates() {
   redirect(`/admin/convocatoria?${params}`)
 }
 
-type SendResult = { sent: number; failed: number; firstError: string | null }
+type SendResult = { sent: number; failed: number; deferred: number; firstError: string | null }
 
 // Sending can't undo the closing, so a failure to even start is reported
 // on the page instead of thrown.
@@ -64,13 +64,14 @@ async function trySendCertificates(db: ReturnType<typeof createAdminClient>): Pr
     return await sendCertificates(db)
   } catch (err) {
     console.error('sendCertificates failed', err)
-    return { sent: 0, failed: 0, firstError: err instanceof Error ? err.message : String(err) }
+    return { sent: 0, failed: 0, deferred: 0, firstError: err instanceof Error ? err.message : String(err) }
   }
 }
 
-function appendSendResult(params: URLSearchParams, { sent, failed, firstError }: SendResult) {
+function appendSendResult(params: URLSearchParams, { sent, failed, deferred, firstError }: SendResult) {
   params.set('enviados', String(sent))
   if (failed) params.set('fallidos', String(failed))
+  if (deferred) params.set('diferidos', String(deferred))
   if (firstError) params.set('error', `Certificados: ${firstError}`)
   revalidatePath('/admin/convocatoria')
 }

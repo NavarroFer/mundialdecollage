@@ -8,7 +8,7 @@ import { loadCertificateOverview, type CertificateOverview } from '@/lib/certifi
 import { site } from '@/lib/site'
 import { closeCall, reopenCall, sendPendingCertificates } from './actions'
 
-// Closing mails every certificate from the server action, in batches of 100;
+// Closing mails today's share of the certificates from the server action;
 // a page's maxDuration is what its server actions get.
 export const maxDuration = 300
 
@@ -22,9 +22,9 @@ const dateFormatter = new Intl.DateTimeFormat('es-AR', {
 export default async function ConvocatoriaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; cerrada?: string; enviados?: string; fallidos?: string }>
+  searchParams: Promise<{ error?: string; cerrada?: string; enviados?: string; fallidos?: string; diferidos?: string }>
 }) {
-  const { error, cerrada, enviados, fallidos } = await searchParams
+  const { error, cerrada, enviados, fallidos, diferidos } = await searchParams
   const db = createAdminClient()
   const [{ data: state, error: stateError }, received] = await Promise.all([
     db.from('call_state').select('closed_at, closed_by').eq('id', true).maybeSingle(),
@@ -51,7 +51,8 @@ export default async function ConvocatoriaPage({
           {[
             cerrada && 'Listo: la convocatoria quedó cerrada.',
             enviados && `Certificados enviados: ${enviados}.`,
-            fallidos && `Fallaron: ${fallidos} (podés reintentarlos abajo).`,
+            fallidos && `Fallaron: ${fallidos} (se reintentan solos mañana, o abajo).`,
+            diferidos && `${diferidos} quedan para los próximos días: hoy no entraban en el cupo de mails y salen solos cada noche.`,
           ].filter(Boolean).join(' ')}
         </p>
       )}
@@ -90,7 +91,7 @@ export default async function ConvocatoriaPage({
               <input type="checkbox" name="sendCertificates" defaultChecked className="mt-0.5 size-4 accent-collage-red" />
               <span>
                 <span className="font-semibold">Enviar los certificados por mail ahora</span>
-                <span className="block text-muted-foreground">A cada artista participante, en su idioma, con links para descargarlos sin iniciar sesión. Puede tardar un par de minutos: no cierres la página.</span>
+                <span className="block text-muted-foreground">A cada artista participante, en su idioma, con links para descargarlos sin iniciar sesión. Hoy salen los que entran en el cupo de mails; el resto, solos las noches siguientes. Puede tardar un par de minutos: no cierres la página.</span>
               </span>
             </label>
             <div className="mt-4 flex flex-wrap items-end gap-3">
@@ -117,7 +118,7 @@ function CertificatesSection({ overview, error }: { overview: CertificateOvervie
     <section className="mt-8 rounded-2xl border-2 border-collage-yellow/40 bg-collage-yellow/10 p-6">
       <h2 className="flex items-center gap-2 font-display text-2xl tracking-tight text-ink uppercase"><Award className="size-6 text-collage-red" aria-hidden />Certificados</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Cada artista participante recibe un mail, en su idioma, con su diploma (PDF) y la imagen para Instagram. La redacción se edita en Plantillas («Certificado de participación»).
+        Cada artista participante recibe un mail, en su idioma, con su diploma (PDF) y la imagen para Instagram. La redacción se edita en Plantillas («Certificado de participación»). Los pendientes y fallidos salen solos cada noche, hasta donde da el cupo de mails (ver Cupos de envío).
       </p>
       {error && <p role="alert" className="mt-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{error}</p>}
       {overview && (

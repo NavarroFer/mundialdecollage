@@ -1,10 +1,11 @@
-// The participation certificates, mailed to every artist the day the call
-// closes (app/admin/convocatoria): one mail per artist with their obra's
+// The participation certificates, mailed to every artist from the day the
+// call closes (app/admin/convocatoria), as many a day as the mail quotas
+// allow — the daily cron sends the rest: one mail per artist with their obra's
 // diploma (PDF) and Instagram image. The links carry a signed token
 // (lib/certificate-token.ts) since many Registro artists never sign in.
 // Its wording is the `certificado` system template, editable from
 // /admin/plantillas. Each artist is claimed in certificate_sends before the
-// Resend call (supabase/migrations/20261002130000_certificate_sends.sql),
+// send (supabase/migrations/20261002130000_certificate_sends.sql),
 // so nobody gets it twice.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ADMIN_EMAILS } from '@/lib/admin'
@@ -12,7 +13,8 @@ import { certificateSecret, certificateToken } from '@/lib/certificate-token'
 import { personalizeHtml } from '@/lib/email-blocks'
 import { contactLocale, withUnsubscribeFooter } from '@/lib/email-translation'
 import { fillArtworkTitle } from '@/lib/exhibition-mail'
-import { createResendClient, isResendConfigured, isValidEmail, RESEND_BATCH_SIZE } from '@/lib/resend'
+import { isValidEmail } from '@/lib/resend'
+import { bulkCapacity, isMailConfigured, sendMails } from '@/lib/mail'
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
 import type { Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
@@ -97,62 +99,52 @@ export async function loadCertificateOverview(db: SupabaseClient): Promise<Certi
   return certificateOverview((rows ?? []) as CertificateRecipientRow[], statuses)
 }
 
-// Resend allows a couple of API calls per second by default; a short pause
-// between batches keeps a big send from tripping it.
-const BATCH_PAUSE_MS = 600
-
 /**
  * Mails the certificate to everyone who hasn't got it yet (or whose send
- * failed). Needs the service role. Throws when it can't start at all;
- * otherwise reports how many went out and the first error, if any.
+ * failed), as many as the mail quotas allow today (lib/mail: Brevo first,
+ * then Resend). The rest stay pending for the daily cron
+ * (app/api/cron/certificados). Needs the service role. Throws when it can't
+ * start at all; otherwise reports how many went out, how many wait for
+ * another day, and the first error, if any.
  */
-export async function sendCertificates(db: SupabaseClient): Promise<{ sent: number; failed: number; firstError: string | null }> {
-  if (!isResendConfigured) throw new Error('Resend no está configurado')
+export async function sendCertificates(db: SupabaseClient): Promise<{ sent: number; failed: number; deferred: number; firstError: string | null }> {
+  if (!isMailConfigured) throw new Error('No hay ningún proveedor de mail configurado')
   const secret = certificateSecret()
   if (!secret) throw new Error('Falta CERTIFICATE_SECRET (o CRON_SECRET) para firmar los links')
 
   const { toSend } = await loadCertificateOverview(db)
-  const recipients = await claim(db, toSend)
-  if (recipients.length === 0) return { sent: 0, failed: 0, firstError: null }
+  const capacity = await bulkCapacity()
+  const today = capacity === null ? toSend : toSend.slice(0, capacity)
+  const deferred = toSend.length - today.length
+  const recipients = await claim(db, today)
+  if (recipients.length === 0) return { sent: 0, failed: 0, deferred, firstError: null }
 
   const template = await ensureSystemTemplate(db, 'certificado')
   const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
 
-  let sent = 0
-  let failed = 0
-  let firstError: string | null = null
-  for (let i = 0; i < recipients.length; i += RESEND_BATCH_SIZE) {
-    if (i > 0) await new Promise((resolve) => setTimeout(resolve, BATCH_PAUSE_MS))
-    const batch = recipients.slice(i, i + RESEND_BATCH_SIZE)
-    // Resend's SDK resolves to { data, error } instead of throwing; guard
-    // anyway so a network error marks the batch failed instead of leaving
-    // it stuck in 'sending'.
-    const { data: result, error } = await createResendClient().batch.send(batch.map((r) => {
-      const email = renderSystemEmail(template, r.locale, translations)
-      const links = certificateLinks(r.artwork_slug, secret)
-      let html = fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale)
-      html = fillTextTag(fillTextTag(html, 'link_pdf', links.pdf), 'link_imagen', links.image)
-      // The usual unsubscribe footer when the artist is a subscribed contact;
-      // without a contact there's no link to offer.
-      if (r.contact_id && r.subscribed) html = withUnsubscribeFooter(html, r.contact_id, email.locale)
-      return { from: site.mailFrom, to: r.email, subject: email.subject, html }
-    })).catch((err: unknown) => ({ data: null, error: { message: err instanceof Error ? err.message : String(err) } }))
+  const results = await sendMails(recipients.map((r) => {
+    const email = renderSystemEmail(template, r.locale, translations)
+    const links = certificateLinks(r.artwork_slug, secret)
+    let html = fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale)
+    html = fillTextTag(fillTextTag(html, 'link_pdf', links.pdf), 'link_imagen', links.image)
+    // The usual unsubscribe footer when the artist is a subscribed contact;
+    // without a contact there's no link to offer.
+    if (r.contact_id && r.subscribed) html = withUnsubscribeFooter(html, r.contact_id, email.locale)
+    return { to: r.email, subject: email.subject, html }
+  }), { kind: 'bulk' })
 
-    const now = new Date().toISOString()
-    const rows = batch.map((r, j) => error || !result
-      ? { profile_id: r.profile_id, status: 'failed', error: error?.message ?? 'Error desconocido', resend_email_id: null, sent_at: null }
-      : { profile_id: r.profile_id, status: 'sent', error: null, resend_email_id: result.data[j]?.id ?? null, sent_at: now })
-    const { error: markError } = await db.from('certificate_sends').upsert(rows, { onConflict: 'profile_id' })
-    if (markError) console.error('certificate_sends update failed', markError)
+  const now = new Date().toISOString()
+  const rows = recipients.map((r, i) => {
+    const result = results[i]
+    return result.ok
+      ? { profile_id: r.profile_id, status: 'sent', error: null, resend_email_id: result.id, sent_at: now }
+      : { profile_id: r.profile_id, status: 'failed', error: result.error, resend_email_id: null, sent_at: null }
+  })
+  const { error: markError } = await db.from('certificate_sends').upsert(rows, { onConflict: 'profile_id' })
+  if (markError) console.error('certificate_sends update failed', markError)
 
-    if (error || !result) {
-      failed += batch.length
-      firstError ??= error?.message ?? 'Error desconocido'
-    } else {
-      sent += batch.length
-    }
-  }
-  return { sent, failed, firstError }
+  const failed = rows.filter((row) => row.status === 'failed')
+  return { sent: rows.length - failed.length, failed: failed.length, deferred, firstError: failed[0]?.error ?? null }
 }
 
 // Only the artists this run claimed come back: new ones are inserted as

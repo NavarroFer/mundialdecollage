@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/campanas",
       "schedule": "10 12 * * *"
+    },
+    {
+      "path": "/api/cron/certificados",
+      "schedule": "15 0 * * *"
     }
   ]
 }
