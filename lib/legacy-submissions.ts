@@ -1,6 +1,6 @@
 import sharp from 'sharp'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_FETCH_BYTES } from '@/lib/onboarding-image'
+import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_FETCH_BYTES, MAX_IMAGE_DIMENSION } from '@/lib/onboarding-image'
 import { registroImageFingerprint } from '@/lib/registro-image-fingerprint'
 
 // The spreadsheet always stores links shaped like
@@ -13,11 +13,6 @@ export function extractDriveFileId(url: string): string | null {
 
 export type LegacyArtwork = { path: string; publicUrl: string; fingerprint?: string }
 
-// Longest side a submission photo ever needs to render at (the biggest
-// display on the site is the full-width image on /obras/[slug]) — anything
-// bigger is wasted bytes on every page load.
-const MAX_DIMENSION = 2000
-
 // Re-encodes to JPEG at decreasing quality until it fits MAX_IMAGE_BYTES, or
 // gives up after a few tries and returns its best (smallest) attempt. These
 // are phone photos of a physical artwork, not screenshots or line art, so
@@ -26,7 +21,7 @@ const MAX_DIMENSION = 2000
 // benefits from on a web page.
 export async function optimizeImage(input: Buffer): Promise<Buffer | null> {
   try {
-    const resized = sharp(input).rotate().resize(MAX_DIMENSION, MAX_DIMENSION, {
+    const resized = sharp(input).rotate().resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, {
       fit: 'inside',
       withoutEnlargement: true,
     })

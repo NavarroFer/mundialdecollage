@@ -3,6 +3,13 @@
 // and the server action (which re-checks the path it's handed back).
 export const MAX_IMAGE_BYTES = 15 * 1024 * 1024
 
+// Longest side a submission photo ever needs to render at (the biggest
+// display on the site is the full-width image on /obras/[slug]) — anything
+// bigger is wasted bytes in Storage and on every resize. Applied in the
+// browser before upload (lib/downscale-image.ts) and to imports
+// (lib/legacy-submissions.ts).
+export const MAX_IMAGE_DIMENSION = 2000
+
 // Ceiling for the raw download in lib/legacy-submissions.ts, before any
 // resizing happens — separate from MAX_IMAGE_BYTES (the stored-file target)
 // so a large-but-legitimate scan still gets a chance to be shrunk instead of

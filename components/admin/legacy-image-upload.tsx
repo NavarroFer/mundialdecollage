@@ -5,6 +5,7 @@ import { Loader2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
 import { setLegacyImageManually } from '@/app/admin/obras/actions'
+import { downscaleImage } from '@/lib/downscale-image'
 
 // Lets an admin pick a photo by hand for a legacy_submissions row whose
 // Drive fetch keeps failing (private file, deleted, or a restriction the
@@ -39,12 +40,13 @@ export function LegacyImageUpload({ id }: { id: string }) {
     }
 
     setUploading(true)
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const upload = await downscaleImage(file)
+    const extension = upload.name.split('.').pop()?.toLowerCase() || 'jpg'
     const path = `legacy/${id}-${Date.now()}.${extension}`
     const supabase = createClient()
     const { error: uploadError } = await supabase.storage
       .from('artworks')
-      .upload(path, file, { contentType: file.type })
+      .upload(path, upload, { contentType: upload.type })
     setUploading(false)
 
     if (uploadError) {

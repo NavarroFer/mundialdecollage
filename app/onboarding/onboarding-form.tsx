@@ -13,6 +13,7 @@ import { cleanInstagramInput, cleanWebsiteInput, imageProblem } from '@/lib/onbo
 import { track } from '@/lib/track'
 import { fmt, formatMoney } from '@/lib/i18n/format'
 import { site } from '@/lib/site'
+import { downscaleImage } from '@/lib/downscale-image'
 
 type Slot = {
   key: number
@@ -216,11 +217,12 @@ export function OnboardingForm({
         continue
       }
       setUpload({ current, total })
-      const extension = image.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const upload = await downscaleImage(image)
+      const extension = upload.name.split('.').pop()?.toLowerCase() || 'jpg'
       const path = `${userId}/${Date.now()}-${index}.${extension}`
       const { error: uploadError } = await supabase.storage
         .from('artworks')
-        .upload(path, image, { contentType: image.type })
+        .upload(path, upload, { contentType: upload.type })
       if (uploadError) {
         setUpload(null)
         setClientError(errorMessages.upload_failed)

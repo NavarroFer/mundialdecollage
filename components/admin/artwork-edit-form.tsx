@@ -7,6 +7,7 @@ import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
 import { updateArtwork } from '@/app/admin/obras/actions'
 import { Button } from '@/components/ui/button'
 import type { Submission } from '@/components/admin/submission-types'
+import { downscaleImage } from '@/lib/downscale-image'
 
 const inputClass =
   'mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm outline-none focus:border-collage-blue'
@@ -64,11 +65,12 @@ export function ArtworkEditForm({ item }: { item: Submission }) {
     let imagePath: string | undefined
     if (file) {
       setUploading(true)
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const upload = await downscaleImage(file)
+      const extension = upload.name.split('.').pop()?.toLowerCase() || 'jpg'
       imagePath = `admin/${item.artworkId}/${Date.now()}.${extension}`
       const { error: uploadError } = await createClient()
         .storage.from('artworks')
-        .upload(imagePath, file, { contentType: file.type })
+        .upload(imagePath, upload, { contentType: upload.type })
       setUploading(false)
       if (uploadError) {
         setError('Algo falló al subir la imagen. Probá de nuevo.')
