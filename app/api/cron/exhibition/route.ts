@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendSupporterWelcomes } from '@/lib/supporter-welcome'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createResendClient, isResendConfigured, RESEND_BATCH_SIZE } from '@/lib/resend'
+import { isMailConfigured, sendMail, sendMails } from '@/lib/mail'
 import { personalizeHtml } from '@/lib/email-blocks'
 import { withUnsubscribeFooter } from '@/lib/email-translation'
 import {
@@ -76,7 +76,7 @@ async function sendMuseumNotices(db: SupabaseClient, dryRun: boolean) {
       },
     }
   }
-  if (!isResendConfigured) throw new Error('Resend no está configurado')
+  if (!isMailConfigured) throw new Error('No hay ningún proveedor de mail configurado')
 
   const now = new Date().toISOString()
   for (const { row, reason } of skip) {
@@ -91,33 +91,30 @@ async function sendMuseumNotices(db: SupabaseClient, dryRun: boolean) {
   const template = await ensureSystemTemplate(db, 'museo_hoy')
   const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
 
-  // Resend's SDK resolves to { data, error } instead of throwing (see
-  // app/admin/campanas/actions.ts); 20 mails fit in one batch call.
-  const { data, error } = await createResendClient().batch.send(recipients.map((r) => {
+  const results = await sendMails(recipients.map((r) => {
     const email = renderSystemEmail(template, r.locale, translations)
     const html = fillTextTag(
       fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale),
       'link_obra',
       `${getSiteUrl()}${galleryArtworkPath(r.artwork_slug)}`,
     )
-    return { from: site.mailFrom, to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
-  }))
+    return { to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
+  }), { kind: 'bulk' })
 
   for (const [i, r] of recipients.entries()) {
-    const update = error || !data
-      ? { notify_status: 'failed', notify_error: error?.message ?? 'Error desconocido' }
-      : { notify_status: 'sent', notify_error: null, resend_email_id: data.data[i]?.id ?? null }
+    const result = results[i]
+    const update = result.ok
+      ? { notify_status: 'sent', notify_error: null, resend_email_id: result.id }
+      : { notify_status: 'failed', notify_error: result.error }
     await db.from('exhibition_days')
       .update({ ...update, notified_at: new Date().toISOString() })
       .eq('day', r.day).eq('slot', r.slot)
   }
-  if (error || !data) {
-    return {
-      result: { sent: 0, failed: recipients.length, skipped: skip.length },
-      problem: `falló para ${recipients.length} artistas: ${error?.message ?? 'Error desconocido'}`,
-    }
+  const failed = results.filter((r) => !r.ok)
+  return {
+    result: { sent: results.length - failed.length, failed: failed.length, skipped: skip.length },
+    problem: failed.length ? `falló para ${failed.length} artistas: ${failed[0].ok ? '' : failed[0].error}` : undefined,
   }
-  return { result: { sent: recipients.length, failed: 0, skipped: skip.length } }
 }
 
 // Flips each row to 'sending' only if nobody else did first, so an
@@ -159,7 +156,7 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
       },
     }
   }
-  if (!isResendConfigured) throw new Error('Resend no está configurado')
+  if (!isMailConfigured) throw new Error('No hay ningún proveedor de mail configurado')
 
   if (skip.length) {
     await db.from('artist_digests').upsert(
@@ -181,28 +178,23 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
   const template = await ensureSystemTemplate(db, 'novedades_obra')
   const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
 
+  const results = await sendMails(recipients.map((r) => {
+    const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
+    const html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
+    return { to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
+  }), { kind: 'bulk' })
+
   let sent = 0
   let failed = 0
   let firstError: string | null = null
-  for (let i = 0; i < recipients.length; i += RESEND_BATCH_SIZE) {
-    const batch = recipients.slice(i, i + RESEND_BATCH_SIZE)
-    const { data: result, error } = await createResendClient().batch.send(batch.map((r) => {
-      const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
-      const html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
-      return { from: site.mailFrom, to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
-    }))
-    for (const [j, r] of batch.entries()) {
-      const update = error || !result
-        ? { status: 'failed', error: error?.message ?? 'Error desconocido' }
-        : { status: 'sent', error: null, resend_email_id: result.data[j]?.id ?? null }
-      await db.from('artist_digests').update(update).eq('profile_id', r.profile_id).eq('day', day)
-    }
-    if (error || !result) {
-      failed += batch.length
-      firstError ??= error?.message ?? 'Error desconocido'
-    } else {
-      sent += batch.length
-    }
+  for (const [j, r] of recipients.entries()) {
+    const result = results[j]
+    const update = result.ok
+      ? { status: 'sent', error: null, resend_email_id: result.id }
+      : { status: 'failed', error: result.error }
+    await db.from('artist_digests').update(update).eq('profile_id', r.profile_id).eq('day', day)
+    if (result.ok) sent += 1
+    else { failed += 1; firstError ??= result.error }
   }
   return {
     result: { day, sent, failed, skipped: skip.length },
@@ -226,7 +218,7 @@ async function remindPendingComments(db: SupabaseClient, dryRun: boolean) {
 }
 
 async function notifyAdmins(subject: string, text: string) {
-  if (!isResendConfigured) return
-  const { error } = await createResendClient().emails.send({ from: site.mailFrom, to: ADMIN_EMAILS, subject, text })
-  if (error) console.error('exhibition notify failed', error)
+  if (!isMailConfigured) return
+  const result = await sendMail({ to: ADMIN_EMAILS, subject, text })
+  if (!result.ok) console.error('exhibition notify failed', result.error)
 }

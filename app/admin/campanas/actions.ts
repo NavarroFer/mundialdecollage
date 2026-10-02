@@ -4,15 +4,12 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import {
-  createResendClient,
   createResendDomainClient,
-  isResendConfigured,
   isResendDomainConfigured,
   isValidEmail,
-  RESEND_BATCH_SIZE,
   getMailFromDomain,
 } from '@/lib/resend'
-import { site } from '@/lib/site'
+import { isMailConfigured, sendMail, sendMails } from '@/lib/mail'
 import { isEmailDocument, personalizeHtmlWithValues, renderEmailPreviewHtml } from '@/lib/email-blocks'
 import {
   emailFor,
@@ -25,7 +22,7 @@ import {
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
 import { parseAudience } from '@/lib/campaign-audience'
-import { campaignRecipientValues, campaignRecipients, chunk, deliverCampaign } from '@/lib/campaign-delivery'
+import { campaignRecipientValues, campaignRecipients, deliverCampaign } from '@/lib/campaign-delivery'
 import { parseScheduleDay } from '@/lib/campaign-schedule'
 import { DEFAULT_LOCALE, isLocale, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -101,7 +98,7 @@ export async function sendCampaign(audienceInput: unknown, formData: FormData) {
   if (!subject || !bodyHtml) {
     redirect(backTo('missing_fields'))
   }
-  if (!isResendConfigured) {
+  if (!isMailConfigured) {
     redirect(backTo('resend_not_configured'))
   }
 
@@ -227,7 +224,7 @@ export async function sendTestEmail(formData: FormData) {
   if (!subject || !bodyHtml || !testEmail) {
     redirect('/admin/campanas/nueva?error=missing_fields')
   }
-  if (!isResendConfigured) {
+  if (!isMailConfigured) {
     redirect('/admin/campanas/nueva?error=resend_not_configured')
   }
 
@@ -242,16 +239,14 @@ export async function sendTestEmail(formData: FormData) {
     redirect(`/admin/campanas/nueva?error=${encodeURIComponent(`No se pudo probar en ese idioma: ${reason}`)}`)
   }
 
-  const resend = createResendClient()
-  const { error } = await resend.emails.send({
-    from: site.mailFrom,
+  const result = await sendMail({
     to: testEmail,
     subject: `[PRUEBA] ${email.subject}`,
     html: withUnsubscribeFooter(renderEmailPreviewHtml(email.html), 'prueba', email.locale),
   })
 
-  if (error) {
-    redirect(`/admin/campanas/nueva?error=${encodeURIComponent(error.message)}`)
+  if (!result.ok) {
+    redirect(`/admin/campanas/nueva?error=${encodeURIComponent(result.error)}`)
   }
 
   redirect(`/admin/campanas/nueva?test_sent=${encodeURIComponent(testEmail)}`)
@@ -301,8 +296,8 @@ export async function enableOpenTracking() {
 export async function retryFailedSends(formData: FormData) {
   const campaignId = String(formData.get('campaign_id') ?? '')
   if (!campaignId) redirect('/admin/campanas')
-  if (!isResendConfigured) {
-    redirect(`/admin/campanas?error=${encodeURIComponent('Resend no está configurado')}`)
+  if (!isMailConfigured) {
+    redirect(`/admin/campanas?error=${encodeURIComponent('No hay ningún proveedor de mail configurado')}`)
   }
 
   const supabase = await createClient()
@@ -367,54 +362,42 @@ export async function retryFailedSends(formData: FormData) {
       return emails.get(locale)!
     }
 
-    const resend = createResendClient()
-    for (const batch of chunk(retryable, RESEND_BATCH_SIZE)) {
-      const { data, error } = await resend.batch.send(
-        batch.map((send) => {
-          const email = emailForLocale(send.locale)
-          return {
-            from: site.mailFrom,
-            to: send.email,
-            subject: email.subject,
-            html: withUnsubscribeFooter(
-              personalizeHtmlWithValues(
-                email.html,
-                recipientByContact.has(send.contact!.id)
-                  ? campaignRecipientValues(recipientByContact.get(send.contact!.id)!)
-                  : { nombre: send.contact!.name },
-              ),
-              send.contact!.id,
-              email.locale,
-            ),
-          }
-        }),
-      )
-
-      if (error || !data) {
-        stillFailedCount += batch.length
-        const message = error?.message ?? 'Error desconocido'
-        firstError ??= message
-        await supabase.from('campaign_sends').upsert(
-          batch.map((send) => ({ id: send.id, campaign_id: campaign.id, email: send.email, error: message })),
-        )
-        continue
+    const results = await sendMails(retryable.map((send) => {
+      const email = emailForLocale(send.locale)
+      return {
+        to: send.email,
+        subject: email.subject,
+        html: withUnsubscribeFooter(
+          personalizeHtmlWithValues(
+            email.html,
+            recipientByContact.has(send.contact!.id)
+              ? campaignRecipientValues(recipientByContact.get(send.contact!.id)!)
+              : { nombre: send.contact!.name },
+          ),
+          send.contact!.id,
+          email.locale,
+        ),
       }
+    }), { kind: 'bulk' })
 
-      retriedCount += batch.length
-      const sentAt = new Date().toISOString()
-      await supabase.from('campaign_sends').upsert(
-        batch.map((send, i) => ({
-          id: send.id,
-          campaign_id: campaign.id,
-          email: send.email,
-          locale: emailForLocale(send.locale).locale,
-          status: 'sent',
-          error: null,
-          sent_at: sentAt,
-          resend_email_id: data.data[i]?.id ?? null,
-        })),
-      )
-    }
+    // Two upserts, each with rows of one shape: a mixed one would null out
+    // the columns the failed rows leave out.
+    const sentAt = new Date().toISOString()
+    const sent = retryable.flatMap((send, i) => {
+      const result = results[i]
+      return result.ok
+        ? [{ id: send.id, campaign_id: campaign.id, email: send.email, locale: emailForLocale(send.locale).locale, status: 'sent', error: null, sent_at: sentAt, resend_email_id: result.id }]
+        : []
+    })
+    const stillFailed = retryable.flatMap((send, i) => {
+      const result = results[i]
+      return result.ok ? [] : [{ id: send.id, campaign_id: campaign.id, email: send.email, error: result.error }]
+    })
+    retriedCount = sent.length
+    stillFailedCount = stillFailed.length
+    firstError = stillFailed[0]?.error ?? null
+    if (sent.length) await supabase.from('campaign_sends').upsert(sent)
+    if (stillFailed.length) await supabase.from('campaign_sends').upsert(stillFailed)
   } finally {
     const failedCount = campaign.failed_count - retriedCount
     await supabase

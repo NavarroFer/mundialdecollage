@@ -3,9 +3,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { readSheetGrid } from '@/lib/google-sheets'
 import { REGISTRO_SHEET_ID, REGISTRO_TAB } from '@/lib/registro'
 import { syncRegistro, type RegistroSyncReport } from '@/lib/registro-sync'
-import { createResendClient, isResendConfigured } from '@/lib/resend'
+import { isMailConfigured, sendMail } from '@/lib/mail'
 import { ADMIN_EMAILS } from '@/lib/admin'
-import { site } from '@/lib/site'
 import { isCallOpen } from '@/lib/call-state'
 
 // Image downloads are the slow part; anything left pending after the
@@ -77,13 +76,8 @@ function summarize(report: RegistroSyncReport) {
 }
 
 async function notify(text: string) {
-  if (!isResendConfigured) return
+  if (!isMailConfigured) return
   const to = process.env.REGISTRO_NOTIFY_EMAILS?.split(',').map((email) => email.trim()).filter(Boolean) ?? ADMIN_EMAILS
-  const { error } = await createResendClient().emails.send({
-    from: site.mailFrom,
-    to,
-    subject: 'Mundial de Collage · Sincronización de Registro',
-    text,
-  })
-  if (error) console.error('registro sync notify failed', error)
+  const result = await sendMail({ to, subject: 'Mundial de Collage · Sincronización de Registro', text })
+  if (!result.ok) console.error('registro sync notify failed', result.error)
 }

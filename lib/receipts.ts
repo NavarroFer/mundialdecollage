@@ -1,6 +1,6 @@
 // Thank-you and confirmation mails after a purchase, from the editable system
-// templates compra_revista / compra_suscripcion / compra_obras. Sent through
-// Resend (transactional, like sign-in mails — Brevo is for campaigns only),
+// templates compra_revista / compra_suscripcion / compra_obras. Sent as
+// transactional mail (lib/mail: Resend first, Brevo if Resend is out),
 // in the buyer's language, plus a short heads-up to the admins.
 //
 // Each purchase row has receipt_sent_at: it's claimed (set) before sending,
@@ -9,7 +9,7 @@
 // time the payment is applied it's tried again.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createResendClient, isResendConfigured } from '@/lib/resend'
+import { isMailConfigured, sendMail } from '@/lib/mail'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { personalizeHtml } from '@/lib/email-blocks'
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales, type ReceiptTemplateKey } from '@/lib/system-templates'
@@ -63,7 +63,7 @@ export async function sendReceiptOnce(
   key: ReceiptTemplateKey,
   build: (db: SupabaseClient) => Promise<Receipt | null>,
 ) {
-  if (!isResendConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return
+  if (!isMailConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return
   const db = createAdminClient()
   try {
     if (!(await claim(db, table, id))) return
@@ -78,20 +78,18 @@ export async function sendReceiptOnce(
       html = fillTextTag(html, tag, value)
       subject = fillTextTag(subject, tag, value)
     }
-    const resend = createResendClient()
-    const { error } = await resend.emails.send({ from: site.mailFrom, to: receipt.to, replyTo: site.email, subject, html })
-    if (error) {
+    const sent = await sendMail({ to: receipt.to, replyTo: site.email, subject, html })
+    if (!sent.ok) {
       await db.from(table).update({ receipt_sent_at: null }).eq('id', id)
-      console.error('receipt send failed', table, id, error)
+      console.error('receipt send failed', table, id, sent.error)
       return
     }
-    const { error: notifyError } = await resend.emails.send({
-      from: site.mailFrom,
+    const notified = await sendMail({
       to: ADMIN_EMAILS,
       subject: `Nueva venta · ${receipt.summary}`,
       text: `${receipt.summary}\n${receipt.to}\n\n${getSiteUrl()}/admin`,
     })
-    if (notifyError) console.error('sale notification failed', table, id, notifyError)
+    if (!notified.ok) console.error('sale notification failed', table, id, notified.error)
   } catch (err) {
     await db.from(table).update({ receipt_sent_at: null }).eq('id', id)
     console.error('receipt failed', table, id, err)

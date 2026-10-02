@@ -4,8 +4,7 @@
 // admin's own client or the service-role one.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isValidEmail } from '@/lib/resend'
-import { sendBrevoCampaignEmail } from '@/lib/brevo'
-import { site } from '@/lib/site'
+import { sendMails } from '@/lib/mail'
 import { personalizeHtmlWithValues } from '@/lib/email-blocks'
 import { contactLocale, emailFor, withUnsubscribeFooter, type EmailTranslations } from '@/lib/email-translation'
 import { audienceContacts, parseAudience } from '@/lib/campaign-audience'
@@ -84,8 +83,8 @@ export async function deliverCampaign(
   let firstError: string | null = null
 
   try {
-    // Screen malformed addresses up front. Brevo is called one recipient at a
-    // time here because each campaign is personalised and language-specific.
+    // Screen malformed addresses up front: one bad address in a Resend batch
+    // fails the whole batch.
     const validRecipients = recipients.filter((contact) => isValidEmail(contact.email))
     const invalidRecipients = recipients.filter((contact) => !isValidEmail(contact.email))
 
@@ -104,22 +103,26 @@ export async function deliverCampaign(
       )
     }
 
-    for (const contact of validRecipients) {
+    const results = await sendMails(validRecipients.map((contact) => {
       const email = emailForContact(contact.locale)
-      const result = await sendBrevoCampaignEmail({
-        sender: { name: 'Mundial de Collage', email: site.mailFrom.match(/<([^>]+)>/)?.[1] ?? site.email },
+      return {
         to: contact.email,
         subject: email.subject,
-        htmlContent: withUnsubscribeFooter(personalizeHtmlWithValues(email.html, campaignRecipientValues(contact)), contact.id, email.locale),
-      })
-      if (result.error) {
-        failedCount += 1
-        firstError ??= result.error
-        await supabase.from('campaign_sends').insert({ campaign_id: campaign.id, contact_id: contact.id, email: contact.email, locale: email.locale, status: 'failed', error: result.error })
-        continue
+        html: withUnsubscribeFooter(personalizeHtmlWithValues(email.html, campaignRecipientValues(contact)), contact.id, email.locale),
       }
-      sentCount += 1
-      await supabase.from('campaign_sends').insert({ campaign_id: campaign.id, contact_id: contact.id, email: contact.email, locale: email.locale, status: 'sent', sent_at: new Date().toISOString(), resend_email_id: result.id })
+    }), { kind: 'bulk' })
+    const sentAt = new Date().toISOString()
+    const rows = validRecipients.map((contact, i) => {
+      const result = results[i]
+      const base = { campaign_id: campaign.id, contact_id: contact.id, email: contact.email, locale: emailForContact(contact.locale).locale }
+      if (result.ok) return { ...base, status: 'sent', sent_at: sentAt, resend_email_id: result.id }
+      firstError ??= result.error
+      return { ...base, status: 'failed', error: result.error }
+    })
+    sentCount = rows.filter((row) => row.status === 'sent').length
+    if (rows.length) {
+      const { error: insertError } = await supabase.from('campaign_sends').insert(rows)
+      if (insertError) console.error('campaign_sends insert failed', campaign.id, insertError)
     }
   } finally {
     // Whatever didn't get a campaign_sends row (a crash mid-way) counts as

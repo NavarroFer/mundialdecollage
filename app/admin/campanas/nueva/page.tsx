@@ -17,7 +17,7 @@ export const maxDuration = 300
 
 const errorMessages: Record<string, string> = {
   missing_fields: 'Completá asunto y cuerpo.',
-  resend_not_configured: 'Todavía no está conectado Resend (falta RESEND_API_KEY).',
+  resend_not_configured: 'Todavía no hay ningún proveedor de mail conectado (falta RESEND_API_KEY o BREVO_API_KEY).',
   resend_domain_not_configured: 'Falta configurar RESEND_DOMAIN_API_KEY para gestionar el dominio en Resend.',
   no_recipients: 'No hay contactos suscriptos en ese público.',
   invalid_schedule: 'Elegí hoy (antes de las 09:00) o un día posterior para programarla.',

@@ -6,7 +6,8 @@
 // and the magazine, and — while the call is open — a soft «¿vos también
 // hacés collage?». Wording: the bienvenida_hincha system template.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createResendClient, isResendConfigured, isValidEmail } from '@/lib/resend'
+import { isValidEmail } from '@/lib/resend'
+import { isMailConfigured, sendMails } from '@/lib/mail'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { personalizeHtml } from '@/lib/email-blocks'
 import { contactLocale, withUnsubscribeFooter } from '@/lib/email-translation'
@@ -23,7 +24,6 @@ const HOUR_MS = 60 * 60 * 1000
 // hinchas, never someone who liked weeks ago.
 const MIN_AGE_MS = 12 * HOUR_MS
 const LOOKBACK_MS = 7 * 24 * HOUR_MS
-const BATCH = 100
 
 export type SupporterRow = {
   email: string
@@ -68,7 +68,7 @@ export async function sendSupporterWelcomes(db: SupabaseClient, dryRun: boolean)
     return { result: { send: send.map((r) => ({ email: r.email, artista: r.artist_name, locale: r.locale })), skip: skip.map(({ row, reason }) => ({ email: row.email, reason })) } }
   }
   if (send.length === 0 && skip.length === 0) return { result: { sent: 0, failed: 0, skipped: 0 } }
-  if (!isResendConfigured) throw new Error('Resend no está configurado')
+  if (!isMailConfigured) throw new Error('No hay ningún proveedor de mail configurado')
 
   if (skip.length) {
     await db.from('supporter_welcomes').upsert(
@@ -91,36 +91,31 @@ export async function sendSupporterWelcomes(db: SupabaseClient, dryRun: boolean)
   const [template, { open }] = await Promise.all([ensureSystemTemplate(db, 'bienvenida_hincha'), getCallState()])
   const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
 
+  const results = await sendMails(recipients.map((r) => {
+    // The «¿vos también hacés collage?» block only while the call is open.
+    const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: open ? [] : ['convocatoria'] })
+    const fill = (source: string) => {
+      let out = fillTextTag(source, 'artista', r.artist_name ?? '')
+      out = fillTextTag(out, 'link_obra', `${getSiteUrl()}/obras/${r.artwork_slug}`)
+      return fillTextTag(out, 'convocatoria', formatDayMonth(email.locale, site.deadlineISO))
+    }
+    const html = fill(fillArtworkTitle(personalizeHtml(email.html, r.supporter_name), r.artwork_title, email.locale))
+    // The subject is plain text: filled as is, not HTML-escaped.
+    const subject = email.subject.replace(/\{\{\s*artista\s*\}\}/gi, () => r.artist_name ?? '')
+    return { to: r.email, subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
+  }), { kind: 'bulk' })
+
   let sent = 0
   let failed = 0
   let firstError: string | null = null
-  for (let i = 0; i < recipients.length; i += BATCH) {
-    const batch = recipients.slice(i, i + BATCH)
-    const { data: result, error: sendError } = await createResendClient().batch.send(batch.map((r) => {
-      // The «¿vos también hacés collage?» block only while the call is open.
-      const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: open ? [] : ['convocatoria'] })
-      const fill = (source: string) => {
-        let out = fillTextTag(source, 'artista', r.artist_name ?? '')
-        out = fillTextTag(out, 'link_obra', `${getSiteUrl()}/obras/${r.artwork_slug}`)
-        return fillTextTag(out, 'convocatoria', formatDayMonth(email.locale, site.deadlineISO))
-      }
-      const html = fill(fillArtworkTitle(personalizeHtml(email.html, r.supporter_name), r.artwork_title, email.locale))
-      // The subject is plain text: filled as is, not HTML-escaped.
-      const subject = email.subject.replace(/\{\{\s*artista\s*\}\}/gi, () => r.artist_name ?? '')
-      return { from: site.mailFrom, to: r.email, subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
-    }))
-    for (const [j, r] of batch.entries()) {
-      const update = sendError || !result
-        ? { status: 'failed', error: sendError?.message ?? 'Error desconocido' }
-        : { status: 'sent', error: null, resend_email_id: result.data[j]?.id ?? null, sent_at: new Date().toISOString() }
-      await db.from('supporter_welcomes').update(update).eq('email', r.email)
-    }
-    if (sendError || !result) {
-      failed += batch.length
-      firstError ??= sendError?.message ?? 'Error desconocido'
-    } else {
-      sent += batch.length
-    }
+  for (const [j, r] of recipients.entries()) {
+    const result = results[j]
+    const update = result.ok
+      ? { status: 'sent', error: null, resend_email_id: result.id, sent_at: new Date().toISOString() }
+      : { status: 'failed', error: result.error }
+    await db.from('supporter_welcomes').update(update).eq('email', r.email)
+    if (result.ok) sent += 1
+    else { failed += 1; firstError ??= result.error }
   }
   return {
     result: { sent, failed, skipped: skip.length },

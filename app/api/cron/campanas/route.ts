@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createResendClient, isResendConfigured } from '@/lib/resend'
+import { isMailConfigured, sendMail } from '@/lib/mail'
 import { campaignRecipients, deliverCampaign } from '@/lib/campaign-delivery'
 import { argentinaDay } from '@/lib/campaign-schedule'
 import { ADMIN_EMAILS } from '@/lib/admin'
-import { getSiteUrl, site } from '@/lib/site'
+import { getSiteUrl } from '@/lib/site'
 import { ensureCountdownCampaigns } from '@/lib/countdown-campaigns'
 import { sendJuryReminders } from '@/lib/jury-mail'
 
@@ -57,9 +57,8 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json({ dryRun, today, campaigns, juryReminders: jury.due })
   }
-  if ((due ?? []).length > 0 && !isResendConfigured) {
-    await notifyAdmins(['Resend no está configurado: las campañas programadas quedaron sin enviar.'])
-    return NextResponse.json({ error: 'Resend no está configurado' }, { status: 500 })
+  if ((due ?? []).length > 0 && !isMailConfigured) {
+    return NextResponse.json({ error: 'No hay ningún proveedor de mail configurado' }, { status: 500 })
   }
 
   const report: Record<string, unknown>[] = []
@@ -100,12 +99,11 @@ export async function GET(request: NextRequest) {
 }
 
 async function notifyAdmins(problems: string[]) {
-  if (!isResendConfigured) return
-  const { error } = await createResendClient().emails.send({
-    from: site.mailFrom,
+  if (!isMailConfigured) return
+  const result = await sendMail({
     to: ADMIN_EMAILS,
     subject: 'Mundial de Collage · Campañas programadas con problemas',
     text: `${problems.join('\n\n')}\n\n${getSiteUrl()}/admin/campanas`,
   })
-  if (error) console.error('scheduled campaign notify failed', error)
+  if (!result.ok) console.error('scheduled campaign notify failed', result.error)
 }

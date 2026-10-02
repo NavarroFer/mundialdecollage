@@ -1,9 +1,9 @@
 // The jury's mails, from the editable system templates jurado_invitacion and
-// jurado_recordatorio. Sent through Resend (transactional, like the receipts:
+// jurado_recordatorio. Sent as transactional mail (lib/mail, like the receipts:
 // no unsubscribe footer), in Spanish — jurors have no country on record.
 // Server-only (service role).
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createResendClient, isResendConfigured } from '@/lib/resend'
+import { isMailConfigured, sendMail } from '@/lib/mail'
 import { personalizeHtml } from '@/lib/email-blocks'
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, type StoredTemplate } from '@/lib/system-templates'
 import { DEFAULT_LOCALE } from '@/lib/i18n/locales'
@@ -23,8 +23,8 @@ async function send(template: StoredTemplate, to: Recipient, tags: Record<string
     html = fillTextTag(html, tag, value)
     subject = fillTextTag(subject, tag, value)
   }
-  const { error } = await createResendClient().emails.send({ from: site.mailFrom, to: to.email, replyTo: site.email, subject, html })
-  return error ? error.message : null
+  const result = await sendMail({ to: to.email, replyTo: site.email, subject, html })
+  return result.ok ? null : result.error
 }
 
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err))
@@ -34,7 +34,7 @@ const message = (err: unknown) => (err instanceof Error ? err.message : String(e
  * what went wrong, so adding the juror still counts when the mail fails.
  */
 export async function sendJuryInvitation(db: SupabaseClient, juror: Recipient & { id: string }): Promise<string | null> {
-  if (!isResendConfigured) return 'Resend no está configurado.'
+  if (!isMailConfigured) return 'No hay ningún proveedor de mail configurado.'
   try {
     const template = await ensureSystemTemplate(db, 'jurado_invitacion')
     const error = await send(template, juror, { obras: String(site.jury.poolSize), fecha_limite: deadlineLabel() })
@@ -70,7 +70,7 @@ export async function sendJuryReminders(db: SupabaseClient, today: string, { dry
     if (scoresResult.error) throw new Error(scoresResult.error.message)
     const targets = jurorsToRemind(jurors, scoresResult.data ?? [], pool.map((item) => item.key), today)
     if (dryRun || targets.length === 0) return { sent: 0, due: targets.length, problems: [] }
-    if (!isResendConfigured) return { sent: 0, due: targets.length, problems: ['Jurado: Resend no está configurado, los recordatorios quedaron sin enviar.'] }
+    if (!isMailConfigured) return { sent: 0, due: targets.length, problems: ['Jurado: no hay ningún proveedor de mail configurado, los recordatorios quedaron sin enviar.'] }
 
     const template = await ensureSystemTemplate(db, 'jurado_recordatorio')
     const fechaLimite = deadlineLabel()
