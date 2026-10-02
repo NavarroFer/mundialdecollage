@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import gsap from 'gsap'
 import './depth-carousel.css'
 import { useI18n } from '@/lib/i18n/client'
+import { imageSrc } from '@/lib/image-src'
 
 export type DepthCarouselItem = { image: string; alt?: string }
 
@@ -438,7 +439,7 @@ export function DepthCarousel({
             onClick={() => onCardClick(i)}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="depth-carousel__img" src={item.image} alt={item.alt || ''} draggable={false} />
+            <img className="depth-carousel__img" src={imageSrc(item.image, 828)} alt={item.alt || ''} draggable={false} />
             <span
               className="depth-carousel__tint"
               ref={(el) => {

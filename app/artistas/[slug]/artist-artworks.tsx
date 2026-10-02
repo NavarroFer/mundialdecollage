@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ArtistProfileArtwork } from '@/lib/artist-profiles'
+import { imageSrc } from '@/lib/image-src'
 
 export function ArtistArtworks({
   artworks,
@@ -28,7 +29,7 @@ export function ArtistArtworks({
                 {/* Supabase Storage URLs vary by environment and are not restricted to one Next Image host. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={artwork.imageUrl}
+                  src={imageSrc(artwork.imageUrl, 640)}
                   alt={artworkBy(title, artistName)}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                 />

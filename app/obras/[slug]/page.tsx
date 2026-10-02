@@ -14,6 +14,7 @@ import { countryCodeToName, getArtworkShareState, getFinalistBySlug, getFinalist
 import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
+import { imageSrc } from '@/lib/image-src'
 
 // Slugs come from live submissions, so pages render on demand per request
 // instead of at build time.
@@ -89,7 +90,7 @@ export default async function ObraPage({
           <div className="mt-8 overflow-hidden rounded-2xl border-2 border-ink/10 bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={finalist.imageUrl}
+              src={imageSrc(finalist.imageUrl, 1200)}
               alt={fmt(m.common.artworkBy, { title, name: finalist.name })}
               className="w-full object-cover"
             />
@@ -159,7 +160,7 @@ export default async function ObraPage({
                     <Link key={artwork.slug} href={`/obras/${artwork.slug}`} className="group overflow-hidden rounded-2xl border-2 border-ink/10 bg-card">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={artwork.imageUrl}
+                        src={imageSrc(artwork.imageUrl, 640)}
                         alt={fmt(m.common.artworkBy, { title: artworkTitle, name: artwork.name })}
                         className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                         loading="lazy"

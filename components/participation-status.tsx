@@ -18,6 +18,7 @@ import { countReferrals } from '@/lib/referral-server'
 import { plural } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
 import type { Messages } from '@/lib/i18n/messages'
+import { imageSrc } from '@/lib/image-src'
 
 // Shown right under the hero to anyone signed in (admins excepted — they
 // never submit an artwork, see lib/admin.ts). A returning, already-submitted
@@ -94,7 +95,7 @@ export async function ParticipationStatus() {
             <div className="aspect-square w-40 shrink-0 overflow-hidden rounded-xl border-2 border-ink/10 bg-muted sm:w-48">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={artwork.image_url}
+                src={imageSrc(artwork.image_url, 384)}
                 alt={artwork.title ?? m.common.untitled}
                 className="h-full w-full object-cover"
               />

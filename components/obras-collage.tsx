@@ -7,6 +7,7 @@ import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 import './obras-collage.css'
+import { imageSrc } from '@/lib/image-src'
 
 export function ObrasCollage({
   finalists,
@@ -107,7 +108,7 @@ export function ObrasCollage({
               {/* Preserve the complete artwork, including portrait and landscape formats. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={artwork.imageUrl}
+                src={imageSrc(artwork.imageUrl, 828)}
                 alt={artwork.artworkTitle ?? m.common.untitled}
                 width={400}
                 height={440}

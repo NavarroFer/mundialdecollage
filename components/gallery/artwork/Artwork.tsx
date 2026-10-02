@@ -5,6 +5,7 @@ import { useTexture } from '@react-three/drei'
 import { SRGBColorSpace } from 'three'
 import type { Artwork as ArtworkData } from '@/data/artworks'
 import { galleryThemes, type GalleryTheme } from '../themes'
+import { imageSrc } from '@/lib/image-src'
 
 // Modern museum framing: a slim dark frame + a white mat (passe-partout)
 // between the frame and the image, instead of one thick flat border.
@@ -49,7 +50,7 @@ function setSrgb(texture: { colorSpace: string }) {
 }
 
 export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryTheme }) {
-  const texture = useTexture(data.image, setSrgb)
+  const texture = useTexture(imageSrc(data.image, 1080), setSrgb)
   const frame = galleryThemes[theme].frame
   const label = useMemo(() => artistLabel(data.artist, data.flagSvg), [data.artist, data.flagSvg])
   const labelTexture = useTexture(label.url, setSrgb)

@@ -6,6 +6,7 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { cn } from '@/lib/utils'
 import { approveComment, rejectComment } from './actions'
 import { adminDescription } from '@/components/admin/admin-sections'
+import { imageSrc } from '@/lib/image-src'
 
 const TABS = [
   { id: 'pendientes', label: 'Pendientes', status: 'pending' },
@@ -95,7 +96,7 @@ export default async function ComentariosPage({
             {comment.artworks && (
               <Link href={`/obras/${comment.artworks.slug}`} target="_blank" className="shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={comment.artworks.image_url} alt={comment.artworks.title ?? 'Sin datos'}
+                <img src={imageSrc(comment.artworks.image_url, 256)} alt={comment.artworks.title ?? 'Sin datos'}
                   className="h-16 w-16 rounded-lg border-2 border-ink/10 object-cover sm:h-20 sm:w-20" />
               </Link>
             )}
