@@ -12,6 +12,7 @@ import { site, getSiteUrl } from '@/lib/site'
 import { entryExternalReference, entryLimit, resolveEntryChoice } from '@/lib/entries'
 import { hasPaidEntries } from '@/lib/entry-payments'
 import { isCallOpen } from '@/lib/call-state'
+import { refreshPublicData } from '@/lib/public-data-cache'
 
 // The artist picks which of their obras are postulated (one for free, more
 // after paying) and which one represents them on the site. artworks has no
@@ -81,6 +82,7 @@ export async function saveEntryChoice(formData: FormData) {
     redirect('/onboarding/obras?error=save_failed')
   }
 
+  refreshPublicData()
   revalidatePath('/')
   revalidatePath('/participantes')
   revalidatePath('/edicion-2026')

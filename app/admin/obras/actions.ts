@@ -13,6 +13,7 @@ import { guessCountryCodeFromName } from '@/lib/participants'
 import { provisionLegacyProfiles, publishPendingLegacySubmissions } from '@/lib/publish-legacy'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { refreshPublicData } from '@/lib/public-data-cache'
 
 // The service-role client bypasses RLS entirely, so any action that reaches
 // for it (unlike the rest of this file, which relies on the session client +
@@ -47,6 +48,7 @@ async function publishReadyLegacySubmissions() {
 }
 
 function revalidatePublicPages() {
+  refreshPublicData()
   revalidatePath('/')
   revalidatePath('/edicion-2026')
   revalidatePath('/participantes')
@@ -114,6 +116,7 @@ export async function setSubmissionsVisibility(
     await supabase.from('profiles').update({ is_public: isPublic }).in('id', profileIdsToUpdate)
   }
 
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
@@ -170,6 +173,7 @@ export async function setSubmissionsTechnique(ids: string[], technique: string |
   const error = results.find((result) => result?.error)?.error
   if (error) throw new Error(error.message)
 
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/participantes')
   revalidatePath('/')
@@ -304,6 +308,7 @@ export async function selectLegacySubmission(formData: FormData) {
   if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
 
   await publishReadyLegacySubmissions()
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/galeria-3d')
 }
@@ -341,6 +346,7 @@ export async function setLegacyImageManually(formData: FormData) {
   if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
 
   await publishReadyLegacySubmissions()
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/galeria-3d')
 }
@@ -553,6 +559,7 @@ export async function selectArtwork(formData: FormData) {
     if (enteredError) redirect(`/admin/obras?error=${encodeURIComponent(enteredError.message)}`)
   }
 
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
@@ -566,6 +573,7 @@ export async function deleteArtwork(formData: FormData) {
   const { error } = await supabase.from('artworks').delete().eq('id', id)
   if (error) redirect(`/admin/obras?error=${encodeURIComponent(error.message)}`)
 
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
@@ -624,6 +632,7 @@ export async function updateArtwork(input: {
   if (error) return { error: error.message }
   if (!row) return { error: 'No se encontró la obra.' }
 
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
@@ -648,6 +657,7 @@ export async function deleteSubmissions(items: { table: 'artworks' | 'legacy_sub
     legacyIds.length > 0 ? supabase.from('legacy_submissions').delete().in('id', legacyIds) : null,
   ])
 
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
@@ -696,6 +706,7 @@ export async function applyNameCleanup(items: { table: 'profiles' | 'legacy_subm
     })(),
   ])
 
+  refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')

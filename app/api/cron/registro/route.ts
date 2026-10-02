@@ -6,6 +6,7 @@ import { syncRegistro, type RegistroSyncReport } from '@/lib/registro-sync'
 import { isMailConfigured, sendMail } from '@/lib/mail'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { isCallOpen } from '@/lib/call-state'
+import { refreshPublicData } from '@/lib/public-data-cache'
 
 // Image downloads are the slow part; anything left pending after the
 // deadline is retried on the next run instead of hitting the hard timeout.
@@ -43,6 +44,8 @@ export async function GET(request: NextRequest) {
 
     const result = report.result as { inserted?: number; archived?: number } | undefined
     const changed = (result?.inserted ?? 0) + (result?.archived ?? 0) + report.restore + (report.published?.accounts ?? 0) > 0
+    // New or archived obras change the home's counts and lineups right away.
+    if (changed) refreshPublicData()
     if (changed || report.images?.failed || report.published?.skipped.length) await notify(summarize(report))
     return NextResponse.json(report)
   } catch (err) {

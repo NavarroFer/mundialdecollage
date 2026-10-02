@@ -3,6 +3,7 @@ import { createPublicClient } from '@/lib/supabase/public'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { cachedPublicData } from '@/lib/public-data-cache'
 
 export { countryCodeToName } from '@/lib/participants'
 
@@ -65,8 +66,9 @@ function rowToFinalist(row: FinalistRow): Finalist | undefined {
 }
 
 // Every finalist with a completed, curated submission, newest first. Cached
-// per request, so the home's flag ribbon and map share one query.
-export const getFinalists = cache(async (): Promise<Finalist[]> => {
+// across requests (lib/public-data-cache.ts) and per request, so the home's
+// flag ribbon and map share one query.
+export const getFinalists = cache(cachedPublicData(async (): Promise<Finalist[]> => {
   if (!isSupabaseConfigured) return []
 
   const { data } = await createPublicClient()
@@ -82,7 +84,7 @@ export const getFinalists = cache(async (): Promise<Finalist[]> => {
   return ((data ?? []) as unknown as FinalistRow[])
     .map(rowToFinalist)
     .filter((f): f is Finalist => f !== undefined)
-})
+}, 'finalists'))
 
 // The public finalists among these artwork ids, keyed by id — RLS drops any
 // that are no longer selected/published. Used for the daily exhibition
@@ -127,13 +129,13 @@ export const getFinalistBySlug = cache(async (slug: string): Promise<Finalist | 
 // The same obra as anyone without a session sees it: only once it's
 // published. What link previews (opengraph-image) render, so an obra still
 // under review never leaks through a crawler.
-export async function getPublishedFinalistBySlug(slug: string): Promise<Finalist | undefined> {
+export const getPublishedFinalistBySlug = cachedPublicData(async (slug: string): Promise<Finalist | undefined> => {
   if (!isSupabaseConfigured) return undefined
 
   const { data } = await createPublicClient().from('artworks').select(SELECT_COLUMNS).eq('slug', slug).maybeSingle()
 
   return data ? rowToFinalist(data as unknown as FinalistRow) : undefined
-}
+}, 'published-finalist')
 
 // Whether a link to this obra works for everyone, and whether the reader is
 // the artist — which decides what components/share-artwork.tsx offers.

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { sendCertificates } from '@/lib/certificate-mail'
+import { refreshPublicData } from '@/lib/public-data-cache'
 
 const CONFIRMATION = 'FINALIZAR'
 
@@ -18,6 +19,7 @@ async function adminEmail() {
 // Every page that changes once the call closes: the home's CTAs, the header's
 // «Participar», /onboarding and the public obra/artist pages.
 function revalidatePublic() {
+  refreshPublicData()
   revalidatePath('/', 'layout')
 }
 
