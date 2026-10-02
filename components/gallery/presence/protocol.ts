@@ -55,9 +55,11 @@ export function parseReaction(payload: unknown, artworkIds: ReadonlySet<string>)
 // Live avatars: every position goes to everyone, so messages grow with the
 // square of the crowd. Past this many people inside, positions stop being
 // sent or shown (the count, viewers and reactions keep working).
-export const MAX_LIVE_VISITORS = 12
-/** At most ~3 positions a second while moving. */
-export const POSE_MIN_INTERVAL_MS = 330
+// With 8 moving and a few more watching, that's already ~2,000 deliveries a
+// minute against the plan's monthly message quota (see GalleryPresence.tsx).
+export const MAX_LIVE_VISITORS = 8
+/** At most 2 positions a second while moving; avatars ease between them. */
+export const POSE_MIN_INTERVAL_MS = 500
 /** A standing visitor still re-sends now and then, in case one got lost. */
 export const POSE_HEARTBEAT_MS = 10_000
 const MIN_MOVE = 0.05
