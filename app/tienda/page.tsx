@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { Check, PackageOpen, Scissors } from 'lucide-react'
@@ -44,6 +45,18 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
             </p>
           </div>
         </section>
+
+        <div className="mx-auto max-w-6xl px-5 pt-14 sm:px-8 sm:pt-20">
+          <Image
+            src="/tienda-productos.webp"
+            alt={t.productsAlt}
+            width={2000}
+            height={728}
+            preload
+            sizes="(min-width: 1152px) 1088px, calc(100vw - 40px)"
+            className="h-auto w-full rounded-2xl border-2 border-ink/10 shadow-sm"
+          />
+        </div>
 
         <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20" aria-labelledby="plans-title">
           <MagazinePromo m={m} event="magazine_click_store" forArtist={false} className="mb-10" />
