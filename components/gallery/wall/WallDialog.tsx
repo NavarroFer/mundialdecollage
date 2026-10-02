@@ -14,10 +14,10 @@ import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
-import { wallPhoto } from './photo'
+import { wallPhoto, type WallPhoto } from './photo'
 import { loadWall, useWallStore } from './store'
 
-type Picked = { blob: Blob; url: string }
+type Picked = WallPhoto & { url: string }
 
 /** Paste a photo on the collective collage, right where the visitor was looking (E on the frame). */
 export function WallDialog({ theme }: { theme: GalleryTheme }) {
@@ -46,12 +46,12 @@ function WallDialogContent({ theme, point }: { theme: GalleryTheme; point: { x: 
   async function pick(file: File | undefined) {
     if (!file) return
     setError('')
-    const blob = await wallPhoto(file)
-    if (!blob) {
+    const photo = await wallPhoto(file)
+    if (!photo) {
       setError(t.errors.unreadable)
       return
     }
-    setPicked({ blob, url: URL.createObjectURL(blob) })
+    setPicked({ ...photo, url: URL.createObjectURL(photo.blob) })
   }
 
   async function paste() {
@@ -59,8 +59,8 @@ function WallDialogContent({ theme, point }: { theme: GalleryTheme; point: { x: 
     setBusy(true)
     setError('')
     try {
-      const path = `${userId}/${crypto.randomUUID()}.jpg`
-      const { error: uploadError } = await createClient().storage.from(WALL_BUCKET).upload(path, picked.blob, { contentType: 'image/jpeg' })
+      const path = `${userId}/${crypto.randomUUID()}.${picked.extension}`
+      const { error: uploadError } = await createClient().storage.from(WALL_BUCKET).upload(path, picked.blob, { contentType: picked.blob.type })
       if (uploadError) throw new Error(uploadError.message)
       const result = await placeWallPiece({ path, ...point })
       if ('error' in result) {
@@ -119,7 +119,8 @@ function WallDialogContent({ theme, point }: { theme: GalleryTheme; point: { x: 
               <>
                 {picked && (
                   // eslint-disable-next-line @next/next/no-img-element -- a local blob: URL, nothing to optimize
-                  <img src={picked.url} alt={t.previewAlt} className="max-h-[32dvh] w-auto self-center rounded-sm border-8 border-white shadow-md" />
+                  <img src={picked.url} alt={t.previewAlt}
+                    className={cn('max-h-[32dvh] w-auto self-center', picked.extension === 'jpg' ? 'rounded-sm border-8 border-white shadow-md' : 'drop-shadow-md')} />
                 )}
                 <div className="flex flex-wrap gap-2">
                   <label className={cn(button, 'cursor-pointer', !picked && 'bg-collage-yellow text-ink')}>

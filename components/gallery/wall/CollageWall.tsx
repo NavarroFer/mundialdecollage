@@ -102,16 +102,20 @@ function Piece({ piece, order }: { piece: WallPiece; order: number }) {
   const [x, y, z] = wallPointToWorld(piece)
   // Still in review: only its author sees it, a little faded.
   const opacity = piece.pending ? 0.6 : 1
+  // A cutout keeps its own outline, so it goes on without the white card.
+  const seeThrough = piece.pending || piece.cutout
 
   return (
     <group position={[x + PIECE_LIFT, y, z]} rotation={[0, Math.PI / 2, piece.rotation]}>
-      <mesh renderOrder={10 + order * 2}>
-        <planeGeometry args={[photoWidth + 0.04, photoHeight + 0.04]} />
-        <meshStandardMaterial color="#fbfaf6" roughness={0.8} depthWrite={false} transparent={piece.pending} opacity={opacity} />
-      </mesh>
+      {!piece.cutout && (
+        <mesh renderOrder={10 + order * 2}>
+          <planeGeometry args={[photoWidth + 0.04, photoHeight + 0.04]} />
+          <meshStandardMaterial color="#fbfaf6" roughness={0.8} depthWrite={false} transparent={piece.pending} opacity={opacity} />
+        </mesh>
+      )}
       <mesh renderOrder={11 + order * 2} position={[0, 0, 0.001]}>
         <planeGeometry args={[photoWidth, photoHeight]} />
-        <meshStandardMaterial map={texture} roughness={0.7} depthWrite={false} transparent={piece.pending} opacity={opacity} />
+        <meshStandardMaterial map={texture} roughness={0.7} depthWrite={false} transparent={seeThrough} opacity={opacity} />
       </mesh>
     </group>
   )

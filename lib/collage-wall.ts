@@ -4,8 +4,11 @@
 
 export const WALL_BUCKET = 'wall'
 
-/** `${user id}/${random uuid}.jpg`, the only paths the gallery uploads. */
-export const wallPhotoPattern = /^([0-9a-f-]{36})\/([0-9a-f-]{36}\.jpg)$/
+/** `${user id}/${random uuid}.{jpg,webp,png}`, the only paths the gallery uploads. */
+export const wallPhotoPattern = /^([0-9a-f-]{36})\/([0-9a-f-]{36}\.(jpg|webp|png))$/
+
+/** WebP and PNG are only ever uploaded for cutouts: photos with a transparent background (components/gallery/wall/photo.ts). */
+export const isCutoutPath = (path: string) => /\.(webp|png)$/.test(path)
 
 export type WallPiece = {
   id: string
@@ -14,6 +17,8 @@ export type WallPiece = {
   x: number
   y: number
   rotation: number
+  /** A cutout with a transparent background: pasted as is, without the white photo card. */
+  cutout: boolean
   /** Only ever true on the visitor's own pieces: nobody else sees them until approved. */
   pending: boolean
 }

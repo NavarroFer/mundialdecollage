@@ -49,6 +49,7 @@ describe('wallPhotoPattern', () => {
     const id = '11111111-2222-3333-4444-555555555555'
     expect(wallPhotoPattern.exec(`${id}/${id}.jpg`)?.[1]).toBe(id)
     expect(wallPhotoPattern.test(`${id}/../x.jpg`)).toBe(false)
-    expect(wallPhotoPattern.test(`${id}/${id}.png`)).toBe(false)
+    expect(wallPhotoPattern.test(`${id}/${id}.png`)).toBe(true)
+    expect(wallPhotoPattern.test(`${id}/${id}.gif`)).toBe(false)
   })
 })

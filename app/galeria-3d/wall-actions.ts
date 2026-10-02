@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { authorName } from '@/lib/gallery-author'
-import { WALL_BUCKET, wallPhotoPattern, type WallLives, type WallPiece, type WallState } from '@/lib/collage-wall'
+import { isCutoutPath, WALL_BUCKET, wallPhotoPattern, type WallLives, type WallPiece, type WallState } from '@/lib/collage-wall'
 
 // The collective collage on Room 1's end wall (supabase/migrations/
 // 20261002180000_collage_wall.sql). The browser uploads the photo into its
@@ -41,6 +41,7 @@ function toPiece(admin: AdminClient, row: PieceRow): WallPiece {
     x: row.x,
     y: row.y,
     rotation: row.rotation,
+    cutout: isCutoutPath(row.image_path),
     pending: row.status === 'pending',
   }
 }

@@ -52,9 +52,17 @@ describe('placeWallPiece', () => {
     const result = await placeWallPiece({ path: `${id}/${file}`, x: 0.25, y: 0.75 })
     expect(mocks.rpc).toHaveBeenCalledWith('place_wall_piece', expect.objectContaining({ visitor: id, visitor_name: 'Ana Pérez', at_x: 0.25, at_y: 0.75, unlimited: false }))
     expect(result).toEqual({
-      piece: { id: 'p1', url: `https://cdn.test/wall/${id}/${file}`, x: 0.25, y: 0.75, rotation: 0.05, pending: true },
+      piece: { id: 'p1', url: `https://cdn.test/wall/${id}/${file}`, x: 0.25, y: 0.75, rotation: 0.05, cutout: false, pending: true },
       lives: { lives: 2, nextLifeAt: '2026-10-02T20:00:00Z', unlimited: false },
     })
+  })
+
+  it('pastes a transparent PNG or WebP as a cutout', async () => {
+    const cutout = file.replace('.jpg', '.webp')
+    mocks.list.mockResolvedValue({ data: [{ name: cutout }], error: null })
+    mocks.rpc.mockReturnValue(placed({ status: 'placed', piece_id: 'p2', piece_rotation: 0, lives: 2, next_life_at: null }))
+    const result = await placeWallPiece({ path: `${id}/${cutout}`, x: 0.5, y: 0.5 })
+    expect(result).toMatchObject({ piece: { id: 'p2', cutout: true } })
   })
 
   it('deletes the uploaded photo when there are no lives left', async () => {
