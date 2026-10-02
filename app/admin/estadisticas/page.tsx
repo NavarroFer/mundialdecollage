@@ -6,7 +6,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -327,6 +327,18 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         title="Compartir obras"
         description="Personas distintas que compartieron una obra desde su página, la tarjeta «Ya estás participando» de la home o la confirmación después de enviarla. Se mide desde el 26 de septiembre de 2026."
         steps={SHARE_EVENTS}
+        periodDays={periodDays}
+        variant="comparison"
+      />
+
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Foto souvenir de la galería"
+        description="Personas distintas que sacaron una foto en la Galería 3D (botón de la cámara o tecla F) y qué hicieron con ella. Se mide desde el 2 de octubre de 2026."
+        steps={SOUVENIR_EVENTS}
+        baseStep="souvenir_photo"
+        baseLabel="De quienes sacaron una foto"
         periodDays={periodDays}
         variant="comparison"
       />

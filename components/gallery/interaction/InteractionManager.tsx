@@ -6,6 +6,7 @@ import { useKeyboardControls } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Artwork } from '@/data/artworks'
 import type { Controls } from '../player/controls'
+import { useSouvenirStore } from '../souvenir/store'
 import { useInteractionStore } from './store'
 
 const MAX_DISTANCE = 3.5
@@ -40,7 +41,8 @@ export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
     useInteractionStore.getState().setTarget(nearestId)
   })
 
-  // Ignore gallery shortcuts while typing into the like form. Buttons don't
+  // Ignore gallery shortcuts while typing into the like form, or while the
+  // souvenir photo is up. Buttons don't
   // count: the modal auto-focuses its first reaction button, and E has to
   // keep closing it from there.
   useEffect(() => {
@@ -49,7 +51,7 @@ export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
       (pressed) => {
         const element = document.activeElement
         if (element instanceof HTMLElement && (element.matches('input, textarea, select') || element.isContentEditable)) return
-        if (pressed) useInteractionStore.getState().toggle()
+        if (pressed && !useSouvenirStore.getState().open) useInteractionStore.getState().toggle()
       },
     )
   }, [subscribeKeys])

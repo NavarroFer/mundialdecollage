@@ -21,9 +21,12 @@ import { ControlsTutorial } from './ui/ControlsTutorial'
 import { InteractionPrompt } from './ui/InteractionPrompt'
 import { Minimap } from './ui/Minimap'
 import { PresenceCounter } from './ui/PresenceCounter'
+import { Souvenir } from './ui/Souvenir'
 import { StartScreen } from './ui/StartScreen'
 import { ThemePicker } from './ui/ThemePicker'
 import { useInteractionStore } from './interaction/store'
+import { SouvenirCapture } from './souvenir/SouvenirCapture'
+import { useSouvenirStore } from './souvenir/store'
 import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
@@ -57,6 +60,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   const [hasStarted, setHasStarted] = useState(false)
   const [theme, setTheme] = useState<GalleryTheme>('collage')
   const openId = useInteractionStore((state) => state.openId)
+  const souvenirOpen = useSouvenirStore((state) => state.open)
   const musicRef = useRef<BackgroundMusicHandle>(null)
   const controlsRef = useRef<FirstPersonCameraHandle>(null)
   const [resuming, setResuming] = useState(false)
@@ -128,6 +132,15 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
     if (artworks.some((artwork) => artwork.id === pending.slug)) useInteractionStore.getState().resume(pending)
   }, [artworks])
 
+  // Same as after reading an obra: the click that closes the photo is the
+  // gesture the browser needs to give the mouse back to the walk.
+  function resumeWalk() {
+    const element = controlsRef.current?.domElement
+    if (!element) return
+    setResuming(true)
+    Promise.resolve(element.requestPointerLock()).catch(() => setResuming(false))
+  }
+
   function handleEnter() {
     if (!hasStarted) track('gallery_enter')
     setHasStarted(true)
@@ -164,11 +177,13 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <InteractionManager artworks={artworks} />
           <PlayerTracker />
           <FloatingReactions artworks={artworks} />
+          <SouvenirCapture />
         </Canvas>
       </KeyboardControls>
       <GalleryPresence inside={isActive} artworks={artworks} />
-      {isTouchDevice && isActive && !openId && <TouchControls theme={theme} />}
+      {isTouchDevice && isActive && !openId && !souvenirOpen && <TouchControls theme={theme} />}
       <BackgroundMusic ref={musicRef} theme={theme} />
+      {hasStarted && <Souvenir theme={theme} isTouchDevice={isTouchDevice} onResume={resumeWalk} />}
       <Minimap theme={theme} artworks={artworks} />
       {hasStarted && <PresenceCounter />}
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
@@ -183,8 +198,8 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           </div>
         </div>
       )}
-      {!openId && <ThemePicker theme={theme} onChange={setTheme} />}
-      {!isActive && !openId && !resuming && (
+      {!openId && !souvenirOpen && <ThemePicker theme={theme} onChange={setTheme} />}
+      {!isActive && !openId && !souvenirOpen && !resuming && (
         <StartScreen
           artworks={artworks}
           label={hasStarted ? m.gallery.resume : m.gallery.enter}

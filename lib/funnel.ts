@@ -52,6 +52,14 @@ export const SHARE_EVENTS = [
   { name: 'obra_story_download', label: 'Bajaron la imagen para historias' },
 ] as const
 
+// The souvenir photo from the 3D gallery (components/gallery/ui/Souvenir.tsx):
+// a story image of what the visitor was looking at.
+export const SOUVENIR_EVENTS = [
+  { name: 'souvenir_photo', label: 'Sacaron una foto en la galería' },
+  { name: 'souvenir_share', label: 'La compartieron' },
+  { name: 'souvenir_download', label: 'La descargaron' },
+] as const
+
 // Someone who just liked or commented an obra (mostly friends of the artist
 // who shared it) is invited, right there, to send their own.
 export const INVITE_EVENTS = [
@@ -143,6 +151,7 @@ export type FunnelEvent =
   | (typeof FUNNEL_STEPS)[number]['name']
   | (typeof HOME_EVENTS)[number]['name']
   | (typeof SHARE_EVENTS)[number]['name']
+  | (typeof SOUVENIR_EVENTS)[number]['name']
   | (typeof INVITE_EVENTS)[number]['name']
   | (typeof REFERRAL_EVENTS)[number]['name']
   | (typeof ONBOARDING_EVENTS)[number]['name']
@@ -155,7 +164,7 @@ export type FunnelEvent =
 
 const NAMES = new Set<string>(
   [
-    ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
+    ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS,
   ].map((step) => step.name),
 )
