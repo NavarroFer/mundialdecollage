@@ -5,12 +5,17 @@ import { getParticipants } from '@/lib/participants'
 import { flagSvgsFor } from '@/lib/flag-svg'
 import { ParticipantsDirectory } from './participants-directory'
 import { getI18n } from '@/lib/i18n/server'
+import { cachedPublicData } from '@/lib/public-data-cache'
 
 // Renders per request so a new submission shows up without a redeploy.
 export const dynamic = 'force-dynamic'
 
+// Cached here rather than in lib/participants.ts, which client components
+// import for its country helpers (next/cache is server-only).
+const getCachedParticipants = cachedPublicData(() => getParticipants(), 'participants')
+
 export default async function ParticipantesPage() {
-  const [participants, { m }] = await Promise.all([getParticipants(), getI18n()])
+  const [participants, { m }] = await Promise.all([getCachedParticipants(), getI18n()])
 
   return (
     <main className="min-h-screen bg-background">

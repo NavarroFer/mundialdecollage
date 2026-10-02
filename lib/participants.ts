@@ -1,7 +1,6 @@
 import { createPublicClient } from '@/lib/supabase/public'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { COUNTRY_CODES } from '@/lib/country-codes'
-import { cachedPublicData } from '@/lib/public-data-cache'
 
 // countryCode is the 2-letter ISO code (AR, MX, ES, US, ...) used to render
 // the flag next to their name.
@@ -18,7 +17,7 @@ export type Participant = {
 // has to select an artwork as the artist's final one and mark it public
 // before it shows up anywhere), newest first. Returns [] until real
 // credentials are wired up or nothing's been published yet.
-export const getParticipants = cachedPublicData(async (options?: { limit?: number }): Promise<Participant[]> => {
+export async function getParticipants(options?: { limit?: number }): Promise<Participant[]> {
   if (!isSupabaseConfigured) return []
 
   let query = createPublicClient()
@@ -41,7 +40,7 @@ export const getParticipants = cachedPublicData(async (options?: { limit?: numbe
       technique: row.technique ?? undefined,
       instagram: row.profiles!.instagram ?? undefined,
     }))
-}, 'participants')
+}
 
 // Converts an ISO 3166-1 alpha-2 code ("AR") into its flag emoji (🇦🇷).
 export function countryCodeToFlag(countryCode: string) {
