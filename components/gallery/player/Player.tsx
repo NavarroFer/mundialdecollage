@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { PerspectiveCamera, useKeyboardControls } from '@react-three/drei'
-import { CapsuleCollider, RigidBody, type RapierCollider, type RapierRigidBody } from '@react-three/rapier'
+import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
@@ -17,6 +17,11 @@ const CROUCH_DROP = 0.6
 const PLAYER_RADIUS = 0.35
 const PLAYER_HALF_HEIGHT = 0.5
 const EYE_HEIGHT_OFFSET = 0.75
+// About half a metre of hop under Rapier's default gravity (v = √(2gh)).
+const JUMP_SPEED = 3.2
+// Capsule centre to its bottom is the same standing or crouched (the
+// collider shifts down as it shrinks), plus a little slack for the ground.
+const GROUND_PROBE = PLAYER_HALF_HEIGHT + PLAYER_RADIUS + 0.05
 // The camera initially looks toward -Z. Start in front of the central bench
 // (at z=2.25), with room to walk forward into the gallery.
 const SPAWN_POSITION: [number, number, number] = [0, 0.9, -0.5]
@@ -32,6 +37,8 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
   const bodyRef = useRef<RapierRigidBody>(null)
   const colliderRef = useRef<RapierCollider>(null)
   const crouchHeld = useRef(false)
+  const jumpRequested = useRef(false)
+  const { world, rapier } = useRapier()
   const wasCrouching = useRef(false)
   const getKeys = useKeyboardControls<Controls>()[1]
 
@@ -50,13 +57,24 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
         event.preventDefault()
       }
     }
+    const requestJump = (event: KeyboardEvent) => {
+      if (event.code !== 'Space' || event.repeat) return
+      if (useInteractionStore.getState().openId !== null) return
+      const target = event.target as HTMLElement | null
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+      // Keep Space from scrolling the page or re-clicking a focused button.
+      event.preventDefault()
+      jumpRequested.current = true
+    }
     const reset = () => { crouchHeld.current = false }
     window.addEventListener('keydown', updateControl)
+    window.addEventListener('keydown', requestJump)
     window.addEventListener('keyup', updateControl)
     window.addEventListener('blur', reset)
     return () => {
       reset()
       window.removeEventListener('keydown', updateControl)
+      window.removeEventListener('keydown', requestJump)
       window.removeEventListener('keyup', updateControl)
       window.removeEventListener('blur', reset)
     }
@@ -112,6 +130,7 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
       wasCrouching.current = crouching
     }
     if (!active || modalOpen) {
+      jumpRequested.current = false
       const velocity = body.linvel()
       body.setLinvel({ x: 0, y: velocity.y, z: 0 }, true)
       return
@@ -154,8 +173,16 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
         ? RUN_SPEED
         : WALK_SPEED
     const velocity = body.linvel()
+    let velocityY = velocity.y
+    if (jumpRequested.current) {
+      jumpRequested.current = false
+      const origin = body.translation()
+      const ray = new rapier.Ray(origin, { x: 0, y: -1, z: 0 })
+      const grounded = world.castRay(ray, GROUND_PROBE, true, undefined, undefined, undefined, body) !== null
+      if (grounded) velocityY = JUMP_SPEED
+    }
     body.setLinvel(
-      { x: moveDirection.current.x * speed, y: velocity.y, z: moveDirection.current.z * speed },
+      { x: moveDirection.current.x * speed, y: velocityY, z: moveDirection.current.z * speed },
       true,
     )
   })
