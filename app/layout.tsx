@@ -61,7 +61,7 @@ export default async function RootLayout({
 }>) {
   const { locale, m } = await getI18n()
   return (
-    <html lang={locale} className={`${geist.variable} ${anton.variable} ${oswald.variable}`}>
+    <html lang={locale} data-scroll-behavior="smooth" className={`${geist.variable} ${anton.variable} ${oswald.variable}`}>
       <body className="bg-background font-sans text-foreground antialiased">
         <ReferralCapture />
         <I18nProvider locale={locale} messages={pickClientMessages(m)}>
