@@ -77,7 +77,7 @@ describe('GET /api/img with R2', () => {
     const first = await GET(request(photo, 640))
     expect(first.headers.get('content-type')).toBe('image/webp')
     expect(downloads()).toBe(1)
-    expect([...files.keys()].map((key) => key.split('/').pop()).sort()).toEqual(['640.webp', 'current', 'original'])
+    expect([...files.keys()].map((key) => key.split('/').pop()).sort()).toEqual(['640w-q75.webp', 'current', 'original'])
 
     const other = await GET(request(photo, 1080))
     const meta = await sharp(Buffer.from(await other.arrayBuffer())).metadata()
@@ -108,6 +108,22 @@ describe('GET /api/img with R2', () => {
     expect(fallback.headers.get('content-type')).toBe('image/webp')
     expect(Buffer.from(await fallback.arrayBuffer())).toEqual(Buffer.from(await first.arrayBuffer()))
     expect([...files.keys()]).toContainEqual(expect.stringMatching(/\/current$/))
+  })
+
+  it('serves a versioned source from R2 without contacting Storage or sharp', async () => {
+    const versioned = 'https://abc.supabase.co/storage/v1/object/public/artworks/u1/1760000000000-0.jpg'
+    const { files } = memoryStore()
+    await storage('"v1"')
+    const first = await GET(request(versioned, 640))
+
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    const cached = await GET(request(versioned, 640))
+
+    expect(Buffer.from(await cached.arrayBuffer())).toEqual(Buffer.from(await first.arrayBuffer()))
+    expect(fetch).not.toHaveBeenCalled()
+    expect(cached.headers.get('cache-control')).toContain('immutable')
+    expect([...files.keys()]).toContainEqual(expect.stringMatching(/\/640w-q75\.webp$/))
   })
 
   it('still serves the image when R2 is down', async () => {

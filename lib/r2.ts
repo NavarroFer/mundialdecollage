@@ -70,7 +70,9 @@ export function imageStore(): ImageStore | null {
 // a re-sync): a new upload lands in a new folder instead of serving the old
 // photo forever. Hex and digits only, so keys never need URL-encoding.
 export function imageStorePrefix(src: string, version: string): string | null {
-  const safeVersion = version.replace(/[^a-zA-Z0-9]/g, '')
-  if (!safeVersion) return null
-  return `${imageStoreRoot(src)}/${safeVersion}`
+  // ETags may contain punctuation (and Last-Modified contains spaces). Hash
+  // their exact value rather than stripping those characters: stripping could
+  // make two distinct versions share a folder.
+  if (!version) return null
+  return `${imageStoreRoot(src)}/${createHash('sha256').update(version).digest('hex')}`
 }

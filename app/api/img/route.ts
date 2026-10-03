@@ -8,9 +8,26 @@ import { imageStore, imageStorePrefix, imageStoreRoot, type ImageStore } from '@
 // same with sharp: the CDN caches each (url, width) pair, and the function
 // only runs on a miss — which is often: the CDN cache is per region and
 // starts empty after a deploy, so what a miss needs is kept in R2 (lib/r2.ts).
-// A day of freshness, then stale-while-revalidate, since a few paths
-// (legacy/<id>.jpg) are overwritten in place when re-synced.
-const CACHE = 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800'
+// Some storage paths are content-versioned when uploaded. They can safely be
+// cached at Vercel's edge for a year, so repeat views do not invoke this
+// Function at all. Mutable legacy paths retain a shorter cache lifetime.
+const IMMUTABLE_CACHE = 'public, max-age=31536000, s-maxage=31536000, immutable'
+const MUTABLE_CACHE = 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800'
+const IMAGE_FORMAT = 'webp'
+
+function isVersionedSource(src: string) {
+  // Current uploads use a timestamp in their filename, for example
+  // `user/1760000000000-0.jpg` or `admin/id/1760000000000.jpg`. Do not infer
+  // immutability for legacy/<id>.jpg, which is intentionally overwritten.
+  return /\/\d{13}(?:-\d+)?\.[a-zA-Z0-9]+(?:\?|$)/.test(src)
+}
+
+function variantKey(folder: string, width: number) {
+  // The folder identifies origin + exact Storage version. Include every
+  // transform setting in the object name too, so future format/quality
+  // changes cannot accidentally reuse an old derivative.
+  return `${folder}/${width}w-q${IMAGE_QUALITY}.${IMAGE_FORMAT}`
+}
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams
@@ -31,10 +48,21 @@ export async function GET(request: Request) {
   // (including a quota 402), use the last R2 version instead of turning a
   // cache miss into a broken image.
   const store = imageStore()
+  const immutable = isVersionedSource(src)
   let folder: string | null = null
   let original: Buffer | null = null
   if (store) {
     try {
+      // A versioned URL cannot be overwritten. Check the R2 marker first so
+      // an R2 hit avoids both the Supabase version HEAD and sharp entirely.
+      if (immutable) {
+        folder = await cachedFolder(store, src)
+        if (folder) {
+          const stored = await store.get(variantKey(folder, width))
+          if (stored) return webp(stored, true)
+        }
+      }
+
       const head = await fetch(src, { method: 'HEAD', cache: 'no-store' })
       if (head.status === 404) return notFound(404)
       const version = head.headers.get('etag') ?? head.headers.get('last-modified')
@@ -44,8 +72,8 @@ export async function GET(request: Request) {
         console.warn('api/img: Storage version unavailable, using R2 fallback when present', src, head.status)
       }
       if (folder) {
-        const stored = await store.get(`${folder}/${width}.webp`)
-        if (stored) return webp(stored)
+        const stored = await store.get(variantKey(folder, width))
+        if (stored) return webp(stored, immutable)
         original = await store.get(`${folder}/original`)
       }
     } catch (error) {
@@ -72,8 +100,8 @@ export async function GET(request: Request) {
       .resize({ width, withoutEnlargement: true })
       .webp({ quality: IMAGE_QUALITY })
       .toBuffer()
-    if (store && folder) await save(store, `${folder}/${width}.webp`, output, 'image/webp')
-    return webp(output)
+    if (store && folder) await save(store, variantKey(folder, width), output, 'image/webp')
+    return webp(output, immutable)
   } catch (error) {
     // Not something sharp can read: hand back the original.
     console.error('api/img: resize failed', src, error)
@@ -81,8 +109,10 @@ export async function GET(request: Request) {
   }
 }
 
-function webp(body: Buffer) {
-  return new Response(new Uint8Array(body), { headers: { 'Content-Type': 'image/webp', 'Cache-Control': CACHE } })
+function webp(body: Buffer, immutable = false) {
+  return new Response(new Uint8Array(body), {
+    headers: { 'Content-Type': `image/${IMAGE_FORMAT}`, 'Cache-Control': immutable ? IMMUTABLE_CACHE : MUTABLE_CACHE },
+  })
 }
 
 function notFound(status: 404 | 502) {
@@ -102,6 +132,8 @@ async function cachedFolder(store: ImageStore, src: string): Promise<string | nu
   const current = await store.get(`${imageStoreRoot(src)}/current`)
   if (current) {
     const folder = current.toString('utf8')
+    // Also accept folders written by the initial R2 implementation so an
+    // upgrade does not discard an already-warm cache.
     if (/^img\/[a-f0-9]{64}\/[a-zA-Z0-9]+$/.test(folder)) return folder
   }
   return store.findLatestFolder?.(imageStoreRoot(src)) ?? null
