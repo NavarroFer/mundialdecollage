@@ -13,6 +13,7 @@ import { fmt } from '@/lib/i18n/format'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { TrackedLink } from '@/components/track'
 import { SiteHeaderMotion } from '@/components/site-header-motion'
+import { SectionLink } from '@/components/section-link'
 import { getCallState } from '@/lib/call-state'
 
 async function AuthSlot() {
@@ -93,9 +94,9 @@ export async function SiteHeader() {
             <Store className="h-4 w-4" aria-hidden="true" />
             {m.header.shop}
           </TrackedLink>
-          <Link href="/#participantes" className="flex h-11 items-center rounded-full px-4 text-ink/70 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
+          <SectionLink href="/#participantes" className="flex h-11 items-center rounded-full px-4 text-ink/70 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
             {m.header.participants}
-          </Link>
+          </SectionLink>
           <Link
             href="/galeria-3d"
             target="_blank"
@@ -140,9 +141,9 @@ export async function SiteHeader() {
                 <TrackedLink href="/tienda" event="store_click_header" className="flex min-h-14 items-center rounded-xl px-4 font-display text-2xl tracking-wide transition-all duration-200 hover:bg-paper/10 hover:pl-5 motion-reduce:transition-none">
                   {m.header.shop}
                 </TrackedLink>
-                <Link href="/#participantes" className="flex min-h-14 items-center rounded-xl px-4 font-display text-2xl tracking-wide transition-all duration-200 hover:bg-paper/10 hover:pl-5 motion-reduce:transition-none">
+                <SectionLink href="/#participantes" className="flex min-h-14 items-center rounded-xl px-4 font-display text-2xl tracking-wide transition-all duration-200 hover:bg-paper/10 hover:pl-5 motion-reduce:transition-none">
                   {m.header.participants}
-                </Link>
+                </SectionLink>
               </nav>
               <div className="mt-2 border-t border-paper/20 px-2 pt-2">
                 <LanguageSwitcher className="w-full justify-start px-2 py-2 text-paper hover:text-collage-yellow" />

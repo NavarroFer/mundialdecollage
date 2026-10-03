@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { TrackedLink } from '@/components/track'
 import { FadeIn } from '@/components/fade-in'
+import { SectionLink } from '@/components/section-link'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { getI18n } from '@/lib/i18n/server'
 import { getCallState } from '@/lib/call-state'
@@ -60,9 +61,9 @@ export async function EditionSection() {
                 ? <TrackedLink href="/onboarding" event="submit_click_edition">{m.edition.submit}</TrackedLink>
                 : <Link href="/galeria-3d">{m.closed.cta}</Link>}
             </Button>
-            <Link href="#participantes" className="text-sm font-semibold text-collage-blue underline underline-offset-4">
+            <SectionLink href="/#participantes" className="text-sm font-semibold text-collage-blue underline underline-offset-4">
               {m.edition.discover}
-            </Link>
+            </SectionLink>
           </div>
         </FadeIn>
       </div>
