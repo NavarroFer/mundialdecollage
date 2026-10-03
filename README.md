@@ -34,6 +34,15 @@ RESEND_API_KEY=
 # el endpoint rechaza todos los eventos para que nunca acepte eventos falsos.
 RESEND_WEBHOOK_SECRET=
 
+# Cloudflare R2 — bucket privado donde /api/img guarda cada foto y cada
+# tamaño ya generado, para no volver a bajar el original de Supabase Storage
+# en cada miss del CDN (ver lib/r2.ts). Sin esto el sitio funciona igual,
+# pero cada miss consume egress de Supabase.
+# R2_ACCOUNT_ID=
+# R2_ACCESS_KEY_ID=
+# R2_SECRET_ACCESS_KEY=
+# R2_BUCKET=
+
 # Opcional: fuerza la URL usada en links de mail (ej. unsubscribe) en vez de
 # auto-detectar la URL de Vercel (ver getSiteUrl en lib/site.ts).
 # NEXT_PUBLIC_SITE_URL=
