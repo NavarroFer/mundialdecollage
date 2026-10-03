@@ -1,7 +1,7 @@
 import sharp from 'sharp'
 import { IMAGE_QUALITY, IMAGE_WIDTHS } from '@/lib/image-widths.mjs'
 import { MAX_FETCH_BYTES } from '@/lib/onboarding-image'
-import { imageStore, imageStorePrefix, type ImageStore } from '@/lib/r2'
+import { imageStore, imageStorePrefix, imageStoreRoot, type ImageStore } from '@/lib/r2'
 
 // Resizes a public Storage image for lib/image-loader.ts. Vercel's own image
 // optimization returned 402 once its allowance ran out, so this does the
@@ -27,7 +27,9 @@ export async function GET(request: Request) {
   // With R2 configured, Storage is asked for the photo itself once per
   // version; every later miss — another width, another CDN region, the cache
   // emptied by a deploy — is answered from R2. The HEAD (no body) is how an
-  // overwritten photo is noticed.
+  // overwritten photo is noticed. If Storage is temporarily unavailable
+  // (including a quota 402), use the last R2 version instead of turning a
+  // cache miss into a broken image.
   const store = imageStore()
   let folder: string | null = null
   let original: Buffer | null = null
@@ -37,7 +39,10 @@ export async function GET(request: Request) {
       if (head.status === 404) return notFound(404)
       const version = head.headers.get('etag') ?? head.headers.get('last-modified')
       if (head.ok && version) folder = imageStorePrefix(src, version)
-      if (!folder) console.warn('api/img: no ETag from Storage, not using R2', src, head.status)
+      if (!folder) {
+        folder = await cachedFolder(store, src)
+        console.warn('api/img: Storage version unavailable, using R2 fallback when present', src, head.status)
+      }
       if (folder) {
         const stored = await store.get(`${folder}/${width}.webp`)
         if (stored) return webp(stored)
@@ -55,7 +60,10 @@ export async function GET(request: Request) {
       return Response.redirect(src, 302)
     }
     original = Buffer.from(await upstream.arrayBuffer())
-    if (store && folder) await save(store, `${folder}/original`, original, upstream.headers.get('content-type') ?? 'application/octet-stream')
+    if (store && folder) {
+      await save(store, `${folder}/original`, original, upstream.headers.get('content-type') ?? 'application/octet-stream')
+      await save(store, `${imageStoreRoot(src)}/current`, Buffer.from(folder), 'text/plain')
+    }
   }
 
   try {
@@ -88,4 +96,13 @@ async function save(store: ImageStore, key: string, body: Buffer, contentType: s
   } catch (error) {
     console.error('api/img: R2 write failed', key, error)
   }
+}
+
+async function cachedFolder(store: ImageStore, src: string): Promise<string | null> {
+  const current = await store.get(`${imageStoreRoot(src)}/current`)
+  if (current) {
+    const folder = current.toString('utf8')
+    if (/^img\/[a-f0-9]{64}\/[a-zA-Z0-9]+$/.test(folder)) return folder
+  }
+  return store.findLatestFolder?.(imageStoreRoot(src)) ?? null
 }

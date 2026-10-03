@@ -77,7 +77,7 @@ describe('GET /api/img with R2', () => {
     const first = await GET(request(photo, 640))
     expect(first.headers.get('content-type')).toBe('image/webp')
     expect(downloads()).toBe(1)
-    expect([...files.keys()].map((key) => key.split('/').pop()).sort()).toEqual(['640.webp', 'original'])
+    expect([...files.keys()].map((key) => key.split('/').pop()).sort()).toEqual(['640.webp', 'current', 'original'])
 
     const other = await GET(request(photo, 1080))
     const meta = await sharp(Buffer.from(await other.arrayBuffer())).metadata()
@@ -94,7 +94,20 @@ describe('GET /api/img with R2', () => {
     const { downloads } = await storage('"v2"')
     await GET(request(photo, 640))
     expect(downloads()).toBe(1)
-    expect(files.size).toBe(4)
+    expect(files.size).toBe(5)
+  })
+
+  it('serves the most recently cached version when Storage is unavailable', async () => {
+    const { files } = memoryStore()
+    await storage('"v1"')
+    const first = await GET(request(photo, 640))
+
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 402 })))
+    const fallback = await GET(request(photo, 640))
+
+    expect(fallback.headers.get('content-type')).toBe('image/webp')
+    expect(Buffer.from(await fallback.arrayBuffer())).toEqual(Buffer.from(await first.arrayBuffer()))
+    expect([...files.keys()]).toContainEqual(expect.stringMatching(/\/current$/))
   })
 
   it('still serves the image when R2 is down', async () => {

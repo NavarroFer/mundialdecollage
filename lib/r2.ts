@@ -8,6 +8,13 @@ import { AwsClient } from 'aws4fetch'
 export type ImageStore = {
   get(key: string): Promise<Buffer | null>
   put(key: string, body: Buffer, contentType: string): Promise<void>
+  // Lets a deployment made after the cache was populated recover the newest
+  // version before the `current` marker existed.
+  findLatestFolder?(root: string): Promise<string | null>
+}
+
+export function imageStoreRoot(src: string): string {
+  return `img/${createHash('sha256').update(src).digest('hex')}`
 }
 
 // Null where the R2_* variables aren't set (local dev, a preview without
@@ -22,7 +29,8 @@ export function imageStore(): ImageStore | null {
     service: 's3',
     region: 'auto',
   })
-  const url = (key: string) => `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}/${key}`
+  const bucketUrl = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}`
+  const url = (key: string) => `${bucketUrl}/${key}`
 
   return {
     async get(key) {
@@ -41,6 +49,19 @@ export function imageStore(): ImageStore | null {
       })
       if (!response.ok) throw new Error(`R2 put ${key}: ${response.status}`)
     },
+    async findLatestFolder(root) {
+      const query = new URLSearchParams({ 'list-type': '2', prefix: `${root}/` })
+      const response = await client.fetch(`${bucketUrl}?${query}`, { cache: 'no-store' })
+      if (!response.ok) throw new Error(`R2 list ${root}: ${response.status}`)
+      const xml = await response.text()
+      let newest: { folder: string; modified: number } | null = null
+      for (const match of xml.matchAll(/<Contents>[\s\S]*?<Key>([^<]+)<\/Key>[\s\S]*?<LastModified>([^<]+)<\/LastModified>[\s\S]*?<\/Contents>/g)) {
+        const folder = match[1].match(/^(img\/[a-f0-9]{64}\/[a-zA-Z0-9]+)\//)?.[1]
+        const modified = Date.parse(match[2])
+        if (folder && Number.isFinite(modified) && (!newest || modified > newest.modified)) newest = { folder, modified }
+      }
+      return newest?.folder ?? null
+    },
   }
 }
 
@@ -51,5 +72,5 @@ export function imageStore(): ImageStore | null {
 export function imageStorePrefix(src: string, version: string): string | null {
   const safeVersion = version.replace(/[^a-zA-Z0-9]/g, '')
   if (!safeVersion) return null
-  return `img/${createHash('sha256').update(src).digest('hex')}/${safeVersion}`
+  return `${imageStoreRoot(src)}/${safeVersion}`
 }
