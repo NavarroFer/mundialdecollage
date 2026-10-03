@@ -207,6 +207,7 @@ const pt: Messages = {
   },
   artwork: {
     back: 'Voltar às obras',
+    loading: 'Carregando obra…',
   },
   countrySelect: {
     placeholder: 'Escolha seu país',

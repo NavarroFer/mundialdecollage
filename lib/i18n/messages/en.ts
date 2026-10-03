@@ -207,6 +207,7 @@ const en: Messages = {
   },
   artwork: {
     back: 'Back to the artworks',
+    loading: 'Loading artwork…',
   },
   countrySelect: {
     placeholder: 'Choose your country',

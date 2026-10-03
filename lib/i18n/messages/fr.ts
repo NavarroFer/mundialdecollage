@@ -207,6 +207,7 @@ const fr: Messages = {
   },
   artwork: {
     back: 'Retour aux œuvres',
+    loading: 'Chargement de l’œuvre…',
   },
   countrySelect: {
     placeholder: 'Choisis ton pays',

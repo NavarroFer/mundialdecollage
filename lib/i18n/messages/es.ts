@@ -208,6 +208,7 @@ const es = {
   },
   artwork: {
     back: 'Volver a las obras',
+    loading: 'Cargando obra…',
   },
   countrySelect: {
     placeholder: 'Elegí tu país',

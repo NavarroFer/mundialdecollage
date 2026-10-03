@@ -9,6 +9,7 @@ import { ShareArtwork } from '@/components/share-artwork'
 import { ReferralInvite } from '@/components/referral-invite'
 import { TrackView, TrackedLink } from '@/components/track'
 import { ScrollToTop } from '@/components/scroll-to-top'
+import { ArtworkImage } from '@/components/artwork-image'
 import { Button } from '@/components/ui/button'
 import { countryCodeToFlag } from '@/lib/participants'
 import { countryCodeToName, getArtworkShareState, getFinalistBySlug, getFinalists } from '@/lib/finalists'
@@ -90,11 +91,9 @@ export default async function ObraPage({
           <ReferralInvite refParam={ref} className="mt-6" />
 
           <div className="mt-8 overflow-hidden rounded-2xl border-2 border-ink/10 bg-muted">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <ArtworkImage
               src={imageSrc(finalist.imageUrl, 1200)}
               alt={fmt(m.common.artworkBy, { title, name: finalist.name })}
-              className="w-full object-cover"
             />
           </div>
 

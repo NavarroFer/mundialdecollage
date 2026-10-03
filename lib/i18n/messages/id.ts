@@ -207,6 +207,7 @@ const id: Messages = {
   },
   artwork: {
     back: 'Kembali ke karya',
+    loading: 'Memuat karya…',
   },
   countrySelect: {
     placeholder: 'Pilih negaramu',

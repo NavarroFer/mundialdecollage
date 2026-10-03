@@ -212,6 +212,7 @@ const pl: Messages = {
   },
   artwork: {
     back: 'Wróć do prac',
+    loading: 'Ładowanie pracy…',
   },
   countrySelect: {
     placeholder: 'Wybierz kraj',

@@ -212,6 +212,7 @@ const ru: Messages = {
   },
   artwork: {
     back: 'Назад к работам',
+    loading: 'Загружаем работу…',
   },
   countrySelect: {
     placeholder: 'Выберите страну',

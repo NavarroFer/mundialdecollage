@@ -1,0 +1,61 @@
+.artwork-loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--muted);
+}
+
+.artwork-loader__scrap {
+  grid-area: 1 / 1;
+  width: clamp(4.5rem, 22%, 8rem);
+  aspect-ratio: 4 / 5;
+  clip-path: polygon(3% 6%, 30% 0%, 58% 5%, 97% 1%, 100% 38%, 95% 70%, 99% 97%, 62% 100%, 34% 95%, 4% 99%, 0% 64%, 5% 33%);
+  opacity: 0;
+  animation: artwork-loader-paste 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.artwork-loader__scrap--blue {
+  --from: translate(-60%, -40%) rotate(-24deg);
+  --to: translate(-28%, -10%) rotate(-8deg);
+  background: var(--collage-blue);
+}
+
+.artwork-loader__scrap--red {
+  --from: translate(60%, -30%) rotate(22deg);
+  --to: translate(26%, -4%) rotate(7deg);
+  background: var(--collage-red);
+  animation-delay: 0.25s;
+}
+
+.artwork-loader__scrap--yellow {
+  --from: translate(0, 70%) rotate(-14deg);
+  --to: translate(0, 14%) rotate(-3deg);
+  background: var(--collage-yellow);
+  animation-delay: 0.5s;
+}
+
+@keyframes artwork-loader-paste {
+  0% {
+    opacity: 0;
+    transform: var(--from) scale(1.25);
+  }
+  25%,
+  70% {
+    opacity: 0.9;
+    transform: var(--to) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: var(--to) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artwork-loader__scrap {
+    animation: none;
+    opacity: 0.6;
+    transform: var(--to);
+  }
+}
