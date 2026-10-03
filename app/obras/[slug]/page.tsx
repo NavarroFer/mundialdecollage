@@ -8,6 +8,7 @@ import { getCallState } from '@/lib/call-state'
 import { ShareArtwork } from '@/components/share-artwork'
 import { ReferralInvite } from '@/components/referral-invite'
 import { TrackView, TrackedLink } from '@/components/track'
+import { ScrollToTop } from '@/components/scroll-to-top'
 import { Button } from '@/components/ui/button'
 import { countryCodeToFlag } from '@/lib/participants'
 import { countryCodeToName, getArtworkShareState, getFinalistBySlug, getFinalists } from '@/lib/finalists'
@@ -73,6 +74,7 @@ export default async function ObraPage({
   return (
     <>
       <TrackView event="artwork_page_view" />
+      <ScrollToTop />
       <SiteHeader />
       <main className="bg-background py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-5 sm:px-8">
