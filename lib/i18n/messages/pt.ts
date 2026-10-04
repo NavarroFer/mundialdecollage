@@ -170,6 +170,7 @@ const pt: Messages = {
     contact: 'Contato',
     terms: 'Termos e Condições',
     privacy: 'Política de Privacidade',
+    partners: "Seja um parceiro",
     googleWhy:
       'Por que pedimos "Entrar com Google"? Usamos isso para identificar você quando envia sua obra ao Mundial Internacional de Colagem ou se inscreve na oficina, assim você acompanha sua participação sem criar uma conta nova.',
   },
@@ -379,6 +380,7 @@ const pt: Messages = {
     artworkOfficial: 'Obra oficial do Mundial de Colagem {year}.',
     closeToContinue: 'Feche esta janela para continuar o passeio',
     homeLink: 'Ir para o início do Mundial de Colagem',
+    partnersLink: "Tem uma marca? Apareça na galeria",
     share: {
       button: 'Compartilhar esta obra',
       copied: 'Link copiado!',
@@ -619,6 +621,44 @@ const pt: Messages = {
       pointCard: 'Aponte a câmera para o logo',
       tap: 'Toque na tela',
     },
+  },
+  partners: {
+    metaTitle: "Parceiros — Mundial de Colagem",
+    metaDescription: "Livrarias, editoras e marcas: apareçam na galeria 3D, na revista impressa e no site do Mundial Internacional de Colagem. Escreva para conhecer as propostas.",
+    badge: "Parceiros",
+    title: "Sua marca no Mundial de Colagem",
+    intro: "Buscamos livrarias, editoras, marcas de papelaria e de materiais de arte, e marcas que queiram ser vistas por artistas do mundo todo.",
+    aboutTitle: "Um projeto autogestionado",
+    aboutBody: "Por trás do Mundial não há uma instituição nem um grande patrocinador: é um projeto autogestionado, feito com muito esforço por dois empreendedores de Mar del Plata, Argentina. Cada parceiro nos ajuda a manter a convocatória gratuita, a galeria 3D e a revista impressa.",
+    placesTitle: "Onde sua marca pode aparecer",
+    places: [
+      {
+        title: "Galeria 3D",
+        body: "O museu virtual do Mundial, visitado pelo navegador, com uma nova seleção de obras todos os dias."
+      },
+      {
+        title: "Revista impressa",
+        body: "A 1ª edição da revista, com as 30 obras finalistas, enviada a leitores do mundo todo."
+      },
+      {
+        title: "Site e newsletter",
+        body: "As páginas do Mundial e os e-mails que enviamos a artistas e seguidores."
+      }
+    ],
+    forTitle: "Pensado para",
+    forList: [
+      "Livrarias e papelarias",
+      "Editoras",
+      "Marcas de materiais de arte",
+      "Marcas ligadas à arte, aos livros e ao papel"
+    ],
+    contactTitle: "Conheça nossas propostas",
+    contactBody: "Escreva para {email} e contamos os espaços e formatos que oferecemos aos parceiros.",
+    contactCta: "Escreva para nós",
+    mailSubject: "Quero ser parceiro do Mundial de Colagem",
+    promoTitle: "Tem uma marca?",
+    promoBody: "Sua marca pode estar na revista impressa e na galeria 3D do Mundial.",
+    promoCta: "Ver propostas para parceiros"
   },
 }
 

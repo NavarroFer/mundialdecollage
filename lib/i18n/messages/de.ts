@@ -170,6 +170,7 @@ const de: Messages = {
     contact: 'Kontakt',
     terms: 'Nutzungsbedingungen',
     privacy: 'Datenschutzerklärung',
+    partners: "Partner werden",
     googleWhy:
       'Warum fragen wir nach „Mit Google anmelden“? Damit erkennen wir dich, wenn du dein Werk bei der Internationalen Collage-WM hochlädst oder dich für den Workshop anmeldest – so kannst du deine Teilnahme verfolgen, ohne ein neues Konto anzulegen.',
   },
@@ -379,6 +380,7 @@ const de: Messages = {
     artworkOfficial: 'Offizielles Werk der Collage-WM {year}.',
     closeToContinue: 'Schließ dieses Fenster, um weiterzugehen',
     homeLink: 'Zur Startseite der Collage-WM',
+    partnersLink: "Du hast eine Marke? Zeig dich in der Galerie",
     share: {
       button: 'Dieses Werk teilen',
       copied: 'Link kopiert!',
@@ -619,6 +621,44 @@ const de: Messages = {
       pointCard: 'Richte die Kamera auf das Logo',
       tap: 'Tippe auf den Bildschirm',
     },
+  },
+  partners: {
+    metaTitle: "Partner — Collage-WM",
+    metaDescription: "Buchhandlungen, Verlage und Marken: Seid sichtbar in der 3D-Galerie, im gedruckten Magazin und auf der Website der Internationalen Collage-WM. Schreibt uns, um unsere Angebote kennenzulernen.",
+    badge: "Partner",
+    title: "Deine Marke bei der Collage-WM",
+    intro: "Wir suchen Buchhandlungen, Verlage, Marken für Papier- und Künstlerbedarf und alle Marken, die von Künstlerinnen und Künstlern aus aller Welt gesehen werden wollen.",
+    aboutTitle: "Ein selbstorganisiertes Projekt",
+    aboutBody: "Hinter der WM steht keine Institution und kein großer Sponsor: Sie ist ein selbstorganisiertes Projekt, mit viel Einsatz getragen von zwei Gründern aus Mar del Plata, Argentinien. Jeder Partner hilft uns, die Ausschreibung kostenlos zu halten, die 3D-Galerie zu betreiben und das Magazin zu drucken.",
+    placesTitle: "Wo deine Marke erscheinen kann",
+    places: [
+      {
+        title: "3D-Galerie",
+        body: "Das virtuelle Museum der WM, im Browser begehbar, mit einer neuen Auswahl an Werken jeden Tag."
+      },
+      {
+        title: "Gedrucktes Magazin",
+        body: "Die 1. Ausgabe des Magazins mit den 30 Finalwerken, verschickt an Leserinnen und Leser weltweit."
+      },
+      {
+        title: "Website und Newsletter",
+        body: "Die Seiten der WM und die E-Mails, die wir an Kunstschaffende und Follower schicken."
+      }
+    ],
+    forTitle: "Gedacht für",
+    forList: [
+      "Buchhandlungen und Schreibwarenläden",
+      "Verlage",
+      "Marken für Künstlerbedarf",
+      "Marken mit Nähe zu Kunst, Büchern und Papier"
+    ],
+    contactTitle: "Lerne unsere Angebote kennen",
+    contactBody: "Schreib uns an {email} und wir erzählen dir, welche Flächen und Formate wir Partnern anbieten.",
+    contactCta: "Schreib uns",
+    mailSubject: "Ich möchte Partner der Collage-WM werden",
+    promoTitle: "Du hast eine Marke?",
+    promoBody: "Deine Marke kann im gedruckten Magazin und in der 3D-Galerie der WM erscheinen.",
+    promoCta: "Partner-Angebote ansehen"
   },
 }
 

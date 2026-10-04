@@ -170,6 +170,7 @@ const id: Messages = {
     contact: 'Kontak',
     terms: 'Syarat dan Ketentuan',
     privacy: 'Kebijakan Privasi',
+    partners: "Jadi mitra",
     googleWhy:
       'Mengapa kami meminta "Masuk dengan Google"? Kami menggunakannya untuk mengenalimu saat kamu mengunggah karya ke Piala Dunia Kolase Internasional atau mendaftar lokakarya, sehingga kamu bisa memantau keikutsertaanmu tanpa membuat akun baru.',
   },
@@ -379,6 +380,7 @@ const id: Messages = {
     artworkOfficial: 'Karya resmi Piala Dunia Kolase {year}.',
     closeToContinue: 'Tutup jendela ini untuk melanjutkan tur',
     homeLink: 'Ke beranda Piala Dunia Kolase',
+    partnersLink: "Punya merek? Tampil di galeri",
     share: {
       button: 'Bagikan karya ini',
       copied: 'Tautan disalin!',
@@ -616,6 +618,44 @@ const id: Messages = {
       pointCard: 'Arahkan kamera ke logo',
       tap: 'Ketuk layar',
     },
+  },
+  partners: {
+    metaTitle: "Mitra — Piala Dunia Kolase",
+    metaDescription: "Toko buku, penerbit, dan merek: tampil di galeri 3D, majalah cetak, dan situs Piala Dunia Kolase Internasional. Tulis kepada kami untuk mengetahui penawaran kami.",
+    badge: "Mitra",
+    title: "Merek Anda di Piala Dunia Kolase",
+    intro: "Kami mencari toko buku, penerbit, merek alat tulis dan perlengkapan seni, serta merek yang ingin dilihat oleh seniman dari seluruh dunia.",
+    aboutTitle: "Proyek swakelola",
+    aboutBody: "Di balik Piala Dunia ini tidak ada lembaga atau sponsor besar: ini adalah proyek swakelola yang dijalankan dengan kerja keras oleh dua wirausahawan dari Mar del Plata, Argentina. Setiap mitra membantu kami menjaga panggilan terbuka tetap gratis, galeri 3D tetap berjalan, dan majalah tetap tercetak.",
+    placesTitle: "Di mana merek Anda bisa tampil",
+    places: [
+      {
+        title: "Galeri 3D",
+        body: "Museum virtual Piala Dunia yang bisa dijelajahi dari peramban, dengan pilihan karya baru setiap hari."
+      },
+      {
+        title: "Majalah cetak",
+        body: "Edisi pertama majalah, berisi 30 karya finalis, dikirim ke pembaca di seluruh dunia."
+      },
+      {
+        title: "Situs dan newsletter",
+        body: "Halaman-halaman Piala Dunia dan email yang kami kirim ke seniman dan pengikut."
+      }
+    ],
+    forTitle: "Dirancang untuk",
+    forList: [
+      "Toko buku dan alat tulis",
+      "Penerbit",
+      "Merek perlengkapan seni",
+      "Merek yang dekat dengan seni, buku, dan kertas"
+    ],
+    contactTitle: "Kenali penawaran kami",
+    contactBody: "Tulis kepada kami di {email} dan kami akan menjelaskan ruang dan format yang kami tawarkan untuk mitra.",
+    contactCta: "Tulis kepada kami",
+    mailSubject: "Saya ingin menjadi mitra Piala Dunia Kolase",
+    promoTitle: "Punya merek?",
+    promoBody: "Merek Anda bisa tampil di majalah cetak dan di galeri 3D Piala Dunia.",
+    promoCta: "Lihat penawaran untuk mitra"
   },
 }
 

@@ -6,7 +6,7 @@ import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtw
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -393,6 +393,16 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         title="«Avisame» de finalistas y revista"
         description="Personas que dejaron su mail para enterarse de las finalistas y la revista, según dónde lo hicieron. Quedan en Contactos con el origen «aviso_…». Se mide desde el 1 de octubre de 2026."
         steps={WAITLIST_EVENTS}
+        periodDays={periodDays}
+        variant="comparison"
+      />
+
+      <JourneySection
+        week={funnelWeek}
+        month={funnelMonth}
+        title="Partners y marcas"
+        description="Personas distintas que abrieron /partners, desde dónde llegaron y cuántas tocaron el mail para escribirnos. Se mide desde el 4 de octubre de 2026."
+        steps={PARTNER_EVENTS}
         periodDays={periodDays}
         variant="comparison"
       />

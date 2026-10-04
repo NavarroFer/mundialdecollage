@@ -5,6 +5,7 @@ import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { WaitlistSignup } from '@/components/waitlist-signup'
+import { TrackedLink } from '@/components/track'
 
 // showWaitlist: off on pages that already have their own «Avisame» form.
 export async function Footer({ showWaitlist = true }: { showWaitlist?: boolean } = {}) {
@@ -49,6 +50,13 @@ export async function Footer({ showWaitlist = true }: { showWaitlist?: boolean }
         >
           {site.email}
         </a>
+        <TrackedLink
+          href="/partners"
+          event="partners_click_footer"
+          className="flex min-h-11 items-center text-sm font-semibold text-ink underline-offset-4 hover:underline"
+        >
+          {m.footer.partners} →
+        </TrackedLink>
         </div>
         </div>
         <div className="flex flex-col gap-3 border-t border-ink/10 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">

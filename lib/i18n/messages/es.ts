@@ -171,6 +171,7 @@ const es = {
     contact: 'Contacto',
     terms: 'Términos y Condiciones',
     privacy: 'Política de Privacidad',
+    partners: "Sumá tu marca como partner",
     googleWhy:
       '¿Para qué pedimos "Iniciar sesión con Google"? La usamos para identificarte cuando subís tu obra al Mundial Internacional de Collage o te anotás al taller, así podés hacer seguimiento de tu participación sin crear una cuenta nueva.',
   },
@@ -384,6 +385,7 @@ const es = {
     artworkOfficial: 'Obra oficial del Mundial de Collage {year}.',
     closeToContinue: 'Cerrá esta ventana para seguir recorriendo',
     homeLink: 'Ir al inicio del Mundial',
+    partnersLink: "¿Tenés una marca? Aparecé en la galería",
     share: {
       button: 'Compartir esta obra',
       copied: '¡Link copiado!',
@@ -634,6 +636,44 @@ const es = {
       pointCard: 'Apuntá la cámara al logo',
       tap: 'Tocá la pantalla',
     },
+  },
+  partners: {
+    metaTitle: "Partners — Mundial de Collage",
+    metaDescription: "Librerías, editoriales y marcas: aparecé en la galería 3D, la revista impresa y el sitio del Mundial Internacional de Collage. Escribinos para conocer las propuestas.",
+    badge: "Partners",
+    title: "Tu marca en el Mundial de Collage",
+    intro: "Buscamos librerías, editoriales, marcas de papelería y de materiales de arte, y marcas que quieran ser vistas por artistas de todo el mundo.",
+    aboutTitle: "Un proyecto autogestivo",
+    aboutBody: "Detrás del Mundial no hay una institución ni un gran sponsor: es un proyecto autogestivo, hecho a pulmón por dos emprendedores marplatenses. Cada partner nos ayuda a sostener la convocatoria gratuita, la galería 3D y la revista impresa.",
+    placesTitle: "Dónde puede aparecer tu marca",
+    places: [
+      {
+        title: "Galería 3D",
+        body: "El museo virtual del Mundial, que se recorre desde el navegador y cambia de obras todos los días."
+      },
+      {
+        title: "Revista impresa",
+        body: "La 1ª edición de la revista, con las 30 obras finalistas, enviada a lectores de todo el mundo."
+      },
+      {
+        title: "Sitio y newsletter",
+        body: "Las páginas del Mundial y los mails que les mandamos a artistas y seguidores."
+      }
+    ],
+    forTitle: "Pensado para",
+    forList: [
+      "Librerías y papelerías",
+      "Editoriales",
+      "Marcas de materiales de arte",
+      "Marcas afines al arte, los libros y el papel"
+    ],
+    contactTitle: "Conocé nuestras propuestas",
+    contactBody: "Escribinos a {email} y te contamos los espacios y formatos que ofrecemos para partners.",
+    contactCta: "Escribinos",
+    mailSubject: "Quiero ser partner del Mundial de Collage",
+    promoTitle: "¿Tenés una marca?",
+    promoBody: "Tu marca puede estar en la revista impresa y en la galería 3D del Mundial.",
+    promoCta: "Ver propuestas para partners"
   },
 }
 

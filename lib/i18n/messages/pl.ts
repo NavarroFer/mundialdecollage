@@ -175,6 +175,7 @@ const pl: Messages = {
     contact: 'Kontakt',
     terms: 'Regulamin',
     privacy: 'Polityka prywatności',
+    partners: "Zostań partnerem",
     googleWhy:
       'Dlaczego prosimy o „Zaloguj się przez Google”? Dzięki temu rozpoznajemy Cię, gdy przesyłasz pracę na Międzynarodowe Mistrzostwa Świata w Kolażu lub zapisujesz się na warsztaty, i możesz śledzić swój udział bez zakładania nowego konta.',
   },
@@ -389,6 +390,7 @@ const pl: Messages = {
     artworkOfficial: 'Oficjalna praca Mistrzostw Świata w Kolażu {year}.',
     closeToContinue: 'Zamknij to okno, aby zwiedzać dalej',
     homeLink: 'Przejdź na stronę główną Mistrzostw Świata w Kolażu',
+    partnersLink: "Masz markę? Pokaż się w galerii",
     share: {
       button: 'Udostępnij tę pracę',
       copied: 'Link skopiowany!',
@@ -641,6 +643,44 @@ const pl: Messages = {
       pointCard: 'Skieruj aparat na logo',
       tap: 'Dotknij ekranu',
     },
+  },
+  partners: {
+    metaTitle: "Partnerzy — Mistrzostwa Świata w Kolażu",
+    metaDescription: "Księgarnie, wydawnictwa i marki: pojawcie się w galerii 3D, drukowanym magazynie i na stronie Międzynarodowych Mistrzostw Świata w Kolażu. Napiszcie do nas, aby poznać nasze propozycje.",
+    badge: "Partnerzy",
+    title: "Twoja marka na Mistrzostwach Świata w Kolażu",
+    intro: "Szukamy księgarni, wydawnictw, marek papierniczych i plastycznych oraz marek, które chcą być widoczne dla artystów z całego świata.",
+    aboutTitle: "Projekt oddolny",
+    aboutBody: "Za Mistrzostwami nie stoi żadna instytucja ani duży sponsor: to oddolny projekt, prowadzony własnymi siłami przez dwóch przedsiębiorców z Mar del Plata w Argentynie. Każdy partner pomaga nam utrzymać bezpłatny nabór, galerię 3D i drukowany magazyn.",
+    placesTitle: "Gdzie może pojawić się Twoja marka",
+    places: [
+      {
+        title: "Galeria 3D",
+        body: "Wirtualne muzeum Mistrzostw, zwiedzane w przeglądarce, z nowym wyborem prac każdego dnia."
+      },
+      {
+        title: "Drukowany magazyn",
+        body: "Pierwsze wydanie magazynu z 30 pracami finałowymi, wysyłane do czytelników na całym świecie."
+      },
+      {
+        title: "Strona i newsletter",
+        body: "Strony Mistrzostw i maile, które wysyłamy do artystów i obserwujących."
+      }
+    ],
+    forTitle: "Dla kogo",
+    forList: [
+      "Księgarnie i sklepy papiernicze",
+      "Wydawnictwa",
+      "Marki artykułów plastycznych",
+      "Marki bliskie sztuce, książkom i papierowi"
+    ],
+    contactTitle: "Poznaj nasze propozycje",
+    contactBody: "Napisz do nas na {email}, a opowiemy Ci o miejscach i formatach, które oferujemy partnerom.",
+    contactCta: "Napisz do nas",
+    mailSubject: "Chcę zostać partnerem Mistrzostw Świata w Kolażu",
+    promoTitle: "Masz markę?",
+    promoBody: "Twoja marka może pojawić się w drukowanym magazynie i w galerii 3D Mistrzostw.",
+    promoCta: "Zobacz propozycje dla partnerów"
   },
 }
 

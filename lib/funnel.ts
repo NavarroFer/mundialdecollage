@@ -155,6 +155,16 @@ export const MAGAZINE_ENTRY_EVENTS = [
   { name: 'magazine_click_status', label: 'Fueron a la revista desde «Ya estás participando»' },
 ] as const
 
+// Brands interested in being partners (app/partners): where they reach the
+// page from, and who goes on to write to site.email.
+export const PARTNER_EVENTS = [
+  { name: 'partners_view', label: 'Abrieron la página de partners' },
+  { name: 'partners_click_footer', label: 'Fueron a partners desde el pie de página' },
+  { name: 'partners_click_magazine', label: 'Fueron a partners desde la revista' },
+  { name: 'partners_click_gallery', label: 'Fueron a partners desde la galería 3D' },
+  { name: 'partners_email_click', label: 'Tocaron el mail para escribirnos' },
+] as const
+
 export type FunnelEvent =
   | (typeof FUNNEL_STEPS)[number]['name']
   | (typeof HOME_EVENTS)[number]['name']
@@ -170,11 +180,12 @@ export type FunnelEvent =
   | (typeof WAITLIST_EVENTS)[number]['name']
   | (typeof MAGAZINE_FUNNEL_EVENTS)[number]['name']
   | (typeof MAGAZINE_ENTRY_EVENTS)[number]['name']
+  | (typeof PARTNER_EVENTS)[number]['name']
 
 const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
-    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS,
   ].map((step) => step.name),
 )
 

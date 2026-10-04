@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { ScrollToTop } from '@/components/scroll-to-top'
-import { TrackView } from '@/components/track'
+import { TrackedLink, TrackView } from '@/components/track'
 import { WaitlistSignup } from '@/components/waitlist-signup'
 import { MagazineForm } from './magazine-form'
 import { getCurrentUser } from '@/lib/supabase/server'
@@ -106,6 +106,17 @@ export default async function MagazinePage() {
             )}
           </section>
         </div>
+        <aside className="mx-auto mt-14 max-w-6xl px-5 sm:px-8" aria-labelledby="magazine-partners-title">
+          <div className="flex flex-col gap-3 rounded-3xl border-2 border-dashed border-ink/20 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div>
+              <h2 id="magazine-partners-title" className="font-display text-xl tracking-tight text-ink uppercase">{m.partners.promoTitle}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{m.partners.promoBody}</p>
+            </div>
+            <TrackedLink href="/partners" event="partners_click_magazine" className="inline-flex min-h-11 shrink-0 items-center text-sm font-semibold text-ink underline underline-offset-4">
+              {m.partners.promoCta} →
+            </TrackedLink>
+          </div>
+        </aside>
       </main>
       <Footer showWaitlist={false} />
     </>

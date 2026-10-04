@@ -170,6 +170,7 @@ const en: Messages = {
     contact: 'Contact',
     terms: 'Terms and Conditions',
     privacy: 'Privacy Policy',
+    partners: "Become a partner",
     googleWhy:
       'Why do we ask you to "Sign in with Google"? We use it to identify you when you upload your artwork to the International Collage World Cup or sign up for the workshop, so you can follow your participation without creating a new account.',
   },
@@ -380,6 +381,7 @@ const en: Messages = {
     artworkOfficial: 'Official artwork of the {year} Collage World Cup.',
     closeToContinue: 'Close this window to keep exploring',
     homeLink: 'Go to the Collage World Cup home page',
+    partnersLink: "Have a brand? Get featured in the gallery",
     share: {
       button: 'Share this artwork',
       copied: 'Link copied!',
@@ -620,6 +622,44 @@ const en: Messages = {
       pointCard: 'Point your camera at the logo',
       tap: 'Tap the screen',
     },
+  },
+  partners: {
+    metaTitle: "Partners — Collage World Cup",
+    metaDescription: "Bookshops, publishers and brands: be featured in the 3D gallery, the printed magazine and the website of the International Collage World Cup. Write to us to learn about our proposals.",
+    badge: "Partners",
+    title: "Your brand at the Collage World Cup",
+    intro: "We are looking for bookshops, publishers, stationery and art supply brands, and any brand that wants to be seen by artists from all over the world.",
+    aboutTitle: "A self-managed project",
+    aboutBody: "There is no institution or big sponsor behind the World Cup: it is a self-managed project, built from scratch by two entrepreneurs from Mar del Plata, Argentina. Every partner helps us keep the open call free, the 3D gallery running and the magazine in print.",
+    placesTitle: "Where your brand can appear",
+    places: [
+      {
+        title: "3D Gallery",
+        body: "The World Cup's virtual museum, explored from the browser, with a new selection of artworks every day."
+      },
+      {
+        title: "Printed magazine",
+        body: "The 1st edition of the magazine, with the 30 finalist artworks, shipped to readers worldwide."
+      },
+      {
+        title: "Website and newsletter",
+        body: "The World Cup pages and the emails we send to artists and followers."
+      }
+    ],
+    forTitle: "Made for",
+    forList: [
+      "Bookshops and stationery stores",
+      "Publishers",
+      "Art supply brands",
+      "Brands close to art, books and paper"
+    ],
+    contactTitle: "Learn about our proposals",
+    contactBody: "Write to us at {email} and we will tell you about the spaces and formats we offer partners.",
+    contactCta: "Write to us",
+    mailSubject: "I want to partner with the Collage World Cup",
+    promoTitle: "Have a brand?",
+    promoBody: "Your brand can be in the printed magazine and in the World Cup 3D gallery.",
+    promoCta: "See partner proposals"
   },
 }
 

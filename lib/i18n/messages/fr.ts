@@ -170,6 +170,7 @@ const fr: Messages = {
     contact: 'Contact',
     terms: 'Conditions générales',
     privacy: 'Politique de confidentialité',
+    partners: "Devenir partenaire",
     googleWhy:
       "Pourquoi demandons-nous « Se connecter avec Google » ? Cela nous permet de t'identifier quand tu envoies ton œuvre au Mondial International du Collage ou que tu t'inscris à l'atelier, pour suivre ta participation sans créer de nouveau compte.",
   },
@@ -379,6 +380,7 @@ const fr: Messages = {
     artworkOfficial: 'Œuvre officielle du Mondial du Collage {year}.',
     closeToContinue: 'Ferme cette fenêtre pour continuer la visite',
     homeLink: "Aller à l'accueil du Mondial du Collage",
+    partnersLink: "Vous avez une marque ? Apparaissez dans la galerie",
     share: {
       button: 'Partager cette œuvre',
       copied: 'Lien copié !',
@@ -619,6 +621,44 @@ const fr: Messages = {
       pointCard: 'Vise le logo avec l\'appareil photo',
       tap: 'Touche l\'écran',
     },
+  },
+  partners: {
+    metaTitle: "Partenaires — Mondial du Collage",
+    metaDescription: "Librairies, maisons d'édition et marques : apparaissez dans la galerie 3D, la revue imprimée et le site du Mondial international du Collage. Écrivez-nous pour découvrir nos propositions.",
+    badge: "Partenaires",
+    title: "Votre marque au Mondial du Collage",
+    intro: "Nous cherchons des librairies, des maisons d'édition, des marques de papeterie et de matériel d'art, et des marques qui veulent être vues par des artistes du monde entier.",
+    aboutTitle: "Un projet autogéré",
+    aboutBody: "Derrière le Mondial, il n'y a ni institution ni grand sponsor : c'est un projet autogéré, porté à bout de bras par deux entrepreneurs de Mar del Plata, en Argentine. Chaque partenaire nous aide à garder l'appel à participation gratuit, la galerie 3D ouverte et la revue imprimée.",
+    placesTitle: "Où votre marque peut apparaître",
+    places: [
+      {
+        title: "Galerie 3D",
+        body: "Le musée virtuel du Mondial, à visiter depuis le navigateur, avec une nouvelle sélection d'œuvres chaque jour."
+      },
+      {
+        title: "Revue imprimée",
+        body: "La 1re édition de la revue, avec les 30 œuvres finalistes, envoyée à des lecteurs du monde entier."
+      },
+      {
+        title: "Site et newsletter",
+        body: "Les pages du Mondial et les e-mails que nous envoyons aux artistes et à nos abonnés."
+      }
+    ],
+    forTitle: "Pensé pour",
+    forList: [
+      "Librairies et papeteries",
+      "Maisons d'édition",
+      "Marques de matériel d'art",
+      "Marques proches de l'art, des livres et du papier"
+    ],
+    contactTitle: "Découvrez nos propositions",
+    contactBody: "Écrivez-nous à {email} et nous vous présenterons les espaces et formats que nous proposons aux partenaires.",
+    contactCta: "Écrivez-nous",
+    mailSubject: "Je veux devenir partenaire du Mondial du Collage",
+    promoTitle: "Vous avez une marque ?",
+    promoBody: "Votre marque peut figurer dans la revue imprimée et dans la galerie 3D du Mondial.",
+    promoCta: "Voir les propositions partenaires"
   },
 }
 

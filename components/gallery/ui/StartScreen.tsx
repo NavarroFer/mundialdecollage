@@ -85,6 +85,9 @@ export function StartScreen({ artworks, label, hint, showPresence, onEnter }: St
       <Link href="/" onClick={() => track('home_from_gallery')} className="mt-4 inline-block text-sm font-semibold underline opacity-80 hover:opacity-100">
         {m.gallery.homeLink}
       </Link>
+      <TrackedLink href="/partners" event="partners_click_gallery" className="mt-2 block text-xs underline opacity-60 hover:opacity-100">
+        {m.gallery.partnersLink}
+      </TrackedLink>
       </section>
     </div>
   )
