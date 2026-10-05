@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import type { Feature, GeoJsonObject, MultiPolygon, Position } from 'geojson'
-import { Expand, X } from 'lucide-react'
+import { Expand, Shuffle, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { ObrasCollage } from '@/components/obras-collage'
@@ -16,6 +16,7 @@ import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
+import { countryArtworks, sampleCountryArtworks } from '@/lib/country-sample'
 import { StampConfetti } from '@/components/stamp-confetti'
 import { announceStampUnlocked } from '@/lib/stamps'
 
@@ -75,14 +76,16 @@ export function WorldMap({
     const code = countryFromMapHash(window.location.hash)
     return code && artworks.some((artwork) => artwork.countryCode.toUpperCase() === code) ? code : null
   })
+  // A fresh random handful each time a country opens (see lib/country-sample.ts).
+  const [shownArtworks, setShownArtworks] = useState(() =>
+    selectedCountryCode ? sampleCountryArtworks(artworks, selectedCountryCode) : [],
+  )
   const { locale, m } = useI18n()
   const countryName = (code: string) => countryCodeToName(code, locale)
 
   const countsByCode = new Map(breakdown.map((b) => [b.countryCode, b.count]))
   const maxCount = breakdown.reduce((max, b) => Math.max(max, b.count), 1)
-  const selectedArtworks = selectedCountryCode
-    ? artworks.filter((artwork) => artwork.countryCode.toUpperCase() === selectedCountryCode)
-    : []
+  const selectedTotal = selectedCountryCode ? countryArtworks(artworks, selectedCountryCode).length : 0
 
   const artworkCountries = new Set(artworks.map((artwork) => artwork.countryCode.toUpperCase()))
 
@@ -102,6 +105,7 @@ export function WorldMap({
         if (data.awarded) { setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) }
       })
     setSelectedCountryCode(countryCode)
+    setShownArtworks(sampleCountryArtworks(artworks, countryCode))
     setTooltip(null)
   }
 
@@ -119,6 +123,7 @@ export function WorldMap({
       const code = (event as CustomEvent<string>).detail
       if (!codes.has(code)) return
       setSelectedCountryCode(code)
+      setShownArtworks(sampleCountryArtworks(artworks, code))
       setTooltip(null)
     }
     window.addEventListener(MAP_COUNTRY_EVENT, onCountry)
@@ -302,7 +307,7 @@ export function WorldMap({
           aria-labelledby={`country-artworks-${selectedCountryCode}`}
         >
           <p className="sr-only" role="status">
-            {plural(locale, selectedArtworks.length, m.map.shown, { country: countryName(selectedCountryCode) })}
+            {plural(locale, shownArtworks.length, m.map.shown, { country: countryName(selectedCountryCode) })}
           </p>
           <div className="flex items-start justify-between gap-4 px-2 sm:px-5">
             <div>
@@ -313,8 +318,21 @@ export function WorldMap({
                 id={`country-artworks-${selectedCountryCode}`}
                 className="font-display mt-2 text-3xl uppercase text-ink sm:text-4xl"
               >
-                {plural(locale, selectedArtworks.length, m.map.artworks)}
+                {plural(locale, selectedTotal, m.map.artworks)}
               </h3>
+              {selectedTotal > shownArtworks.length && (
+                <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  {plural(locale, shownArtworks.length, m.map.sample)}
+                  <button
+                    type="button"
+                    onClick={() => setShownArtworks(sampleCountryArtworks(artworks, selectedCountryCode))}
+                    className="inline-flex min-h-11 items-center gap-1.5 font-bold text-collage-blue underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"
+                  >
+                    <Shuffle className="size-4" aria-hidden="true" />
+                    {m.map.reshuffle}
+                  </button>
+                </p>
+              )}
             </div>
             <button
               type="button"
@@ -326,10 +344,10 @@ export function WorldMap({
             </button>
           </div>
 
-          {selectedArtworks.length > 0 ? (
+          {shownArtworks.length > 0 ? (
             <ObrasCollage
               key={selectedCountryCode}
-              finalists={selectedArtworks}
+              finalists={shownArtworks}
               flags={flags}
               animateEntrance
               showHint={false}

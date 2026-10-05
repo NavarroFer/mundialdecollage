@@ -142,6 +142,8 @@ const id: Messages = {
     close: 'Tutup karya negara ini',
     countryArtworks: 'Karya dari {country}',
     none: 'Belum ada karya yang dipublikasikan dari negara ini.',
+    sample: p({ other: 'Menampilkan {count} karya acak.' }),
+    reshuffle: 'Tampilkan yang lain',
     openExplorer: 'Jelajahi layar penuh', explorerEyebrow: 'Peta interaktif', explorerTitle: 'Jelajahi Piala Dunia', closeExplorer: 'Tutup penjelajah peta', zoomIn: 'Perbesar peta', zoomOut: 'Perkecil peta', resetView: 'Atur ulang tampilan dunia', explorerHint: 'Seret untuk menjelajah · gunakan roda untuk memperbesar', explorerEmptyTitle: 'Pilih negara', explorerEmpty: 'Perbesar, jelajahi peta, dan pilih negara dengan karya.', explorerCountryHint: 'Karya yang dipublikasikan dari komunitas ini.',
   },
   jury: {

@@ -142,6 +142,8 @@ const it: Messages = {
     close: 'Chiudi le opere del paese',
     countryArtworks: 'Opere da {country}',
     none: 'Non ci sono ancora opere pubblicate da questo paese.',
+    sample: p({ one: 'Ne mostriamo 1 a caso.', other: 'Ne mostriamo {count} a caso.' }),
+    reshuffle: 'Mostra altre',
     openExplorer: 'Esplora a schermo intero', explorerEyebrow: 'Mappa interattiva', explorerTitle: 'Esplora il Mondiale', closeExplorer: 'Chiudi esploratore della mappa', zoomIn: 'Ingrandisci mappa', zoomOut: 'Riduci mappa', resetView: 'Reimposta vista mondiale', explorerHint: 'Trascina per esplorare · usa la rotella per ingrandire', explorerEmptyTitle: 'Scegli un paese', explorerEmpty: 'Ingrandisci, esplora la mappa e seleziona un paese con opere.', explorerCountryHint: 'Opere pubblicate di questa comunità.',
   },
   jury: {
