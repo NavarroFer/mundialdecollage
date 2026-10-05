@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, type CSSProperties } from 'react'
-import type { Finalist } from '@/lib/finalists'
+import type { ArtworkSummary } from '@/lib/finalists'
 import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
@@ -17,7 +17,7 @@ export function ObrasCollage({
   showHint = true,
   ariaLabel,
 }: {
-  finalists: Finalist[]
+  finalists: ArtworkSummary[]
   // SVG flags by upper-case country code, from lib/flag-svg.ts.
   flags?: Record<string, string>
   animateEntrance?: boolean

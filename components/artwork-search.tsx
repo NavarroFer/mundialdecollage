@@ -6,27 +6,11 @@ import { Search, X } from 'lucide-react'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { searchArtworks, type SearchEntry } from '@/lib/artwork-search'
+import { loadObras } from '@/lib/obras-client'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 
 type Status = 'idle' | 'loading' | 'ready' | 'error'
-
-// One request per visit, started as soon as the visitor reaches for the
-// search (hover, touch or focus), so the list is usually here before the
-// first letter is typed.
-let pending: Promise<SearchEntry[]> | null = null
-function loadEntries() {
-  pending ??= fetch('/api/obras')
-    .then((response) => {
-      if (!response.ok) throw new Error(String(response.status))
-      return response.json() as Promise<SearchEntry[]>
-    })
-    .catch((error) => {
-      pending = null
-      throw error
-    })
-  return pending
-}
 
 // Homepage search over every published obra. Opening it also invites
 // signed-out artists to sign up and see their own obra.
@@ -41,10 +25,13 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const listId = useId()
 
+  // Called as soon as the visitor reaches for the search (hover, touch or
+  // focus), so the list is usually here before the first letter is typed —
+  // if the map hasn't already fetched it (lib/obras-client.ts).
   function prepare() {
     if (status === 'loading' || status === 'ready') return
     setStatus('loading')
-    loadEntries().then(
+    loadObras().then(
       (list) => { setEntries(list); setStatus('ready') },
       () => setStatus('error'),
     )

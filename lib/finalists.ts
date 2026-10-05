@@ -31,6 +31,9 @@ export type Finalist = {
   website?: string
 }
 
+// What an obra's card on the map and in the collage draws.
+export type ArtworkSummary = Pick<Finalist, 'slug' | 'artworkTitle' | 'name' | 'countryCode' | 'imageUrl'>
+
 const SELECT_COLUMNS = 'slug, title, technique, image_url, profiles!inner(id, name, country_code, instagram, website)'
 
 type FinalistRow = {

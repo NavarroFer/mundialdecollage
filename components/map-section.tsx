@@ -12,7 +12,8 @@ import { formatNumber } from '@/lib/i18n/format'
 export async function MapSection() {
   const [artworks, submissionsCount, { locale, m }] = await Promise.all([getFinalists(), getSubmissionsCount(), getI18n()])
   // Live from the database: the same published obras the map opens when a
-  // country is tapped (getFinalists only returns ones with a country).
+  // country is tapped (getFinalists only returns ones with a country; the
+  // map fetches those from /api/obras itself).
   const breakdown = countByCountry(artworks.map((artwork) => artwork.countryCode)).flatMap(
     ({ countryCode, count }) => (countryCode ? [{ countryCode, count }] : []),
   )
@@ -48,7 +49,6 @@ export async function MapSection() {
           <div className="relative mx-auto mt-12 max-w-4xl px-5 sm:px-8">
             <WorldMap
               breakdown={breakdown}
-              artworks={artworks}
               flags={flagSvgsFor(breakdown.map(({ countryCode }) => countryCode))}
             />
             <p className="mt-4 text-center text-sm text-muted-foreground">

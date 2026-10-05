@@ -11,7 +11,7 @@ import { Minus, Move, Plus, RotateCcw, Shuffle, X } from 'lucide-react'
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { CountryFlag } from '@/components/country-flag'
-import type { Finalist } from '@/lib/finalists'
+import type { ArtworkSummary } from '@/lib/finalists'
 import rawWorldTopology from '@/lib/data/world-countries-110m.json'
 import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
 import { alpha2ForUnnumberedShape, isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
@@ -26,7 +26,7 @@ const INITIAL_CENTER: [number, number] = [0, 15]
 const INITIAL_ZOOM = 1
 type CountryCount = { countryCode: string; count: number }
 
-export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, initialCountryCode }: { open: boolean; onOpenChange: (open: boolean) => void; breakdown: CountryCount[]; artworks: Finalist[]; flags: Record<string, string>; initialCountryCode: string | null }) {
+export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, initialCountryCode }: { open: boolean; onOpenChange: (open: boolean) => void; breakdown: CountryCount[]; artworks: ArtworkSummary[]; flags: Record<string, string>; initialCountryCode: string | null }) {
   const { locale, m } = useI18n()
   const initialCoordinates = initialCountryCode ? COUNTRY_MARKER_COORDINATES[initialCountryCode] : undefined
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(initialCountryCode)

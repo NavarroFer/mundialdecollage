@@ -6,7 +6,7 @@ import { Expand, Shuffle, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { ObrasCollage } from '@/components/obras-collage'
-import type { Finalist } from '@/lib/finalists'
+import type { ArtworkSummary } from '@/lib/finalists'
 import rawWorldTopology from '@/lib/data/world-countries-110m.json'
 import rawMalvinas from '@/lib/data/malvinas-50m.json'
 import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
@@ -60,7 +60,7 @@ export function WorldMap({
   flags,
 }: {
   breakdown: CountryCount[]
-  artworks: Finalist[]
+  artworks: ArtworkSummary[]
   // SVG flags by upper-case country code, from lib/flag-svg.ts.
   flags: Record<string, string>
 }) {
