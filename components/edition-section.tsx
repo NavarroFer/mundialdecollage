@@ -34,7 +34,7 @@ export async function EditionSection() {
               <>
                 <span className="text-3xl uppercase sm:text-5xl">{m.edition.received}</span>
                 <span className="my-3 inline-block -rotate-3 bg-paper px-6 py-3 text-8xl leading-none tracking-tight text-collage-red shadow-[6px_6px_0_var(--color-ink)] sm:px-10 sm:text-9xl">
-                  <AnimatedNumber value={submissionsCount} duration={600} />
+                  <AnimatedNumber value={submissionsCount} />
                 </span>
                 <span className="text-4xl uppercase sm:text-6xl">
                   {plural(locale, submissionsCount, m.edition.artworks)}

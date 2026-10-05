@@ -53,6 +53,7 @@ export function SplashScreen() {
         {visible && (
           <motion.div
           key="brand-splash"
+          data-splash
           className="fixed inset-0 z-[60] grid place-items-center overflow-hidden bg-paper"
           initial={false}
           animate={{ opacity: 1 }}
