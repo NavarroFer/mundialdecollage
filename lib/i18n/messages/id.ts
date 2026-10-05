@@ -123,7 +123,6 @@ const id: Messages = {
     playCta: 'Mainkan dan jelajahi pameran dalam 3D',
     playSub: 'Pameran berbeda setiap hari. Masuk gratis, telusuri galeri, dan temukan karya-karyanya.',
     empty: 'Belum ada karya yang dikonfirmasi — karyamu bisa jadi yang pertama.',
-    viewAll: 'Lihat semua peserta →',
   },
   collage: {
     label: 'Karya peserta',
@@ -182,17 +181,6 @@ const id: Messages = {
     badge: 'Halaman tidak ditemukan',
     body: 'Guntingan ini hilang dari kolase. Mungkin tautannya rusak atau halamannya sudah dipindahkan.',
     writeUs: 'Hubungi kami',
-  },
-  participantsPage: {
-    eyebrow: 'Peserta',
-    title: 'Semua peserta',
-    body: 'Cari dan saring semua orang yang sudah mengirim karyanya ke Piala Dunia.',
-    empty: 'Belum ada peserta yang dikonfirmasi. Begitu karya mulai berdatangan, kamu bisa mencari dan menyaringnya di sini.',
-    searchPlaceholder: 'Cari berdasarkan nama...',
-    searchLabel: 'Cari peserta berdasarkan nama',
-    allCountries: 'Semua negara ({count})',
-    allTechniques: 'Semua teknik',
-    noResults: 'Tidak ada peserta yang cocok dengan filter tersebut.',
   },
   search: {
     label: 'Cari karya',

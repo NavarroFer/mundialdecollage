@@ -24,8 +24,8 @@ describe('countryCodeToName', () => {
   // Intl.DisplayNames.of() *throws* a RangeError for a code that isn't a
   // well-formed 2-letter/3-digit region subtag (empty, one letter, three
   // letters) — it doesn't just return undefined. Without a try/catch this
-  // takes down the whole page render (every /obras/[slug], /edicion-2026,
-  // /participantes call goes through this). country_code is normally
+  // takes down the whole page render (every /obras/[slug] and /edicion-2026
+  // call goes through this). country_code is normally
   // constrained by the onboarding form's <select>, but this is the only
   // thing stopping a stray value from crashing instead of just rendering
   // the raw code.

@@ -123,7 +123,6 @@ const de: Messages = {
     playCta: 'Spiel und entdecke die Ausstellung in 3D',
     playSub: 'Jeden Tag eine andere Ausstellung. Kostenlos eintreten, durch die Galerie gehen und die Werke entdecken.',
     empty: 'Noch keine bestätigten Werke – deins könnte das erste sein.',
-    viewAll: 'Alle Teilnehmenden ansehen →',
   },
   collage: {
     label: 'Teilnehmende Werke',
@@ -182,17 +181,6 @@ const de: Messages = {
     badge: 'Seite nicht gefunden',
     body: 'Dieser Schnipsel ist aus der Collage gefallen. Vielleicht ist der Link kaputt oder die Seite wurde verschoben.',
     writeUs: 'Schreib uns',
-  },
-  participantsPage: {
-    eyebrow: 'Teilnehmende',
-    title: 'Alle Teilnehmenden',
-    body: 'Such und filtere alle, die ihr Werk schon bei der WM eingereicht haben.',
-    empty: 'Noch keine bestätigten Teilnehmenden. Sobald Werke eintreffen, kannst du sie hier suchen und filtern.',
-    searchPlaceholder: 'Nach Namen suchen...',
-    searchLabel: 'Teilnehmende nach Namen suchen',
-    allCountries: 'Alle Länder ({count})',
-    allTechniques: 'Alle Techniken',
-    noResults: 'Keine Teilnehmenden passen zu diesen Filtern.',
   },
   search: {
     label: 'Werke suchen',

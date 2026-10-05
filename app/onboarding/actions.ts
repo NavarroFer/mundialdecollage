@@ -273,7 +273,6 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
 
   refreshPublicData()
   revalidatePath('/')
-  revalidatePath('/participantes')
   revalidatePath('/edicion-2026')
   revalidatePath(`/obras/${artwork.slug}`)
   await trackServer('signup_done', user.id)
@@ -321,6 +320,5 @@ export async function completeMissingDetails(formData: FormData) {
   refreshPublicData()
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
   redirect('/')
 }

@@ -123,7 +123,6 @@ const en: Messages = {
     playCta: 'Play and explore the exhibition in 3D',
     playSub: 'A different exhibition every day. Enter for free, walk through the gallery and discover the artworks.',
     empty: 'No confirmed artworks yet — yours could be the first one here.',
-    viewAll: 'See all participants →',
   },
   collage: {
     label: 'Participating artworks',
@@ -182,17 +181,6 @@ const en: Messages = {
     badge: 'Page not found',
     body: 'This cut-out got lost from the collage. The link may be broken or the page may have moved.',
     writeUs: 'Write to us',
-  },
-  participantsPage: {
-    eyebrow: 'Participants',
-    title: 'All participants',
-    body: 'Search and filter everyone who has already sent their artwork to the World Cup.',
-    empty: "There are no confirmed participants yet. As soon as artworks start arriving, you'll be able to search and filter them here.",
-    searchPlaceholder: 'Search by name...',
-    searchLabel: 'Search participants by name',
-    allCountries: 'All countries ({count})',
-    allTechniques: 'All techniques',
-    noResults: "We couldn't find participants matching those filters.",
   },
   search: {
     label: 'Search artworks',

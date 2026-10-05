@@ -64,7 +64,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
       <main id="top" className="min-h-screen bg-background py-12 sm:py-20">
         <div className="mx-auto max-w-5xl px-5 sm:px-8">
           <Link
-            href="/participantes"
+            href="/#participantes"
             className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />

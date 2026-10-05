@@ -123,7 +123,6 @@ const pl: Messages = {
     playCta: 'Graj i odkrywaj wystawę w 3D',
     playSub: 'Codziennie inna wystawa. Wejdź za darmo, przejdź się po galerii i odkrywaj prace.',
     empty: 'Nie ma jeszcze potwierdzonych prac — Twoja może być pierwsza.',
-    viewAll: 'Zobacz wszystkich uczestników →',
   },
   collage: {
     label: 'Prace uczestników',
@@ -187,17 +186,6 @@ const pl: Messages = {
     badge: 'Nie znaleziono strony',
     body: 'Ten wycinek wypadł z kolażu. Link może być nieaktualny albo strona została przeniesiona.',
     writeUs: 'Napisz do nas',
-  },
-  participantsPage: {
-    eyebrow: 'Uczestnicy',
-    title: 'Wszyscy uczestnicy',
-    body: 'Wyszukuj i filtruj wszystkie osoby, które już wysłały pracę na Mistrzostwa.',
-    empty: 'Nie ma jeszcze potwierdzonych uczestników. Gdy zaczną napływać prace, będzie można je tu wyszukiwać i filtrować.',
-    searchPlaceholder: 'Szukaj po imieniu...',
-    searchLabel: 'Szukaj uczestnika po imieniu',
-    allCountries: 'Wszystkie kraje ({count})',
-    allTechniques: 'Wszystkie techniki',
-    noResults: 'Brak uczestników pasujących do tych filtrów.',
   },
   search: {
     label: 'Szukaj prac',

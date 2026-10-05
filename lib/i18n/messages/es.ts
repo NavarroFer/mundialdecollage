@@ -124,7 +124,6 @@ const es = {
     playCta: 'Jugá y explorá la muestra en 3D',
     playSub: 'Una muestra distinta cada día. Entrá gratis, recorré la galería y descubrí las obras.',
     empty: 'Todavía no hay obras confirmadas — la tuya puede ser la primera acá.',
-    viewAll: 'Ver todos los participantes →',
   },
   collage: {
     label: 'Obras participantes',
@@ -182,18 +181,6 @@ const es = {
     badge: 'Página no encontrada',
     body: 'Este recorte se perdió del collage. Puede que el enlace esté roto o que la página se haya movido.',
     writeUs: 'Escribinos',
-  },
-  participantsPage: {
-    eyebrow: 'Participantes',
-    title: 'Todos los participantes',
-    body: 'Buscá y filtrá a todas las personas que ya mandaron su obra al Mundial.',
-    empty:
-      'Todavía no hay participantes confirmados. Apenas empiecen a llegar obras, los vas a poder buscar y filtrar acá.',
-    searchPlaceholder: 'Buscar por nombre...',
-    searchLabel: 'Buscar participante por nombre',
-    allCountries: 'Todos los países ({count})',
-    allTechniques: 'Todas las técnicas',
-    noResults: 'No encontramos participantes con esos filtros.',
   },
   search: {
     label: 'Buscar obras',

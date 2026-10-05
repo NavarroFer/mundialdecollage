@@ -51,7 +51,6 @@ function revalidatePublicPages() {
   refreshPublicData()
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
 }
 
 // The gallery's selection and the viewer both pass ids in the gallery's own
@@ -120,7 +119,6 @@ export async function setSubmissionsVisibility(
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
 
   return { skipped }
 }
@@ -175,7 +173,6 @@ export async function setSubmissionsTechnique(ids: string[], technique: string |
 
   refreshPublicData()
   revalidatePath('/admin/obras')
-  revalidatePath('/participantes')
   revalidatePath('/')
 }
 
@@ -563,7 +560,6 @@ export async function selectArtwork(formData: FormData) {
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
 }
 
 export async function deleteArtwork(formData: FormData) {
@@ -577,7 +573,6 @@ export async function deleteArtwork(formData: FormData) {
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
 }
 
 const ARTWORK_TECHNIQUES = new Set(['Analógica', 'Mixta', 'Digital'])
@@ -636,7 +631,6 @@ export async function updateArtwork(input: {
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
   revalidatePath('/galeria-3d')
   revalidatePath(`/obras/${row.slug}`)
   return {}
@@ -661,7 +655,6 @@ export async function deleteSubmissions(items: { table: 'artworks' | 'legacy_sub
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
 }
 
 // Applies the "limpieza de nombres" cleanup an admin approved in
@@ -710,5 +703,4 @@ export async function applyNameCleanup(items: { table: 'profiles' | 'legacy_subm
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
-  revalidatePath('/participantes')
 }

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { Gamepad2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
@@ -10,7 +9,7 @@ import { getI18n } from '@/lib/i18n/server'
 
 export async function ParticipantsSection() {
   // Only today's obras: each one already names its artist, so the home
-  // doesn't repeat them as a list. /participantes has the full directory.
+  // doesn't repeat them as a list. The search covers finding anyone else.
   const [collageFinalists, { m }] = await Promise.all([getDailyExhibition(), getI18n()])
 
   return (
@@ -56,19 +55,6 @@ export async function ParticipantsSection() {
           </p>
         </div>
       </FadeIn>
-
-      <div className="mx-auto max-w-4xl px-5 sm:px-8">
-        <FadeIn delay={250}>
-          <div className="mt-8 text-center">
-            <Link
-              href="/participantes"
-              className="text-sm font-semibold text-collage-blue underline underline-offset-4 hover:text-collage-blue/80"
-            >
-              {m.participants.viewAll}
-            </Link>
-          </div>
-        </FadeIn>
-      </div>
     </section>
   )
 }

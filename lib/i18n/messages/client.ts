@@ -11,7 +11,6 @@ const CLIENT_NAMESPACES = [
   'stamps',
   'collage',
   'map',
-  'participantsPage',
   'search',
   'countrySelect',
   'onboarding',

@@ -5,6 +5,10 @@ const nextConfig = {
   // Dev only: lets a phone open `next dev` through a Cloudflare quick tunnel
   // (https is required for the camera on /ar/[slug]).
   allowedDevOrigins: ['*.trycloudflare.com'],
+  // The old participants directory; the home's search replaced it.
+  async redirects() {
+    return [{ source: '/participantes', destination: '/#participantes', permanent: true }]
+  },
   images: {
     // Not Vercel's optimization endpoint, which returns 402 once its image
     // allowance runs out: Storage photos are resized by app/api/img instead.

@@ -123,7 +123,6 @@ const it: Messages = {
     playCta: 'Gioca ed esplora la mostra in 3D',
     playSub: 'Una mostra diversa ogni giorno. Entra gratis, percorri la galleria e scopri le opere.',
     empty: 'Non ci sono ancora opere confermate — la tua può essere la prima.',
-    viewAll: 'Vedi tutti i partecipanti →',
   },
   collage: {
     label: 'Opere in gara',
@@ -182,17 +181,6 @@ const it: Messages = {
     badge: 'Pagina non trovata',
     body: 'Questo ritaglio si è perso dal collage. Il link potrebbe essere rotto o la pagina potrebbe essere stata spostata.',
     writeUs: 'Scrivici',
-  },
-  participantsPage: {
-    eyebrow: 'Partecipanti',
-    title: 'Tutti i partecipanti',
-    body: 'Cerca e filtra tutte le persone che hanno già inviato la loro opera al Mondiale.',
-    empty: 'Non ci sono ancora partecipanti confermati. Appena inizieranno ad arrivare le opere, potrai cercarle e filtrarle qui.',
-    searchPlaceholder: 'Cerca per nome...',
-    searchLabel: 'Cerca un partecipante per nome',
-    allCountries: 'Tutti i paesi ({count})',
-    allTechniques: 'Tutte le tecniche',
-    noResults: 'Nessun partecipante corrisponde a questi filtri.',
   },
   search: {
     label: 'Cerca opere',

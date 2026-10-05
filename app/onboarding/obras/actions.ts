@@ -84,7 +84,6 @@ export async function saveEntryChoice(formData: FormData) {
 
   refreshPublicData()
   revalidatePath('/')
-  revalidatePath('/participantes')
   revalidatePath('/edicion-2026')
   revalidatePath('/obras/[slug]', 'page')
 

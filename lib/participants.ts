@@ -1,46 +1,4 @@
-import { createPublicClient } from '@/lib/supabase/public'
-import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { COUNTRY_CODES } from '@/lib/country-codes'
-
-// countryCode is the 2-letter ISO code (AR, MX, ES, US, ...) used to render
-// the flag next to their name.
-export type Participant = {
-  name: string
-  countryCode: string
-  // Not every submission records a technique, so keep this optional.
-  technique?: string
-  // Full profile URL, when the artist has one on file.
-  instagram?: string
-}
-
-// Every *curated and published* submission (see app/admin/obras/ — an admin
-// has to select an artwork as the artist's final one and mark it public
-// before it shows up anywhere), newest first. Returns [] until real
-// credentials are wired up or nothing's been published yet.
-export async function getParticipants(options?: { limit?: number }): Promise<Participant[]> {
-  if (!isSupabaseConfigured) return []
-
-  let query = createPublicClient()
-    .from('artworks')
-    .select('technique, profiles!inner(name, country_code, instagram)')
-    .eq('is_selected', true)
-    .order('created_at', { ascending: false })
-
-  if (options?.limit) query = query.limit(options.limit)
-
-  const { data } = await query
-  return ((data ?? []) as unknown as Array<{
-    technique: string | null
-    profiles: { name: string | null; country_code: string | null; instagram: string | null } | null
-  }>)
-    .filter((row) => row.profiles?.name && row.profiles?.country_code)
-    .map((row) => ({
-      name: row.profiles!.name as string,
-      countryCode: row.profiles!.country_code as string,
-      technique: row.technique ?? undefined,
-      instagram: row.profiles!.instagram ?? undefined,
-    }))
-}
 
 // Converts an ISO 3166-1 alpha-2 code ("AR") into its flag emoji (🇦🇷).
 export function countryCodeToFlag(countryCode: string) {

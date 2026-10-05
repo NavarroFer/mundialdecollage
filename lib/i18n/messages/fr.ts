@@ -123,7 +123,6 @@ const fr: Messages = {
     playCta: "Joue et explore l'exposition en 3D",
     playSub: 'Une exposition différente chaque jour. Entre gratuitement, parcours la galerie et découvre les œuvres.',
     empty: "Il n'y a pas encore d'œuvres confirmées — la tienne peut être la première.",
-    viewAll: 'Voir tous les participants →',
   },
   collage: {
     label: 'Œuvres participantes',
@@ -182,17 +181,6 @@ const fr: Messages = {
     badge: 'Page introuvable',
     body: "Ce découpage s'est perdu du collage. Le lien est peut-être cassé ou la page a peut-être été déplacée.",
     writeUs: 'Écris-nous',
-  },
-  participantsPage: {
-    eyebrow: 'Participants',
-    title: 'Tous les participants',
-    body: 'Recherche et filtre toutes les personnes qui ont déjà envoyé leur œuvre au Mondial.',
-    empty: "Il n'y a pas encore de participants confirmés. Dès que les œuvres commenceront à arriver, tu pourras les rechercher et les filtrer ici.",
-    searchPlaceholder: 'Rechercher par nom...',
-    searchLabel: 'Rechercher un participant par nom',
-    allCountries: 'Tous les pays ({count})',
-    allTechniques: 'Toutes les techniques',
-    noResults: 'Aucun participant ne correspond à ces filtres.',
   },
   search: {
     label: 'Rechercher des œuvres',
