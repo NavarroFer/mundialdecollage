@@ -13,7 +13,7 @@ export function StampVisit({ stamp }: { stamp: 'gallery' | 'world' }) {
         if (!data) return
         // Even a stamp earned in a previous visit needs to reach a restored
         // home page whose album came from the router cache.
-        announceStampUnlocked(stamp)
+        announceStampUnlocked(stamp, data.awarded)
         if (data.awarded) { setCelebrate(true); window.setTimeout(() => setCelebrate(false), 2200) }
       })
   }, [stamp])

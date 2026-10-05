@@ -101,7 +101,7 @@ export function WorldMap({
       .then((response) => response.ok ? response.json() as Promise<{ awarded: boolean }> : null)
       .then((data) => {
         if (!data) return
-        announceStampUnlocked('world')
+        announceStampUnlocked('world', data.awarded)
         if (data.awarded) { setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) }
       })
     setSelectedCountryCode(countryCode)

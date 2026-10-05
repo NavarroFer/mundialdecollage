@@ -7,7 +7,7 @@ import { BookOpen, CircleCheck, Compass, LockKeyhole, Scissors, Send, X } from '
 import { FadeIn } from '@/components/fade-in'
 import { useI18n } from '@/lib/i18n/client'
 import { MAP_SECTION_ID } from '@/lib/map-country-link'
-import { STAMP_UNLOCKED_EVENT, type StampKey } from '@/lib/stamps'
+import { STAMP_UNLOCKED_EVENT, type StampUnlocked } from '@/lib/stamps'
 import type { CollectedArtworkStamp } from '@/components/stamp-album'
 
 const TUTORIAL_KEY = 'mundial-stamps-tutorial-seen'
@@ -57,9 +57,11 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
 
   useEffect(() => {
     const onUnlocked = (event: Event) => {
-      const stamp = (event as CustomEvent<StampKey>).detail
+      const { stamp, awarded } = (event as CustomEvent<StampUnlocked>).detail
       setUnlockedStamps((current) => current.includes(stamp) ? current : [...current, stamp])
-      setAlbumOpen(true)
+      // Show the album only for the stamp just earned, not on every later
+      // country tap or gallery visit that re-confirms it.
+      if (awarded) setAlbumOpen(true)
     }
     window.addEventListener(STAMP_UNLOCKED_EVENT, onUnlocked)
     return () => window.removeEventListener(STAMP_UNLOCKED_EVENT, onUnlocked)
