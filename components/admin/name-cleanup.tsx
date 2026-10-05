@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
-import { applyNameCleanup } from '@/app/admin/obras/actions'
+import { applyNameCleanup } from '@/app/[locale]/(site)/admin/obras/actions'
 
 export type NameCleanupItem = {
   table: 'profiles' | 'legacy_submissions'

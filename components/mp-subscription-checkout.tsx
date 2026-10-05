@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { startMpSubscription, type MpSubscriptionState } from '@/app/tienda/actions'
+import { startMpSubscription, type MpSubscriptionState } from '@/app/[locale]/(site)/tienda/actions'
 import type { MagazineField } from '@/lib/magazine'
 import type { SubscriptionPlan } from '@/lib/store'
 import { useI18n } from '@/lib/i18n/client'

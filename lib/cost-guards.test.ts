@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 // with how it avoids redrawing; a new one has to be added on purpose.
 const IMAGE_RENDERERS: Record<string, string> = {
   'app/api/img/route.ts': 'each size made once, kept in R2 and the CDN',
-  'app/opengraph-image.tsx': 'ISR, redrawn at most once a minute',
+  'app/[locale]/opengraph-image.tsx': 'ISR, redrawn at most once a minute',
   'lib/artwork-share-image.tsx': 'drawn once per obra and kept in R2 (lib/share-image-cache.ts)',
   'lib/certificate.tsx': 'on request by the artist (robots.txt keeps crawlers off)',
   'lib/ar/print-cards.tsx': 'on request by the artist',

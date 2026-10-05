@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Heart } from 'lucide-react'
-import { getArtworkLike, likeArtwork } from '@/app/galeria-3d/actions'
+import { getArtworkLike, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { galleryReturnPath } from '@/lib/gallery-return'
 import { track } from '@/lib/track'

@@ -2,6 +2,7 @@ import { getCallState } from '@/lib/call-state'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
+import { LOCALES } from '@/lib/i18n/locales'
 import { site } from '@/lib/site'
 
 export const alt = site.name
@@ -66,6 +67,11 @@ function toDataUrl(publicPath: string) {
 // it in between) and the preview still follows the call's state
 // (/admin/convocatoria): open with its deadline, or closed.
 export const revalidate = 60
+
+// One per language, as the pages it previews (app/[locale]/layout.tsx).
+export function generateStaticParams() {
+  return LOCALES.map((locale) => ({ locale }))
+}
 
 export default async function OpengraphImage() {
   const { open } = await getCallState()

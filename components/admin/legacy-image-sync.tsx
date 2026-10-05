@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { CircleCheck, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { fetchLegacyImagesBatch } from '@/app/admin/obras/actions'
+import { fetchLegacyImagesBatch } from '@/app/[locale]/(site)/admin/obras/actions'
 
 // Each click walks every not-yet-fetched legacy obra photo into our own
 // storage, one small batch at a time (see fetchLegacyImagesBatch) — a plain

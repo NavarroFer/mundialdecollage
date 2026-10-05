@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import { Anton, Oswald } from 'next/font/google'
-import './globals.css'
+import '../globals.css'
 import { site, getSiteUrl } from '@/lib/site'
 import { ClarityAnalytics } from '@/components/clarity'
 import { VercelAnalytics } from '@/components/vercel-analytics'
@@ -11,7 +11,7 @@ import { I18nProvider } from '@/lib/i18n/client'
 import { getCallState } from '@/lib/call-state'
 import { pickClientMessages } from '@/lib/i18n/messages/client'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
-import { LOCALE_INFO } from '@/lib/i18n/locales'
+import { LOCALE_INFO, LOCALES } from '@/lib/i18n/locales'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' })
 const anton = Anton({
@@ -29,6 +29,13 @@ const oswald = Oswald({
   display: 'swap',
   preload: false,
 })
+
+// Every page lives under /<locale>/ (proxy.ts rewrites to it, the address
+// bar never shows it), so the ones that read nothing else are built for
+// each language and served from the CDN.
+export function generateStaticParams() {
+  return LOCALES.map((locale) => ({ locale }))
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const [{ locale, m }, { open }] = await Promise.all([getI18n(), getCallState()])
@@ -54,11 +61,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+// The locale is the one proxy.ts rewrote to; getI18n() falls back to the
+// request if the segment holds anything else.
+export default async function RootLayout({ children }: LayoutProps<'/[locale]'>) {
   const { locale, m } = await getI18n()
   return (
     <html lang={locale} data-scroll-behavior="smooth" className={`${geist.variable} ${anton.variable} ${oswald.variable}`}>

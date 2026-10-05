@@ -8,6 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { parseReferral, REFERRAL_COOKIE } from '@/lib/referral'
+import { isAnonymousRender } from '@/lib/render-mode'
 
 type Referrer = { profileId: string; name: string }
 
@@ -30,7 +31,10 @@ async function resolveReferrer(slug: string): Promise<Referrer | null> {
   return row && name ? { profileId: row.profile_id, name } : null
 }
 
+// An anonymous render is only served to visitors without this cookie
+// (proxy.ts), so there's none to read.
 async function cookieReferral(): Promise<string | null> {
+  if (isAnonymousRender()) return null
   return parseReferral((await cookies()).get(REFERRAL_COOKIE)?.value)
 }
 

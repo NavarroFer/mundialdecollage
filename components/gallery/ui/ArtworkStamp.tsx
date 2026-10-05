@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Stamp } from 'lucide-react'
-import { collectArtworkStamp, type ArtworkStampResult } from '@/app/galeria-3d/actions'
+import { collectArtworkStamp, type ArtworkStampResult } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { galleryReturnPath } from '@/lib/gallery-return'
 import { track } from '@/lib/track'

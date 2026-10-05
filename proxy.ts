@@ -1,7 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isLocale, LOCALE_COOKIE } from '@/lib/i18n/locales'
+import { isLocale, LOCALE_COOKIE, resolveLocale } from '@/lib/i18n/locales'
+import { REFERRAL_COOKIE } from '@/lib/referral'
+import { isStaticPage } from '@/lib/static-pages'
 
 // `?lang=it` links (for sharing the site in a given language) store that
 // choice like the language switcher does, then drop the param from the URL.
@@ -21,17 +23,41 @@ function hasSupabaseSession(request: NextRequest) {
   return request.cookies.getAll().some(({ name }) => name.startsWith('sb-'))
 }
 
-// Refreshes the Supabase session cookie on every page request so server
-// components see an up-to-date session. No-ops entirely until Supabase
-// credentials exist, and for visitors who aren't signed in: with no session
-// cookie there's nothing to refresh.
+// Where a page request is served from: every page lives under /<locale>/,
+// and the public ones also have an anonymous copy under /<locale>/anon/
+// that's built ahead and served from the CDN (lib/static-pages.ts). That
+// copy is only for visitors bringing nothing it would have to read: no
+// session, no artist's invitation (?ref= or its cookie). The address bar
+// keeps the URL as typed.
+function pageTarget(request: NextRequest): URL | null {
+  const { pathname, searchParams } = request.nextUrl
+  // Already localized: a share image's own URL, or someone typing one.
+  if (isLocale(pathname.split('/')[1])) return null
+
+  const locale = resolveLocale({
+    cookie: request.cookies.get(LOCALE_COOKIE)?.value,
+    acceptLanguage: request.headers.get('accept-language'),
+    country: request.headers.get('x-vercel-ip-country'),
+  })
+  const personal = hasSupabaseSession(request) || request.cookies.has(REFERRAL_COOKIE) || searchParams.has('ref')
+  const path = pathname === '/' ? '' : pathname
+  const url = request.nextUrl.clone()
+  url.pathname = !personal && isStaticPage(pathname) ? `/${locale}/anon${path}` : `/${locale}${path}`
+  return url
+}
+
+// Also refreshes the Supabase session cookie on every page request so
+// server components see an up-to-date session — for visitors who are signed
+// in: with no session cookie there's nothing to refresh.
 export async function proxy(request: NextRequest) {
   const languageRedirect = languageLinkRedirect(request)
   if (languageRedirect) return languageRedirect
 
-  if (!isSupabaseConfigured || !hasSupabaseSession(request)) return NextResponse.next()
+  const target = pageTarget(request)
+  const pass = () => (target ? NextResponse.rewrite(target, { request }) : NextResponse.next({ request }))
+  if (!isSupabaseConfigured || !hasSupabaseSession(request)) return pass()
 
-  let response = NextResponse.next({ request })
+  let response = pass()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,7 +69,7 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request })
+          response = pass()
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
           )
@@ -58,11 +84,12 @@ export async function proxy(request: NextRequest) {
 }
 
 // Every match is a Function invocation billed for its CPU, so this skips what
-// never reads the session: static files, the Clarity proxy (/monitoring), the
-// link-preview images, and /api — the two routes there that do read it
-// (track, stamps) refresh it themselves, as route handlers can set cookies.
+// isn't a page: static files, Next's own assets, the Clarity proxy
+// (/monitoring), the link-preview images, and /api — the two routes there
+// that read the session (track, stamps) refresh it themselves, as route
+// handlers can set cookies.
 export const config = {
   matcher: [
-    '/((?!api/|monitoring/|_next/static|_next/image|favicon.ico|icon|apple-icon|opengraph-image|.*/opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp3|mp4|webm|pdf|glb|gltf|woff2?|ttf|txt|xml|webmanifest)$).*)',
+    '/((?!api/|monitoring/|_next/|_vercel/|__nextjs|favicon.ico|icon|apple-icon|opengraph-image|.*/opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|mp3|mp4|webm|pdf|glb|gltf|woff2?|ttf|txt|xml|json|webmanifest|js|css|map)$).*)',
   ],
 }

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Loader2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
-import { setLegacyImageManually } from '@/app/admin/obras/actions'
+import { setLegacyImageManually } from '@/app/[locale]/(site)/admin/obras/actions'
 import { downscaleImage } from '@/lib/downscale-image'
 
 // Lets an admin pick a photo by hand for a legacy_submissions row whose

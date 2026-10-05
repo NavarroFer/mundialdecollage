@@ -34,7 +34,7 @@ import {
   selectArtwork,
   selectLegacySubmission,
   setSubmissionsVisibility,
-} from '@/app/admin/obras/actions'
+} from '@/app/[locale]/(site)/admin/obras/actions'
 
 type Props = {
   // The gallery's already-filtered `visible` list, not the full `submissions` —

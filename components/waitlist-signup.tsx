@@ -3,7 +3,7 @@
 import { useActionState } from 'react'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { joinWaitlist, type WaitlistState } from '@/app/aviso/actions'
+import { joinWaitlist, type WaitlistState } from '@/app/[locale]/(site)/aviso/actions'
 import type { WaitlistSource } from '@/lib/waitlist'
 import { useI18n } from '@/lib/i18n/client'
 import { cn } from '@/lib/utils'

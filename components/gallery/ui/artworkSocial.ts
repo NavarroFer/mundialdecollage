@@ -1,4 +1,4 @@
-import { getArtworkSocial, type ArtworkSocial } from '@/app/galeria-3d/actions'
+import { getArtworkSocial, type ArtworkSocial } from '@/app/[locale]/(site)/galeria-3d/actions'
 
 export type SocialResult = ArtworkSocial | { error: string }
 

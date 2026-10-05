@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getWall } from '@/app/galeria-3d/wall-actions'
+import { getWall } from '@/app/[locale]/(site)/galeria-3d/wall-actions'
 import type { WallLives, WallPiece, WallPoint } from '@/lib/collage-wall'
 
 // Where the crosshair meets the frame, updated every frame by WallAim —

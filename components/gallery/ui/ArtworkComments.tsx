@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { addArtworkComment, type GalleryComment } from '@/app/galeria-3d/actions'
+import { addArtworkComment, type GalleryComment } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { clearCommentDraft, galleryReturnPath, readCommentDraft, saveCommentDraft } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
