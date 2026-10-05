@@ -20,11 +20,13 @@ import { getSiteUrl, site } from '@/lib/site'
 export const maxDuration = 300
 
 // Vercel Cron calls this at 12:05 UTC (09:05 Argentina, right after the
-// exhibition rotates) with `Authorization: Bearer $CRON_SECRET`. Three
-// independent jobs, so one failing doesn't stop the others:
+// exhibition rotates) with `Authorization: Bearer $CRON_SECRET`. Independent
+// jobs, so one failing doesn't stop the others:
 //   1. "hoy tu obra está en el museo" to today's 20 artists,
 //   2. "así le fue a tu obra" to artists with likes/comments yesterday,
-//   3. a reminder to the admins when comments are waiting for moderation.
+//   3. a reminder to the admins when comments are waiting for moderation,
+//   4. the welcome mail for new supporters,
+//   5. clearing out old notifications from the bell.
 // Safe to run again: every mail is claimed in the database before it's
 // sent. `?dry=1` shows who would get what without sending anything.
 export async function GET(request: NextRequest) {
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
     ['digest', 'Aviso "así le fue a tu obra"', () => sendArtistDigests(db, dryRun)],
     ['pendingComments', 'Recordatorio de moderación', () => remindPendingComments(db, dryRun)],
     ['supporters', 'Bienvenida a hinchas', () => sendSupporterWelcomes(db, dryRun)],
+    ['notifications', 'Limpieza de notificaciones', () => pruneNotifications(db, dryRun)],
   ]
   for (const [key, label, job] of jobs) {
     try {
@@ -225,6 +228,15 @@ async function remindPendingComments(db: SupabaseClient, dryRun: boolean) {
     await notifyAdmins(`Mundial de Collage · ${parts.join(' y ')} para moderar`, lines.join('\n\n'))
   }
   return { result: { pending, pendingPhotos } }
+}
+
+// The bell keeps read notices for 90 days and anything for 180
+// (supabase/migrations/20261005120000_notifications.sql).
+async function pruneNotifications(db: SupabaseClient, dryRun: boolean) {
+  if (dryRun) return { result: { skipped: 'dry run' } }
+  const { data, error } = await db.rpc('prune_notifications')
+  if (error) throw new Error(error.message)
+  return { result: { deleted: data as number } }
 }
 
 async function notifyAdmins(subject: string, text: string) {

@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { AdminNav } from '@/components/admin/admin-nav'
+import { NotificationsSlot } from '@/components/notifications/notifications-slot'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!isSupabaseConfigured) redirect('/')
@@ -34,13 +35,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 </span>
               </span>
             </Link>
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Volver al sitio
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver al sitio
+              </Link>
+              <NotificationsSlot />
+            </div>
           </div>
           <div className="mt-4 border-t border-ink/10 pt-3">
             <AdminNav />

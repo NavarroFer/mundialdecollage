@@ -15,6 +15,7 @@ import { TrackedLink } from '@/components/track'
 import { SiteHeaderMotion } from '@/components/site-header-motion'
 import { SectionLink } from '@/components/section-link'
 import { getCallState } from '@/lib/call-state'
+import { NotificationsSlot } from '@/components/notifications/notifications-slot'
 
 async function AuthSlot() {
   if (!isSupabaseConfigured) return null
@@ -111,6 +112,7 @@ export async function SiteHeader() {
 
         <div className="hidden items-center gap-2 lg:flex">
           <LanguageSwitcher className="px-2" />
+          <NotificationsSlot />
           <AuthSlot />
           <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
             <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
@@ -125,6 +127,7 @@ export async function SiteHeader() {
               {callOpen ? m.header.participate : m.closed.headerCta}
             </TrackedLink>
           </Button>
+          <NotificationsSlot />
           <details className="group/menu relative">
             <summary className="flex h-11 cursor-pointer list-none items-center gap-2 rounded-full border-2 border-ink/15 px-3.5 text-sm font-semibold text-ink transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:bg-ink hover:text-paper hover:shadow-md active:translate-y-0 [&::-webkit-details-marker]:hidden motion-reduce:transition-none">
               <Menu className="h-4.5 w-4.5 transition-transform duration-300 ease-out group-open/menu:rotate-90 motion-reduce:transition-none" aria-hidden="true" />
