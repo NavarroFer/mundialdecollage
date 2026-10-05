@@ -26,6 +26,19 @@ describe('GET /api/img', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
+  it('rejects variations that would bypass the CDN cache', async () => {
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    const base = `https://site.test/api/img?url=${encodeURIComponent(photo)}&w=640`
+    for (const url of [`${base}&x=1`, `${base}&w=640`, `${base}&url=${encodeURIComponent(photo)}`]) {
+      expect((await GET(new Request(url))).status).toBe(400)
+    }
+    for (const src of [`${photo}?x=1`, `${photo}#x`]) {
+      expect((await GET(request(src, 640))).status).toBe(400)
+    }
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
   it('rejects widths next/image never asks for', async () => {
     expect((await GET(request(photo, 641))).status).toBe(400)
   })

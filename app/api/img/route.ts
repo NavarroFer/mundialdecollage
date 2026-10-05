@@ -34,9 +34,16 @@ export async function GET(request: Request) {
   const src = params.get('url') ?? ''
   const width = Number(params.get('w'))
 
+  // Exactly what lib/image-src.ts builds. Any extra param, or a query on the
+  // photo URL, would be a fresh CDN cache key for the same image — a way to
+  // make every request reach Storage and sharp.
+  if ([...params.keys()].some((key) => key !== 'url' && key !== 'w') || params.getAll('url').length !== 1 || params.getAll('w').length !== 1) {
+    return new Response('Bad params', { status: 400 })
+  }
+
   // Only this project's public bucket — otherwise it's an open image proxy.
   const prefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/`
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !src.startsWith(prefix) || src.includes('..')) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !src.startsWith(prefix) || src.includes('..') || /[?#]/.test(src)) {
     return new Response('Bad url', { status: 400 })
   }
   if (!IMAGE_WIDTHS.includes(width)) return new Response('Bad width', { status: 400 })
