@@ -15,13 +15,21 @@ function languageLinkRedirect(request: NextRequest) {
   return response
 }
 
-// Refreshes the Supabase session cookie on every request so server components
-// see an up-to-date session. No-ops entirely until Supabase credentials exist.
+// Supabase keeps the session (and the PKCE verifier of a sign-in under way)
+// in `sb-<project>-auth-token*` cookies.
+function hasSupabaseSession(request: NextRequest) {
+  return request.cookies.getAll().some(({ name }) => name.startsWith('sb-'))
+}
+
+// Refreshes the Supabase session cookie on every page request so server
+// components see an up-to-date session. No-ops entirely until Supabase
+// credentials exist, and for visitors who aren't signed in: with no session
+// cookie there's nothing to refresh.
 export async function proxy(request: NextRequest) {
   const languageRedirect = languageLinkRedirect(request)
   if (languageRedirect) return languageRedirect
 
-  if (!isSupabaseConfigured) return NextResponse.next()
+  if (!isSupabaseConfigured || !hasSupabaseSession(request)) return NextResponse.next()
 
   let response = NextResponse.next({ request })
 
@@ -49,6 +57,12 @@ export async function proxy(request: NextRequest) {
   return response
 }
 
+// Every match is a Function invocation billed for its CPU, so this skips what
+// never reads the session: static files, the Clarity proxy (/monitoring), the
+// link-preview images, and /api — the two routes there that do read it
+// (track, stamps) refresh it themselves, as route handlers can set cookies.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher: [
+    '/((?!api/|monitoring/|_next/static|_next/image|favicon.ico|icon|apple-icon|opengraph-image|.*/opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp3|mp4|webm|pdf|glb|gltf|woff2?|ttf|txt|xml|webmanifest)$).*)',
+  ],
 }
