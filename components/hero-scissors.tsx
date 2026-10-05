@@ -38,13 +38,16 @@ export function HeroScissors() {
 
   return (
     <>
+      {/* Below xl the search's column spans the scissors and, later in the DOM
+          at the same z-20, paints over them; there they sit in the hero's
+          bottom padding, under the search, with room for the float. */}
       <button
         ref={buttonRef}
         type="button"
         onClick={cutPage}
         disabled={cutting}
         aria-label={m.hero.scissorsLabel}
-        className="animate-float-slow absolute right-[10%] bottom-24 z-20 rounded-full p-3 text-ink/30 transition hover:scale-110 hover:text-collage-red focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue disabled:cursor-wait sm:bottom-24"
+        className="animate-float-slow absolute right-[10%] bottom-2 z-20 rounded-full p-3 text-ink/30 transition hover:scale-110 hover:text-collage-red focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue disabled:cursor-wait sm:bottom-4 xl:bottom-24"
       >
         <Scissors className="size-10 sm:size-14" strokeWidth={1.5} aria-hidden="true" />
       </button>
