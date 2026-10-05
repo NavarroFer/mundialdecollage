@@ -70,7 +70,7 @@ export function ShareArtwork({
           <MessageCircle className="h-4 w-4 text-collage-blue" aria-hidden="true" />
           WhatsApp
         </button>
-        <a href={`/obras/${slug}/historia`} download className={pill} onClick={() => track('obra_story_download')}>
+        <a href={`/obras/${slug}/historia`} download rel="nofollow" className={pill} onClick={() => track('obra_story_download')}>
           <Download className="h-4 w-4 text-collage-red" aria-hidden="true" />
           {t.story}
         </a>
