@@ -6,7 +6,7 @@ import { formatNumber } from '@/lib/i18n/format'
 import { afterSplash } from '@/lib/splash'
 
 // Ticks up the last stretch to `value` the first time it scrolls into view,
-// waiting for the home's splash to clear so it doesn't play unseen behind it.
+// starting as the home's splash fades out so it doesn't play unseen behind it.
 // Starting near the total keeps the run short and readable.
 const START_RATIO = 0.8
 

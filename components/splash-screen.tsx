@@ -7,6 +7,10 @@ import { useI18n } from '@/lib/i18n/client'
 
 // The papers clear the frame first, then the logo dissolves into the page.
 const INTRO_MS = 1250
+const EXIT_MS = 350
+// The page's count-ups (lib/splash.ts) start this long before the cover is
+// fully gone, so they're already moving as the page comes into view.
+const HEAD_START_MS = 500
 
 export function SplashScreen() {
   // Render the cover in the server HTML. Waiting for an effect here exposes
@@ -14,18 +18,27 @@ export function SplashScreen() {
   const [mounted, setMounted] = useState(true)
   const [visible, setVisible] = useState(true)
   const dismissedRef = useRef(false)
+  const coverRef = useRef<HTMLDivElement>(null)
   const { m } = useI18n()
+
+  // Set on the DOM node directly: once `visible` flips, AnimatePresence keeps
+  // rendering the exiting cover with its last props, so state wouldn't reach it.
+  const markLeaving = useCallback(() => {
+    coverRef.current?.setAttribute('data-leaving', '')
+  }, [])
 
   const dismiss = useCallback(() => {
     if (dismissedRef.current) return
     dismissedRef.current = true
+    markLeaving()
     setVisible(false)
-  }, [])
+  }, [markLeaving])
 
   useEffect(() => {
     if (!visible) return
 
     const timer = window.setTimeout(dismiss, INTRO_MS)
+    const headStart = window.setTimeout(markLeaving, INTRO_MS + EXIT_MS - HEAD_START_MS)
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') dismiss()
     }
@@ -33,9 +46,10 @@ export function SplashScreen() {
 
     return () => {
       window.clearTimeout(timer)
+      window.clearTimeout(headStart)
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [dismiss, visible])
+  }, [dismiss, markLeaving, visible])
 
   // Keep the covered page out of the keyboard and accessibility flow until
   // Framer Motion has finished the exit animation.
@@ -53,12 +67,13 @@ export function SplashScreen() {
         {visible && (
           <motion.div
           key="brand-splash"
+          ref={coverRef}
           data-splash
           className="fixed inset-0 z-[60] grid place-items-center overflow-hidden bg-paper"
           initial={false}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.015 }}
-          transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: EXIT_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
         >
           <motion.div
             className="absolute -top-[18vh] -left-[18vw] h-[66vh] w-[58vw] bg-collage-blue sm:-left-[8vw] sm:w-[42vw]"
