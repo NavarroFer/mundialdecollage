@@ -34,6 +34,14 @@ RESEND_API_KEY=
 # el endpoint rechaza todos los eventos para que nunca acepte eventos falsos.
 RESEND_WEBHOOK_SECRET=
 
+# Brevo — https://app.brevo.com/settings/keys/api. Segundo proveedor: los
+# envíos masivos salen primero por Brevo (ver lib/mail/index.ts).
+BREVO_API_KEY=
+# Obligatorio para las estadísticas de los mails que salen por Brevo: el
+# webhook transaccional apunta a /api/brevo/webhook con este valor como
+# bearer token (o como ?token=). Sin él el endpoint rechaza todos los eventos.
+BREVO_WEBHOOK_SECRET=
+
 # Cloudflare R2 — bucket privado donde /api/img guarda cada foto y cada
 # tamaño ya generado, para no volver a bajar el original de Supabase Storage
 # en cada miss del CDN (ver lib/r2.ts). Sin esto el sitio funciona igual,
