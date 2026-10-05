@@ -6,7 +6,7 @@
 import { PreApproval } from 'mercadopago'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
-import { parseExternalReference } from '@/lib/entries'
+import { parseExternalReference } from '@/lib/payments/references'
 import { sendSubscriptionReceipt } from '@/lib/subscription-receipts'
 
 type SubscriptionStatus = 'pending' | 'active' | 'suspended' | 'cancelled'

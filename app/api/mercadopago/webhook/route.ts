@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Payment } from 'mercadopago'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
+import { isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { parseSignatureHeader, verifyMercadoPagoSignature } from '@/lib/mercadopago-signature'
-import { parseExternalReference } from '@/lib/entries'
-import { applyEntryPayment } from '@/lib/entry-payments'
-import { applyMagazinePayment } from '@/lib/magazine-payments'
+import { syncPayment } from '@/lib/payments/apply'
+import { mercadoPago } from '@/lib/payments/providers/mercadopago'
 import { recordAuthorizedPayment, syncPreapprovalById } from '@/lib/mp-subscriptions'
+
+// What each notification topic is about, and what to do with the id it
+// carries: a payment (applied to whatever its reference points at, see
+// lib/payments/apply.ts), a store subscription's preapproval, or one of its
+// monthly charges (lib/mp-subscriptions.ts). Each handler re-fetches from
+// Mercado Pago and never throws. Any other topic (e.g. merchant_order) needs
+// nothing.
+const TOPICS: Record<string, (id: string) => Promise<unknown>> = {
+  payment: (id) => syncPayment(mercadoPago, id),
+  subscription_preapproval: syncPreapprovalById,
+  subscription_authorized_payment: recordAuthorizedPayment,
+}
 
 // Mercado Pago's server-to-server notification. Historically sent both as a
 // JSON body (`{ type: 'payment', data: { id } }`) and as query params
@@ -33,14 +42,10 @@ export async function POST(request: NextRequest) {
     paymentId = params.get('data.id') ?? params.get('id')
   }
 
-  // Payments, plus the store subscriptions' preapprovals and their monthly
-  // charges (lib/mp-subscriptions.ts). Anything else (e.g. merchant_order) —
-  // nothing to do. For the subscription topics, paymentId is the
-  // preapproval's or the charge's id; the signature covers it the same way.
-  const SUBSCRIPTION_TOPICS = ['subscription_preapproval', 'subscription_authorized_payment']
-  if ((type !== 'payment' && !SUBSCRIPTION_TOPICS.includes(type ?? '')) || !paymentId) {
-    return NextResponse.json({ ok: true })
-  }
+  // For the subscription topics, paymentId is the preapproval's or the
+  // charge's id; the signature covers it the same way.
+  const handle = type && Object.hasOwn(TOPICS, type) ? TOPICS[type] : null
+  if (!handle || !paymentId) return NextResponse.json({ ok: true })
 
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET
   if (!secret) {
@@ -68,84 +73,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  if (type === 'subscription_preapproval') {
-    await syncPreapprovalById(paymentId)
-    return NextResponse.json({ ok: true })
-  }
-  if (type === 'subscription_authorized_payment') {
-    await recordAuthorizedPayment(paymentId)
-    return NextResponse.json({ ok: true })
-  }
-
-  // Never trust the webhook body for amount/status — always re-fetch the
-  // authoritative payment record from Mercado Pago's API.
-  let payment
-  try {
-    payment = await new Payment(getMercadoPagoConfig()).get({ id: paymentId })
-  } catch (err) {
-    console.error('mercadopago webhook: failed to fetch payment', paymentId, err)
-    return NextResponse.json({ ok: true })
-  }
-
-  const reference = parseExternalReference(payment.external_reference)
-  if (!reference) {
-    console.warn('mercadopago webhook: payment has no external_reference', payment.id)
-    return NextResponse.json({ ok: true })
-  }
-
-  // The one-time payment to postulate more obras (app/onboarding/obras).
-  if (reference.kind === 'entry') {
-    await applyEntryPayment(payment)
-    return NextResponse.json({ ok: true })
-  }
-
-  // Preventa de la Revista 1ª Edición (app/revista).
-  if (reference.kind === 'magazine') {
-    await applyMagazinePayment(payment)
-    return NextResponse.json({ ok: true })
-  }
-
-  const registrationId = reference.id
-
-  const supabase = createAdminClient()
-  const { data: registration } = await supabase
-    .from('workshop_registrations')
-    .select('id, payment_type, amount_total')
-    .eq('id', registrationId)
-    .maybeSingle()
-
-  if (!registration) {
-    console.warn('mercadopago webhook: no registration found for', registrationId)
-    return NextResponse.json({ ok: true })
-  }
-
-  const amountPaid = payment.transaction_amount ?? 0
-
-  let update: Record<string, unknown>
-  if (payment.status === 'approved') {
-    const amountPending =
-      registration.payment_type === 'sena' ? Math.max(0, registration.amount_total - amountPaid) : 0
-    update = {
-      status: 'paid',
-      mp_payment_id: String(payment.id),
-      paid_at: new Date().toISOString(),
-      amount_paid: amountPaid,
-      amount_pending: amountPending,
-    }
-  } else if (payment.status === 'rejected' || payment.status === 'cancelled') {
-    update = { status: 'failed' }
-  } else {
-    update = { status: 'pending' }
-  }
-
-  const { error: updateError } = await supabase
-    .from('workshop_registrations')
-    .update(update)
-    .eq('id', registrationId)
-
-  if (updateError) {
-    console.error('mercadopago webhook: failed to update registration', registrationId, updateError)
-  }
-
+  await handle(paymentId)
   return NextResponse.json({ ok: true })
 }

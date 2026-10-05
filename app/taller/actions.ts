@@ -1,18 +1,19 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { Preference } from 'mercadopago'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isMercadoPagoConfigured, getMercadoPagoConfig } from '@/lib/mercadopago'
+import { mercadoPago } from '@/lib/payments/providers/mercadopago'
+import { workshopExternalReference } from '@/lib/payments/references'
+import type { Checkout } from '@/lib/payments/provider'
 import { isWorkshopPaymentConfigured, site, getSiteUrl } from '@/lib/site'
 
 // Only one payment per registration: whichever amount they choose here
 // (seña or total) is what Mercado Pago charges. Any balance left after a
 // seña is settled in person at the workshop, not through a second charge.
 export async function registerForWorkshop(formData: FormData) {
-  if (!isSupabaseConfigured || !isMercadoPagoConfigured || !isWorkshopPaymentConfigured()) {
+  if (!isSupabaseConfigured || !mercadoPago.isConfigured || !isWorkshopPaymentConfigured()) {
     redirect('/taller/inscripcion?error=not_configured')
   }
 
@@ -88,41 +89,19 @@ export async function registerForWorkshop(formData: FormData) {
   const title =
     paymentType === 'sena' ? 'Seña — Taller de collage' : 'Taller de collage (pago completo)'
 
-  let initPoint: string | undefined
-  let preferenceId: string | undefined
+  let checkout: Checkout
   try {
-    const preference = await new Preference(getMercadoPagoConfig()).create({
-      body: {
-        items: [
-          {
-            id: `taller-collage-${paymentType}`,
-            title,
-            quantity: 1,
-            unit_price: amountTotal,
-            currency_id: 'ARS',
-          },
-        ],
-        payer: {
-          email: user.email,
-          name: profile?.name ?? undefined,
-        },
-        external_reference: registration.id,
-        back_urls: {
-          success: `${siteUrl}/taller/gracias`,
-          pending: `${siteUrl}/taller/pendiente`,
-          failure: `${siteUrl}/taller/inscripcion?error=pago_fallido`,
-        },
-        auto_return: 'approved',
-        notification_url: `${siteUrl}/api/mercadopago/webhook`,
+    checkout = await mercadoPago.createCheckout({
+      reference: workshopExternalReference(registration.id),
+      items: [{ id: `taller-collage-${paymentType}`, title, quantity: 1, unitPrice: amountTotal, currency: 'ARS' }],
+      payer: { email: user.email, name: profile?.name },
+      returnUrls: {
+        success: `${siteUrl}/taller/gracias`,
+        pending: `${siteUrl}/taller/pendiente`,
+        failure: `${siteUrl}/taller/inscripcion?error=pago_fallido`,
       },
     })
-    initPoint = preference.init_point
-    preferenceId = preference.id
   } catch {
-    redirect('/taller/inscripcion?error=mp_failed')
-  }
-
-  if (!initPoint) {
     redirect('/taller/inscripcion?error=mp_failed')
   }
 
@@ -130,8 +109,8 @@ export async function registerForWorkshop(formData: FormData) {
   // saving the preference id back onto the row needs the admin client too.
   await admin
     .from('workshop_registrations')
-    .update({ mp_preference_id: preferenceId })
+    .update({ mp_preference_id: checkout.id })
     .eq('id', registration.id)
 
-  redirect(initPoint)
+  redirect(checkout.url)
 }

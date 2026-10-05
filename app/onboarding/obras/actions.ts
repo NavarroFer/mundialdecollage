@@ -2,17 +2,18 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { Preference } from 'mercadopago'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isMercadoPagoConfigured, getMercadoPagoConfig } from '@/lib/mercadopago'
+import { mercadoPago } from '@/lib/payments/providers/mercadopago'
+import { entryExternalReference } from '@/lib/payments/references'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { site, getSiteUrl } from '@/lib/site'
-import { entryExternalReference, entryLimit, resolveEntryChoice } from '@/lib/entries'
+import { entryLimit, resolveEntryChoice } from '@/lib/entries'
 import { hasPaidEntries } from '@/lib/entry-payments'
 import { isCallOpen } from '@/lib/call-state'
 import { refreshPublicData } from '@/lib/public-data-cache'
+import type { Checkout } from '@/lib/payments/provider'
 
 // The artist picks which of their obras are postulated (one for free, more
 // after paying) and which one represents them on the site. artworks has no
@@ -103,7 +104,7 @@ export async function saveEntryChoice(formData: FormData) {
 // (app/taller/actions.ts); the purchase row is written with the service-role
 // client so an artist can never create one that already says "paid".
 export async function startEntryCheckout() {
-  if (!isSupabaseConfigured || !isMercadoPagoConfigured) {
+  if (!isSupabaseConfigured || !mercadoPago.isConfigured) {
     redirect('/onboarding/obras?error=not_configured')
   }
   if (!(await isCallOpen())) redirect('/onboarding/obras?error=closed')
@@ -125,7 +126,7 @@ export async function startEntryCheckout() {
     .insert({
       user_id: user.id,
       email: user.email,
-      provider: 'mercadopago',
+      provider: mercadoPago.id,
       amount: priceArs,
       currency: 'ARS',
       entries_allowed: paidLimit,
@@ -138,41 +139,32 @@ export async function startEntryCheckout() {
   }
 
   const siteUrl = getSiteUrl()
-  let initPoint: string | undefined
-  let preferenceId: string | undefined
+  let checkout: Checkout
   try {
-    const preference = await new Preference(getMercadoPagoConfig()).create({
-      body: {
-        items: [
-          {
-            id: 'mundial-obras-extra',
-            title: `Mundial de Collage — postulación de hasta ${paidLimit} obras`,
-            quantity: 1,
-            unit_price: priceArs,
-            currency_id: 'ARS',
-          },
-        ],
-        payer: { email: user.email },
-        external_reference: entryExternalReference(purchase.id),
-        back_urls: {
-          success: `${siteUrl}/onboarding/obras?pago=ok`,
-          pending: `${siteUrl}/onboarding/obras?pago=pendiente`,
-          failure: `${siteUrl}/onboarding/obras?pago=error`,
+    checkout = await mercadoPago.createCheckout({
+      reference: entryExternalReference(purchase.id),
+      items: [
+        {
+          id: 'mundial-obras-extra',
+          title: `Mundial de Collage — postulación de hasta ${paidLimit} obras`,
+          quantity: 1,
+          unitPrice: priceArs,
+          currency: 'ARS',
         },
-        auto_return: 'approved',
-        notification_url: `${siteUrl}/api/mercadopago/webhook`,
+      ],
+      payer: { email: user.email },
+      returnUrls: {
+        success: `${siteUrl}/onboarding/obras?pago=ok`,
+        pending: `${siteUrl}/onboarding/obras?pago=pendiente`,
+        failure: `${siteUrl}/onboarding/obras?pago=error`,
       },
     })
-    initPoint = preference.init_point
-    preferenceId = preference.id
   } catch (err) {
-    console.error('startEntryCheckout: failed to create preference', user.id, err)
+    console.error('startEntryCheckout: failed to create checkout', user.id, err)
     redirect('/onboarding/obras?error=mp_failed')
   }
 
-  if (!initPoint) redirect('/onboarding/obras?error=mp_failed')
+  await admin.from('entry_purchases').update({ mp_preference_id: checkout.id }).eq('id', purchase.id)
 
-  await admin.from('entry_purchases').update({ mp_preference_id: preferenceId }).eq('id', purchase.id)
-
-  redirect(initPoint)
+  redirect(checkout.url)
 }

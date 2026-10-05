@@ -7,7 +7,8 @@ import { isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { site } from '@/lib/site'
 import { entryLimit } from '@/lib/entries'
-import { syncEntryPaymentById } from '@/lib/entry-payments'
+import { syncPayment } from '@/lib/payments/apply'
+import { mercadoPago } from '@/lib/payments/providers/mercadopago'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { getI18n } from '@/lib/i18n/server'
@@ -56,7 +57,7 @@ export default async function EntriesPage({
   // Back from Mercado Pago: confirm the payment with Mercado Pago right away
   // instead of waiting for the webhook, so the new limit shows on arrival.
   const paymentId = params.payment_id ?? params.collection_id
-  if (paymentId) await syncEntryPaymentById(paymentId)
+  if (paymentId) await syncPayment(mercadoPago, paymentId, 'entry')
 
   const [{ data: artworks }, { data: profile }, { data: purchases }] = await Promise.all([
     supabase

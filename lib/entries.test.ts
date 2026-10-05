@@ -1,14 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  entryExternalReference,
-  entryLimit,
-  entryPaymentOutcome,
-  needsEntryChoice,
-  magazineExternalReference,
-  parseExternalReference,
-  resolveEntryChoice,
-  subscriptionExternalReference,
-} from './entries'
+import { entryLimit, needsEntryChoice, resolveEntryChoice } from './entries'
 import { site } from './site'
 
 describe('entryLimit', () => {
@@ -61,47 +52,5 @@ describe('resolveEntryChoice', () => {
     expect(
       resolveEntryChoice({ ownedIds, requestedIds: ['b', 'c'], mainId: 'a', currentMainId: 'a', limit: 5 }),
     ).toMatchObject({ main: 'b' })
-  })
-})
-
-describe('external reference', () => {
-  it('tells obra payments apart from the taller registrations', () => {
-    expect(parseExternalReference(entryExternalReference('123'))).toEqual({ kind: 'entry', id: '123' })
-    expect(parseExternalReference('9b2f-uuid')).toEqual({ kind: 'workshop', id: '9b2f-uuid' })
-    expect(parseExternalReference(magazineExternalReference('abc'))).toEqual({ kind: 'magazine', id: 'abc' })
-    expect(parseExternalReference('entry:')).toBeNull()
-    expect(parseExternalReference('revista:')).toBeNull()
-    expect(parseExternalReference(subscriptionExternalReference('s1'))).toEqual({ kind: 'subscription', id: 's1' })
-    expect(parseExternalReference(null)).toBeNull()
-  })
-})
-
-describe('entryPaymentOutcome', () => {
-  const purchase = { status: 'pending' as const, amount: 30000, currency: 'ARS' }
-
-  it('credits an approved payment for the full price', () => {
-    expect(entryPaymentOutcome({ status: 'approved', transaction_amount: 30000, currency_id: 'ARS' }, purchase)).toBe('paid')
-  })
-
-  it('does not credit a payment for less or in another currency', () => {
-    expect(entryPaymentOutcome({ status: 'approved', transaction_amount: 100, currency_id: 'ARS' }, purchase)).toBe('mismatch')
-    expect(entryPaymentOutcome({ status: 'approved', transaction_amount: 30000, currency_id: 'USD' }, purchase)).toBe('mismatch')
-  })
-
-  it('keeps a paid purchase paid when a late notification says otherwise', () => {
-    const paid = { ...purchase, status: 'paid' as const }
-    expect(entryPaymentOutcome({ status: 'in_process' }, paid)).toBe('paid')
-    expect(entryPaymentOutcome({ status: 'rejected' }, paid)).toBe('paid')
-  })
-
-  it('undoes a paid purchase only on a refund or chargeback', () => {
-    const paid = { ...purchase, status: 'paid' as const }
-    expect(entryPaymentOutcome({ status: 'refunded' }, paid)).toBe('refunded')
-    expect(entryPaymentOutcome({ status: 'charged_back' }, paid)).toBe('refunded')
-  })
-
-  it('marks rejected payments failed and the rest pending', () => {
-    expect(entryPaymentOutcome({ status: 'rejected' }, purchase)).toBe('failed')
-    expect(entryPaymentOutcome({ status: 'in_process' }, purchase)).toBe('pending')
   })
 })

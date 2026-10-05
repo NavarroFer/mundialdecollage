@@ -6,7 +6,8 @@ import { TrackView } from '@/components/track'
 import { Button } from '@/components/ui/button'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { syncMagazinePaymentById } from '@/lib/magazine-payments'
+import { syncPayment } from '@/lib/payments/apply'
+import { mercadoPago } from '@/lib/payments/providers/mercadopago'
 import { getI18n } from '@/lib/i18n/server'
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -20,7 +21,7 @@ export default async function MagazineThanksPage({ searchParams }: {
 }) {
   const params = await searchParams
   const paymentId = params.payment_id ?? params.collection_id
-  if (paymentId) await syncMagazinePaymentById(paymentId)
+  if (paymentId) await syncPayment(mercadoPago, paymentId, 'magazine')
 
   let status: string | null = null
   if (params.pedido && UUID_PATTERN.test(params.pedido) && isSupabaseConfigured && process.env.SUPABASE_SERVICE_ROLE_KEY) {
