@@ -18,6 +18,23 @@ const CLARITY_HOST = /^[a-z0-9-]+\.clarity\.ms$/i
 // one, and Clarity's telemetry endpoints answer 204.
 const NULL_BODY_STATUSES = new Set([101, 204, 205, 304])
 
+// Every page view asked for the tag and the script through this Function,
+// uncached. The script's path is versioned (scripts.clarity.ms/0.8.70/...);
+// the tag only differs between responses in the upload host it hands out, so
+// a region sharing one for 10 minutes changes nothing. Their cookies are
+// dropped: this proxy never sends any back upstream, so they were dead
+// weight, and a response that sets one can't be cached.
+const CDN_CACHE: Record<string, string> = {
+  'www.clarity.ms': 'public, max-age=0, s-maxage=600',
+  'scripts.clarity.ms': 'public, max-age=86400, s-maxage=86400',
+}
+
+// The tag's own hosts, pointed here. All but c.clarity.ms: its c.gif only
+// syncs Microsoft's MUID cookie, which can't work through a proxy that drops
+// cookies, so the browser goes straight there (or an ad blocker stops it,
+// which costs nothing).
+const PROXIED_HOST = /https:\/\/((?!c\.clarity\.ms)[a-z0-9-]+\.clarity\.ms)/gi
+
 function stripCookieDomain(cookie: string) {
   return cookie.replace(/;\s*domain=[^;]+/i, '')
 }
@@ -50,18 +67,22 @@ async function proxy(request: NextRequest, path: string[]) {
   const body = NULL_BODY_STATUSES.has(upstream.status)
     ? null
     : host === 'www.clarity.ms'
-      ? (await upstream.text()).replace(/https:\/\/([a-z0-9-]+\.clarity\.ms)/gi, '/monitoring/$1')
+      ? (await upstream.text()).replace(PROXIED_HOST, '/monitoring/$1')
       : upstream.body
 
+  const cacheControl = request.method === 'GET' && upstream.ok ? CDN_CACHE[host] : undefined
   const response = new NextResponse(body as BodyInit, {
     status: upstream.status,
     headers: {
       'content-type': upstream.headers.get('content-type') ?? 'application/octet-stream',
+      ...(cacheControl && { 'cache-control': cacheControl }),
     },
   })
 
-  for (const cookie of upstream.headers.getSetCookie?.() ?? []) {
-    response.headers.append('set-cookie', stripCookieDomain(cookie))
+  if (!cacheControl) {
+    for (const cookie of upstream.headers.getSetCookie?.() ?? []) {
+      response.headers.append('set-cookie', stripCookieDomain(cookie))
+    }
   }
 
   return response
