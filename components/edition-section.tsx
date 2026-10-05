@@ -2,11 +2,12 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { TrackedLink } from '@/components/track'
 import { FadeIn } from '@/components/fade-in'
+import { AnimatedNumber } from '@/components/animated-number'
 import { SectionLink } from '@/components/section-link'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { getI18n } from '@/lib/i18n/server'
 import { getCallState } from '@/lib/call-state'
-import { formatNumber, plural } from '@/lib/i18n/format'
+import { plural } from '@/lib/i18n/format'
 
 export async function EditionSection() {
   const [submissionsCount, { locale, m }, { open }] = await Promise.all([getSubmissionsCount(), getI18n(), getCallState()])
@@ -33,7 +34,7 @@ export async function EditionSection() {
               <>
                 <span className="text-3xl uppercase sm:text-5xl">{m.edition.received}</span>
                 <span className="my-3 inline-block -rotate-3 bg-paper px-6 py-3 text-8xl leading-none tracking-tight text-collage-red shadow-[6px_6px_0_var(--color-ink)] sm:px-10 sm:text-9xl">
-                  {formatNumber(locale, submissionsCount)}
+                  <AnimatedNumber value={submissionsCount} duration={600} />
                 </span>
                 <span className="text-4xl uppercase sm:text-6xl">
                   {plural(locale, submissionsCount, m.edition.artworks)}
