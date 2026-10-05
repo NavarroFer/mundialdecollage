@@ -377,6 +377,18 @@ const en: Messages = {
     unreadDot: 'Unread',
     metaTitle: 'Notifications — Collage World Cup',
     signIn: 'Sign in with Google to see your notifications.',
+    types: {
+      commentApproved: 'Your comment on “{title}” is now live in the 3D Gallery.',
+      wallApproved: 'Your photo is now on the collective collage.',
+      wallRejected: "Your photo didn't make it onto the collective collage. We gave you your life back so you can paste another one.",
+      activity: 'Your artwork “{title}” got {what}.',
+      likes: p({ one: '{count} like', other: '{count} likes' }),
+      comments: p({ one: '{count} comment', other: '{count} comments' }),
+      exhibitedToday: 'Today your artwork “{title}” is in the 3D Gallery. Go see it!',
+      exhibitedOn: 'Your artwork “{title}” was in the 3D Gallery on {date}.',
+      referral: '{name} joined the World Cup through your link. Thanks for sharing!',
+      referralSomeone: 'Someone joined the World Cup through your link. Thanks for sharing!',
+    },
   },
   gallery: {
     startEyebrow: 'COLLAGE WORLD CUP · 3D GALLERY',

@@ -8,6 +8,7 @@ import { MESSAGES } from '@/lib/i18n/messages'
 import { fmt } from '@/lib/i18n/format'
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { cachedPublicData } from '@/lib/public-data-cache'
+import { exhibitionDay } from '@/lib/exhibition-day'
 
 const EDITION_YEAR = new Date(site.deadlineISO).getFullYear()
 
@@ -16,15 +17,6 @@ const EDITION_YEAR = new Date(site.deadlineISO).getFullYear()
 // items out evenly while still looking arbitrary, and it's fully
 // deterministic from the seed alone (no state to store or cron to run).
 const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949
-
-// The exhibition day starts at 09:00 in Argentina (UTC-3, no DST), i.e.
-// 12:00 UTC — so the obras change in the morning, not at 21:00 local.
-const ROTATION_OFFSET_MS = 12 * 60 * 60 * 1000
-
-// The exhibition day (YYYY-MM-DD) a moment falls in.
-function exhibitionDay(date = new Date()): string {
-  return new Date(date.getTime() - ROTATION_OFFSET_MS).toISOString().slice(0, 10)
-}
 
 // One stable seed per exhibition day — same visitors see the same 20 obras
 // all day, and the selection rotates on its own at 09:00 Argentina.

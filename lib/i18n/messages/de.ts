@@ -376,6 +376,18 @@ const de: Messages = {
     unreadDot: 'Ungelesen',
     metaTitle: 'Benachrichtigungen — Collage-WM',
     signIn: 'Melde dich mit Google an, um deine Benachrichtigungen zu sehen.',
+    types: {
+      commentApproved: 'Dein Kommentar zu „{title}“ ist jetzt in der 3D-Galerie zu sehen.',
+      wallApproved: 'Dein Foto klebt jetzt auf der Gemeinschaftscollage.',
+      wallRejected: 'Dein Foto ist nicht auf die Gemeinschaftscollage gekommen. Du hast dein Leben zurück und kannst ein anderes aufkleben.',
+      activity: 'Dein Werk „{title}“ hat {what} bekommen.',
+      likes: p({ one: '{count} Like', other: '{count} Likes' }),
+      comments: p({ one: '{count} Kommentar', other: '{count} Kommentare' }),
+      exhibitedToday: 'Heute hängt dein Werk „{title}“ in der 3D-Galerie. Schau es dir an!',
+      exhibitedOn: 'Dein Werk „{title}“ hing am {date} in der 3D-Galerie.',
+      referral: '{name} ist über deinen Link der WM beigetreten. Danke fürs Teilen!',
+      referralSomeone: 'Jemand ist über deinen Link der WM beigetreten. Danke fürs Teilen!',
+    },
   },
   gallery: {
     startEyebrow: 'COLLAGE-WM · 3D-GALERIE',

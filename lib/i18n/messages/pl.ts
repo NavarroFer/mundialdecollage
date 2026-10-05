@@ -386,6 +386,18 @@ const pl: Messages = {
     unreadDot: 'Nieprzeczytane',
     metaTitle: 'Powiadomienia — Mistrzostwa Świata w Kolażu',
     signIn: 'Zaloguj się przez Google, żeby zobaczyć swoje powiadomienia.',
+    types: {
+      commentApproved: 'Twój komentarz do „{title}” jest już widoczny w Galerii 3D.',
+      wallApproved: 'Twoje zdjęcie jest już na wspólnym kolażu.',
+      wallRejected: 'Twoje zdjęcie nie trafiło na wspólny kolaż. Oddaliśmy ci życie, możesz przykleić inne.',
+      activity: 'Twoja praca „{title}” zebrała {what}.',
+      likes: p({ one: '{count} polubienie', few: '{count} polubienia', many: '{count} polubień', other: '{count} polubienia' }),
+      comments: p({ one: '{count} komentarz', few: '{count} komentarze', many: '{count} komentarzy', other: '{count} komentarza' }),
+      exhibitedToday: 'Dziś twoja praca „{title}” wisi w Galerii 3D. Zajrzyj!',
+      exhibitedOn: 'Twoja praca „{title}” wisiała w Galerii 3D {date}.',
+      referral: 'Nowa osoba w Mistrzostwach dzięki twojemu linkowi: {name}. Dzięki za udostępnianie!',
+      referralSomeone: 'Dzięki twojemu linkowi do Mistrzostw dołączyła nowa osoba. Dzięki za udostępnianie!',
+    },
   },
   gallery: {
     startEyebrow: 'MISTRZOSTWA ŚWIATA W KOLAŻU · GALERIA 3D',

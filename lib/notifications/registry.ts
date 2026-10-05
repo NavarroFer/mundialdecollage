@@ -1,7 +1,9 @@
 import { z } from 'zod'
-import { p, plural } from '@/lib/i18n/format'
+import { fmt, formatDayMonth, p, plural } from '@/lib/i18n/format'
 import { LOCALE_INFO, type Locale } from '@/lib/i18n/locales'
 import type { Messages } from '@/lib/i18n/messages/es'
+import { galleryArtworkPath } from '@/lib/gallery-return'
+import { exhibitionDay } from '@/lib/exhibition-day'
 
 // Every kind of notification the bell can show, one entry each (a registry
 // of strategies): what its `data` looks like, its icon, and how it reads and
@@ -59,8 +61,11 @@ function define<Schema extends z.ZodType>({ schema, icon, render }: Definition<S
   }
 }
 
+const artworkData = { title: z.string().nullish(), slug: z.string().min(1).nullish() }
 const countData = z.object({ count: z.number().int().positive() })
 const moneyData = { amount: z.number().nonnegative(), currency: z.string().length(3) }
+
+const obraLink = (slug: string | null | undefined) => (slug ? galleryArtworkPath(slug) : null)
 
 function money(amount: number, currency: string): string {
   return new Intl.NumberFormat(LOCALE_INFO.es.intl, { style: 'currency', currency, maximumFractionDigits: 2, minimumFractionDigits: 0 }).format(amount)
@@ -77,6 +82,58 @@ const ADMIN_TEXTS = {
 }
 
 export const NOTIFICATION_TYPES = {
+  // --- For visitors and artists -------------------------------------------
+  comment_approved: define({
+    schema: z.object(artworkData),
+    icon: 'comment',
+    render: (data, { m, untitled }) => ({
+      text: fmt(m.types.commentApproved, { title: data.title || untitled }),
+      href: obraLink(data.slug),
+    }),
+  }),
+  wall_approved: define({
+    schema: z.object({}),
+    icon: 'wall',
+    render: (_data, { m }) => ({ text: m.types.wallApproved, href: '/galeria-3d' }),
+  }),
+  wall_rejected: define({
+    schema: z.object({}),
+    icon: 'wallRejected',
+    render: (_data, { m }) => ({ text: m.types.wallRejected, href: '/galeria-3d' }),
+  }),
+  artwork_activity: define({
+    schema: z.object({ ...artworkData, likes: z.number().int().nonnegative(), comments: z.number().int().nonnegative() }),
+    icon: 'activity',
+    render: (data, { locale, m, untitled }) => {
+      const parts = [
+        data.likes > 0 && plural(locale, data.likes, m.types.likes),
+        data.comments > 0 && plural(locale, data.comments, m.types.comments),
+      ].filter((part): part is string => Boolean(part))
+      if (!parts.length) return null
+      const what = new Intl.ListFormat(LOCALE_INFO[locale].intl, { type: 'conjunction' }).format(parts)
+      return { text: fmt(m.types.activity, { title: data.title || untitled, what }), href: obraLink(data.slug) }
+    },
+  }),
+  artwork_exhibited: define({
+    schema: z.object({ ...artworkData, day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+    icon: 'exhibition',
+    render: (data, { locale, m, untitled, now }) => {
+      const title = data.title || untitled
+      const text = data.day === exhibitionDay(now)
+        ? fmt(m.types.exhibitedToday, { title })
+        : fmt(m.types.exhibitedOn, { title, date: formatDayMonth(locale, `${data.day}T12:00:00-03:00`) })
+      return { text, href: obraLink(data.slug) }
+    },
+  }),
+  referral_joined: define({
+    schema: z.object({ name: z.string().nullish(), slug: z.string().min(1).nullish() }),
+    icon: 'referral',
+    render: (data, { m }) => ({
+      text: data.name?.trim() ? fmt(m.types.referral, { name: data.name.trim() }) : m.types.referralSomeone,
+      href: data.slug ? `/obras/${encodeURIComponent(data.slug)}` : null,
+    }),
+  }),
+
   // --- For the admins (Spanish only) --------------------------------------
   admin_comments_pending: define({
     schema: countData,

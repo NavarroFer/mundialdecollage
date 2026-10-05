@@ -376,6 +376,18 @@ const fr: Messages = {
     unreadDot: 'Non lue',
     metaTitle: 'Notifications — Mondial du Collage',
     signIn: 'Connecte-toi avec Google pour voir tes notifications.',
+    types: {
+      commentApproved: 'Ton commentaire sur « {title} » est maintenant visible dans la Galerie 3D.',
+      wallApproved: 'Ta photo est maintenant collée sur le collage collectif.',
+      wallRejected: "Ta photo n'a pas été retenue pour le collage collectif. Nous t'avons rendu ta vie pour que tu en colles une autre.",
+      activity: 'Ton œuvre « {title} » a reçu {what}.',
+      likes: p({ one: "{count} j'aime", other: "{count} j'aime" }),
+      comments: p({ one: '{count} commentaire', other: '{count} commentaires' }),
+      exhibitedToday: "Aujourd'hui, ton œuvre « {title} » est dans la Galerie 3D. Va la voir !",
+      exhibitedOn: 'Ton œuvre « {title} » était dans la Galerie 3D le {date}.',
+      referral: '{name} a rejoint le Mondial grâce à ton lien. Merci de partager !',
+      referralSomeone: "Quelqu'un a rejoint le Mondial grâce à ton lien. Merci de partager !",
+    },
   },
   gallery: {
     startEyebrow: 'MONDIAL DU COLLAGE · GALERIE 3D',

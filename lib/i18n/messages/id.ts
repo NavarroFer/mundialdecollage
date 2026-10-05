@@ -376,6 +376,18 @@ const id: Messages = {
     unreadDot: 'Belum dibaca',
     metaTitle: 'Notifikasi — Piala Dunia Kolase',
     signIn: 'Masuk dengan Google untuk melihat notifikasimu.',
+    types: {
+      commentApproved: 'Komentarmu di "{title}" sekarang tampil di Galeri 3D.',
+      wallApproved: 'Fotomu sudah tertempel di kolase bersama.',
+      wallRejected: 'Fotomu tidak masuk ke kolase bersama. Nyawamu sudah kami kembalikan agar kamu bisa menempel foto lain.',
+      activity: 'Karyamu "{title}" mendapat {what}.',
+      likes: p({ other: '{count} suka' }),
+      comments: p({ other: '{count} komentar' }),
+      exhibitedToday: 'Hari ini karyamu "{title}" ada di Galeri 3D. Ayo lihat!',
+      exhibitedOn: 'Karyamu "{title}" dipajang di Galeri 3D pada {date}.',
+      referral: '{name} bergabung ke Piala Dunia lewat tautanmu. Terima kasih sudah berbagi!',
+      referralSomeone: 'Seseorang bergabung ke Piala Dunia lewat tautanmu. Terima kasih sudah berbagi!',
+    },
   },
   gallery: {
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
