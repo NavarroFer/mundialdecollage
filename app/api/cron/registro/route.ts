@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { readSheetGrid } from '@/lib/google-sheets'
 import { REGISTRO_SHEET_ID, REGISTRO_TAB } from '@/lib/registro'
 import { syncRegistro, type RegistroSyncReport } from '@/lib/registro-sync'
-import { isMailConfigured, sendMail } from '@/lib/mail'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { cronRoute, errorMessage, mailAdmins } from '@/lib/cron'
 import { isCallOpen } from '@/lib/call-state'
 import { refreshPublicData } from '@/lib/public-data-cache'
 
@@ -16,12 +16,7 @@ const BACKUP_BUCKET = 'registro-backups'
 
 // Vercel Cron calls this with `Authorization: Bearer $CRON_SECRET`. Never
 // passes allow_large_archive: a large removal stops and asks a human.
-export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
-
+export const GET = cronRoute(async () => {
   const startedAt = Date.now()
   const db = createAdminClient()
   try {
@@ -49,12 +44,12 @@ export async function GET(request: NextRequest) {
     if (changed || report.images?.failed || report.published?.skipped.length) await notify(summarize(report))
     return NextResponse.json(report)
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
+    const message = errorMessage(err)
     console.error('registro sync failed', message)
     await notify(`La sincronización de Registro requiere intervención. No se aplicó ningún cambio posterior al error.\n\n${message}`)
     return NextResponse.json({ error: message }, { status: 500 })
   }
-}
+})
 
 function summarize(report: RegistroSyncReport) {
   const result = report.result as { inserted?: number; archived?: number; linked_artworks?: number } | undefined
@@ -78,9 +73,8 @@ function summarize(report: RegistroSyncReport) {
   return lines.join('\n')
 }
 
+// REGISTRO_NOTIFY_EMAILS can send these somewhere other than the admins.
 async function notify(text: string) {
-  if (!isMailConfigured) return
   const to = process.env.REGISTRO_NOTIFY_EMAILS?.split(',').map((email) => email.trim()).filter(Boolean) ?? ADMIN_EMAILS
-  const result = await sendMail({ to, subject: 'Mundial de Collage · Sincronización de Registro', text })
-  if (!result.ok) console.error('registro sync notify failed', result.error)
+  await mailAdmins('Mundial de Collage · Sincronización de Registro', text, to)
 }

@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { sendSupporterWelcomes } from '@/lib/supporter-welcome'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { isMailConfigured, sendMail, sendMails } from '@/lib/mail'
+import { isMailConfigured, sendMails } from '@/lib/mail'
+import { cronRoute, mailAdmins, runCronJobs } from '@/lib/cron'
 import { personalizeHtml } from '@/lib/email-blocks'
 import { withUnsubscribeFooter } from '@/lib/email-translation'
 import {
@@ -14,7 +15,6 @@ import {
 import { digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
 import { galleryArtworkPath } from '@/lib/gallery-return'
-import { ADMIN_EMAILS } from '@/lib/admin'
 import { getSiteUrl, site } from '@/lib/site'
 
 export const maxDuration = 300
@@ -29,39 +29,19 @@ export const maxDuration = 300
 //   5. clearing out old notifications from the bell.
 // Safe to run again: every mail is claimed in the database before it's
 // sent. `?dry=1` shows who would get what without sending anything.
-export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
-  const dryRun = request.nextUrl.searchParams.get('dry') === '1'
+export const GET = cronRoute(async ({ dryRun }) => {
   const db = createAdminClient()
-  const report: Record<string, unknown> = { dryRun }
-  const problems: string[] = []
+  const { report, problems } = await runCronJobs([
+    { key: 'museum', label: 'Aviso "hoy tu obra está en el museo"', run: () => sendMuseumNotices(db, dryRun) },
+    { key: 'digest', label: 'Aviso "así le fue a tu obra"', run: () => sendArtistDigests(db, dryRun) },
+    { key: 'pendingComments', label: 'Recordatorio de moderación', run: () => remindPendingComments(db, dryRun) },
+    { key: 'supporters', label: 'Bienvenida a hinchas', run: () => sendSupporterWelcomes(db, dryRun) },
+    { key: 'notifications', label: 'Limpieza de notificaciones', run: () => pruneNotifications(db, dryRun) },
+  ])
 
-  const jobs: [string, string, () => Promise<{ result: unknown; problem?: string }>][] = [
-    ['museum', 'Aviso "hoy tu obra está en el museo"', () => sendMuseumNotices(db, dryRun)],
-    ['digest', 'Aviso "así le fue a tu obra"', () => sendArtistDigests(db, dryRun)],
-    ['pendingComments', 'Recordatorio de moderación', () => remindPendingComments(db, dryRun)],
-    ['supporters', 'Bienvenida a hinchas', () => sendSupporterWelcomes(db, dryRun)],
-    ['notifications', 'Limpieza de notificaciones', () => pruneNotifications(db, dryRun)],
-  ]
-  for (const [key, label, job] of jobs) {
-    try {
-      const { result, problem } = await job()
-      report[key] = result
-      if (problem) problems.push(`${label}: ${problem}`)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      console.error(`${key} failed`, message)
-      report[key] = { error: message }
-      problems.push(`${label} no salió: ${message}`)
-    }
-  }
-
-  if (problems.length && !dryRun) await notifyAdmins('Mundial de Collage · Avisos diarios con problemas', problems.join('\n\n'))
-  return NextResponse.json(report, { status: problems.length ? 500 : 200 })
-}
+  if (problems.length && !dryRun) await mailAdmins('Mundial de Collage · Avisos diarios con problemas', problems.join('\n\n'))
+  return NextResponse.json({ dryRun, ...report }, { status: problems.length ? 500 : 200 })
+})
 
 async function sendMuseumNotices(db: SupabaseClient, dryRun: boolean) {
   const { error: lineupError } = await db.rpc('ensure_exhibition_today')
@@ -225,7 +205,7 @@ async function remindPendingComments(db: SupabaseClient, dryRun: boolean) {
       pending > 0 && `Hay ${pending} ${pending === 1 ? 'comentario esperando' : 'comentarios esperando'} aprobación en la Galería 3D. Quien lo escribió lo ve como pendiente hasta que lo aprobás.\n${getSiteUrl()}/admin/comentarios`,
       pendingPhotos > 0 && `Hay ${pendingPhotos} ${pendingPhotos === 1 ? 'foto esperando' : 'fotos esperando'} aprobación en el collage colectivo. Quien la pegó la ve hasta que la aprobás.\n${getSiteUrl()}/admin/muro`,
     ].filter(Boolean)
-    await notifyAdmins(`Mundial de Collage · ${parts.join(' y ')} para moderar`, lines.join('\n\n'))
+    await mailAdmins(`Mundial de Collage · ${parts.join(' y ')} para moderar`, lines.join('\n\n'))
   }
   return { result: { pending, pendingPhotos } }
 }
@@ -237,10 +217,4 @@ async function pruneNotifications(db: SupabaseClient, dryRun: boolean) {
   const { data, error } = await db.rpc('prune_notifications')
   if (error) throw new Error(error.message)
   return { result: { deleted: data as number } }
-}
-
-async function notifyAdmins(subject: string, text: string) {
-  if (!isMailConfigured) return
-  const result = await sendMail({ to: ADMIN_EMAILS, subject, text })
-  if (!result.ok) console.error('exhibition notify failed', result.error)
 }

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { isMailConfigured, sendMail } from '@/lib/mail'
+import { isMailConfigured } from '@/lib/mail'
+import { cronRoute, errorMessage, mailAdmins } from '@/lib/cron'
 import { campaignRecipients, deliverCampaign } from '@/lib/campaign-delivery'
 import { argentinaDay } from '@/lib/campaign-schedule'
-import { ADMIN_EMAILS } from '@/lib/admin'
 import { getSiteUrl } from '@/lib/site'
 import { ensureCountdownCampaigns } from '@/lib/countdown-campaigns'
 import { sendJuryReminders } from '@/lib/jury-mail'
@@ -15,12 +15,7 @@ export const maxDuration = 300
 // due today or earlier (a missed day goes out on the next run). Each one is
 // claimed by flipping it to 'sending' first, so an overlapping run can't send
 // it twice. `?dry=1` lists what would go out without sending anything.
-export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
-  const dryRun = request.nextUrl.searchParams.get('dry') === '1'
+export const GET = cronRoute(async ({ dryRun }) => {
   const db = createAdminClient()
   const today = argentinaDay()
 
@@ -32,7 +27,7 @@ export async function GET(request: NextRequest) {
     try {
       countdownCreated = await ensureCountdownCampaigns(db, today)
     } catch (err) {
-      countdownProblem = `Cuenta regresiva: ${err instanceof Error ? err.message : String(err)}`
+      countdownProblem = `Cuenta regresiva: ${errorMessage(err)}`
       console.error('countdown campaigns failed', countdownProblem)
     }
   }
@@ -87,23 +82,15 @@ export async function GET(request: NextRequest) {
         problems.push(`"${campaign.subject}": ${result.failedCount} de ${recipients.length} fallaron (${result.firstError}).`)
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
+      const message = errorMessage(err)
       console.error('scheduled campaign failed', campaign.id, message)
       report.push({ id: campaign.id, subject: campaign.subject, error: message })
       problems.push(`"${campaign.subject}": ${message}`)
     }
   }
 
-  if (problems.length) await notifyAdmins(problems)
+  if (problems.length) {
+    await mailAdmins('Mundial de Collage · Campañas programadas con problemas', `${problems.join('\n\n')}\n\n${getSiteUrl()}/admin/campanas`)
+  }
   return NextResponse.json({ today, countdownCreated, campaigns: report, juryReminders: { sent: jury.sent, due: jury.due } }, { status: problems.length ? 500 : 200 })
-}
-
-async function notifyAdmins(problems: string[]) {
-  if (!isMailConfigured) return
-  const result = await sendMail({
-    to: ADMIN_EMAILS,
-    subject: 'Mundial de Collage · Campañas programadas con problemas',
-    text: `${problems.join('\n\n')}\n\n${getSiteUrl()}/admin/campanas`,
-  })
-  if (!result.ok) console.error('scheduled campaign notify failed', result.error)
-}
+})
