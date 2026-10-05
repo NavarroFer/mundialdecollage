@@ -1,35 +1,17 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { moderate, type ModerationQueue } from '@/lib/moderation'
 
-// Moderation of the 3D gallery's comments (app/galeria-3d/actions.ts). Runs
-// on the admin's own session: artwork_comments' RLS only lets admins in.
-async function setStatus(formData: FormData, status: 'approved' | 'rejected') {
-  const id = String(formData.get('id') ?? '')
-  const tab = String(formData.get('tab') ?? 'pendientes')
-  const next = String(formData.get('next') ?? '')
-  if (!id) return
-
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('artwork_comments')
-    .update({ status, moderated_at: new Date().toISOString() })
-    .eq('id', id)
-  if (error) redirect(`/admin/comentarios?tab=${tab}&error=${encodeURIComponent(error.message)}`)
-
-  if (next) redirect(`/admin/comentarios?tab=${tab}#comment-${encodeURIComponent(next)}`)
-  revalidatePath('/admin/comentarios')
-}
+// Moderation of the 3D gallery's comments (app/galeria-3d/actions.ts).
+const comments: ModerationQueue = { table: 'artwork_comments', path: '/admin/comentarios', anchor: 'comment' }
 
 export async function approveComment(formData: FormData) {
-  await setStatus(formData, 'approved')
+  await moderate(comments, formData, 'approved')
 }
 
 // Rejected rather than deleted: it disappears for everyone (the author only
 // ever sees their own *pending* ones) but stays on record in case the same
 // person keeps posting.
 export async function rejectComment(formData: FormData) {
-  await setStatus(formData, 'rejected')
+  await moderate(comments, formData, 'rejected')
 }
