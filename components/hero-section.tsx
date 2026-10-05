@@ -62,10 +62,13 @@ export async function HeroSection() {
           though the text wins the paint order, since a same-color-family
           dot sitting right behind/beside the text still reads as "covering"
           it. Off-canvas-edge placement keeps it clear of the padded text
-          column (px-5+) at every width instead of relying on one path. */}
+          column (px-5+) at every width instead of relying on one path.
+          Same for the yellow dot below sm: the badge spans nearly the whole
+          phone width, so the dot tucks into the corner above it (the badge
+          starts at pt-16) instead of sitting in its row. */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-3 -left-14 z-10 h-24 w-24 rounded-full bg-collage-red/90 sm:top-32 sm:left-[6%] sm:h-28 sm:w-28" />
-        <div className="absolute top-10 right-[8%] z-10 h-16 w-16 rounded-full bg-collage-yellow sm:top-16" />
+        <div className="absolute -top-5 -right-5 z-10 h-16 w-16 rounded-full bg-collage-yellow sm:top-16 sm:right-[8%]" />
         <div className="animate-float-slow absolute -left-4 bottom-16 h-10 w-10 rounded-full bg-collage-blue/80 [--rot:-8deg] sm:left-[12%]" />
       </div>
       <HeroScissors />
