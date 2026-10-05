@@ -1,7 +1,7 @@
 import sharp from 'sharp'
 import { IMAGE_QUALITY, IMAGE_WIDTHS } from '@/lib/image-widths.mjs'
 import { MAX_FETCH_BYTES } from '@/lib/onboarding-image'
-import { imageStore, imageStorePrefix, imageStoreRoot, type ImageStore } from '@/lib/r2'
+import { imageStore, imageStorePrefix, imageStoreRoot, isVersionedSource, type ImageStore } from '@/lib/r2'
 
 // Resizes a public Storage image for lib/image-loader.ts. Vercel's own image
 // optimization returned 402 once its allowance ran out, so this does the
@@ -14,13 +14,6 @@ import { imageStore, imageStorePrefix, imageStoreRoot, type ImageStore } from '@
 const IMMUTABLE_CACHE = 'public, max-age=31536000, s-maxage=31536000, immutable'
 const MUTABLE_CACHE = 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800'
 const IMAGE_FORMAT = 'webp'
-
-function isVersionedSource(src: string) {
-  // Current uploads use a timestamp in their filename, for example
-  // `user/1760000000000-0.jpg` or `admin/id/1760000000000.jpg`. Do not infer
-  // immutability for legacy/<id>.jpg, which is intentionally overwritten.
-  return /\/\d{13}(?:-\d+)?\.[a-zA-Z0-9]+(?:\?|$)/.test(src)
-}
 
 function variantKey(folder: string, width: number) {
   // The folder identifies origin + exact Storage version. Include every

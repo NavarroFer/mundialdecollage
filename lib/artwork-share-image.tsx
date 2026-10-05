@@ -8,6 +8,7 @@ import { site } from '@/lib/site'
 import type { Locale } from '@/lib/i18n/locales'
 import type { Messages } from '@/lib/i18n/messages'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
+import { cachedShareImage } from '@/lib/share-image-cache'
 
 // The picture an obra travels with: the link preview of /obras/[slug]
 // (opengraph-image.tsx next to it) and the image for Instagram stories
@@ -115,9 +116,27 @@ export const fonts = [
   { name: 'Oswald', data: oswaldCyrillic, style: 'normal' as const, weight: 400 as const },
 ]
 
-export async function artworkOgImage(input: Input) {
+type LoadedArtwork = Awaited<ReturnType<typeof loadArtwork>>
+
+// Both drawn once per obra, text and photo version, then read back from R2
+// (lib/share-image-cache.ts): this file is part of that cache's key, so any
+// change to it here draws them anew.
+export function artworkOgImage(input: Input) {
+  return cachedShareImage(['og', details(input), input.m.share.badge], input.finalist.imageUrl, async () => {
+    const artwork = await loadArtwork(input.finalist.imageUrl, { width: 470, height: 500 })
+    return { image: drawOgImage(input, artwork), complete: artwork !== null }
+  })
+}
+
+export function artworkStoryImage(input: Input) {
+  return cachedShareImage(['story', details(input), input.m.share.badge], input.finalist.imageUrl, async () => {
+    const artwork = await loadArtwork(input.finalist.imageUrl, { width: 820, height: 620 })
+    return { image: drawStoryImage(input, artwork), complete: artwork !== null }
+  })
+}
+
+function drawOgImage(input: Input, artwork: LoadedArtwork) {
   const { title, artist, cta } = details(input)
-  const artwork = await loadArtwork(input.finalist.imageUrl, { width: 470, height: 500 })
 
   return new ImageResponse(
     (
@@ -154,9 +173,8 @@ export async function artworkOgImage(input: Input) {
   )
 }
 
-export async function artworkStoryImage(input: Input) {
+function drawStoryImage(input: Input, artwork: LoadedArtwork) {
   const { title, artist, cta } = details(input)
-  const artwork = await loadArtwork(input.finalist.imageUrl, { width: 820, height: 620 })
 
   return new ImageResponse(
     (

@@ -1,7 +1,18 @@
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { DEVICE_SIZES, IMAGE_QUALITY, IMAGE_SIZES } from './lib/image-widths.mjs'
+
+// What the obra share images are drawn from (lib/artwork-share-image.tsx):
+// part of their R2 cache key (lib/share-image-cache.ts), so editing the
+// template, the banner or a font draws them anew instead of serving old ones.
+const shareImageTemplate = createHash('sha256')
+for (const file of ['lib/artwork-share-image.tsx', 'public/banner-mundial.png', 'assets/Anton-Regular.ttf', 'assets/Oswald-Cyrillic-700.woff']) {
+  shareImageTemplate.update(readFileSync(new URL(file, import.meta.url)))
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: { SHARE_IMAGE_TEMPLATE: shareImageTemplate.digest('hex').slice(0, 16) },
   // Dev only: lets a phone open `next dev` through a Cloudflare quick tunnel
   // (https is required for the camera on /ar/[slug]).
   allowedDevOrigins: ['*.trycloudflare.com'],

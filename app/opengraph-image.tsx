@@ -62,9 +62,10 @@ function toDataUrl(publicPath: string) {
   return `data:image/png;base64,${data}`
 }
 
-// Rendered per request so the preview follows the call's state
+// Redrawn at most once a minute (it reads no request data, so the CDN serves
+// it in between) and the preview still follows the call's state
 // (/admin/convocatoria): open with its deadline, or closed.
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function OpengraphImage() {
   const { open } = await getCallState()

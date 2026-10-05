@@ -13,6 +13,14 @@ export type ImageStore = {
   findLatestFolder?(root: string): Promise<string | null>
 }
 
+// Current uploads use a timestamp in their filename, for example
+// `user/1760000000000-0.jpg` or `admin/id/1760000000000.jpg`: never
+// overwritten, so what's made from one can be kept for good. Not so
+// legacy/<id>.jpg, which is intentionally overwritten.
+export function isVersionedSource(src: string): boolean {
+  return /\/\d{13}(?:-\d+)?\.[a-zA-Z0-9]+(?:\?|$)/.test(src)
+}
+
 export function imageStoreRoot(src: string): string {
   return `img/${createHash('sha256').update(src).digest('hex')}`
 }
