@@ -13,8 +13,8 @@ export type SubscriptionPlan = {
 export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'inicial',
-    priceUsd: 10,
-    priceArs: 10000,
+    priceUsd: 15,
+    priceArs: 15000,
   },
   {
     id: 'miembro',

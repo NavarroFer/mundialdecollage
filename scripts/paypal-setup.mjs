@@ -28,7 +28,7 @@ async function paypal(path, options = {}) {
 }
 
 const plans = [
-  ['INICIAL', 'Inicial', '10.00'],
+  ['INICIAL', 'Inicial', '15.00'],
   ['MIEMBRO', 'Miembro', '36.00'],
   ['SOCIO_PREMIUM', 'Socio Premium', '82.00'],
 ]
