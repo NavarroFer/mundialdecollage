@@ -15,7 +15,6 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import { getCallState } from '@/lib/call-state'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { SurpriseArtwork } from '@/components/surprise-artwork'
 
 // The search's sign-up invite is only for visitors without a session.
 async function isSignedIn() {
@@ -132,12 +131,6 @@ export async function HeroSection() {
             )}
           </div>
           {open && <div className="mt-5"><Countdown /></div>}
-          {artworks.length > 0 && (
-            <div className="mt-6">
-              <SurpriseArtwork label={m.artwork.surprise} />
-              <p className="mt-3 text-sm text-muted-foreground">{m.artwork.surpriseHint}</p>
-            </div>
-          )}
         </FadeIn>
 
         <FadeIn delay={300}>
