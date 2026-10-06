@@ -50,6 +50,11 @@ export default async function RevistaAdminPage({ searchParams }: { searchParams:
   const copies = paid.reduce((sum, o) => sum + o.quantity, 0)
   const totalArs = paid.reduce((sum, o) => sum + Number(o.amount), 0)
   const toShip = paid.filter((o) => !o.shipped_at).reduce((sum, o) => sum + o.quantity, 0)
+  const [interested, subscribed] = await Promise.all([
+    supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('source', 'aviso_revista'),
+    supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('source', 'aviso_revista').eq('subscribed', true),
+  ])
+  const interestError = interested.error ?? subscribed.error
 
   return (
     <div>
@@ -69,6 +74,21 @@ export default async function RevistaAdminPage({ searchParams }: { searchParams:
         <StatPill label="Por despachar" value={toShip} />
         <StatPill label="Recaudado (ARS)" value={formatArs(totalArs)} />
       </div>
+
+      <section className="mt-8 rounded-2xl border-2 border-ink/10 p-5" aria-labelledby="magazine-interest-title">
+        <h2 id="magazine-interest-title" className="font-display text-xl tracking-tight text-ink uppercase">Interés en recibir información</h2>
+        {interestError ? (
+          <p role="alert" className="mt-3 text-sm text-collage-red">No pudimos cargar las solicitudes. Recargá la página para reintentar.</p>
+        ) : (
+          <div className="mt-4 flex flex-wrap gap-3">
+            <StatPill label="Anotados desde la revista" value={interested.count ?? 0} />
+            <StatPill label="Siguen suscriptos" value={subscribed.count ?? 0} />
+          </div>
+        )}
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          Mails únicos con origen «aviso_revista». Si el mail ya estaba en Contactos, conserva su origen anterior y no se incluye acá. Las solicitudes desde otros lugares y por período se pueden consultar en Estadísticas → «Avisame» de finalistas y revista.
+        </p>
+      </section>
 
       <div className="mt-8 overflow-x-auto rounded-2xl border-2 border-ink/10">
         <table className="w-full text-sm">
