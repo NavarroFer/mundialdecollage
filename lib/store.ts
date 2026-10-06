@@ -44,3 +44,10 @@ export function formatArs(amount: number, locale = 'es-AR') {
 export function planById(id: string) {
   return subscriptionPlans.find((plan) => plan.id === id) ?? null
 }
+
+// Separate catalogue: existing provider plans remain tied to their original products.
+export const cutoutPlans = [
+  { id: 'recortes-50', count: 50, priceUsd: 15, priceArs: 15000, featured: false },
+  { id: 'recortes-100', count: 100, priceUsd: 27, priceArs: 27000, featured: true },
+  { id: 'recortes-200', count: 200, priceUsd: 47, priceArs: 47000, featured: false },
+] as const
