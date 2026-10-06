@@ -197,6 +197,9 @@ const de: Messages = {
     signUpBody: 'Registriere dich mit Google, um dein Werk zu sehen, zu liken und zu kommentieren.',
   },
   artwork: {
+    surprise: 'Überrasch mich',
+    surpriseHint: 'Ein zufälliges Werk. Ohne Anmeldung, einfach entdecken.',
+    discoverMore: 'Weitere Werke entdecken',
     back: 'Zurück zu den Werken',
     loading: 'Werk wird geladen…',
   },
@@ -334,6 +337,8 @@ const de: Messages = {
     },
   },
   share: {
+    copyLink: 'Link kopieren',
+    copyFailed: 'Der Link konnte nicht kopiert werden. Versuche es mit WhatsApp.',
     heading: 'Erzähl, dass du dabei bist',
     headingOther: 'Teile dieses Werk',
     button: 'Teilen',

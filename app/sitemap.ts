@@ -3,6 +3,9 @@ import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getSiteUrl } from '@/lib/site'
 import { getFinalists } from '@/lib/finalists'
 
+// Keep the route itself fresh as new public works and artists are published.
+export const revalidate = 60
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl()
 
@@ -11,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/edicion-2026`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/galeria-3d`, changeFrequency: 'daily', priority: 0.7 },
     { url: `${siteUrl}/tienda`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${siteUrl}/revista`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${siteUrl}/partners`, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${siteUrl}/taller/inscripcion`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${siteUrl}/terminos-y-condiciones`, changeFrequency: 'yearly', priority: 0.3 },

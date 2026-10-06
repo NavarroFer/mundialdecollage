@@ -197,6 +197,9 @@ const id: Messages = {
     signUpBody: 'Daftar dengan Google untuk melihat karyamu, menyukai, dan berkomentar.',
   },
   artwork: {
+    surprise: 'Kejutkan aku',
+    surpriseHint: 'Karya acak. Tanpa pendaftaran, langsung jelajahi.',
+    discoverMore: 'Temukan karya lainnya',
     back: 'Kembali ke karya',
     loading: 'Memuat karya…',
   },
@@ -334,6 +337,8 @@ const id: Messages = {
     },
   },
   share: {
+    copyLink: 'Salin tautan',
+    copyFailed: 'Tautan tidak dapat disalin. Coba WhatsApp.',
     heading: 'Ceritakan bahwa kamu ikut serta',
     headingOther: 'Bagikan karya ini',
     button: 'Bagikan',

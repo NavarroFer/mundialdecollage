@@ -325,7 +325,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         week={funnelWeek}
         month={funnelMonth}
         title="Compartir obras"
-        description="Personas distintas que compartieron una obra desde su página, la tarjeta «Ya estás participando» de la home o la confirmación después de enviarla. Se mide desde el 26 de septiembre de 2026."
+        description="Acciones para difundir obras desde sus páginas, la home, la confirmación y la galería. Abrir WhatsApp o completar el menú de compartir no confirma una publicación. Las copias exitosas y las nuevas opciones de galería se miden desde el 6 de octubre de 2026; los clics originales, desde el 26 de septiembre."
         steps={SHARE_EVENTS}
         periodDays={periodDays}
         variant="comparison"

@@ -16,7 +16,13 @@ import { fmt } from '@/lib/i18n/format'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { m } = await getI18n()
-  return { title: m.magazine.title, description: m.magazine.intro }
+  return {
+    title: m.magazine.title,
+    description: m.magazine.intro,
+    alternates: { canonical: '/revista' },
+    openGraph: { title: m.magazine.title, description: m.magazine.intro, url: '/revista' },
+    twitter: { card: 'summary_large_image', title: m.magazine.title, description: m.magazine.intro },
+  }
 }
 
 // Preventa de la Revista 1ª Edición. Until site.magazine.priceArs is set (or

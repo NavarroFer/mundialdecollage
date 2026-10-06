@@ -17,6 +17,7 @@ import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
+import { SurpriseArtwork } from '@/components/surprise-artwork'
 
 // Slugs come from live submissions, so pages render on demand per request
 // instead of at build time.
@@ -39,7 +40,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${shareTitle} | Mundial de Collage`,
     description,
-    openGraph: { title: shareTitle, description, type: 'article' },
+    alternates: { canonical: `/obras/${finalist.slug}` },
+    openGraph: { title: shareTitle, description, type: 'article', url: `/obras/${finalist.slug}` },
     twitter: { card: 'summary_large_image', title: shareTitle, description },
   }
 }
@@ -183,26 +185,39 @@ export default async function ObraPage({
           )}
 
           {(previousArtwork || nextArtwork) && (
-            <nav className="mt-14 grid grid-cols-2 gap-3 border-t-2 border-ink/10 pt-8" aria-label={m.collage.label}>
-              {previousArtwork ? (
-                <Link
-                  href={`/obras/${previousArtwork.slug}`}
-                  className="flex min-h-20 items-center gap-3 rounded-2xl border-2 border-ink/10 bg-card p-4 text-sm font-semibold text-ink hover:border-ink/25"
-                >
-                  <ArrowLeft className="size-5 shrink-0 text-collage-blue" aria-hidden="true" />
-                  <span className="line-clamp-2">{previousArtwork.artworkTitle ?? m.common.untitled}</span>
-                </Link>
-              ) : <span />}
-              {nextArtwork && (
-                <Link
-                  href={`/obras/${nextArtwork.slug}`}
-                  className="flex min-h-20 items-center justify-end gap-3 rounded-2xl border-2 border-ink/10 bg-card p-4 text-right text-sm font-semibold text-ink hover:border-ink/25"
-                >
-                  <span className="line-clamp-2">{nextArtwork.artworkTitle ?? m.common.untitled}</span>
-                  <ArrowRight className="size-5 shrink-0 text-collage-blue" aria-hidden="true" />
-                </Link>
-              )}
-            </nav>
+            <section className="mt-10 border-t-2 border-ink/10 pt-8" aria-labelledby="discover-artworks-title">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <h2 id="discover-artworks-title" className="font-display text-2xl tracking-tight text-ink uppercase">
+                  {m.artwork.discoverMore}
+                </h2>
+                <SurpriseArtwork label={m.artwork.surprise} exclude={finalist.slug} />
+              </div>
+              <nav className="mt-5 grid gap-4 sm:grid-cols-2" aria-label={m.artwork.discoverMore}>
+                {[previousArtwork, nextArtwork].filter((artwork) => artwork !== undefined).map((artwork) => (
+                  <TrackedLink
+                    key={artwork.slug}
+                    href={`/obras/${artwork.slug}`}
+                    event="artwork_next_click"
+                    className="group flex min-h-28 items-center gap-4 overflow-hidden rounded-2xl border-2 border-ink/10 bg-card text-ink hover:border-collage-blue"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageSrc(artwork.imageUrl, 320)}
+                      alt=""
+                      loading="lazy"
+                      width={112}
+                      height={112}
+                      className="size-28 shrink-0 object-cover"
+                    />
+                    <span className="min-w-0 flex-1 py-3">
+                      <span className="line-clamp-2 font-semibold group-hover:text-collage-blue">{artwork.artworkTitle ?? m.common.untitled}</span>
+                      <span className="mt-1 block truncate text-sm text-muted-foreground">{artwork.name}</span>
+                    </span>
+                    <ArrowRight className="mr-4 size-5 shrink-0 text-collage-blue" aria-hidden="true" />
+                  </TrackedLink>
+                ))}
+              </nav>
+            </section>
           )}
 
           {/* Inviting to participate only while the call is open. */}

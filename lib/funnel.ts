@@ -42,6 +42,7 @@ export const HOME_EVENTS = [
   { name: 'submit_click_header', label: 'Tocaron «Participar» en el encabezado (cualquier página)' },
   { name: 'bases_download', label: 'Descargaron las bases' },
   { name: 'gallery_click_home', label: 'Fueron a la Galería 3D desde la sección de participantes' },
+  { name: 'surprise_click_home', label: 'Tocaron «Sorprendeme» en la home' },
 ] as const
 
 // Sharing an obra from its page, the home's «Ya estás participando» card or
@@ -50,6 +51,11 @@ export const SHARE_EVENTS = [
   { name: 'obra_share_click', label: 'Tocaron «Compartir»' },
   { name: 'obra_whatsapp_click', label: 'Compartieron por WhatsApp' },
   { name: 'obra_story_download', label: 'Bajaron la imagen para historias' },
+  { name: 'obra_link_copied', label: 'Copiaron el enlace de una obra' },
+  { name: 'obra_share_handoff', label: 'Completaron el menú de compartir de una obra (no confirma publicación)' },
+  { name: 'gallery_whatsapp_click', label: 'Abrieron WhatsApp para compartir desde la galería' },
+  { name: 'gallery_link_copied', label: 'Copiaron un enlace desde la galería' },
+  { name: 'gallery_share_handoff', label: 'Completaron el menú de compartir de la galería (no confirma publicación)' },
 ] as const
 
 // The souvenir photo from the 3D gallery (components/gallery/ui/Souvenir.tsx):
@@ -109,6 +115,8 @@ export const ONBOARDING_FORM_EVENTS = [
 // path back to the artist and, from there, into a new free submission.
 export const DISCOVERY_EVENTS = [
   { name: 'artwork_page_view', label: 'Abrieron la página pública de una obra' },
+  { name: 'artwork_next_click', label: 'Descubrieron otra obra desde las tarjetas de navegación' },
+  { name: 'surprise_click_artwork', label: 'Tocaron «Sorprendeme» desde una obra' },
   { name: 'artwork_artist_profile_click', label: 'Fueron de una obra al perfil de su artista' },
   { name: 'artwork_participate_click', label: 'Fueron de una obra a participar' },
   { name: 'artist_profile_view', label: 'Abrieron un perfil público de artista' },

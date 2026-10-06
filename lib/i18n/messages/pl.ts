@@ -202,6 +202,9 @@ const pl: Messages = {
     signUpBody: 'Zarejestruj się przez Google, aby zobaczyć swoją pracę, polubić ją i komentować.',
   },
   artwork: {
+    surprise: 'Zaskocz mnie',
+    surpriseHint: 'Losowa praca. Bez rejestracji, po prostu odkrywaj.',
+    discoverMore: 'Odkryj więcej prac',
     back: 'Wróć do prac',
     loading: 'Ładowanie pracy…',
   },
@@ -339,6 +342,8 @@ const pl: Messages = {
     },
   },
   share: {
+    copyLink: 'Kopiuj link',
+    copyFailed: 'Nie udało się skopiować linku. Spróbuj przez WhatsApp.',
     heading: 'Pochwal się, że bierzesz udział',
     headingOther: 'Udostępnij tę pracę',
     button: 'Udostępnij',

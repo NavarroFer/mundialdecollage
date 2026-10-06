@@ -197,6 +197,9 @@ const en: Messages = {
     signUpBody: 'Sign up with Google to see your artwork, like and comment.',
   },
   artwork: {
+    surprise: 'Surprise me',
+    surpriseHint: 'A random artwork. No sign-up, just discovery.',
+    discoverMore: 'Discover more artworks',
     back: 'Back to the artworks',
     loading: 'Loading artwork…',
   },
@@ -335,6 +338,8 @@ const en: Messages = {
     },
   },
   share: {
+    copyLink: 'Copy link',
+    copyFailed: 'We could not copy the link. Try WhatsApp.',
     heading: "Tell people you're taking part",
     headingOther: 'Share this artwork',
     button: 'Share',

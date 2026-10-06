@@ -197,6 +197,9 @@ const es = {
     signUpBody: 'Registrate con Google para ver tu obra, darle me gusta y comentar.',
   },
   artwork: {
+    surprise: 'Sorprendeme',
+    surpriseHint: 'Una obra al azar. Sin registro, solo descubrimiento.',
+    discoverMore: 'Descubrí más obras',
     back: 'Volver a las obras',
     loading: 'Cargando obra…',
   },
@@ -336,6 +339,8 @@ const es = {
     } as Record<string, string>,
   },
   share: {
+    copyLink: 'Copiar enlace',
+    copyFailed: 'No pudimos copiar el enlace. Probá con WhatsApp.',
     heading: 'Contá que participás',
     headingOther: 'Compartí esta obra',
     button: 'Compartir',

@@ -197,6 +197,9 @@ const it: Messages = {
     signUpBody: 'Registrati con Google per vedere la tua opera, mettere mi piace e commentare.',
   },
   artwork: {
+    surprise: 'Sorprendimi',
+    surpriseHint: 'Un’opera a caso. Nessuna registrazione, solo scoperta.',
+    discoverMore: 'Scopri altre opere',
     back: 'Torna alle opere',
     loading: 'Caricamento dell’opera…',
   },
@@ -334,6 +337,8 @@ const it: Messages = {
     },
   },
   share: {
+    copyLink: 'Copia link',
+    copyFailed: 'Non è stato possibile copiare il link. Prova con WhatsApp.',
     heading: 'Racconta che partecipi',
     headingOther: 'Condividi questa opera',
     button: 'Condividi',
