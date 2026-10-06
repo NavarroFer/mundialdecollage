@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import Link from 'next/link'
 import { Smartphone } from 'lucide-react'
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
@@ -223,13 +224,17 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
       {isTouchDevice && !isLandscape && (
-        <div className={styles.orientationPrompt} role="status" aria-live="polite">
-          <Smartphone aria-hidden="true" className="h-10 w-10 rotate-90" />
-          <div>
-            <strong>{m.gallery.orientation.title}</strong>
-            <p>{m.gallery.orientation.body}</p>
+        <section className={styles.orientationPrompt} aria-labelledby="gallery-orientation-title">
+          <div className={styles.orientationPhoneStage} aria-hidden="true">
+            <Smartphone className={styles.orientationPhone} strokeWidth={1.5} />
           </div>
-        </div>
+          <div aria-live="polite">
+            <h2 id="gallery-orientation-title">{m.gallery.orientation.title}</h2>
+            <p>{m.gallery.orientation.body}</p>
+            <p className={styles.orientationHint}>{m.gallery.orientation.rotationHint}</p>
+          </div>
+          <Link href="/" className={styles.orientationExit}>{m.gallery.orientation.back}</Link>
+        </section>
       )}
       {!openId && !souvenirOpen && !wallOpen && <ThemePicker theme={theme} onChange={setTheme} />}
       {!isActive && !openId && !souvenirOpen && !wallOpen && !resuming && (

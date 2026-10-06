@@ -404,8 +404,10 @@ const es = {
     resume: 'Click para continuar',
     hintTouch: 'Joystick para moverte · Arrastrá para mirar · Botón E para ver una obra',
     orientation: {
-      title: 'Jugá en horizontal',
-      body: 'Girás el teléfono para recorrer la galería. Volvé a horizontal para continuar jugando.',
+      title: "Girá el celular a horizontal",
+      body: "Para entrar a la galería, girá el celular y sostenelo de costado. La pantalla se habilita automáticamente al ponerlo horizontal.",
+      rotationHint: "Si no gira la pantalla, desactivá el bloqueo de rotación del celular y volvé a intentarlo.",
+      back: "Volver al Mundial",
     },
     hintDesktop:
       'WASD para moverte · Shift para correr · Mantené Control (Ctrl) para agacharte · Mouse para mirar · E para ver una obra · F para sacar una foto',

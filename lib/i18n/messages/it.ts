@@ -401,8 +401,10 @@ const it: Messages = {
     resume: 'Clicca per continuare',
     hintTouch: "Joystick per muoverti · Trascina per guardare · Pulsante E per vedere un'opera",
     orientation: {
-      title: 'Gioca in orizzontale',
-      body: 'Ruota il telefono in orizzontale per esplorare la galleria. Torna in orizzontale per continuare a giocare.',
+      title: "Ruota il telefono in orizzontale",
+      body: "Per entrare nella galleria, ruota il telefono e tienilo in orizzontale. La galleria diventa disponibile automaticamente.",
+      rotationHint: "Se lo schermo non ruota, disattiva il blocco della rotazione e riprova.",
+      back: "Torna al Mondiale",
     },
     hintDesktop: "WASD per muoverti · Shift per correre · Tieni premuto Control (Ctrl) per abbassarti · Mouse per guardare · E per vedere un'opera · F per scattare una foto",
     viewArtwork: 'Vedi opera',

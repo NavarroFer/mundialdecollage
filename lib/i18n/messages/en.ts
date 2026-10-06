@@ -402,8 +402,10 @@ const en: Messages = {
     resume: 'Click to continue',
     hintTouch: 'Joystick to move · Drag to look · E button to view an artwork',
     orientation: {
-      title: 'Play in landscape',
-      body: 'Turn your phone sideways to explore the gallery. Return to landscape to keep playing.',
+      title: "Turn your phone sideways",
+      body: "To enter the gallery, rotate your phone and hold it horizontally. The gallery becomes available automatically in landscape.",
+      rotationHint: "If the screen does not rotate, turn off rotation lock on your phone and try again.",
+      back: "Back to the World Cup",
     },
     hintDesktop: 'WASD to move · Shift to run · Hold Control (Ctrl) to crouch · Mouse to look · E to view an artwork · F to take a photo',
     viewArtwork: 'View artwork',

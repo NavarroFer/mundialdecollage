@@ -411,8 +411,10 @@ const pl: Messages = {
     resume: 'Kliknij, aby kontynuować',
     hintTouch: 'Joystick — ruch · Przeciągnij — rozglądanie się · Przycisk E — zobacz pracę',
     orientation: {
-      title: 'Graj poziomo',
-      body: 'Obróć telefon poziomo, aby zwiedzić galerię. Wróć do pozycji poziomej, aby kontynuować grę.',
+      title: "Obróć telefon poziomo",
+      body: "Aby wejść do galerii, obróć telefon i trzymaj go poziomo. Galeria udostępni się automatycznie.",
+      rotationHint: "Jeśli ekran się nie obraca, wyłącz blokadę obrotu telefonu i spróbuj ponownie.",
+      back: "Wróć do Mundialu",
     },
     hintDesktop: 'WASD — ruch · Shift — bieg · Przytrzymaj Ctrl — przykucnij · Mysz — rozglądanie się · E — zobacz pracę · F — zrób zdjęcie',
     viewArtwork: 'Zobacz pracę',

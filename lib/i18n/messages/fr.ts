@@ -401,8 +401,10 @@ const fr: Messages = {
     resume: 'Clique pour continuer',
     hintTouch: 'Joystick pour te déplacer · Glisse pour regarder · Bouton E pour voir une œuvre',
     orientation: {
-      title: 'Joue à l’horizontale',
-      body: 'Tourne ton téléphone à l’horizontale pour parcourir la galerie. Reviens à l’horizontale pour continuer à jouer.',
+      title: "Tournez votre téléphone à l’horizontale",
+      body: "Pour entrer dans la galerie, tournez votre téléphone et tenez-le à l’horizontale. La galerie devient accessible automatiquement.",
+      rotationHint: "Si l’écran ne tourne pas, désactivez le verrouillage de rotation et réessayez.",
+      back: "Retour au Mondial",
     },
     hintDesktop: 'WASD pour te déplacer · Maj pour courir · Maintiens Ctrl pour te baisser · Souris pour regarder · E pour voir une œuvre · F pour prendre une photo',
     viewArtwork: "Voir l'œuvre",

@@ -401,8 +401,10 @@ const id: Messages = {
     resume: 'Klik untuk melanjutkan',
     hintTouch: 'Joystick untuk bergerak · Geser untuk melihat · Tombol E untuk melihat karya',
     orientation: {
-      title: 'Main dalam mode lanskap',
-      body: 'Putar ponsel ke samping untuk menjelajahi galeri. Kembali ke mode lanskap untuk melanjutkan permainan.',
+      title: "Putar ponsel ke posisi horizontal",
+      body: "Untuk masuk ke galeri, putar ponsel dan pegang secara horizontal. Galeri akan tersedia secara otomatis.",
+      rotationHint: "Jika layar tidak berputar, nonaktifkan kunci rotasi ponsel lalu coba lagi.",
+      back: "Kembali ke Mundial",
     },
     hintDesktop: 'WASD untuk bergerak · Shift untuk berlari · Tahan Control (Ctrl) untuk berjongkok · Mouse untuk melihat · E untuk melihat karya · F untuk mengambil foto',
     viewArtwork: 'Lihat karya',

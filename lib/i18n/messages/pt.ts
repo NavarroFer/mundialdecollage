@@ -401,8 +401,10 @@ const pt: Messages = {
     resume: 'Clique para continuar',
     hintTouch: 'Joystick para se mover · Arraste para olhar · Botão E para ver uma obra',
     orientation: {
-      title: 'Jogue na horizontal',
-      body: 'Gire o celular para explorar a galeria. Volte à horizontal para continuar jogando.',
+      title: "Gire o celular na horizontal",
+      body: "Para entrar na galeria, gire o celular e segure-o na horizontal. A galeria fica disponível automaticamente nessa posição.",
+      rotationHint: "Se a tela não girar, desative o bloqueio de rotação do celular e tente novamente.",
+      back: "Voltar ao Mundial",
     },
     hintDesktop: 'WASD para se mover · Shift para correr · Segure Control (Ctrl) para se agachar · Mouse para olhar · E para ver uma obra · F para tirar uma foto',
     viewArtwork: 'Ver obra',

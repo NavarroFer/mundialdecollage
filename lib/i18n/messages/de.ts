@@ -401,8 +401,10 @@ const de: Messages = {
     resume: 'Klicken zum Fortfahren',
     hintTouch: 'Joystick zum Bewegen · Ziehen zum Umsehen · E-Taste, um ein Werk anzusehen',
     orientation: {
-      title: 'Im Querformat spielen',
-      body: 'Dreh dein Handy zur Seite, um die Galerie zu erkunden. Dreh es zurück ins Querformat, um weiterzuspielen.',
+      title: "Dreh dein Handy ins Querformat",
+      body: "Dreh dein Handy zur Seite und halte es waagerecht, um die Galerie zu betreten. Die Galerie wird im Querformat automatisch freigegeben.",
+      rotationHint: "Wenn sich der Bildschirm nicht dreht, deaktiviere die Rotationssperre und versuche es erneut.",
+      back: "Zurück zum Mundial",
     },
     hintDesktop: 'WASD zum Bewegen · Umschalt zum Rennen · Strg gedrückt halten zum Ducken · Maus zum Umsehen · E, um ein Werk anzusehen · F, um ein Foto zu machen',
     viewArtwork: 'Werk ansehen',
