@@ -5,7 +5,7 @@ import { HeroScissors } from '@/components/hero-scissors'
 import { Countdown } from '@/components/countdown'
 import { ArtworkSearch } from '@/components/artwork-search'
 import { FadeIn } from '@/components/fade-in'
-import { TrackVisible } from '@/components/track'
+import { TrackedLink, TrackVisible } from '@/components/track'
 import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
@@ -121,7 +121,9 @@ export async function HeroSection() {
               <>
                 <TrackVisible event="hero_cta_view" />
                 <SubmitArtworkCta />
-                <Countdown />
+                <Button asChild size="lg" variant="outline" className="h-18 w-full px-8 text-lg sm:w-auto sm:text-xl">
+                  <TrackedLink href="/galeria-3d" event="gallery_click_hero">{m.closed.cta}</TrackedLink>
+                </Button>
               </>
             ) : (
               <Button asChild size="lg" variant="primary" className="h-auto min-h-14 px-8 text-base">
@@ -129,6 +131,7 @@ export async function HeroSection() {
               </Button>
             )}
           </div>
+          {open && <div className="mt-5"><Countdown /></div>}
           {artworks.length > 0 && (
             <div className="mt-6">
               <SurpriseArtwork label={m.artwork.surprise} />

@@ -41,6 +41,7 @@ export const HOME_EVENTS = [
   { name: 'submit_click_edition', label: 'Tocaron «Sumá tu obra» en la sección amarilla' },
   { name: 'submit_click_header', label: 'Tocaron «Participar» en el encabezado (cualquier página)' },
   { name: 'bases_download', label: 'Descargaron las bases' },
+  { name: 'gallery_click_hero', label: 'Fueron a la Galería 3D desde el hero' },
   { name: 'gallery_click_home', label: 'Fueron a la Galería 3D desde la sección de participantes' },
   { name: 'surprise_click_home', label: 'Tocaron «Sorprendeme» en la home' },
 ] as const
@@ -134,6 +135,8 @@ export const STORE_FUNNEL_EVENTS = [
 
 // Where the people who reach the store come from.
 export const STORE_ENTRY_EVENTS = [
+  { name: 'store_click_home_membership', label: 'Fueron a la membresía desde la home' },
+  { name: 'store_click_home_cutouts', label: 'Fueron a los recortes desde la home' },
   { name: 'store_click_header', label: 'Fueron a la tienda desde el encabezado' },
   { name: 'store_click_artwork', label: 'Fueron a la tienda desde la página de una obra' },
   { name: 'store_from_email', label: 'Llegaron a la tienda desde el mail diario' },

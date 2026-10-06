@@ -8,6 +8,7 @@ import { ParticipationStatus } from '@/components/participation-status'
 import { ReferralInvite } from '@/components/referral-invite'
 import { BasesBanner } from '@/components/bases-banner'
 import { AboutSection } from '@/components/about-section'
+import { HomeStoreSection } from '@/components/home-store-section'
 import { EditionSection } from '@/components/edition-section'
 import { ParticipantsSection } from '@/components/participants-section'
 import { MapSection } from '@/components/map-section'
@@ -44,6 +45,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           <BasesBanner />
           <EditionSection />
           <ParticipantsSection />
+          <HomeStoreSection />
           <MapSection />
           <JurySection />
           <AboutSection />
