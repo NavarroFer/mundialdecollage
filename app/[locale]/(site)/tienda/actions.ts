@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { createHash } from 'node:crypto'
 import { PreApproval } from 'mercadopago'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -12,6 +13,9 @@ import { mpPlanId } from '@/lib/subscription-receipts'
 import { planById } from '@/lib/store'
 import { getSiteUrl } from '@/lib/site'
 import { trackServer } from '@/lib/track-server'
+import { subscriptionCheckoutError } from '@/lib/subscription-checkout-error'
+import { recordCustomerPaymentError, type PaymentErrorStage } from '@/lib/customer-payment-errors'
+import { syncPreapprovalById } from '@/lib/mp-subscriptions'
 
 // Same contract as the magazine's checkout: error codes and the field names
 // to mark, plus what was typed (React resets a form after its action runs).
@@ -19,6 +23,8 @@ export type MpSubscriptionState = {
   error: 'invalid' | 'unavailable' | null
   invalid: MagazineField[]
   values: Partial<Record<MagazineField, string>>
+  paymentError?: 'funds' | 'card' | 'rejected'
+  subscription?: { id: string; status: 'active' | 'pending' }
 }
 
 // A store subscription in Argentina: a Mercado Pago preapproval charging the
@@ -37,11 +43,17 @@ export async function startMpSubscription(planId: string, _previous: MpSubscript
   const parsed = parseMagazineOrder(read, 1, false)
   if (!parsed.ok) return { error: 'invalid', invalid: parsed.invalid, values }
   const { order } = parsed
+  const withCard = formData.get('payment_method') === 'card'
+  const cardToken = String(formData.get('card_token') ?? '')
+  const payerEmail = String(formData.get('payer_email') ?? order.email).trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payerEmail) || payerEmail.length > 254) return { error: 'invalid', invalid: ['email'], values }
+  if (withCard && (!process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || !/^[a-zA-Z0-9_-]{6,250}$/.test(cardToken))) return unavailable
 
   const admin = createAdminClient()
   let subscriptionId: string
+  let customerId: string | undefined
   try {
-    const customerId = await upsertCustomer(order.email, order.name)
+    customerId = await upsertCustomer(order.email, order.name)
     const { data, error } = await admin
       .from('subscriptions')
       .insert({
@@ -65,27 +77,64 @@ export async function startMpSubscription(planId: string, _previous: MpSubscript
     if (error || !data) throw new Error(error?.message ?? 'no row')
     subscriptionId = data.id
   } catch (err) {
-    console.error('startMpSubscription: failed to create subscription', err)
+    console.error('startMpSubscription: failed to create subscription', subscriptionCheckoutError('create_subscription', err))
+    await recordCustomerPaymentError({ customerId, stage: 'create_subscription', error: err })
     return unavailable
   }
 
   let initPoint: string | undefined
+  let stage: PaymentErrorStage = 'create_preapproval'
+  let providerId: string | undefined
+  let providerStatus: string | undefined
   try {
     const preapproval = await new PreApproval(getMercadoPagoConfig()).create({
       body: {
         reason: `Papel por correo — plan ${plan.id} (Mundial de Collage)`,
         external_reference: subscriptionExternalReference(subscriptionId),
-        payer_email: order.email,
+        payer_email: payerEmail,
         auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: plan.priceArs, currency_id: 'ARS' },
         back_url: `${getSiteUrl()}/gracias?tipo=suscripcion`,
-        status: 'pending',
+        status: withCard ? 'authorized' : 'pending',
+        ...(withCard ? { card_token_id: cardToken } : {}),
       },
+      ...(withCard ? { requestOptions: { idempotencyKey: createHash('sha256').update(`${plan.id}:${payerEmail}:${cardToken}`).digest('hex') } } : {}),
     })
+    providerId = preapproval.id
+    providerStatus = preapproval.status
     initPoint = preapproval.init_point
-    await admin.from('subscriptions').update({ provider_subscription_id: preapproval.id }).eq('id', subscriptionId)
+    stage = 'save_preapproval'
+    if (!preapproval.id) throw new Error('Mercado Pago returned no subscription ID')
+    const { error } = await admin.from('subscriptions').update({ provider_subscription_id: preapproval.id }).eq('id', subscriptionId)
+    if (error) throw new Error(error.message)
+    stage = 'checkout_url'
+    if (!withCard && !initPoint) throw new Error('Mercado Pago returned no checkout URL')
+    if (withCard && !['authorized', 'pending'].includes(providerStatus ?? '')) throw new Error('Mercado Pago did not authorize the subscription')
   } catch (err) {
-    console.error('startMpSubscription: failed to create preapproval', subscriptionId, err)
+    const diagnostic = subscriptionCheckoutError(stage, err, [cardToken])
+    console.error('startMpSubscription: checkout failed', subscriptionId, diagnostic)
+    await recordCustomerPaymentError({ customerId, subscriptionId, stage, error: diagnostic })
+    try {
+      const { error } = await admin.from('subscriptions').update({ checkout_error: diagnostic }).eq('id', subscriptionId)
+      if (error) console.error('startMpSubscription: failed to persist checkout error', subscriptionId, error.code)
+    } catch {
+      console.error('startMpSubscription: failed to persist checkout error', subscriptionId)
+    }
+    // A valid provider authorization must not be presented as a failed charge.
+    // Re-fetching reconciles the row through its external reference.
+    if (withCard && providerId && ['authorized', 'pending'].includes(providerStatus ?? '')) {
+      const status = await syncPreapprovalById(providerId)
+      return { error: null, invalid: [], values: {}, subscription: { id: providerId, status: status === 'active' ? 'active' : 'pending' } }
+    }
+    if (withCard) {
+      const message = diagnostic.message.toLowerCase()
+      return { ...unavailable, paymentError: /insufficient|fund/.test(message) ? 'funds' : /card|cc_val/.test(message) ? 'card' : 'rejected' }
+    }
     return unavailable
+  }
+  if (withCard && providerId) {
+    const status = await syncPreapprovalById(providerId)
+    await trackServer('store_checkout_start', null)
+    return { error: null, invalid: [], values: {}, subscription: { id: providerId, status: status === 'active' ? 'active' : 'pending' } }
   }
   if (!initPoint) return unavailable
 
