@@ -1,3 +1,5 @@
+import { recordCustomerPaymentError } from '@/lib/customer-payment-errors'
+import { subscriptionCheckoutError } from '@/lib/subscription-checkout-error'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { handlePaypalEvent } from '@/lib/payments/paypal/handlers'
@@ -44,12 +46,14 @@ export async function POST(request: Request) {
     try {
       await handlePaypalEvent(event)
     } catch (error) {
+      const providerSubscriptionId = event.event_type.startsWith('BILLING.SUBSCRIPTION.') ? event.resource.id : event.resource.billing_agreement_id
+      if (typeof providerSubscriptionId === 'string') await recordCustomerPaymentError({ provider: 'paypal', providerSubscriptionId, eventKey: `paypal:handling:${event.id}`, stage: event.event_type.startsWith('BILLING.SUBSCRIPTION.') ? 'sync_subscription' : 'record_payment', error })
       await supabase.from('webhook_events').delete().eq('id', event.id)
       throw error
     }
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error('paypal webhook failed', event.event_type, error)
+    console.error('paypal webhook failed', event.event_type, subscriptionCheckoutError('sync_subscription', error))
     return new NextResponse('Webhook handling failed', { status: 500 })
   }
 }

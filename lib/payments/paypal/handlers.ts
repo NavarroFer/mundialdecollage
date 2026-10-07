@@ -1,7 +1,8 @@
+import { recordCustomerPaymentError } from '@/lib/customer-payment-errors'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendSubscriptionReceipt } from '@/lib/subscription-receipts'
 
-type PaypalEvent = { event_type: string; resource: Record<string, unknown> }
+type PaypalEvent = { id?: string; event_type: string; resource: Record<string, unknown> }
 
 const subscriptionStatuses: Record<string, string> = {
   'BILLING.SUBSCRIPTION.ACTIVATED': 'active',
@@ -21,6 +22,9 @@ export async function handlePaypalEvent(event: PaypalEvent) {
   if (event.event_type in subscriptionStatuses || event.event_type === 'BILLING.SUBSCRIPTION.UPDATED') {
     const subscriptionId = text(resource.id)
     if (!subscriptionId) throw new Error('PayPal subscription event did not include an id')
+    if (event.event_type === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED') {
+      await recordCustomerPaymentError({ provider: 'paypal', providerSubscriptionId: subscriptionId, eventKey: event.id ? `paypal:event:${event.id}` : undefined, stage: 'recurring_payment', error: { message: 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' } })
+    }
     const billingInfo = resource.billing_info as Record<string, unknown> | undefined
     const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
     if (subscriptionStatuses[event.event_type]) update.status = subscriptionStatuses[event.event_type]

@@ -109,6 +109,7 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
   return (
     <div>
       <AdminPageHeader eyebrow="Tienda" title="Club y envíos" description={adminDescription('/admin/tienda')} />
+      <Link href="/admin/tienda/errores" className="mt-4 inline-block text-sm font-semibold text-collage-blue underline">Ver errores de pago por cliente</Link>
       {(error || loadError) && (
         <p role="alert" className="mt-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{error ?? loadError?.message}</p>
       )}

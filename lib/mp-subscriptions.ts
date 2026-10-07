@@ -8,6 +8,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { parseExternalReference } from '@/lib/payments/references'
 import { sendSubscriptionReceipt } from '@/lib/subscription-receipts'
+import { subscriptionCheckoutError } from '@/lib/subscription-checkout-error'
+import { recordCustomerPaymentError } from '@/lib/customer-payment-errors'
 
 type SubscriptionStatus = 'pending' | 'active' | 'suspended' | 'cancelled'
 
@@ -48,7 +50,8 @@ export async function syncPreapprovalById(preapprovalId: string): Promise<Subscr
     if (status === 'active' && data?.length) await sendSubscriptionReceipt(reference.id)
     return status
   } catch (err) {
-    console.error('mp subscription: failed to sync preapproval', preapprovalId, err)
+    console.error('mp subscription: failed to sync preapproval', preapprovalId, subscriptionCheckoutError('sync_subscription', err))
+    await recordCustomerPaymentError({ providerSubscriptionId: preapprovalId, stage: 'sync_subscription', error: err })
     return null
   }
 }
@@ -58,12 +61,13 @@ type AuthorizedPayment = {
   preapproval_id?: string
   transaction_amount?: number
   currency_id?: string
-  payment?: { id?: number | string; status?: string }
+  payment?: { id?: number | string; status?: string; status_detail?: string }
 }
 
 /** Records one monthly charge (and its shipment) once Mercado Pago approved it. */
 export async function recordAuthorizedPayment(authorizedPaymentId: string) {
   if (!isMercadoPagoConfigured || !/^\d+$/.test(authorizedPaymentId)) return
+  let providerSubscriptionId: string | undefined
   try {
     // Not in the SDK: the REST endpoint, with the same access token.
     const response = await fetch(`https://api.mercadopago.com/authorized_payments/${authorizedPaymentId}`, {
@@ -72,6 +76,15 @@ export async function recordAuthorizedPayment(authorizedPaymentId: string) {
     })
     if (!response.ok) throw new Error(`Mercado Pago respondió ${response.status}`)
     const charge = (await response.json()) as AuthorizedPayment
+    providerSubscriptionId = charge.preapproval_id
+    if (charge.payment?.status === 'rejected' && charge.preapproval_id) {
+      await recordCustomerPaymentError({
+        providerSubscriptionId: charge.preapproval_id,
+        eventKey: `mp:charge:${authorizedPaymentId}:${charge.payment.id ?? 'unknown'}:rejected`,
+        stage: 'recurring_payment',
+        error: { message: charge.payment.status_detail ?? 'Recurring payment rejected' },
+      })
+    }
     if (charge.payment?.status !== 'approved' || !charge.payment.id || !charge.preapproval_id) return
     const { error } = await createAdminClient().rpc('record_subscription_payment', {
       p_provider: 'mercadopago',
@@ -83,6 +96,7 @@ export async function recordAuthorizedPayment(authorizedPaymentId: string) {
     })
     if (error) throw new Error(error.message)
   } catch (err) {
-    console.error('mp subscription: failed to record charge', authorizedPaymentId, err)
+    console.error('mp subscription: failed to record charge', authorizedPaymentId, subscriptionCheckoutError('record_payment', err))
+    await recordCustomerPaymentError({ providerSubscriptionId, stage: 'record_payment', error: err })
   }
 }

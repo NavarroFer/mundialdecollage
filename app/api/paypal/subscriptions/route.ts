@@ -5,6 +5,8 @@ import { paypal, isPayPalServerConfigured } from '@/lib/payments/paypal/client'
 import { paypalPlanId, type PaypalPlanKey } from '@/lib/payments/paypal/plans'
 import { addressSchema, customerSchema, toPaypalAddress } from '@/lib/payments/validation'
 import { z } from 'zod'
+import { recordCustomerPaymentError, type PaymentErrorStage } from '@/lib/customer-payment-errors'
+import { subscriptionCheckoutError } from '@/lib/subscription-checkout-error'
 import { getSiteUrl } from '@/lib/site'
 
 export const runtime = 'nodejs'
@@ -20,8 +22,11 @@ export async function POST(request: Request) {
   const planId = paypalPlanId(plan as PaypalPlanKey)
   if (!planId) return NextResponse.json({ error: 'This PayPal plan is not configured' }, { status: 503 })
 
+  let customerId: string | undefined
+  let subscriptionId: string | undefined
+  let stage: PaymentErrorStage = 'create_subscription'
   try {
-    const customerId = await upsertCustomer(customer.email, `${customer.given_name} ${customer.surname}`)
+    customerId = await upsertCustomer(customer.email, `${customer.given_name} ${customer.surname}`)
     const supabase = createAdminClient()
     const { data: local, error: localError } = await supabase
       .from('subscriptions')
@@ -30,6 +35,8 @@ export async function POST(request: Request) {
       .single()
     if (localError || !local) throw new Error(localError?.message ?? 'Could not create local subscription')
 
+    subscriptionId = local.id
+    stage = 'create_preapproval'
     const subscription = await paypal<{ id: string }>('/v1/billing/subscriptions', {
       method: 'POST',
       requestId: `subscription-${local.id}`,
@@ -50,11 +57,13 @@ export async function POST(request: Request) {
         },
       },
     })
+    stage = 'save_preapproval'
     const { error: updateError } = await supabase.from('subscriptions').update({ provider_subscription_id: subscription.id }).eq('id', local.id)
     if (updateError) throw new Error(updateError.message)
     return NextResponse.json({ id: subscription.id })
   } catch (error) {
-    console.error('paypal subscription creation failed', error)
+    console.error('paypal subscription creation failed', subscriptionCheckoutError(stage, error))
+    await recordCustomerPaymentError({ provider: 'paypal', customerId, subscriptionId, stage, error })
     return NextResponse.json({ error: 'Could not create subscription' }, { status: 502 })
   }
 }

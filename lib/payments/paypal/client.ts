@@ -42,6 +42,14 @@ export async function paypal<T>(path: string, options: { method?: string; body?:
     cache: 'no-store',
   })
   const text = await response.text()
-  if (!response.ok) throw new Error(`PayPal ${options.method ?? 'GET'} ${path} failed (${response.status}): ${text}`)
+  if (!response.ok) {
+    // Keep structured provider codes, never the raw body (which can contain payer data).
+    let detail: { name?: string; message?: string; details?: Array<{ issue?: string }> } = {}
+    try { detail = JSON.parse(text) } catch { /* non-JSON provider response */ }
+    throw Object.assign(new Error(detail.name ?? `PayPal request failed (${response.status})`), {
+      status: response.status,
+      causes: (detail.details ?? []).map((item) => ({ code: item.issue })),
+    })
+  }
   return (text ? JSON.parse(text) : {}) as T
 }
