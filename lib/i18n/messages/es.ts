@@ -398,11 +398,12 @@ const es = {
     },
   },
   gallery: {
+    mobileMenu: { open: "Opciones", close: "Cerrar opciones", resume: "Volver al recorrido" },
     startEyebrow: 'MUNDIAL DE COLLAGE · GALERÍA 3D',
     startTitle: 'Recorré la exposición',
     enter: 'ENTRAR A LA EXPOSICIÓN',
     resume: 'Click para continuar',
-    hintTouch: 'Joystick para moverte · Arrastrá para mirar · Botón E para ver una obra',
+    hintTouch: 'Joystick para moverte · Arrastrá para mirar · Tocá «Ver obra» al acercarte',
     orientation: {
       title: "Girá el celular a horizontal",
       body: "Para entrar a la galería, girá el celular y sostenelo de costado. La pantalla se habilita automáticamente al ponerlo horizontal.",
@@ -483,7 +484,7 @@ const es = {
     tutorial: {
       label: 'Tutorial de controles',
       title: 'Controles',
-      touchIntro: 'Usá los dos sticks: el izquierdo te mueve y el derecho gira la mirada. Acercate a una obra y tocá E.',
+      touchIntro: 'Usá los dos sticks: el izquierdo te mueve y el derecho gira la mirada. Acercate a una obra y tocá «Ver obra».',
       done: '¡Listo! Buen recorrido',
       check: 'Hecho',
       steps: {
@@ -496,7 +497,7 @@ const es = {
       },
       lookTouch: 'Arrastrá el dedo para mirar',
       lookMouse: 'Mové el mouse para mirar',
-      interactTouch: 'Acercate a una obra y tocá E',
+      interactTouch: 'Acercate a una obra y tocá «Ver obra»',
       interactKey: 'Acercate a una obra y apretá E',
       drag: 'Arrastrar',
       mouse: 'Mouse',

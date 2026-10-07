@@ -395,11 +395,12 @@ const de: Messages = {
     },
   },
   gallery: {
+    mobileMenu: { open: "Optionen", close: "Optionen schließen", resume: "Rundgang fortsetzen" },
     startEyebrow: 'COLLAGE-WM · 3D-GALERIE',
     startTitle: 'Geh durch die Ausstellung',
     enter: 'AUSSTELLUNG BETRETEN',
     resume: 'Klicken zum Fortfahren',
-    hintTouch: 'Joystick zum Bewegen · Ziehen zum Umsehen · E-Taste, um ein Werk anzusehen',
+    hintTouch: 'Joystick zum Bewegen · Ziehen zum Umsehen · Tippe in der Nähe auf „Werk ansehen“',
     orientation: {
       title: "Dreh dein Handy ins Querformat",
       body: "Dreh dein Handy zur Seite und halte es waagerecht, um die Galerie zu betreten. Die Galerie wird im Querformat automatisch freigegeben.",
@@ -492,7 +493,7 @@ const de: Messages = {
       },
       lookTouch: 'Zum Umsehen mit dem Finger ziehen',
       lookMouse: 'Zum Umsehen die Maus bewegen',
-      interactTouch: 'Geh zu einem Werk und tippe auf E',
+      interactTouch: 'Geh zu einem Werk und tippe auf „Werk ansehen“',
       interactKey: 'Geh zu einem Werk und drück E',
       drag: 'Ziehen',
       mouse: 'Maus',

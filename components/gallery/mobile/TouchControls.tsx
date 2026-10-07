@@ -1,5 +1,9 @@
 'use client'
 
+import { useI18n } from '@/lib/i18n/client'
+import { useInteractionStore } from '../interaction/store'
+import { useWallStore } from '../wall/store'
+
 import { useEffect, useRef, useState } from 'react'
 import { interact } from '../interaction/interact'
 import { useTouchStore } from './touchStore'
@@ -11,6 +15,9 @@ const JOYSTICK_RADIUS = 55
 type Vec2 = { x: number; y: number }
 
 export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
+  const { m } = useI18n()
+  const targetId = useInteractionStore((state) => state.targetId)
+  const aimingAtWall = useWallStore((state) => state.aiming && !state.placing)
   const layerRef = useRef<HTMLDivElement>(null)
   const [moveKnobOffset, setMoveKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
   const [lookKnobOffset, setLookKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
@@ -116,16 +123,16 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
       <VirtualStick className={styles.moveStick} offset={moveKnobOffset} />
       <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
 
-      <button
+      {(targetId || aimingAtWall) && <button
         type="button"
         onTouchStart={(event) => {
           event.stopPropagation()
-          interact()
         }}
-        className={`${styles.hudButton} pointer-events-auto absolute right-8 bottom-10 flex h-16 w-16 items-center justify-center text-xl active:scale-95`}
+        onClick={() => interact()}
+        className={`${styles.hudButton} pointer-events-auto absolute right-[7%] bottom-[calc(7%+7.5rem)] flex min-h-12 max-w-48 items-center justify-center px-4 text-sm active:scale-95`}
       >
-        E
-      </button>
+        {targetId ? m.gallery.viewArtwork : m.gallery.wall.prompt}
+      </button>}
     </div>
   )
 }

@@ -523,3 +523,62 @@
   .tutorialStep, .tutorialKey { transition: none; }
   .floatingReaction { animation-duration: .01s; }
 }
+
+.mobileOptionsTrigger {
+  position: absolute;
+  top: max(.75rem, env(safe-area-inset-top));
+  left: max(.75rem, env(safe-area-inset-left));
+  z-index: 45;
+  display: flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  color: var(--gallery-text);
+  background: var(--gallery-panel);
+}
+.mobileOptions {
+  position: absolute;
+  top: max(.75rem, env(safe-area-inset-top));
+  left: calc(max(.75rem, env(safe-area-inset-left)) + 3.25rem);
+  z-index: 40;
+  display: grid;
+  gap: .75rem;
+  width: min(20rem, calc(100vw - 5rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  color: var(--gallery-text);
+  background: var(--gallery-panel);
+  backdrop-filter: blur(16px);
+  touch-action: pan-y;
+}
+.mobileOptions[hidden] { display: none; }
+.mobileOptions > .hudButton, .mobileOptions > .hudPanel, .mobileOptions .themePicker {
+  position: static !important;
+  transform: none;
+}
+.mobileOptions > .hudButton {
+  width: 100%;
+  height: auto;
+  min-height: 2.75rem;
+  gap: .75rem;
+  justify-content: flex-start;
+  padding: .5rem .75rem;
+  font-size: .875rem;
+}
+.mobileOptions > .hudPanel, .mobileOptions .themeMenu { width: 100%; }
+.mobileOptions .themeMenuOption { min-height: 2.75rem; }
+.mobileOptionsResume {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: .5rem;
+  border: 1px solid currentColor;
+  border-radius: var(--gallery-radius);
+  font-weight: 700;
+}

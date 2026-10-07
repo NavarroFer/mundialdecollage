@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
-import { Smartphone } from 'lucide-react'
+import { Menu, Smartphone, X } from 'lucide-react'
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
@@ -60,6 +60,7 @@ const getLandscapeServerSnapshot = () => true
 export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const isLandscape = useSyncExternalStore(subscribeToOrientation, getIsLandscape, getLandscapeServerSnapshot)
+  const [optionsOpen, setOptionsOpen] = useState(false)
   const [locked, setLocked] = useState(false)
   const { locale, m } = useI18n()
   const [hasStarted, setHasStarted] = useState(false)
@@ -77,7 +78,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   // is the whole activation.
   // A 3D game needs the horizontal viewport: touch play pauses in portrait
   // and resumes automatically as soon as the visitor turns the phone back.
-  const isActive = isTouchDevice ? hasStarted && isLandscape : locked
+  const isActive = isTouchDevice ? hasStarted && isLandscape && !optionsOpen : locked
 
   // Reading an obra shouldn't feel like pausing. The modal needs the cursor,
   // so opening it releases Pointer Lock; closing it with E, the × or a click
@@ -167,6 +168,13 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
     Promise.resolve(element.requestPointerLock()).catch(() => setResuming(false))
   }
 
+  useEffect(() => {
+    if (!optionsOpen) return
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setOptionsOpen(false) }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [optionsOpen])
+
   function handleEnter() {
     if (!hasStarted) track('gallery_enter')
     setHasStarted(true)
@@ -213,14 +221,20 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           />
         </Canvas>
       </KeyboardControls>
-      <GalleryPresence inside={isActive} artworks={artworks} />
+      <GalleryPresence inside={isTouchDevice ? hasStarted && isLandscape : isActive} artworks={artworks} />
       {isTouchDevice && isActive && !openId && !souvenirOpen && !wallOpen && <TouchControls theme={theme} />}
-      <BackgroundMusic ref={musicRef} theme={theme} />
-      {hasStarted && <Souvenir theme={theme} isTouchDevice={isTouchDevice} onResume={resumeWalk} />}
-      <Minimap theme={theme} artworks={artworks} />
-      {hasStarted && <PresenceCounter />}
-      <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
-      <InteractionPrompt theme={theme} />
+      {isTouchDevice && hasStarted && isLandscape && !openId && !souvenirOpen && !wallOpen && <button type="button" className={styles.mobileOptionsTrigger} onClick={() => setOptionsOpen((open) => !open)} aria-label={optionsOpen ? m.gallery.mobileMenu.close : m.gallery.mobileMenu.open} aria-expanded={optionsOpen} aria-controls="gallery-mobile-options">{optionsOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button>}
+      <div id="gallery-mobile-options" className={isTouchDevice ? styles.mobileOptions : undefined} hidden={isTouchDevice && (!optionsOpen || !hasStarted || !isLandscape || Boolean(openId) || souvenirOpen || wallOpen)}>
+        {isTouchDevice && <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>}
+        <BackgroundMusic ref={musicRef} theme={theme} inline={isTouchDevice} />
+        {hasStarted && <Souvenir theme={theme} isTouchDevice={isTouchDevice} onResume={resumeWalk} inline={isTouchDevice} />}
+        <Minimap theme={theme} artworks={artworks} />
+        {hasStarted && <PresenceCounter />}
+        {!openId && !souvenirOpen && !wallOpen && <ThemePicker theme={theme} onChange={setTheme} inline={isTouchDevice} />}
+        {isTouchDevice && <section className="space-y-2 border-t border-current/20 pt-3 text-xs"><h3 className="font-bold">{m.gallery.tutorial.title}</h3><p>{m.gallery.tutorial.touchIntro}</p><p>{m.gallery.tutorial.lookTouch}</p><p>{m.gallery.tutorial.interactTouch}</p><button type="button" className={styles.mobileOptionsResume} onClick={() => setOptionsOpen(false)}>{m.gallery.mobileMenu.resume}</button></section>}
+      </div>
+      {!isTouchDevice && <ControlsTutorial active={isActive} isTouchDevice={false} />}
+      {!isTouchDevice && <InteractionPrompt theme={theme} />}
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
       {isTouchDevice && !isLandscape && (
@@ -236,8 +250,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           <Link href="/" className={styles.orientationExit}>{m.gallery.orientation.back}</Link>
         </section>
       )}
-      {!openId && !souvenirOpen && !wallOpen && <ThemePicker theme={theme} onChange={setTheme} />}
-      {!isActive && !openId && !souvenirOpen && !wallOpen && !resuming && (
+      {!isActive && !openId && !souvenirOpen && !wallOpen && !resuming && !optionsOpen && (
         <StartScreen
           artworks={artworks}
           label={hasStarted ? m.gallery.resume : m.gallery.enter}

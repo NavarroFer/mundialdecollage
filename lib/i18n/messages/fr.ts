@@ -395,11 +395,12 @@ const fr: Messages = {
     },
   },
   gallery: {
+    mobileMenu: { open: "Options", close: "Fermer les options", resume: "Reprendre la visite" },
     startEyebrow: 'MONDIAL DU COLLAGE · GALERIE 3D',
     startTitle: "Parcours l'exposition",
     enter: "ENTRER DANS L'EXPOSITION",
     resume: 'Clique pour continuer',
-    hintTouch: 'Joystick pour te déplacer · Glisse pour regarder · Bouton E pour voir une œuvre',
+    hintTouch: 'Joystick pour te déplacer · Glisse pour regarder · Touche « Voir l’œuvre » à proximité',
     orientation: {
       title: "Tournez votre téléphone à l’horizontale",
       body: "Pour entrer dans la galerie, tournez votre téléphone et tenez-le à l’horizontale. La galerie devient accessible automatiquement.",
@@ -492,7 +493,7 @@ const fr: Messages = {
       },
       lookTouch: 'Glisse le doigt pour regarder',
       lookMouse: 'Bouge la souris pour regarder',
-      interactTouch: "Approche-toi d'une œuvre et touche E",
+      interactTouch: "Approche-toi d'une œuvre et touche « Voir l’œuvre »",
       interactKey: "Approche-toi d'une œuvre et appuie sur E",
       drag: 'Glisser',
       mouse: 'Souris',

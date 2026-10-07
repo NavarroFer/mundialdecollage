@@ -405,11 +405,12 @@ const pl: Messages = {
     },
   },
   gallery: {
+    mobileMenu: { open: "Opcje", close: "Zamknij opcje", resume: "Wróć do zwiedzania" },
     startEyebrow: 'MISTRZOSTWA ŚWIATA W KOLAŻU · GALERIA 3D',
     startTitle: 'Przejdź się po wystawie',
     enter: 'WEJDŹ NA WYSTAWĘ',
     resume: 'Kliknij, aby kontynuować',
-    hintTouch: 'Joystick — ruch · Przeciągnij — rozglądanie się · Przycisk E — zobacz pracę',
+    hintTouch: 'Joystick — ruch · Przeciągnij — rozglądanie się · Dotknij „Zobacz pracę” w pobliżu',
     orientation: {
       title: "Obróć telefon poziomo",
       body: "Aby wejść do galerii, obróć telefon i trzymaj go poziomo. Galeria udostępni się automatycznie.",
@@ -501,7 +502,7 @@ const pl: Messages = {
     tutorial: {
       label: 'Samouczek sterowania',
       title: 'Sterowanie',
-      touchIntro: 'Użyj obu drążków: lewy porusza postacią, a prawy obraca widok. Podejdź do pracy i stuknij E.',
+      touchIntro: 'Użyj obu drążków: lewy porusza postacią, a prawy obraca widok. Podejdź do pracy i stuknij „Zobacz pracę”.',
       done: 'Gotowe! Miłego zwiedzania',
       check: 'Zrobione',
       steps: {
@@ -514,7 +515,7 @@ const pl: Messages = {
       },
       lookTouch: 'Przeciągnij palcem, aby się rozejrzeć',
       lookMouse: 'Porusz myszą, aby się rozejrzeć',
-      interactTouch: 'Podejdź do pracy i stuknij E',
+      interactTouch: 'Podejdź do pracy i stuknij „Zobacz pracę”',
       interactKey: 'Podejdź do pracy i naciśnij E',
       drag: 'Przeciągnij',
       mouse: 'Mysz',

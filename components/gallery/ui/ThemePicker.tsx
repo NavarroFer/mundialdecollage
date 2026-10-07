@@ -13,18 +13,18 @@ const swatches: Record<GalleryTheme, string> = {
   garden: 'linear-gradient(90deg, #8fd3ff 0 30%, #72ad53 30% 58%, #ffcf45 58% 74%, #ef6f61 74%)',
 }
 
-export function ThemePicker({ theme, onChange }: { theme: GalleryTheme; onChange: (theme: GalleryTheme) => void }) {
+export function ThemePicker({ theme, onChange, inline = false }: { theme: GalleryTheme; onChange: (theme: GalleryTheme) => void; inline?: boolean }) {
   const [open, setOpen] = useState(false)
   const { m } = useI18n()
   const t = m.gallery.themes
 
   return (
     <aside className={styles.themePicker}>
-      {open && (
+      {(open || inline) && (
         <div className={styles.themeMenu} role="radiogroup" aria-label={t.label}>
           <div className={styles.themeMenuTitle}>
             <span>{t.choose}</span>
-            <button type="button" onClick={() => setOpen(false)} aria-label={t.close}><X size={15} /></button>
+            {!inline && <button type="button" onClick={() => setOpen(false)} aria-label={t.close}><X size={15} /></button>}
           </div>
           {GALLERY_THEMES.map((id) => {
             const selected = id === theme
@@ -39,11 +39,11 @@ export function ThemePicker({ theme, onChange }: { theme: GalleryTheme; onChange
           })}
         </div>
       )}
-      <button type="button" className={styles.themeTrigger} onClick={() => setOpen((value) => !value)}
+      {!inline && <button type="button" className={styles.themeTrigger} onClick={() => setOpen((value) => !value)}
         aria-label={open ? t.close : fmt(t.change, { name: t.names[theme] })}
         aria-expanded={open}>
         <Palette size={19} aria-hidden="true" />
-      </button>
+      </button>}
     </aside>
   )
 }

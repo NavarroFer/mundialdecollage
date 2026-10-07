@@ -396,11 +396,12 @@ const en: Messages = {
     },
   },
   gallery: {
+    mobileMenu: { open: "Options", close: "Close options", resume: "Continue exploring" },
     startEyebrow: 'COLLAGE WORLD CUP · 3D GALLERY',
     startTitle: 'Walk through the exhibition',
     enter: 'ENTER THE EXHIBITION',
     resume: 'Click to continue',
-    hintTouch: 'Joystick to move · Drag to look · E button to view an artwork',
+    hintTouch: 'Joystick to move · Drag to look · Tap “View artwork” when nearby',
     orientation: {
       title: "Turn your phone sideways",
       body: "To enter the gallery, rotate your phone and hold it horizontally. The gallery becomes available automatically in landscape.",
@@ -493,7 +494,7 @@ const en: Messages = {
       },
       lookTouch: 'Drag your finger to look',
       lookMouse: 'Move the mouse to look',
-      interactTouch: 'Walk up to an artwork and tap E',
+      interactTouch: 'Walk up to an artwork and tap “View artwork”',
       interactKey: 'Walk up to an artwork and press E',
       drag: 'Drag',
       mouse: 'Mouse',

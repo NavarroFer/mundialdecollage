@@ -39,7 +39,7 @@ function loadBanner() {
  * the camera button, or F while walking. Taking it lets go of the mouse so
  * the preview can be used; closing it with a click takes the walk back.
  */
-export function Souvenir({ theme, isTouchDevice, onResume }: { theme: GalleryTheme; isTouchDevice: boolean; onResume: () => void }) {
+export function Souvenir({ theme, isTouchDevice, onResume, inline = false }: { theme: GalleryTheme; isTouchDevice: boolean; onResume: () => void; inline?: boolean }) {
   const { locale, m } = useI18n()
   const t = m.gallery.souvenir
   const open = useSouvenirStore((state) => state.open)
@@ -131,6 +131,7 @@ export function Souvenir({ theme, isTouchDevice, onResume }: { theme: GalleryThe
           <Camera className="h-5 w-5" aria-hidden="true" />
           {/* While walking the mouse is captured, so on a computer the key is the way in. */}
           {!isTouchDevice && <kbd aria-hidden="true" className="absolute -right-1.5 -bottom-1.5 rounded bg-ink px-1 text-[0.6rem] leading-4 font-bold text-paper">F</kbd>}
+          {inline && <span>{t.button}</span>}
         </button>
       )}
       {open && (

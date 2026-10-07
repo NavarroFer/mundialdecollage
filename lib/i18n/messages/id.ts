@@ -395,11 +395,12 @@ const id: Messages = {
     },
   },
   gallery: {
+    mobileMenu: { open: "Opsi", close: "Tutup opsi", resume: "Lanjutkan menjelajah" },
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
     startTitle: 'Jelajahi pameran',
     enter: 'MASUK KE PAMERAN',
     resume: 'Klik untuk melanjutkan',
-    hintTouch: 'Joystick untuk bergerak · Geser untuk melihat · Tombol E untuk melihat karya',
+    hintTouch: 'Joystick untuk bergerak · Geser untuk melihat · Ketuk “Lihat karya” saat di dekatnya',
     orientation: {
       title: "Putar ponsel ke posisi horizontal",
       body: "Untuk masuk ke galeri, putar ponsel dan pegang secara horizontal. Galeri akan tersedia secara otomatis.",
@@ -489,7 +490,7 @@ const id: Messages = {
       },
       lookTouch: 'Geser jarimu untuk melihat',
       lookMouse: 'Gerakkan mouse untuk melihat',
-      interactTouch: 'Dekati karya dan ketuk E',
+      interactTouch: 'Dekati karya dan ketuk “Lihat karya”',
       interactKey: 'Dekati karya dan tekan E',
       drag: 'Geser',
       mouse: 'Mouse',

@@ -21,7 +21,7 @@ const DEFAULT_VOLUME = 0.35
  * stack that began with a real user gesture, and a useEffect reacting to
  * state set by that click runs too late for some of them to count it.
  */
-export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: GalleryTheme }>(function BackgroundMusic({ theme: _theme }, ref) {
+export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: GalleryTheme; inline?: boolean }>(function BackgroundMusic({ theme: _theme, inline = false }, ref) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [muted, setMuted] = useState(false)
   const { m } = useI18n()
@@ -48,6 +48,7 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
         className={`${styles.hudButton} animate-in fade-in absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center duration-300 transition-transform hover:scale-105`}
       >
         {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+        {inline && <span>{muted ? m.gallery.musicOn : m.gallery.musicOff}</span>}
       </button>
     </>
   )
