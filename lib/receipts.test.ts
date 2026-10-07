@@ -24,3 +24,10 @@ describe('formatMoney / localeFromCountry', () => {
     expect(localeFromCountry(null)).toBe('es')
   })
 })
+
+it('renders the selected branch and recipient in admin and receipt addresses', () => {
+  const formatted = formatAddress({ delivery_type: 'branch', branch_code: 'B0107', branch_name: 'Monte Grande', recipient_name: 'Ana Pérez', address_line_1: 'Vicente López 448', city: 'Monte Grande', province: 'Buenos Aires', postal_code: '1842', country_code: 'AR' })
+  expect(formatted).toContain('Correo Argentino · Monte Grande (B0107)')
+  expect(formatted).toContain('Ana Pérez')
+  expect(formatted).toContain('Vicente López 448')
+})

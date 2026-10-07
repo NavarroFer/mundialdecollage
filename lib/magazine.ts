@@ -9,6 +9,12 @@ export type MagazineShipping = {
   province: string
   postal_code: string
   country_code: string
+  delivery_type?: 'branch'
+  branch_code?: string
+  branch_name?: string
+  recipient_name?: string
+  shipping_payment?: 'included' | 'monthly'
+  shipping_fee?: number
 }
 
 export type MagazineOrderInput = {
@@ -19,7 +25,7 @@ export type MagazineOrderInput = {
   quantity: number
 }
 
-export const MAGAZINE_FIELDS = ['name', 'email', 'phone', 'address_line_1', 'address_line_2', 'city', 'province', 'postal_code', 'country_code', 'quantity'] as const
+export const MAGAZINE_FIELDS = ['name', 'email', 'phone', 'address_line_1', 'address_line_2', 'city', 'province', 'postal_code', 'country_code', 'quantity', 'branch_code', 'recipient_name', 'shipping_fee'] as const
 export type MagazineField = (typeof MAGAZINE_FIELDS)[number]
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -51,17 +57,21 @@ export function parseMagazineOrder(
   const quantity = Number(values.quantity)
   const phoneDigits = values.phone.replace(/\D/g, '').length
   const country = (values.country_code || 'AR').toUpperCase()
+  const pickup = country === 'AR' && Boolean(values.branch_code)
   const postal = values.postal_code.replace(/\s+/g, ' ')
   const checks: Record<MagazineField, boolean> = {
     name: values.name.length >= 2 && values.name.length <= 120,
     email: values.email.length <= 254 && EMAIL_PATTERN.test(values.email),
     phone: PHONE_PATTERN.test(values.phone) && phoneDigits >= 6 && phoneDigits <= 20,
-    address_line_1: values.address_line_1.length >= 3 && values.address_line_1.length <= 200,
+    address_line_1: pickup || (values.address_line_1.length >= 3 && values.address_line_1.length <= 200),
     address_line_2: values.address_line_2.length <= 100,
     city: values.city.length >= 2 && values.city.length <= 100,
     province: values.province.length >= 2 && values.province.length <= 100,
     postal_code: country === 'AR' ? AR_POSTAL_PATTERN.test(postal.replace(/\s/g, '')) : POSTAL_PATTERN.test(postal),
     country_code: COUNTRY_PATTERN.test(country) && (allowAbroad || !shipsAbroad(country)),
+    branch_code: !values.branch_code || /^[A-Z0-9_-]{2,20}$/i.test(values.branch_code),
+    recipient_name: !values.recipient_name || (values.recipient_name.length >= 2 && values.recipient_name.length <= 120),
+    shipping_fee: !values.shipping_fee || (Number.isFinite(Number(values.shipping_fee)) && Number(values.shipping_fee) >= 0),
     quantity: Number.isInteger(quantity) && quantity >= 1 && quantity <= maxQuantity,
   }
   const invalid = MAGAZINE_FIELDS.filter((field) => !checks[field])
@@ -80,6 +90,7 @@ export function parseMagazineOrder(
         province: values.province,
         postal_code: (country === 'AR' ? postal.replace(/\s/g, '') : postal).toUpperCase(),
         country_code: country,
+        ...(pickup ? { delivery_type: 'branch' as const, branch_code: values.branch_code, recipient_name: values.recipient_name || values.name } : {}),
       },
     },
   }

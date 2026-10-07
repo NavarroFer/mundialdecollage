@@ -40,7 +40,9 @@ export function formatAddress(address: Record<string, unknown> | null | undefine
   const city = get('city') || get('admin_area_2')
   const province = get('province') || get('admin_area_1')
   const country = get('country_code') || 'AR'
-  return [street, [city, province].filter(Boolean).join(', '), get('postal_code'), countryCodeToName(country, locale)]
+  const branch = get('delivery_type') === 'branch' ? `Correo Argentino · ${get('branch_name')} (${get('branch_code')})` : ''
+  const recipient = get('delivery_type') === 'branch' ? get('recipient_name') : ''
+  return [branch, recipient, street, [city, province].filter(Boolean).join(', '), get('postal_code'), countryCodeToName(country, locale)]
     .filter(Boolean)
     .join(' · ')
 }
@@ -78,6 +80,7 @@ export async function sendReceiptOnce(
       html = fillTextTag(html, tag, value)
       subject = fillTextTag(subject, tag, value)
     }
+    if (receipt.tags.pickup_note && !email.html.includes('{{pickup_note}}')) html += fillTextTag('<p>{{pickup_note}}</p>', 'pickup_note', receipt.tags.pickup_note)
     const sent = await sendMail({ to: receipt.to, replyTo: site.email, subject, html })
     if (!sent.ok) {
       await db.from(table).update({ receipt_sent_at: null }).eq('id', id)

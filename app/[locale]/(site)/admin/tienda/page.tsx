@@ -6,7 +6,7 @@ import { SubmitButton } from '@/components/admin/submit-button'
 import { formatAddress, formatMoney } from '@/lib/receipts'
 import { planForProviderPlan } from '@/lib/subscription-receipts'
 import { MESSAGES } from '@/lib/i18n/messages'
-import { markShipmentSent, undoShipmentSent } from './actions'
+import { markShipmentSent, undoShipmentSent, updateShipmentProgress, retryShipmentNotice } from './actions'
 
 // The store's day to day: who is subscribed, what has to go out in the mail
 // and how much came in this month (subscriptions, the magazine and extra
@@ -42,6 +42,9 @@ type ShipmentRow = {
   id: string
   status: string
   tracking_code: string | null
+  pickup_deadline: string | null
+  shipped_notice_sent_at: string | null
+  pickup_notice_sent_at: string | null
   shipped_at: string | null
   created_at: string
   shipping_address: Record<string, unknown>
@@ -81,8 +84,8 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
       .select('id, provider, provider_plan_id, status, shipping_address, next_billing_at, created_at, customers(full_name, email)')
       .order('created_at', { ascending: false }),
     supabase.from('shipments')
-      .select('id, status, tracking_code, shipped_at, created_at, shipping_address, payments!inner(amount, currency, paid_at, provider, subscriptions(status, provider_plan_id, customers(full_name, email)))')
-      .in('status', showSent ? ['shipped', 'delivered'] : ['pending', 'packed'])
+      .select('id, status, tracking_code, shipped_at, pickup_deadline, shipped_notice_sent_at, pickup_notice_sent_at, created_at, shipping_address, payments!inner(amount, currency, paid_at, provider, subscriptions(status, provider_plan_id, customers(full_name, email)))')
+      .in('status', showSent ? ['shipped', 'awaiting_pickup', 'delivered', 'returned'] : ['pending', 'packed'])
       .order('created_at', { ascending: !showSent })
       .limit(200),
     supabase.from('payments').select('amount, currency').eq('status', 'completed').gte('paid_at', since),
@@ -141,7 +144,7 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
               <tr>
                 <th className="px-4 py-3">Cliente</th>
                 <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3">Dirección</th>
+                <th className="px-4 py-3">Destino de retiro / envío</th>
                 <th className="px-4 py-3">Cobro</th>
                 <th className="px-4 py-3">{showSent ? 'Despachado' : 'Despacho'}</th>
               </tr>
@@ -169,16 +172,35 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
                     </td>
                     <td className="px-4 py-3">
                       {showSent ? (
-                        <form action={undoShipmentSent} className="space-y-1">
-                          <input type="hidden" name="id" value={s.id} />
+                        <div className="space-y-3">
                           <p className="whitespace-nowrap text-ink">{fmtDate(s.shipped_at)}</p>
+                          <p className="text-xs font-semibold">{({ shipped: 'En camino', awaiting_pickup: 'Disponible para retirar', delivered: 'Entregado / retirado', returned: 'Devuelto al remitente' } as Record<string, string>)[s.status]}</p>
                           {s.tracking_code && <p className="text-xs text-muted-foreground">Seguimiento: {s.tracking_code}</p>}
-                          <SubmitButton size="sm" variant="outline">Deshacer</SubmitButton>
-                        </form>
+                          {s.pickup_deadline && <p className="text-xs">Retirar hasta: {s.pickup_deadline}</p>}
+                          {s.shipping_address?.delivery_type === 'branch' && ['shipped', 'awaiting_pickup'].includes(s.status) && !(s.status === 'shipped' ? s.shipped_notice_sent_at : s.pickup_notice_sent_at) && <form action={retryShipmentNotice}>
+                            <input type="hidden" name="id" value={s.id} />
+                            <SubmitButton size="sm" variant="outline">Reintentar aviso por email</SubmitButton>
+                          </form>}
+                          {s.status === 'shipped' && s.shipping_address?.delivery_type === 'branch' && <form action={updateShipmentProgress} className="space-y-2">
+                            <input type="hidden" name="id" value={s.id} /><input type="hidden" name="status" value="awaiting_pickup" />
+                            <label className="block text-xs">Fecha límite informada por Correo<input name="pickup_deadline" type="date" required className="mt-1 block rounded border px-2 py-1" /></label>
+                            <p className="max-w-56 text-xs text-muted-foreground">Confirmá la llegada con el seguimiento antes de avisar al cliente.</p>
+                            <SubmitButton size="sm">Disponible para retirar · avisar</SubmitButton>
+                          </form>}
+                          {['shipped', 'awaiting_pickup'].includes(s.status) && <form action={updateShipmentProgress} className="space-y-2">
+                            <input type="hidden" name="id" value={s.id} />
+                            <select name="status" aria-label="Estado del envío" className="block rounded border px-2 py-1 text-xs"><option value="delivered">Entregado / retirado</option><option value="returned">Devuelto al remitente</option></select>
+                            <SubmitButton size="sm" variant="outline">Guardar estado</SubmitButton>
+                          </form>}
+                          {s.status === 'shipped' && <form action={undoShipmentSent}>
+                            <input type="hidden" name="id" value={s.id} />
+                            <SubmitButton size="sm" variant="outline">Deshacer despacho</SubmitButton>
+                          </form>}
+                        </div>
                       ) : (
                         <form action={markShipmentSent} className="flex flex-col gap-2">
                           <input type="hidden" name="id" value={s.id} />
-                          <input name="tracking_code" placeholder="Código de seguimiento (opcional)" maxLength={120} className="w-56 rounded-md border border-ink/15 bg-background px-2 py-1.5 text-xs" />
+                          <input name="tracking_code" aria-label="Código de seguimiento" placeholder="Seguimiento (obligatorio para retiro)" required={s.shipping_address?.delivery_type === 'branch'} maxLength={120} className="w-56 rounded-md border border-ink/15 bg-background px-2 py-1.5 text-xs" />
                           <SubmitButton size="sm">Marcar enviado</SubmitButton>
                         </form>
                       )}
@@ -208,7 +230,7 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
                 <th className="px-4 py-3">Medio</th>
                 <th className="px-4 py-3">Próximo cobro</th>
                 <th className="px-4 py-3">Desde</th>
-                <th className="px-4 py-3">Dirección</th>
+                <th className="px-4 py-3">Destino de retiro / envío</th>
               </tr>
             </thead>
             <tbody>

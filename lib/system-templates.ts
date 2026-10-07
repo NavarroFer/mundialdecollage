@@ -206,7 +206,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
     name: 'Compra: suscripción Papel por correo',
     audiences: ['clientes'],
     subject: '¡Bienvenida al club Papel por correo!',
-    description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{plan}}, {{total}} (lo que se cobra por mes) y {{direccion}}.',
+    description: RECEIPT_DESCRIPTION + 'Usá {{nombre}}, {{plan}}, {{total}} (lo que se cobra por mes), {{direccion}} y {{pickup_note}} (instrucciones de retiro para Argentina).',
     createDocument: (siteUrl) => ({
       blocks: [
         logo(siteUrl),
@@ -214,7 +214,8 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         { id: nextBlockId(), type: 'heading', text: '¡Gracias, {{nombre}}! Ya sos parte del club', align: 'left', size: 'md' },
         { id: nextBlockId(), type: 'text', text: 'Confirmamos tu suscripción a Papel por correo, el club mensual del Mundial de Collage.', align: 'left' },
         { id: nextBlockId(), type: 'text', text: 'Plan: {{plan}}\nCobro mensual: {{total}}\nEnvío a: {{direccion}}', align: 'left' },
-        { id: nextBlockId(), type: 'text', text: 'Armamos cada edición a mano en Mar del Plata. Te avisamos por mail cuando despachemos la primera. Podés cancelar cuando quieras desde tu cuenta de pago; si necesitás cambiar la dirección, respondé este mail.', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: '{{pickup_note}}', align: 'left' },
+        { id: nextBlockId(), type: 'text', text: 'Armamos cada edición a mano en Mar del Plata. Te avisamos por mail cuando despachemos la primera. Podés cancelar cuando quieras desde tu cuenta de pago; si necesitás cambiar el destino de envío, respondé este mail.', align: 'left' },
         { id: nextBlockId(), type: 'button', text: 'Ver la tienda', url: `${siteUrl}/tienda`, align: 'left', color: 'blue' },
         ...footer(),
       ],

@@ -41,7 +41,7 @@ export function MpCardSubscriptionCheckout({ plan, shipping, onBack, onResult }:
     const key = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY!
     const sdk = new window.MercadoPago(key, { locale: 'es-AR' })
     void sdk.bricks().create('cardPayment', id, {
-      initialization: { amount: planById(plan)!.priceArs },
+      initialization: { amount: Math.round((planById(plan)!.priceArs + Number(shipping.get('shipping_fee') ?? 0)) * 100) / 100 },
       customization: { paymentMethods: { maxInstallments: 1 } },
       callbacks: {
         onReady: () => { if (!cancelled) setLoading(false) },
@@ -91,6 +91,8 @@ export function MpCardSubscriptionCheckout({ plan, shipping, onBack, onResult }:
       <Script src="https://sdk.mercadopago.com/js/v2" onReady={() => setSdkReady(true)} onError={() => { setLoading(false); setError(t.loadFailed) }} />
       <p className="text-center text-sm font-semibold">{t.title}</p>
       <p className="text-sm text-muted-foreground">{t.description}</p>
+      <p className="text-sm font-semibold">{m.store.pickup.mode}: {String(shipping.get('city') ?? '')} · {String(shipping.get('address_line_1') ?? '')}</p>
+      <p className="text-sm font-semibold">{m.store.pickup.total}: {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(planById(plan)!.priceArs + Number(shipping.get('shipping_fee') ?? 0))}{m.store.perMonth}</p>
       {loading && <p role="status" className="flex items-center justify-center gap-2 text-sm"><Loader2 className="size-4 animate-spin" aria-hidden="true" />{t.loading}</p>}
       {error && <p role="alert" className="text-sm text-collage-red">{error}</p>}
       <div id={id} aria-busy={paying} />

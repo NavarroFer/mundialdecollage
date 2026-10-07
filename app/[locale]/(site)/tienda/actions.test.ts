@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), redirect: vi.fn(), track: vi.fn(), record: vi.fn(), sync: vi.fn() }))
+const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), redirect: vi.fn(), track: vi.fn(), record: vi.fn(), sync: vi.fn(), resolve: vi.fn(), quote: vi.fn() }))
+vi.mock('@/lib/correo', () => ({ resolvePickup: mocks.resolve, quoteSubscriptionShipping: mocks.quote }))
 vi.mock('@/lib/customer-payment-errors', () => ({ recordCustomerPaymentError: mocks.record }))
 vi.mock('@/lib/mp-subscriptions', () => ({ syncPreapprovalById: mocks.sync }))
 vi.mock('next/navigation', () => ({ redirect: mocks.redirect }))
@@ -16,11 +17,15 @@ vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ from: () =>
 }) }) }))
 import { startMpSubscription } from './actions'
 
+function checkoutForm() { const form = new FormData(); form.set('branch_code', 'B0107'); form.set('province', 'Buenos Aires'); form.set('shipping_fee', '4200'); return form }
+
 const initial = { error: null, invalid: [], values: {} }
 beforeEach(() => {
   vi.resetAllMocks()
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test')
   vi.stubEnv('NEXT_PUBLIC_MP_PUBLIC_KEY', 'public-key')
+  mocks.resolve.mockResolvedValue({ code: 'B0107', name: 'Monte Grande', address: 'Vicente López 448', city: 'Esteban Echeverría', locality: 'Monte Grande', postalCode: '1842' })
+  mocks.quote.mockResolvedValue(4200)
   mocks.sync.mockResolvedValue('active')
   vi.spyOn(console, 'error').mockImplementation(() => {})
   mocks.update.mockImplementation(() => ({ eq: async () => ({ error: null }) }))
@@ -28,42 +33,42 @@ beforeEach(() => {
 describe('subscription checkout', () => {
   it('persists a rejected provider request and returns a recoverable error', async () => {
     mocks.create.mockRejectedValue({ status: 400, message: 'Invalid users involved' })
-    expect(await startMpSubscription('inicial', initial, new FormData())).toMatchObject({ error: 'unavailable' })
+    expect(await startMpSubscription('inicial', initial, checkoutForm())).toMatchObject({ error: 'unavailable' })
     expect(mocks.update).toHaveBeenCalledWith({ checkout_error: expect.objectContaining({ stage: 'create_preapproval', status: 400 }) })
     expect(mocks.redirect).not.toHaveBeenCalled()
   })
   it('does not redirect when saving the provider ID fails', async () => {
     mocks.create.mockResolvedValue({ id: 'mp-id', init_point: 'https://checkout.example.com' })
     mocks.update.mockImplementationOnce(() => ({ eq: async () => ({ error: { message: 'Database unavailable' } }) }))
-    await startMpSubscription('inicial', initial, new FormData())
+    await startMpSubscription('inicial', initial, checkoutForm())
     expect(mocks.update).toHaveBeenLastCalledWith({ checkout_error: expect.objectContaining({ stage: 'save_preapproval' }) })
     expect(mocks.redirect).not.toHaveBeenCalled()
   })
   it('records a missing checkout URL after retaining the provider ID', async () => {
     mocks.create.mockResolvedValue({ id: 'mp-id' })
-    await startMpSubscription('inicial', initial, new FormData())
+    await startMpSubscription('inicial', initial, checkoutForm())
     expect(mocks.update).toHaveBeenCalledWith({ provider_subscription_id: 'mp-id' })
     expect(mocks.update).toHaveBeenLastCalledWith({ checkout_error: expect.objectContaining({ stage: 'checkout_url' }) })
   })
   it('redirects after creating and saving a valid checkout', async () => {
     mocks.create.mockResolvedValue({ id: 'mp-id', init_point: 'https://checkout.example.com' })
-    await startMpSubscription('inicial', initial, new FormData())
+    await startMpSubscription('inicial', initial, checkoutForm())
     expect(mocks.redirect).toHaveBeenCalledWith('https://checkout.example.com')
     expect(mocks.update).toHaveBeenCalledTimes(1)
   })
   it('still returns the original error when persisting diagnostics fails', async () => {
     mocks.create.mockRejectedValue(new Error('Provider unavailable'))
     mocks.update.mockImplementation(() => ({ eq: async () => { throw new Error('Database unavailable') } }))
-    expect(await startMpSubscription('inicial', initial, new FormData())).toMatchObject({ error: 'unavailable' })
+    expect(await startMpSubscription('inicial', initial, checkoutForm())).toMatchObject({ error: 'unavailable' })
   })
 })
 
 describe('card subscriptions', () => {
-  const card = () => { const form = new FormData(); form.set('payment_method', 'card'); form.set('card_token', 'private-card-token'); form.set('payer_email', 'cardpayer@example.com'); form.set('amount', '1'); return form }
+  const card = () => { const form = checkoutForm(); form.set('payment_method', 'card'); form.set('card_token', 'private-card-token'); form.set('payer_email', 'cardpayer@example.com'); form.set('amount', '1'); return form }
   it('uses the tokenized payer and server price, then synchronizes authorization', async () => {
     mocks.create.mockResolvedValue({ id: 'mp-card', status: 'authorized' })
     expect(await startMpSubscription('inicial', initial, card())).toMatchObject({ subscription: { id: 'mp-card', status: 'active' } })
-    expect(mocks.create).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ payer_email: 'cardpayer@example.com', card_token_id: 'private-card-token', status: 'authorized', auto_recurring: expect.objectContaining({ transaction_amount: 15000 }) }), requestOptions: { idempotencyKey: expect.stringMatching(/^[a-f0-9]{64}$/) } }))
+    expect(mocks.create).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ payer_email: 'cardpayer@example.com', card_token_id: 'private-card-token', status: 'authorized', auto_recurring: expect.objectContaining({ transaction_amount: 19200 }) }), requestOptions: { idempotencyKey: expect.stringMatching(/^[a-f0-9]{64}$/) } }))
     expect(mocks.sync).toHaveBeenCalledWith('mp-card')
     expect(mocks.redirect).not.toHaveBeenCalled()
   })
@@ -89,4 +94,25 @@ describe('card subscriptions', () => {
     expect(mocks.sync).toHaveBeenCalledWith('mp-card')
   })
 
+})
+
+
+describe('branch and tariff validation', () => {
+  it('rejects missing or unavailable branches before creating any provider payment', async () => {
+    const form = checkoutForm(); form.delete('branch_code')
+    expect(await startMpSubscription('inicial', initial, form)).toMatchObject({ invalid: ['branch_code'] })
+    mocks.resolve.mockResolvedValue(null)
+    expect(await startMpSubscription('inicial', initial, checkoutForm())).toMatchObject({ invalid: ['branch_code'] })
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
+  it('requires a new review if the shipping amount was altered or changed', async () => {
+    const form = checkoutForm(); form.set('shipping_fee', '1')
+    expect(await startMpSubscription('inicial', initial, form)).toMatchObject({ invalid: ['shipping_fee'] })
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
+  it('never starts billing when Correo cannot quote', async () => {
+    mocks.quote.mockRejectedValue(new Error('Timeout'))
+    expect(await startMpSubscription('inicial', initial, checkoutForm())).toMatchObject({ error: 'unavailable' })
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
 })

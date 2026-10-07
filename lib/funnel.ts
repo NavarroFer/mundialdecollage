@@ -128,9 +128,12 @@ export const DISCOVERY_EVENTS = [
 // subscription, to see where a sale gets lost.
 export const STORE_FUNNEL_EVENTS = [
   { name: 'store_view', label: 'Abrieron la tienda' },
+  { name: 'shipping_branch_selected', label: 'Eligieron una sucursal de retiro' },
+  { name: 'shipping_search_empty', label: 'Búsquedas de sucursal sin resultados' },
+  { name: 'shipping_search_failed', label: 'Falló la búsqueda de sucursales' },
   { name: 'store_checkout_open', label: 'Tocaron «Suscribirme» en un plan' },
-  { name: 'store_checkout_start', label: 'Completaron sus datos y abrieron PayPal' },
-  { name: 'store_checkout_approved', label: 'PayPal aprobó la suscripción' },
+  { name: 'store_checkout_start', label: 'Revisaron sus datos y empezaron el pago' },
+  { name: 'store_checkout_approved', label: 'Se autorizó la suscripción' },
 ] as const
 
 // Where the people who reach the store come from.

@@ -14,7 +14,6 @@ import { WaitlistSignup } from '@/components/waitlist-signup'
 import { MagazinePromo } from '@/components/store-promo'
 import { site } from '@/lib/site'
 import { PaypalSubscriptionCheckout } from '@/components/paypal-subscription-checkout'
-import { MpSubscriptionCheckout } from '@/components/mp-subscription-checkout'
 import { isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { isPayPalCheckoutConfigured } from '@/lib/payments/paypal/client'
 
@@ -83,7 +82,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 </Link>
               ))}
             </nav>
-            <p className="max-w-md text-sm text-muted-foreground">{argentina ? t.regionArNote : t.regionAbroadNote}</p>
+            <p className="max-w-md text-sm text-muted-foreground">{argentina ? `${t.pickup.mode}. ${t.regionArNote}` : t.regionAbroadNote}</p>
           </div>
           <section id="membresia" aria-labelledby="membership-title" className="mb-16 scroll-mt-24">
             <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.membershipEyebrow}</p>
@@ -119,7 +118,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 </ul>
                 {argentina ? (
                   isMercadoPagoConfigured
-                    ? <MpSubscriptionCheckout plan={plan.id} featured={plan.featured} />
+                    ? <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full"><Link href={`/tienda/suscribirme?plan=${plan.id}`}>{t.mp.subscribe}</Link></Button>
                     : <Button size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full" disabled>{t.comingSoon}</Button>
                 ) : isPayPalCheckoutConfigured ? (
                   <PaypalSubscriptionCheckout plan={plan.id} clientId={process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!} />

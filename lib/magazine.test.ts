@@ -12,6 +12,7 @@ const valid: Record<MagazineField, string> = {
   postal_code: 'b7600 abc',
   country_code: 'AR',
   quantity: '2',
+  branch_code: '', recipient_name: '', shipping_fee: '',
 }
 
 const parse = (overrides: Partial<Record<MagazineField, string>> = {}, allowAbroad = true) =>
