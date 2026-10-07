@@ -50,7 +50,7 @@ type ShipmentRow = {
     currency: string
     paid_at: string
     provider: string
-    subscriptions: { provider_plan_id: string; customers: Customer | null } | null
+    subscriptions: { status: string; provider_plan_id: string; customers: Customer | null } | null
   } | null
 }
 
@@ -81,7 +81,7 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
       .select('id, provider, provider_plan_id, status, shipping_address, next_billing_at, created_at, customers(full_name, email)')
       .order('created_at', { ascending: false }),
     supabase.from('shipments')
-      .select('id, status, tracking_code, shipped_at, created_at, shipping_address, payments!inner(amount, currency, paid_at, provider, subscriptions(provider_plan_id, customers(full_name, email)))')
+      .select('id, status, tracking_code, shipped_at, created_at, shipping_address, payments!inner(amount, currency, paid_at, provider, subscriptions(status, provider_plan_id, customers(full_name, email)))')
       .in('status', showSent ? ['shipped', 'delivered'] : ['pending', 'packed'])
       .order('created_at', { ascending: !showSent })
       .limit(200),
@@ -134,7 +134,7 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
             {showSent ? 'Ver los pendientes' : 'Ver los ya despachados'}
           </Link>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">Cada cobro mensual acreditado genera un envío.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Cada cobro mensual acreditado genera un envío. Cancelar la suscripción detiene los próximos cobros; los envíos ya pagados se mantienen.</p>
         <div className="mt-4 overflow-x-auto rounded-2xl border-2 border-ink/10">
           <table className="w-full text-sm">
             <thead className="bg-card text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
@@ -165,6 +165,7 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                       {s.payments ? `${formatMoney(Number(s.payments.amount), s.payments.currency)} · ${fmtDate(s.payments.paid_at)}` : '—'}
                       <p className="text-xs">{PROVIDER[s.payments?.provider ?? ''] ?? s.payments?.provider}</p>
+                      {s.payments?.subscriptions?.status === 'cancelled' && <p className="mt-1 max-w-48 whitespace-normal text-xs text-collage-blue">Suscripción cancelada · este envío ya está pago</p>}
                     </td>
                     <td className="px-4 py-3">
                       {showSent ? (
