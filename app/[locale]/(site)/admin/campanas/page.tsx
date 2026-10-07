@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { campaignEngagementTotals } from '@/lib/campaign-metrics'
 import {
   Bot,
   CalendarClock,
@@ -411,9 +412,7 @@ export default async function CampanasPage({
     .sort((a, b) => (a.scheduled_for ?? '').localeCompare(b.scheduled_for ?? ''))
   const nextScheduled = scheduledList[0]
   const totalSent = list.reduce((sum, c) => sum + c.sent_count, 0)
-  const totalDelivered = list.reduce((sum, c) => sum + (c.delivered_count || c.sent_count), 0)
-  const totalOpened = list.reduce((sum, c) => sum + c.opened_count, 0)
-  const totalClicked = list.reduce((sum, c) => sum + c.clicked_count, 0)
+  const { delivered: totalDelivered, opened: totalOpened, clicked: totalClicked, campaigns: trackedCount } = campaignEngagementTotals(list)
 
   return (
     <div>
@@ -481,8 +480,8 @@ export default async function CampanasPage({
           detail={nextScheduled ? `Próxima: ${formatShortDay(nextScheduled.scheduled_for)}` : 'Ninguna en cola'}
           tone="yellow"
         />
-        <SummaryTile label="Apertura promedio" value={rate(totalOpened, totalDelivered) ?? '—'} detail="sobre entregados" tone="ink" />
-        <SummaryTile label="Clics promedio" value={rate(totalClicked, totalDelivered) ?? '—'} detail="sobre entregados" tone="red" />
+        <SummaryTile label="Apertura promedio" value={rate(totalOpened, totalDelivered) ?? '—'} detail={`sobre entregados · ${trackedCount} campañas con tracking`} tone="ink" />
+        <SummaryTile label="Clics promedio" value={rate(totalClicked, totalDelivered) ?? '—'} detail={`sobre entregados · ${trackedCount} campañas con tracking`} tone="red" />
       </div>
 
       <div className="mt-8 space-y-3 rounded-2xl border-2 border-ink/10 bg-card p-4">
