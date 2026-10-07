@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { startMagazineCheckout, type MagazineCheckoutState } from './actions'
+import { ShippingLocationFields } from '@/components/shipping-location-fields'
 import { CountrySelect } from '@/components/ui/country-select'
 import { magazineOrderAmount, shipsAbroad, type MagazineField } from '@/lib/magazine'
 import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
@@ -68,11 +69,7 @@ export function MagazineForm({ priceArs, shippingAbroadArs, maxQuantity, default
       ) : (
         <input type="hidden" name="country_code" value="AR" />
       )}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {field('city', t.city, { required: true, autoComplete: 'address-level2', maxLength: 100 })}
-        {field('province', t.province, { required: true, autoComplete: 'address-level1', maxLength: 100 })}
-        {field('postal_code', t.postalCode, { required: true, autoComplete: 'postal-code', maxLength: 10 })}
-      </div>
+      <ShippingLocationFields country={country} labels={{ province: t.province, city: t.city, postal: t.postalCode }} values={{ province: state.values.province, city: state.values.city, postal: state.values.postal_code }} invalid={state.invalid} />
       {/* Honeypot — see startMagazineCheckout. */}
       <input name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
 

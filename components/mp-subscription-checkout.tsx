@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { startMpSubscription, type MpSubscriptionState } from '@/app/[locale]/(site)/tienda/actions'
 import type { MagazineField } from '@/lib/magazine'
+import { ShippingLocationFields } from '@/components/shipping-location-fields'
 import type { SubscriptionPlan } from '@/lib/store'
 import { useI18n } from '@/lib/i18n/client'
 import { track } from '@/lib/track'
@@ -52,11 +53,7 @@ export function MpSubscriptionCheckout({ plan, featured }: { plan: SubscriptionP
       {field('phone', t.phone, { required: true, type: 'tel', autoComplete: 'tel', maxLength: 30 })}
       {field('address_line_1', t.address, { required: true, autoComplete: 'address-line1', maxLength: 200 })}
       {field('address_line_2', t.apartment, { autoComplete: 'address-line2', maxLength: 100 })}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {field('city', t.city, { required: true, autoComplete: 'address-level2', maxLength: 100 })}
-        {field('province', t.province, { required: true, autoComplete: 'address-level1', maxLength: 100 })}
-      </div>
-      {field('postal_code', t.postalCode, { required: true, autoComplete: 'postal-code', maxLength: 10 })}
+      <ShippingLocationFields labels={{ province: t.province, city: t.city, postal: t.postalCode }} values={{ province: state.values.province, city: state.values.city, postal: state.values.postal_code }} invalid={state.invalid} />
       {/* Honeypot — see startMpSubscription. */}
       <input name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       {state.error && <p role="alert" className="text-center text-sm text-collage-red">{t.errors[state.error]}</p>}
