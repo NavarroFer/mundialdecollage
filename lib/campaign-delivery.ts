@@ -12,7 +12,7 @@ import type { Locale } from '@/lib/i18n/locales'
 import { countryCodeToName } from '@/lib/participants'
 import type { ProfileReviewData } from '@/lib/campaign-audience'
 
-export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData }
+export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData; artworkTitles?: Array<string | null> }
 
 export type DeliverableCampaign = {
   id: string
@@ -147,6 +147,8 @@ export function campaignRecipientValues(contact: CampaignRecipient): Record<stri
   const review = contact.review
   const missing = review?.missingFields ?? []
   return {
+    cantidad_obras: String(contact.artworkTitles?.length ?? 0),
+    lista_obras: contact.artworkTitles?.map((title, i) => `${i + 1}. ${title?.trim() || 'Sin título'}`).join(' • '),
     nombre: review?.artistName || contact.name,
     nombre_dato: review?.artistName || 'Sin completar',
     pais_dato: review?.countryCode ? countryCodeToName(review.countryCode, contact.locale) : 'Sin completar',

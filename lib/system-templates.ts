@@ -19,7 +19,7 @@ import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
 import type { TemplateAudience } from '@/lib/template-audiences'
 
-export type SystemTemplateKey = 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha'
+export type SystemTemplateKey = 'elegir_obra' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
@@ -88,6 +88,22 @@ const COUNTDOWN_DESCRIPTION =
 const RECEIPT_DESCRIPTION = 'Se envía sola apenas se confirma el pago. '
 
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
+  elegir_obra: {
+    name: 'Artistas: elegir una obra para participar',
+    audiences: ['artistas'],
+    subject: 'Elegí la obra con la que vas a participar en el Mundial de Collage',
+    description: 'Para artistas con varias obras que todavía no eligieron cuál participa. Usá {{nombre}}, {{cantidad_obras}} y {{lista_obras}}. Campaña del 5 de noviembre de 2026, diez días antes del cierre.',
+    createDocument: (siteUrl) => ({ blocks: [
+      logo(siteUrl),
+      { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}},', align: 'left', size: 'md' },
+      { id: nextBlockId(), type: 'text', text: 'Tu participación ya está publicada en el Mundial Internacional de Collage y tenemos {{cantidad_obras}} obras tuyas cargadas:', align: 'left' },
+      { id: nextBlockId(), type: 'text', text: '{{lista_obras}}', align: 'left' },
+      { id: nextBlockId(), type: 'text', text: 'Para participar gratis en el concurso tenés que elegir una sola obra. Registrate en la página con el mismo correo al que recibís este mail; así vas a encontrar tus obras y podrás confirmar cuál querés presentar. Si ya tenés una cuenta, iniciá sesión.', align: 'left' },
+      { id: nextBlockId(), type: 'button', text: 'Registrarme y elegir mi obra', url: `${siteUrl}/onboarding`, align: 'left', color: 'red' },
+      { id: nextBlockId(), type: 'text', text: 'Tenés hasta el 15 de noviembre de 2026 para confirmar tu elección. ¡Faltan diez días para el cierre!', align: 'left' },
+      ...footer(),
+    ] }),
+  },
   bienvenida_hincha: {
     name: 'Bienvenida: gracias por apoyar a un artista',
     audiences: ['hinchas'],

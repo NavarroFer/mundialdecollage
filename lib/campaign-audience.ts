@@ -23,6 +23,7 @@ export const CAMPAIGN_AUDIENCES = [
     // The countdown to the deadline goes here (lib/countdown-campaigns.ts).
     description: 'Suscriptos que todavía no mandaron una obra, por el sitio ni por el formulario (sin admins).',
   },
+  { value: 'multiple_artworks', label: 'Varias obras por elegir', description: 'Artistas con varias obras cargadas y participación publicada que todavía no eligieron cuál participa gratis.' },
   {
     value: 'profile_review',
     label: 'Datos por confirmar',
@@ -76,10 +77,27 @@ export function contactsNotParticipating<T extends { email: string }>(
 export async function audienceContacts(
   supabase: SupabaseClient,
   audience: CampaignAudience,
-): Promise<{ contacts: Array<{ id: string; email: string; name: string | null; review?: ProfileReviewData }>; error: string | null }> {
+): Promise<{ contacts: Array<{ id: string; email: string; name: string | null; review?: ProfileReviewData; artworkTitles?: Array<string | null> }>; error: string | null }> {
   const { data: subscribed, error } = await supabase.from('contacts').select('id, email, name').eq('subscribed', true)
   if (error) return { contacts: [], error: error.message }
   if (audience === 'subscribed') return { contacts: subscribed ?? [], error: null }
+
+  if (audience === 'multiple_artworks') {
+    const { data, error: multipleError } = await supabase.rpc('multiple_artwork_contacts')
+    if (multipleError) return { contacts: [], error: multipleError.message }
+    const titlesByContact = new Map(
+      ((data ?? []) as { contact_id: string; artwork_titles: Array<string | null> }[])
+        .map((row) => [row.contact_id, row.artwork_titles]),
+    )
+    const admins = new Set(ADMIN_EMAILS.map(normalize))
+    return {
+      contacts: (subscribed ?? []).flatMap((contact) => {
+        const artworkTitles = titlesByContact.get(contact.id)
+        return artworkTitles && !admins.has(normalize(contact.email)) ? [{ ...contact, artworkTitles }] : []
+      }),
+      error: null,
+    }
+  }
 
   if (audience === 'profile_review') {
     const { data, error: reviewError } = await supabase.rpc('profile_review_contacts')

@@ -124,6 +124,8 @@ function tagPattern(tag: string) {
 // Values used only in the admin preview. They make system-template tags
 // readable without accidentally looking like data from a real contact.
 const PREVIEW_TAG_VALUES: Record<string, string> = {
+  cantidad_obras: '3',
+  lista_obras: '1. La ciudad que imaginé • 2. Sin título • 3. Recortes del mar',
   nombre: 'Camila Fernández',
   obra: 'La ciudad que imaginé',
   likes: '12',
