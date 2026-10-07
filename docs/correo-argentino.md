@@ -72,7 +72,7 @@ la provincia elegida; la ubicación del comprador se procesa en su navegador.
 
 ## Base de datos y despacho
 
-Aplicar `supabase/migrations/20261007030000_branch_pickup_shipments.sql` antes de
+Aplicar `supabase/migrations/20261007040000_branch_pickup_shipments.sql` antes de
 usar el administrador actualizado. Cada destino conserva código, nombre,
 dirección y destinatario. El registro de la suscripción conserva tarifa de
 envío y total mensual; los pagos siguen guardando el importe real cobrado.
