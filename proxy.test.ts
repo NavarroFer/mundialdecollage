@@ -68,6 +68,25 @@ describe('proxy', () => {
     expect(await served('/obras/una-obra?ref=otra-obra')).toBe('/es/obras/una-obra?ref=otra-obra')
   })
 
+  it('keeps referral attribution without rendering unrelated public pages per visit', async () => {
+    const headers = { cookie: `${REFERRAL_COOKIE}=una-obra` }
+    expect(await served('/galeria-3d?ref=una-obra', headers)).toBe('/es/anon/galeria-3d?ref=una-obra')
+    expect(await served('/partners', headers)).toBe('/es/anon/partners')
+    expect(await served('/onboarding', headers)).toBe('/es/anon/onboarding')
+    expect(await served('/?ref=INVALID')).toBe('/es/anon?ref=INVALID')
+    expect(getUser).not.toHaveBeenCalled()
+  })
+
+  it('uses the CDN for explicit locale URLs while preserving personal renders', async () => {
+    expect(await served('/it/obras/una-obra', { 'accept-language': 'en' })).toBe('/it/anon/obras/una-obra')
+    expect(await served('/pt')).toBe('/pt/anon')
+    expect(await served('/es/partners', { cookie: `${REFERRAL_COOKIE}=una-obra` })).toBe('/es/anon/partners')
+    expect(await served('/es/obras/una-obra?ref=una-obra')).toBeNull()
+    expect(await served('/es/obras/una-obra', { cookie: 'sb-abc-auth-token=x' })).toBeNull()
+    expect(getUser).toHaveBeenCalledOnce()
+    expect(await served('/es/obras/una-obra/historia')).toBeNull()
+  })
+
   it('renders pages without an anonymous copy per request', async () => {
     expect(await served('/onboarding/obras')).toBe('/es/onboarding/obras')
     expect(await served('/tienda')).toBe('/es/tienda')

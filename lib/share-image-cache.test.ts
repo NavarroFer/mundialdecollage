@@ -44,6 +44,18 @@ describe('cachedShareImage', () => {
     expect(Buffer.from(await again.arrayBuffer())).toEqual(Buffer.from(await first.arrayBuffer()))
   })
 
+  it('caches JPEG independently and preserves its MIME type', async () => {
+    const { files, store } = memoryStore()
+    const render = renderer()
+    await cachedShareImage(['story', 'a'], versioned, render)
+    await cachedShareImage(['story', 'a'], versioned, render, 'jpeg')
+    const again = await cachedShareImage(['story', 'a'], versioned, render, 'jpeg')
+    expect(render).toHaveBeenCalledTimes(2)
+    expect(files.size).toBe(2)
+    expect(again.headers.get('content-type')).toBe('image/jpeg')
+    expect(store.put).toHaveBeenLastCalledWith(expect.stringMatching(/\.jpeg$/), expect.any(Buffer), 'image/jpeg')
+  })
+
   it('draws anew when what it shows changes', async () => {
     const { files } = memoryStore()
     const render = renderer()

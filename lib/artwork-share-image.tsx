@@ -131,8 +131,16 @@ export function artworkOgImage(input: Input) {
 export function artworkStoryImage(input: Input) {
   return cachedShareImage(['story', details(input), input.m.share.badge], input.finalist.imageUrl, async () => {
     const artwork = await loadArtwork(input.finalist.imageUrl, { width: 820, height: 620 })
-    return { image: drawStoryImage(input, artwork), complete: artwork !== null }
-  })
+    // Stories are opaque photographs: JPEG keeps the 1080×1920 canvas and
+    // crisp lettering while sending far fewer bytes than the rendered PNG.
+    // Keep the encoded result in R2 so this conversion only runs on a miss.
+    const png = drawStoryImage(input, artwork)
+    const body = await sharp(Buffer.from(await png.arrayBuffer()))
+      .flatten({ background: PAPER })
+      .jpeg({ quality: 90, chromaSubsampling: '4:4:4' })
+      .toBuffer()
+    return { image: new Response(new Uint8Array(body), { headers: { 'Content-Type': 'image/jpeg' } }), complete: artwork !== null }
+  }, 'jpeg')
 }
 
 function drawOgImage(input: Input, artwork: LoadedArtwork) {

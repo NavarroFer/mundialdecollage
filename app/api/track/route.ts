@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isFunnelEvent } from '@/lib/funnel'
+import { VISITOR_ID_PATTERN, isFunnelEvent } from '@/lib/funnel'
 import { recordFunnelEvent } from '@/lib/track-server'
 
 // Receives the circuit steps the browser reports (lib/track.ts). Only known
@@ -14,10 +14,13 @@ export async function POST(request: NextRequest) {
   } catch {
     return new NextResponse(null, { status: 400 })
   }
-  if (!isFunnelEvent(payload?.name) || typeof payload.vid !== 'string') return new NextResponse(null, { status: 400 })
+  if (!isFunnelEvent(payload?.name) || typeof payload.vid !== 'string' || !VISITOR_ID_PATTERN.test(payload.vid)) return new NextResponse(null, { status: 400 })
 
   let userId: string | null = null
-  if (isSupabaseConfigured) {
+  // Anonymous events need no Supabase Auth call. Signed-in events still
+  // verify the session server-side; never trust a user id from the payload.
+  const hasSession = request.cookies.getAll().some(({ name }) => name.startsWith('sb-'))
+  if (isSupabaseConfigured && hasSession) {
     const { data: { user } } = await (await createClient()).auth.getUser()
     userId = user?.id ?? null
   }

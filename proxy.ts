@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { isLocale, LOCALE_COOKIE, resolveLocale } from '@/lib/i18n/locales'
-import { REFERRAL_COOKIE } from '@/lib/referral'
+import { parseReferral, REFERRAL_COOKIE } from '@/lib/referral'
 import { isStaticPage } from '@/lib/static-pages'
 
 // `?lang=it` links (for sharing the site in a given language) store that
@@ -31,18 +31,27 @@ function hasSupabaseSession(request: NextRequest) {
 // keeps the URL as typed.
 function pageTarget(request: NextRequest): URL | null {
   const { pathname, searchParams } = request.nextUrl
-  // Already localized: a share image's own URL, or someone typing one.
-  if (isLocale(pathname.split('/')[1])) return null
+  const segment = pathname.split('/')[1]
+  const localized = isLocale(segment)
+  const pagePath = localized ? pathname.slice(segment.length + 1) || '/' : pathname
+  // Internal anonymous copies and localized handlers must keep their paths.
+  if (localized && !isStaticPage(pagePath)) return null
 
-  const locale = resolveLocale({
+  const locale = localized ? segment : resolveLocale({
     cookie: request.cookies.get(LOCALE_COOKIE)?.value,
     acceptLanguage: request.headers.get('accept-language'),
     country: request.headers.get('x-vercel-ip-country'),
   })
-  const personal = hasSupabaseSession(request) || request.cookies.has(REFERRAL_COOKIE) || searchParams.has('ref')
-  const path = pathname === '/' ? '' : pathname
+  // Only the home and obra pages render the server-side invitation. The
+  // gallery reads it in the browser; other pages never read it. Keep the
+  // cookie for attribution without disabling their CDN cache for 30 days.
+  const showsInvite = pagePath === '/' || /^\/obras\/[^/]+\/?$/.test(pagePath)
+  const referral = parseReferral(searchParams.get('ref')) ?? parseReferral(request.cookies.get(REFERRAL_COOKIE)?.value)
+  const personal = hasSupabaseSession(request) || (showsInvite && referral !== null)
+  if (localized && personal) return null
+  const path = pagePath === '/' ? '' : pagePath
   const url = request.nextUrl.clone()
-  url.pathname = !personal && isStaticPage(pathname) ? `/${locale}/anon${path}` : `/${locale}${path}`
+  url.pathname = !personal && isStaticPage(pagePath) ? `/${locale}/anon${path}` : `/${locale}${path}`
   return url
 }
 
