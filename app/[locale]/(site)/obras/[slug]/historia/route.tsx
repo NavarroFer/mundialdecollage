@@ -13,6 +13,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const image = await artworkStoryImage({ finalist, locale, m })
   const headers = new Headers(image.headers)
   headers.set('cache-control', 'private, max-age=3600')
-  headers.set('content-disposition', `attachment; filename="mundial-de-collage-${slug}.png"`)
+  headers.set('content-disposition', `attachment; filename="mundial-de-collage-${slug}.jpg"`)
   return new Response(image.body, { status: image.status, headers })
 }

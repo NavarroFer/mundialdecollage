@@ -18,14 +18,15 @@ export async function cachedShareImage(
   drawn: unknown,
   photoUrl: string,
   render: () => Promise<Rendered>,
+  format: 'png' | 'jpeg' = 'png',
 ): Promise<Response> {
   const store = imageStore()
-  const key = store ? await shareImageKey(drawn, photoUrl) : null
+  const key = store ? await shareImageKey(drawn, photoUrl, format) : null
   if (!store || !key) return (await render()).image
 
   try {
     const stored = await store.get(key)
-    if (stored) return png(stored)
+    if (stored) return imageResponse(stored, format)
   } catch (error) {
     console.error('share image: R2 read failed', key, error)
   }
@@ -34,16 +35,16 @@ export async function cachedShareImage(
   if (!complete) return image
   const body = Buffer.from(await image.arrayBuffer())
   try {
-    await store.put(key, body, 'image/png')
+    await store.put(key, body, `image/${format}`)
   } catch (error) {
     console.error('share image: R2 write failed', key, error)
   }
-  return png(body)
+  return imageResponse(body, format)
 }
 
 // A legacy photo can be overwritten in place, so its version (ETag) goes into
 // the key; without one the image is drawn fresh rather than risk a stale one.
-async function shareImageKey(drawn: unknown, photoUrl: string): Promise<string | null> {
+async function shareImageKey(drawn: unknown, photoUrl: string, format: 'png' | 'jpeg'): Promise<string | null> {
   let version: string | null = 'versioned'
   if (!isVersionedSource(photoUrl)) {
     try {
@@ -55,9 +56,9 @@ async function shareImageKey(drawn: unknown, photoUrl: string): Promise<string |
   }
   if (!version) return null
   const hash = createHash('sha256').update(JSON.stringify([TEMPLATE, drawn, photoUrl, version])).digest('hex')
-  return `share/${hash}.png`
+  return `share/${hash}.${format}`
 }
 
-function png(body: Buffer) {
-  return new Response(new Uint8Array(body), { headers: { 'Content-Type': 'image/png' } })
+function imageResponse(body: Buffer, format: 'png' | 'jpeg') {
+  return new Response(new Uint8Array(body), { headers: { 'Content-Type': `image/${format}` } })
 }
