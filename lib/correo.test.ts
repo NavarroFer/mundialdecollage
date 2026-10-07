@@ -40,12 +40,24 @@ beforeEach(() => {
   vi.stubEnv('CORREO_API_PASSWORD', 'api-secret')
   vi.stubEnv('CORREO_CUSTOMER_ID', 'customer')
   vi.stubEnv('CORREO_API_ENV', 'test')
+  vi.stubEnv('CORREO_SHIPPING_RATE_MODE', 'api')
   vi.stubEnv('CORREO_ORIGIN_POSTAL_CODE', '7600')
   vi.stubEnv('CORREO_PACKAGES_JSON', JSON.stringify({ inicial: { weight: 500, height: 5, width: 20, length: 25 } }))
 })
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 
 describe('official API and tariff', () => {
+  it('uses the provisional monthly fee without requesting a provider quote', async () => {
+    vi.stubEnv('CORREO_SHIPPING_RATE_MODE', '')
+    vi.stubEnv('CORREO_FLAT_SHIPPING_FEE', '5000')
+    vi.stubEnv('CORREO_API_USER', '')
+    const fetch = vi.fn(); vi.stubGlobal('fetch', fetch)
+    const correo = await import('./correo')
+    expect(await correo.quoteSubscriptionShipping('inicial', branch)).toBe(5000)
+    expect(fetch).not.toHaveBeenCalled()
+    vi.stubEnv('CORREO_FLAT_SHIPPING_FEE', '-1')
+    await expect(correo.quoteSubscriptionShipping('inicial', branch)).rejects.toThrow('Invalid fixed shipping fee')
+  })
   it('keeps credentials server-side, reuses requests, and quotes branch delivery with actual dimensions', async () => {
     const fetch = vi.fn().mockResolvedValueOnce(Response.json({ token: 'access' }))
       .mockResolvedValueOnce(Response.json([raw]))
