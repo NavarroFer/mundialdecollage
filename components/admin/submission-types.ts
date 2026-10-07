@@ -48,6 +48,8 @@ export type Submission = {
   // it at full size.
   driveUrl?: string
   isPublic: boolean
+  // Visibility of the artist, distinct from this artwork being the public main work.
+  profileIsPublic?: boolean
   // Editorial review is independent of publication and of `is_selected`,
   // which only chooses an artist's representative work.
   reviewStatus: 'unreviewed' | 'preselected' | 'rejected'
@@ -79,3 +81,6 @@ export type Submission = {
   // Only set when this email has more than one legacy_submissions row.
   legacySiblings?: LegacySibling[]
 }
+
+/** Text-only results; loading this index never loads artwork photos. */
+export type SubmissionSearchEntry = Omit<Submission, 'imageUrl' | 'siblings' | 'legacySiblings' | 'driveUrl' | 'slug' | 'imageFetchFailedAt'>

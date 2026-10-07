@@ -1,17 +1,13 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import {
   Circle,
   CircleCheck,
   CircleX,
   ChevronDown,
-  ExternalLink,
   EyeOff,
-  ImageOff,
-  LayoutGrid,
-  List,
   ListChecks,
   Loader2,
   Megaphone,
@@ -24,11 +20,12 @@ import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { instagramHandle } from '@/lib/instagram'
 import { deleteSubmissions, setSubmissionsReviewStatus, setSubmissionsTechnique, setSubmissionsVisibility } from '@/app/[locale]/(site)/admin/obras/actions'
-import { ObraViewer } from '@/components/admin/obra-viewer'
-import type { Submission } from '@/components/admin/submission-types'
+import { hasSubmissionSearch, matchesSubmissionSearch } from '@/lib/admin-artwork-controls'
+
+const SubmissionViewerLoader = dynamic(() => import('./submission-viewer-loader').then(module => module.SubmissionViewerLoader))
+import type { Submission, SubmissionSearchEntry } from '@/components/admin/submission-types'
 
 type Filter = 'all' | 'pending' | 'public'
-type ViewMode = 'list' | 'mosaic'
 type OriginFilter = 'all' | 'spreadsheet' | 'website'
 type ReviewFilter = 'all' | Submission['reviewStatus']
 type DateOrder = 'newest' | 'oldest'
@@ -50,14 +47,14 @@ const REVIEW_CLASSES: Record<Submission['reviewStatus'], string> = {
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'Todas' },
-  { key: 'pending', label: 'Pendientes' },
+  { key: 'pending', label: 'Sin publicar' },
   { key: 'public', label: 'Publicadas' },
 ]
 
 const TECHNIQUES = ['Analógica', 'Mixta', 'Digital'] as const
 type TechniqueFilter = 'all' | 'none' | (typeof TECHNIQUES)[number]
 
-export function SubmissionsGallery({ submissions }: { submissions: Submission[] }) {
+export function SubmissionsGallery({ submissions }: { submissions: SubmissionSearchEntry[] }) {
   const [filter, setFilter] = useState<Filter>('all')
   const [technique, setTechnique] = useState<TechniqueFilter>('all')
   const [country, setCountry] = useState<string>('all')
@@ -67,11 +64,11 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [dateOrder, setDateOrder] = useState<DateOrder>('newest')
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+  const [openedId, setOpenedId] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({ key: '', page: 0 })
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const secondaryCount = [technique, country, origin, data].filter((value) => value !== 'all').length
 
@@ -84,7 +81,9 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
     return [...codes].sort((a, b) => countryCodeToName(a).localeCompare(countryCodeToName(b)))
   }, [submissions])
 
+  const searching = hasSubmissionSearch(search, [filter, technique, country, origin, review, data])
   const visible = useMemo(() => {
+    if (!searching) return []
     let list = submissions
     if (filter === 'pending') list = list.filter((s) => !s.isPublic)
     else if (filter === 'public') list = list.filter((s) => s.isPublic)
@@ -97,19 +96,17 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
     if (origin === 'spreadsheet') list = list.filter((s) => s.source === 'legacy')
     else if (origin === 'website') list = list.filter((s) => s.source !== 'legacy')
     if (review !== 'all') list = list.filter((s) => s.reviewStatus === review)
-    const searchTerm = search.trim().toLocaleLowerCase()
-    if (searchTerm) {
-      list = list.filter((s) =>
-        [s.name, s.artworkTitle, s.email]
-          .filter((value): value is string => Boolean(value))
-          .some((value) => value.toLocaleLowerCase().includes(searchTerm)),
-      )
-    }
+    if (search.trim()) list = list.filter(entry => matchesSubmissionSearch(entry, search))
     return [...list].sort((a, b) => {
       const difference = Date.parse(a.createdAt ?? '') - Date.parse(b.createdAt ?? '')
       return dateOrder === 'newest' ? -difference : difference
     })
-  }, [submissions, filter, technique, country, origin, review, data, search, dateOrder])
+  }, [submissions, filter, technique, country, origin, review, data, search, dateOrder, searching])
+
+  const resultKey = JSON.stringify([search, filter, technique, country, origin, review, data, dateOrder])
+  const pageCount = Math.ceil(visible.length / 25)
+  const page = pagination.key === resultKey ? Math.min(pagination.page, Math.max(0, pageCount - 1)) : 0
+  const pageResults = visible.slice(page * 25, (page + 1) * 25)
 
   function toggle(id: string) {
     if (!selectMode) {
@@ -131,7 +128,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   }
 
   function selectAllVisible() {
-    setSelected(new Set(visible.map((s) => s.id)))
+    setSelected(new Set(pageResults.map((s) => s.id)))
   }
 
   function resetFilters() {
@@ -153,10 +150,20 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
     data !== 'all' && { label: data === 'no_title' ? 'Sin título' : 'Varias obras', clear: () => setData('all') },
   ].filter((chip): chip is { label: string; clear: () => void } => Boolean(chip))
 
-  function applyVisibility(isPublic: boolean) {
-    const ids = Array.from(selected)
+  function runBulkAction(action: () => Promise<void>) {
     setActionMessage(null)
     startTransition(async () => {
+      try {
+        await action()
+      } catch (error) {
+        setActionMessage(error instanceof Error ? error.message : 'No se pudo completar la acción. Volvé a intentar.')
+      }
+    })
+  }
+
+  function applyVisibility(isPublic: boolean) {
+    const ids = Array.from(selected)
+    runBulkAction(async () => {
       const { skipped } = await setSubmissionsVisibility(ids, isPublic)
       if (skipped.length > 0) {
         const names = skipped
@@ -174,8 +181,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
   function applyReviewStatus(reviewStatus: Submission['reviewStatus']) {
     const ids = Array.from(selected)
-    setActionMessage(null)
-    startTransition(async () => {
+    runBulkAction(async () => {
       await setSubmissionsReviewStatus(ids, reviewStatus)
       cancelSelection()
     })
@@ -183,8 +189,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
   function applyTechnique(value: string) {
     const ids = Array.from(selected)
-    setActionMessage(null)
-    startTransition(async () => {
+    runBulkAction(async () => {
       await setSubmissionsTechnique(ids, value === 'none' ? null : value)
       cancelSelection()
     })
@@ -193,7 +198,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
   function applyDelete() {
     const items = Array.from(selected)
       .map((id) => submissions.find((s) => s.id === id))
-      .filter((s): s is Submission => Boolean(s))
+      .filter((s): s is SubmissionSearchEntry => Boolean(s))
       .map((s) =>
         s.source === 'legacy'
           ? { table: 'legacy_submissions' as const, id: s.legacyId! }
@@ -204,8 +209,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
       return
     }
 
-    setActionMessage(null)
-    startTransition(async () => {
+    runBulkAction(async () => {
       await deleteSubmissions(items)
       cancelSelection()
     })
@@ -213,6 +217,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
 
   return (
     <div className={cn(selected.size > 0 && 'pb-[23rem] sm:pb-[20rem] lg:pb-52')}>
+      {actionMessage && <p role="alert" className="mb-3 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-3 py-2 text-sm text-ink">{actionMessage}</p>}
       <section className="rounded-2xl border-2 border-ink/10 bg-card">
         {/* 1 · Find and arrange: always at hand. */}
         <div className="flex flex-wrap items-center gap-2 p-3 sm:p-4">
@@ -231,26 +236,6 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
             <option value="newest">Más recientes primero</option>
             <option value="oldest">Más antiguas primero</option>
           </select>
-          <div className="flex rounded-full border-2 border-ink/15 bg-card p-0.5" aria-label="Vista de obras">
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={cn('rounded-full p-2', viewMode === 'list' ? 'bg-collage-blue text-primary-foreground' : 'text-muted-foreground hover:text-ink')}
-              aria-label="Ver como lista"
-              title="Vista de lista"
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('mosaic')}
-              className={cn('rounded-full p-2', viewMode === 'mosaic' ? 'bg-collage-blue text-primary-foreground' : 'text-muted-foreground hover:text-ink')}
-              aria-label="Ver como mosaico"
-              title="Vista de mosaico"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-          </div>
           <button
             type="button"
             onClick={() => (selectMode ? cancelSelection() : setSelectMode(true))}
@@ -318,7 +303,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
         {/* 4 · What's showing, and each active filter one tap from gone. */}
         <div className="flex flex-wrap items-center gap-2 border-t-2 border-ink/10 px-3 py-2.5 text-sm sm:px-4">
           <p className="font-semibold text-ink">
-            {visible.length === submissions.length ? `${submissions.length} obras` : `${visible.length} de ${submissions.length} obras`}
+            {searching ? `${visible.length} resultados de ${submissions.length} obras` : `${submissions.length} obras disponibles para buscar`}
           </p>
           {activeChips.map((chip) => (
             <button
@@ -340,168 +325,57 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
         </div>
       </section>
 
-      {selectMode && (
+      {selectMode && pageResults.length > 0 && (
         <button
           type="button"
           onClick={selectAllVisible}
           className="mt-3 text-sm font-semibold text-collage-blue hover:underline"
         >
-          Seleccionar las {visible.length} visibles
+          Seleccionar los {pageResults.length} resultados de esta página
         </button>
       )}
 
-      {submissions.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-2 text-center text-muted-foreground">
-          <ImageOff className="h-8 w-8" />
-          <p>Todavía no llegó ninguna obra.</p>
-        </div>
+
+      {!searching ? (
+        <p className="mt-6 rounded-xl border-2 border-dashed border-ink/15 px-4 py-6 text-center text-sm text-muted-foreground">
+          Escribí al menos dos caracteres o elegí un filtro para buscar. Seleccioná un resultado para ver su imagen y revisarlo.
+        </p>
       ) : visible.length === 0 ? (
-        <p className="mt-10 text-center text-muted-foreground">No hay obras en esta categoría.</p>
+        <p className="mt-6 text-center text-sm text-muted-foreground" role="status">No hay obras que coincidan con tu búsqueda.</p>
       ) : (
-        <div className={cn(
-          'mt-6',
-          viewMode === 'list'
-            ? 'space-y-2'
-            : 'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-        )}>
-          {visible.map((s, i) => {
-            const isLegacy = s.source === 'legacy'
-            const isSelected = selected.has(s.id)
-
-            return (
-              <div
-                key={s.id}
-                className={cn(
-                  'group relative text-left',
-                  viewMode === 'list' && 'rounded-xl border-2 border-ink/10 bg-card transition-colors hover:border-ink/25',
-                )}
-              >
-                {/* Opens the detail viewer when browsing, toggles selection instead
-                    once selectMode is on — a sibling of the selection checkbox and
-                    Drive link below, not their ancestor, so nothing needs
-                    stopPropagation. */}
-                <button
-                  type="button"
-                  onClick={() => (selectMode ? toggle(s.id) : setViewerIndex(i))}
-                  className={cn(
-                    'text-left',
-                    viewMode === 'list' ? 'flex w-full min-w-0 items-center gap-4 p-3 pr-14 sm:pr-28' : 'block w-full',
-                  )}
-                  aria-label={
-                    selectMode
-                      ? isSelected
-                        ? `Deseleccionar ${s.name}`
-                        : `Seleccionar ${s.name}`
-                      : `Ver ${s.name} en detalle`
-                  }
-                >
-                  <div
-                    className={cn(
-                      'relative overflow-hidden rounded-xl border-2 bg-muted',
-                      viewMode === 'list' ? 'h-24 w-24 shrink-0 sm:h-28 sm:w-28' : 'aspect-square',
-                      isSelected ? 'border-collage-blue' : 'border-ink/10',
-                    )}
-                  >
-                    <Image
-                      src={s.imageUrl}
-                      alt={s.artworkTitle ? `${s.artworkTitle}, de ${s.name}` : s.name}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                      className={cn(
-                        'object-contain p-1 transition-opacity',
-                        isSelected && 'opacity-70',
-                      )}
-                    />
-
-                    {isSelected && <div className="absolute inset-0 bg-collage-blue/20" aria-hidden />}
-
-                    {!selectMode && s.artworkCount && s.artworkCount > 1 && (
-                      <span className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[0.65rem] font-bold text-ink shadow">
-                        +{s.artworkCount} obras
-                      </span>
-                    )}
-
-                    {s.isPublic ? (
-                      <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
-                        <Megaphone className="h-3 w-3" />
-                        Participa
-                      </span>
-                    ) : (
-                      isLegacy && (
-                        <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-[0.65rem] font-bold text-white">
-                          <CircleCheck className="h-3 w-3" />
-                          Precargada
-                        </span>
-                      )
-                    )}
-                  </div>
-
-                  <div className={cn('min-w-0', viewMode === 'mosaic' && 'mt-1.5')}>
-                    <p className="truncate text-sm font-semibold text-ink">
-                      {s.artworkTitle ?? 'Sin título'}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {s.countryCode && <span aria-hidden>{countryCodeToFlag(s.countryCode)} </span>}{s.name}
-                      {s.technique && ` · ${s.technique}`}
-                    </p>
-                    <p className="mt-1 text-[0.65rem] font-bold tracking-wide text-muted-foreground uppercase">
-                      Origen: {s.source === 'legacy' ? 'Importada desde planilla' : 'Registrada en la página'}
-                    </p>
-                    <span className={cn('mt-1 inline-flex rounded-full px-2 py-0.5 text-[0.65rem] font-bold', REVIEW_CLASSES[s.reviewStatus])}>
-                      {REVIEW_LABELS[s.reviewStatus]}
-                    </span>
-                    {!s.artworkTitle && s.source === 'real' && <p className="truncate text-xs text-collage-red">Sin datos (título)</p>}
-                    {s.instagram && (
-                      <p className="truncate text-xs text-collage-red">@{instagramHandle(s.instagram) ?? s.instagram}</p>
-                    )}
-                  </div>
-                </button>
-
-                <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                  {isLegacy && s.driveUrl && (
-                    <a
-                      href={s.driveUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="Ver la foto original en Drive, en tamaño completo"
-                      className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.65rem] font-bold text-ink shadow hover:bg-white"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Drive
-                    </a>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => toggle(s.id)}
-                    aria-label={isSelected ? `Deseleccionar ${s.name}` : `Seleccionar ${s.name}`}
-                    className={cn(
-                      'rounded-full bg-white/90 p-0.5 shadow transition-opacity',
-                      selectMode
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
-                    )}
-                  >
-                    {isSelected ? (
-                      <CircleCheck className="h-6 w-6 text-collage-blue" fill="white" />
-                    ) : (
-                      <Circle className="h-6 w-6 text-ink/40" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            )
-          })}
+        <div className="mt-4 space-y-2" aria-label="Resultados de obras">
+          {pageResults.map(submission => (
+            <div key={submission.id} className="flex items-center gap-3 rounded-xl border-2 border-ink/10 bg-card p-3 hover:border-ink/25">
+              <button type="button" onClick={() => selectMode ? toggle(submission.id) : setOpenedId(submission.id)} className="min-w-0 flex-1 text-left focus-visible:outline-2 focus-visible:outline-collage-blue">
+                <p className="truncate text-sm font-semibold text-ink">{submission.artworkTitle?.trim() || 'Sin título'}</p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {submission.countryCode && <span aria-hidden>{countryCodeToFlag(submission.countryCode)} </span>}{submission.name}
+                  {submission.technique && ` · ${submission.technique}`}
+                </p>
+                {submission.email && <p className="truncate text-xs text-muted-foreground">{submission.email}</p>}
+                <span className={cn('mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', REVIEW_CLASSES[submission.reviewStatus])}>{REVIEW_LABELS[submission.reviewStatus]}</span>
+                {submission.isPublic && <span className="ml-2 text-xs text-collage-blue">Publicada</span>}
+                {(submission.artworkCount ?? 1) > 1 && <span className="ml-2 text-xs text-muted-foreground">{submission.artworkCount} obras del artista</span>}
+                {submission.instagram && <p className="truncate text-xs text-collage-red">@{instagramHandle(submission.instagram) ?? submission.instagram}</p>}
+              </button>
+              <button type="button" onClick={() => toggle(submission.id)} aria-label={`${selected.has(submission.id) ? 'Deseleccionar' : 'Seleccionar'} ${submission.artworkTitle?.trim() || 'obra sin título'} de ${submission.name}`} aria-pressed={selected.has(submission.id)} className="rounded-full p-1 text-collage-blue focus-visible:outline-2 focus-visible:outline-collage-blue">
+                {selected.has(submission.id) ? <CircleCheck className="h-6 w-6" /> : <Circle className="h-6 w-6 text-ink/40" />}
+              </button>
+            </div>
+          ))}
+          {pageCount > 1 && (
+            <nav className="flex items-center justify-between pt-3 text-sm" aria-label="Páginas de resultados">
+              <button type="button" disabled={page === 0} onClick={() => setPagination({ key: resultKey, page: page - 1 })} className="rounded-lg border border-ink/15 px-3 py-2 disabled:opacity-40">Anterior</button>
+              <span>Página {page + 1} de {pageCount}</span>
+              <button type="button" disabled={page + 1 >= pageCount} onClick={() => setPagination({ key: resultKey, page: page + 1 })} className="rounded-lg border border-ink/15 px-3 py-2 disabled:opacity-40">Siguiente</button>
+            </nav>
+          )}
         </div>
       )}
 
       {selected.size > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-20 max-h-[70svh] overflow-y-auto border-t-2 border-ink/10 bg-card/95 shadow-[0_-12px_30px_rgb(35_30_27_/_0.10)] backdrop-blur">
           <div className="mx-auto max-w-6xl px-5 py-3 sm:px-8 sm:py-4">
-            {actionMessage && (
-              <p className="mb-3 rounded-xl border-2 border-collage-red/30 bg-collage-red/10 px-3 py-2 text-xs text-ink">
-                {actionMessage}
-              </p>
-            )}
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-ink">
@@ -603,7 +477,7 @@ export function SubmissionsGallery({ submissions }: { submissions: Submission[] 
         </div>
       )}
 
-      <ObraViewer items={visible} activeIndex={viewerIndex} onActiveIndexChange={setViewerIndex} />
+      {openedId && <SubmissionViewerLoader key={openedId} id={openedId} revision={submissions} onClose={() => setOpenedId(null)} />}
     </div>
   )
 }

@@ -9,6 +9,8 @@ import { isValidEmail } from '@/lib/resend'
 import { storeLegacyArtworkGlobally } from '@/lib/legacy-submissions'
 import { reuseRegistroArtwork } from '@/lib/reuse-registro-artwork'
 import { normalizeArtistName } from '@/lib/name-format'
+import { isArtworkPublished } from '@/lib/admin-artwork-controls'
+import { instagramHandle, instagramUrl } from '@/lib/instagram'
 import { guessCountryCodeFromName } from '@/lib/participants'
 import { provisionLegacyProfiles, publishPendingLegacySubmissions } from '@/lib/publish-legacy'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
@@ -54,7 +56,7 @@ function revalidatePublicPages() {
 }
 
 // The gallery's selection and the viewer both pass ids in the gallery's own
-// mixed shape — a bare profiles.id for a real submission, or
+// mixed shape — a bare artworks.id for a real submission, or
 // `legacy-<legacy_submissions.id>` for a precargada (see
 // app/admin/obras/page.tsx's legacyGalleryItems) — so "Ocultar"/"Estas
 // participan" work the same regardless of which kind is selected.
@@ -75,19 +77,29 @@ export async function setSubmissionsVisibility(
   isPublic: boolean,
 ): Promise<{ skipped: string[] }> {
   if (ids.length === 0) return { skipped: [] }
+  await assertIsAdmin()
 
   const realIds = ids.filter((id) => !id.startsWith('legacy-'))
   const legacyIds = ids.filter((id) => id.startsWith('legacy-')).map((id) => id.slice('legacy-'.length))
 
   const supabase = await createClient()
-  const profileIdsToUpdate = [...realIds]
+  const profileIdsToUpdate: string[] = []
+  if (realIds.length > 0) {
+    const { data: artworks, error } = await supabase.from('artworks').select('id, profile_id')
+      .in('id', realIds).is('archived_at', null).is('duplicate_of', null)
+    if (error) throw new Error(error.message)
+    if (artworks?.length !== new Set(realIds).size) throw new Error('Una de las obras ya no está disponible. Actualizá la página.')
+    profileIdsToUpdate.push(...artworks.map(artwork => artwork.profile_id))
+  }
   let skipped: string[] = []
 
   if (legacyIds.length > 0) {
-    const { data: rows } = await supabase
+    const { data: rows, error } = await supabase
       .from('legacy_submissions')
       .select('id, email, name, country_raw, image_url, claimed_by')
-      .in('id', legacyIds)
+      .in('id', legacyIds).is('archived_at', null).is('duplicate_of', null)
+    if (error) throw new Error(error.message)
+    if (rows?.length !== new Set(legacyIds).size) throw new Error('Una de las obras ya no está disponible. Actualizá la página.')
 
     for (const row of rows ?? []) {
       if (row.claimed_by) {
@@ -112,7 +124,11 @@ export async function setSubmissionsVisibility(
   }
 
   if (profileIdsToUpdate.length > 0) {
-    await supabase.from('profiles').update({ is_public: isPublic }).in('id', profileIdsToUpdate)
+    const profileIds = [...new Set(profileIdsToUpdate)]
+    const { data: updated, error } = await supabase.from('profiles')
+      .update({ is_public: isPublic }).in('id', profileIds).select('id')
+    if (error) throw new Error(error.message)
+    if (updated?.length !== profileIds.length) throw new Error('No se pudo actualizar la publicación de todos los artistas.')
   }
 
   refreshPublicData()
@@ -641,20 +657,23 @@ export async function updateArtwork(input: {
 // reason: the two tables a selection can span need two different deletes.
 export async function deleteSubmissions(items: { table: 'artworks' | 'legacy_submissions'; id: string }[]) {
   if (items.length === 0) return
+  await assertIsAdmin()
 
   const supabase = await createClient()
   const artworkIds = items.filter((item) => item.table === 'artworks').map((item) => item.id)
   const legacyIds = items.filter((item) => item.table === 'legacy_submissions').map((item) => item.id)
 
-  await Promise.all([
+  const results = await Promise.all([
     artworkIds.length > 0 ? supabase.from('artworks').delete().in('id', artworkIds) : null,
     legacyIds.length > 0 ? supabase.from('legacy_submissions').delete().in('id', legacyIds) : null,
   ])
+  const error = results.find(result => result?.error)?.error
 
   refreshPublicData()
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
+  if (error) throw new Error(error.message)
 }
 
 // Applies the "limpieza de nombres" cleanup an admin approved in
@@ -703,4 +722,69 @@ export async function applyNameCleanup(items: { table: 'profiles' | 'legacy_subm
   revalidatePath('/admin/obras')
   revalidatePath('/')
   revalidatePath('/edicion-2026')
+}
+
+// Text search results intentionally contain no image URLs or sibling lists.
+// This read is independently authorized: Server Actions are callable without
+// rendering the admin layout.
+export async function getAdminSubmissionDetails(id: string): Promise<import('@/components/admin/submission-types').Submission | null> {
+  await assertIsAdmin()
+  const supabase = await createClient()
+  if (id.startsWith('legacy-')) {
+    const { data: row, error } = await supabase.from('legacy_submissions')
+      .select('id, name, email, country_raw, title, technique, image_url, created_at, drive_url, claimed_by, review_status, instagram, image_fetch_failed_at')
+      .eq('id', id.slice('legacy-'.length)).is('archived_at', null).is('duplicate_of', null).maybeSingle()
+    if (error) throw new Error(error.message)
+    if (!row?.image_url) return null
+    const [{ data: siblings, error: siblingError }, profileResult] = await Promise.all([
+      supabase.from('legacy_submissions')
+        .select('id, name, image_url, drive_url, selected, promoted, image_fetch_failed_at')
+        .eq('email', row.email).is('archived_at', null).is('duplicate_of', null).order('created_at'),
+      row.claimed_by ? supabase.from('profiles').select('is_public').eq('id', row.claimed_by).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    ])
+    if (siblingError || profileResult.error) throw new Error(siblingError?.message ?? profileResult.error?.message)
+    const { data: linked, error: linkedError } = await supabase.from('artworks').select('is_selected')
+      .eq('legacy_submission_id', row.id).is('archived_at', null).is('duplicate_of', null).maybeSingle()
+    if (linkedError) throw new Error(linkedError.message)
+    const handle = instagramHandle(row.instagram)
+    return {
+      id, name: row.name ?? 'Sin nombre', email: row.email,
+      countryCode: row.country_raw ? guessCountryCodeFromName(row.country_raw) : undefined,
+      artworkTitle: row.title ?? undefined, technique: row.technique ?? undefined,
+      imageUrl: row.image_url, createdAt: row.created_at,
+      driveUrl: row.drive_url ?? undefined, imageFetchFailedAt: row.image_fetch_failed_at,
+      isPublic: isArtworkPublished(profileResult.data?.is_public ?? false, linked?.is_selected), profileIsPublic: profileResult.data?.is_public ?? false, reviewStatus: row.review_status,
+      source: 'legacy', legacyId: row.id, instagram: handle ? instagramUrl(handle) : undefined,
+      artworkCount: siblings?.length ?? 1,
+      legacySiblings: (siblings?.length ?? 0) > 1 ? siblings!.map(sibling => ({
+        id: sibling.id, name: sibling.name, imageUrl: sibling.image_url,
+        driveUrl: sibling.drive_url, selected: sibling.selected,
+        promoted: sibling.promoted, imageFetchFailedAt: sibling.image_fetch_failed_at,
+      })) : undefined,
+    }
+  }
+  const { data: row, error } = await supabase.from('artworks')
+    .select('id, profile_id, slug, title, technique, image_url, created_at, review_status, is_selected')
+    .eq('id', id).is('archived_at', null).is('duplicate_of', null).maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!row?.image_url) return null
+  const [{ data: profile, error: profileError }, { data: siblings, error: siblingError }] = await Promise.all([
+    supabase.from('profiles').select('name, country_code, is_public, instagram').eq('id', row.profile_id).maybeSingle(),
+    supabase.from('artworks').select('id, title, image_url, is_selected, is_entered')
+      .eq('profile_id', row.profile_id).is('archived_at', null).is('duplicate_of', null).order('created_at'),
+  ])
+  if (profileError || siblingError) throw new Error(profileError?.message ?? siblingError?.message)
+  if (!profile) return null
+  const handle = instagramHandle(profile.instagram)
+  return {
+    id, name: profile.name ?? 'Sin nombre', countryCode: profile.country_code ?? undefined,
+    artworkTitle: row.title ?? undefined, technique: row.technique ?? undefined,
+    imageUrl: row.image_url, createdAt: row.created_at, slug: row.slug ?? undefined,
+    isPublic: isArtworkPublished(profile.is_public, row.is_selected), profileIsPublic: profile.is_public, reviewStatus: row.review_status, source: 'real', artworkId: row.id,
+    instagram: handle ? instagramUrl(handle) : undefined, artworkCount: siblings?.length ?? 1,
+    siblings: (siblings?.length ?? 0) > 1 ? siblings!.map(sibling => ({
+      id: sibling.id, title: sibling.title, imageUrl: sibling.image_url,
+      isSelected: sibling.is_selected, isEntered: sibling.is_entered,
+    })) : undefined,
+  }
 }

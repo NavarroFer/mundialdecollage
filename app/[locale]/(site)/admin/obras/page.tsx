@@ -1,5 +1,4 @@
-import Image from 'next/image'
-import { CircleAlert, CircleCheck, ExternalLink, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { CircleAlert, ExternalLink, RefreshCw, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { guessCountryCodeFromName } from '@/lib/participants'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
@@ -10,12 +9,11 @@ import { LegacyImageUpload } from '@/components/admin/legacy-image-upload'
 import { NameCleanup, type NameCleanupItem } from '@/components/admin/name-cleanup'
 import { normalizeArtistName } from '@/lib/name-format'
 import { instagramUrl } from '@/lib/instagram'
+import { pendingArtworkGroups, submissionSearchEntry, isArtworkPublished } from '@/lib/admin-artwork-controls'
+import { PendingArtworkChoices } from '@/components/admin/pending-artwork-choices'
 import {
-  deleteArtwork,
-  deleteLegacySubmission,
   importLegacySubmissions,
   retryLegacyImageFetch,
-  selectArtwork,
 } from './actions'
 import { adminDescription } from '@/components/admin/admin-sections'
 
@@ -35,6 +33,7 @@ type ArtworkRow = {
     name: string | null
     country_code: string | null
     is_public: boolean
+    entries_chosen_at: string | null
     onboarded_at: string | null
     instagram: string | null
   } | null
@@ -55,9 +54,10 @@ export default async function ObrasPage({
   const { data: artworkData } = await supabase
     .from('artworks')
     .select(
-      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, created_at, legacy_submission_id, review_status, profiles!inner(name, country_code, is_public, onboarded_at, instagram)',
+      'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, created_at, legacy_submission_id, review_status, profiles!inner(name, country_code, is_public, onboarded_at, instagram, entries_chosen_at)',
     )
     .is('archived_at', null)
+    .is('duplicate_of', null)
     .order('created_at', { ascending: true })
 
   const artworkRows = (artworkData ?? []) as unknown as ArtworkRow[]
@@ -68,10 +68,9 @@ export default async function ObrasPage({
     artworksByProfile.set(row.profile_id, list)
   }
 
-  // Profiles with more than one artwork row — the ones that actually need
-  // an admin's "Usar esta obra" curation (a lone artwork always
-  // auto-selects on submission, see app/onboarding/actions.ts).
-  const multiArtworkGroups = [...artworksByProfile.entries()].filter(([, rows]) => rows.length > 1)
+  // A provisional main artwork does not mean the artist confirmed a choice.
+  // Keep only multi-work profiles with entries_chosen_at still unset.
+  const multiArtworkGroups = pendingArtworkGroups(artworksByProfile)
 
   // Pre-real-flow submissions that arrived by email (see
   // supabase/migrations/20260919000000_legacy_submissions.sql). Several
@@ -84,6 +83,7 @@ export default async function ObrasPage({
       'id, email, name, drive_url, country_raw, title, technique, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram, review_status',
     )
     .is('archived_at', null)
+    .is('duplicate_of', null)
     .order('email', { ascending: true })
     .order('created_at', { ascending: true })
 
@@ -126,6 +126,7 @@ export default async function ObrasPage({
   // Registro row, including an artist's additional works. A Registro-linked
   // `artworks` row is deliberately represented by this source row only, so
   // it cannot appear twice after the artist completes onboarding.
+  const linkedArtworks = new Map(artworkRows.filter(row => row.legacy_submission_id).map(row => [row.legacy_submission_id!, row]))
   const legacyGalleryItems = legacyRowsWithImage
     .map((row) => {
       const groupRows = legacyGroups.get(row.email) ?? [row]
@@ -143,11 +144,13 @@ export default async function ObrasPage({
         imageUrl: row.image_url as string,
         createdAt: row.created_at,
         driveUrl: row.drive_url ?? undefined,
-        isPublic: row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false,
+        isPublic: isArtworkPublished(row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false, linkedArtworks.get(row.id)?.is_selected),
+        profileIsPublic: row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false,
         source: 'legacy' as const,
         reviewStatus: row.review_status,
         legacyId: row.id,
         email: row.email,
+        artworkCount: groupRows.length,
         imageFetchFailedAt: row.image_fetch_failed_at,
         instagram: row.instagram ? instagramUrl(row.instagram) : undefined,
         legacySiblings:
@@ -181,7 +184,8 @@ export default async function ObrasPage({
         imageUrl: row.image_url!,
         createdAt: row.created_at,
         slug: row.slug ?? undefined,
-        isPublic: Boolean(profile?.is_public),
+        isPublic: isArtworkPublished(Boolean(profile?.is_public), row.is_selected),
+        profileIsPublic: Boolean(profile?.is_public),
         artworkCount: siblings.length,
         source: 'real' as const,
         reviewStatus: row.review_status,
@@ -275,11 +279,11 @@ export default async function ObrasPage({
       <div className="mt-6 flex flex-wrap gap-3">
         <StatPill label="Recibidas" value={typeof receivedCount === 'number' ? receivedCount : submissions.length} />
         <StatPill label="Publicadas" value={publicCount} />
-        <StatPill label="Pendientes" value={submissions.length - publicCount} />
+        <StatPill label="Sin publicar" value={submissions.length - publicCount} />
       </div>
 
       <div className="mt-8">
-        <SubmissionsGallery submissions={submissions} />
+        <SubmissionsGallery submissions={submissions.map(submissionSearchEntry)} />
       </div>
 
       {nameCleanupItems.length > 0 && (
@@ -296,76 +300,26 @@ export default async function ObrasPage({
         </div>
       )}
 
-      {multiArtworkGroups.length > 0 && (
-        <div className="mt-14">
-          <AdminPageHeader eyebrow="Curación" title="Artistas con varias obras" />
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-            Mandaron más de una obra — elegí cuál es la que cuenta con &quot;Usar esta
-            obra&quot;. Todas aparecen en la grilla de arriba para la revisión.
+      <section className="mt-14" aria-labelledby="pending-artwork-choices">
+        <h2 id="pending-artwork-choices" className="font-display text-2xl text-ink uppercase">
+          Artistas pendientes de elegir obra ({multiArtworkGroups.length})
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          Artistas con varias obras que todavía no confirmaron su elección. Abrí una obra para
+          revisarla o cambiar la principal. Quienes ya eligieron dejan de aparecer en esta sección.
+        </p>
+        {multiArtworkGroups.length > 0 ? (
+          <PendingArtworkChoices artists={multiArtworkGroups.map(([profileId, rows]) => ({
+            id: profileId,
+            name: rows.find(row => row.profiles?.name)?.profiles?.name ?? 'Sin nombre',
+            artworks: rows.map(row => ({ id: row.id, title: row.title, isSelected: row.is_selected })),
+          }))} />
+        ) : (
+          <p className="mt-4 rounded-xl border border-ink/10 bg-card p-4 text-sm text-muted-foreground">
+            No hay artistas pendientes de elegir obra.
           </p>
-
-          <div className="mt-6 space-y-4">
-            {multiArtworkGroups.map(([profileId, rows]) => {
-              const displayName = rows.find((r) => r.profiles?.name)?.profiles?.name ?? 'Sin nombre'
-              return (
-                <div key={profileId} className="rounded-2xl border-2 border-ink/10 bg-card p-5">
-                  <p className="font-semibold text-ink">{displayName}</p>
-                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    {rows.map((row) => (
-                      <div key={row.id} className="text-left">
-                        <div className="relative aspect-square overflow-hidden rounded-xl border-2 border-ink/10 bg-muted">
-                          {row.image_url && (
-                            <Image
-                              src={row.image_url}
-                              alt={row.title ?? displayName}
-                              fill
-                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                              className="object-cover"
-                            />
-                          )}
-                          {row.is_selected && (
-                            <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] font-bold text-primary-foreground">
-                              <CircleCheck className="h-3 w-3" />
-                              Elegida
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1.5 truncate text-sm font-semibold text-ink">
-                          {row.title ?? 'Sin datos'}
-                        </p>
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <form action={selectArtwork}>
-                            <input type="hidden" name="id" value={row.id} />
-                            <SubmitButton
-                              size="sm"
-                              variant={row.is_selected ? 'primary' : 'outline'}
-                              className="h-auto gap-1 px-2 py-1 text-[0.65rem]"
-                              pendingLabel="Guardando…"
-                            >
-                              {row.is_selected ? 'Elegida' : 'Usar esta obra'}
-                            </SubmitButton>
-                          </form>
-                          <form action={deleteArtwork}>
-                            <input type="hidden" name="id" value={row.id} />
-                            <SubmitButton
-                              size="sm"
-                              variant="ghost"
-                              className="h-auto gap-1 px-1.5 py-1 text-[0.65rem] text-collage-red hover:bg-collage-red/10"
-                              pendingLabel="Borrando…"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </SubmitButton>
-                          </form>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+        )}
+      </section>
 
       <div className="mt-14">
         <AdminPageHeader eyebrow="Antes del sitio" title="Obras precargadas" />
@@ -432,51 +386,9 @@ export default async function ObrasPage({
           <LegacyImageSync initialPending={imagesPendingCount} initialFailed={imagesFailedCount} />
         )}
 
-        {promotedRows.length > 0 && (
-          <details className="group/confirmed mt-6">
-            <summary className="cursor-pointer rounded-lg text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue">
-              Obras confirmadas ({promotedRows.length})
-              <span className="ml-3 text-collage-blue group-open/confirmed:hidden">Mostrar listado</span>
-              <span className="ml-3 hidden text-collage-blue group-open/confirmed:inline">Ocultar listado</span>
-            </summary>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Ya se ven arriba, en la galería de &quot;Obras&quot;.
-            </p>
-            <div className="mt-3 divide-y divide-ink/10 rounded-2xl border-2 border-ink/10 bg-card px-5">
-              {promotedRows.map((row) => (
-                <div key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-ink/10 bg-muted">
-                      <Image
-                        src={row.image_url as string}
-                        alt={row.name ?? row.email}
-                        fill
-                        sizes="40px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-ink">{row.name ?? 'Sin nombre'}</p>
-                      <p className="truncate text-xs text-muted-foreground">{row.email}</p>
-                    </div>
-                  </div>
-                  <form action={deleteLegacySubmission}>
-                    <input type="hidden" name="id" value={row.id} />
-                    <SubmitButton
-                      size="sm"
-                      variant="ghost"
-                      className="gap-1.5 text-collage-red hover:bg-collage-red/10 hover:text-collage-red"
-                      pendingLabel="Borrando…"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Borrar
-                    </SubmitButton>
-                  </form>
-                </div>
-              ))}
-            </div>
-          </details>
-        )}
+        <p className="mt-6 text-sm text-muted-foreground">
+          Para revisar una obra precargada, buscá al artista, el título o el email en el buscador de arriba.
+        </p>
 
         <div className="mt-10 space-y-4">
           {legacyGroups.size === 0 && (

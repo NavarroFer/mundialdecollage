@@ -48,6 +48,7 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
   const open = activeIndex !== null
   const current = activeIndex !== null ? items[activeIndex] : null
   const [isPending, startTransition] = useTransition()
+  const [visibilityError, setVisibilityError] = useState<string | null>(null)
 
   // Fed to the JSX below instead of `current` directly — `current` goes null the
   // instant the dialog starts closing, which would blank the content mid fade-out.
@@ -85,8 +86,14 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
 
   function toggleVisibility() {
     if (!renderedItem) return
-    startTransition(() => {
-      setSubmissionsVisibility([renderedItem.id], !renderedItem.isPublic)
+    setVisibilityError(null)
+    startTransition(async () => {
+      try {
+        const { skipped } = await setSubmissionsVisibility([renderedItem.id], !(renderedItem.profileIsPublic ?? renderedItem.isPublic))
+        if (skipped.length) setVisibilityError('No se pudo publicar: falta la imagen o falló la creación de la cuenta.')
+      } catch (error) {
+        setVisibilityError(error instanceof Error ? error.message : 'No se pudo cambiar la publicación.')
+      }
     })
   }
 
@@ -169,7 +176,7 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
                 {renderedItem.isPublic ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-collage-blue px-2.5 py-1 text-xs font-bold text-primary-foreground">
                     <Megaphone className="h-3.5 w-3.5" />
-                    Participa
+                    Publicada
                   </span>
                 ) : (
                   renderedItem.source === 'legacy' && (
@@ -183,6 +190,10 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
 
               {renderedItem.slug && renderedItem.isPublic && <ArLinks key={renderedItem.slug} slug={renderedItem.slug} countryCode={renderedItem.countryCode} />}
 
+              {renderedItem.profileIsPublic && !renderedItem.isPublic && (
+                <p className="mt-3 text-sm text-muted-foreground">Esta obra está cargada. La que se muestra públicamente es la principal del artista.</p>
+              )}
+              {visibilityError && <p role="alert" className="mt-3 text-sm text-collage-red">{visibilityError}</p>}
               <div className="mt-5 border-t-2 border-ink/10 pt-5">
                 {renderedItem.source === 'legacy' ? (
                   <LegacyActions
@@ -281,12 +292,12 @@ function RealActions({
         <Button type="button" variant="outline" size="sm" disabled={isTogglingVisibility} onClick={onToggleVisibility}>
           {isTogglingVisibility ? (
             <Loader2 className="h-4 w-4 animate-spin" />
-          ) : item.isPublic ? (
+          ) : (item.profileIsPublic ?? item.isPublic) ? (
             <EyeOff className="h-4 w-4" />
           ) : (
             <Megaphone className="h-4 w-4" />
           )}
-          {item.isPublic ? 'Ocultar' : 'Estas participan'}
+          {(item.profileIsPublic ?? item.isPublic) ? 'Ocultar artista' : 'Publicar artista'}
         </Button>
 
         <form action={deleteArtwork}>
@@ -374,15 +385,15 @@ function LegacyActions({
         >
           {isTogglingVisibility ? (
             <Loader2 className="h-4 w-4 animate-spin" />
-          ) : item.isPublic ? (
+          ) : (item.profileIsPublic ?? item.isPublic) ? (
             <EyeOff className="h-4 w-4" />
           ) : (
             <Megaphone className="h-4 w-4" />
           )}
-          {item.isPublic ? 'Ocultar' : 'Mostrar en el home'}
+          {(item.profileIsPublic ?? item.isPublic) ? 'Ocultar artista' : 'Publicar artista'}
         </Button>
       </div>
-      {!item.isPublic && (
+      {!(item.profileIsPublic ?? item.isPublic) && (
         <p className="text-xs text-muted-foreground">
           Si esta persona nunca inició sesión, publicarla le crea una cuenta a su nombre —
           si después se loguea de verdad con este mismo mail, entra directo a esa cuenta.
