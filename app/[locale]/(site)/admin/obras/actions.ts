@@ -593,6 +593,34 @@ export async function deleteArtwork(formData: FormData) {
 
 const ARTWORK_TECHNIQUES = new Set(['Analógica', 'Mixta', 'Digital'])
 
+// Edits the intake title and its linked public artwork, when present.
+export async function updateSubmissionTitle(id: string, value: string): Promise<{ error?: string }> {
+  await assertIsAdmin()
+  const admin = createAdminClient()
+  const title = value.trim() || null
+  const legacy = id.startsWith('legacy-')
+  const { data: row, error } = await admin
+    .from(legacy ? 'legacy_submissions' : 'artworks')
+    .update({ title })
+    .eq('id', legacy ? id.slice('legacy-'.length) : id)
+    .select('id')
+    .maybeSingle()
+  if (error) return { error: error.message }
+  if (!row) return { error: 'No se encontró la obra.' }
+  if (legacy) {
+    const { error: linkedError } = await admin.from('artworks')
+      .update({ title }).eq('legacy_submission_id', row.id)
+    if (linkedError) return { error: 'No se pudo actualizar el nombre de la obra publicada. Probá de nuevo.' }
+  }
+  refreshPublicData()
+  revalidatePath('/admin/obras')
+  revalidatePath('/')
+  revalidatePath('/edicion-2026')
+  revalidatePath('/galeria-3d')
+  revalidatePath('/[locale]/(site)/obras/[slug]', 'page')
+  return {}
+}
+
 // Fixes an already-loaded (and possibly already-public) artwork in place:
 // title, technique and/or its photo. A replacement photo is uploaded from the
 // admin's browser first (see components/admin/artwork-edit-form.tsx) into a

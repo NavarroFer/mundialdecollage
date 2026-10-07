@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { LegacyImageUpload } from '@/components/admin/legacy-image-upload'
 import { ArtworkEditForm } from '@/components/admin/artwork-edit-form'
+import { ArtworkTitleForm } from '@/components/admin/artwork-title-form'
 import type { ArtworkSibling, LegacySibling, Submission } from '@/components/admin/submission-types'
 import {
   deleteArtwork,
@@ -107,6 +108,7 @@ export function ObraViewer({ items, activeIndex, onActiveIndexChange }: Props) {
       <DialogContent
         className="max-h-[90vh] w-[95vw] max-w-4xl overflow-y-auto p-0"
         onKeyDown={(e) => {
+          if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select, [contenteditable="true"]')) return
           if (e.key === 'ArrowLeft') {
             e.preventDefault()
             goPrev()
@@ -315,6 +317,7 @@ function RealActions({
         </form>
       </div>
 
+      <ArtworkTitleForm key={item.id} item={item} />
       {item.artworkId && <ArtworkEditForm key={item.artworkId} item={item} />}
 
       {item.siblings && item.siblings.length > 0 && (
@@ -371,6 +374,7 @@ function LegacyActions({
 }) {
   return (
     <div className="space-y-4">
+      <ArtworkTitleForm key={item.id} item={item} />
       <div className="flex flex-wrap items-center gap-2">
         {/* setSubmissionsVisibility provisions the account on first publish
             regardless of whether a country was guessed (see its comment in
