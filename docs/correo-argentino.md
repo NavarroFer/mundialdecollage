@@ -5,7 +5,7 @@ sucursal y muestra el total mensual antes de
 crear una suscripción de Mercado Pago. Ese total queda fijo en la autorización;
 no cambia automáticamente cuando Correo modifica sus tarifas.
 
-La tarifa provisoria es **$5.000 de envío por mes**, definida por el comercio.
+La tarifa provisoria es **$7.000 de envío por mes**, definida por el comercio.
 Es el valor predeterminado hasta habilitar `CORREO_SHIPPING_RATE_MODE=api`;
 entonces se cotiza PAQ.AR Clásico a sucursal con MiCorreo. La tarifa fija no
 requiere consultar precios de Correo, pero la selección y validación de
@@ -31,7 +31,7 @@ posterior. No se implementó Pago en Destino ni contra reembolso.
 | `CORREO_CUSTOMER_ID` | ID de la cuenta de MiCorreo |
 | `CORREO_API_ENV` | `test` para pruebas; `production` para producción |
 | `CORREO_SHIPPING_RATE_MODE` | `flat` (predeterminado) para tarifa provisoria; `api` para cotización real |
-| `CORREO_FLAT_SHIPPING_FEE` | Tarifa mensual provisoria en ARS; predeterminado `5000` |
+| `CORREO_FLAT_SHIPPING_FEE` | Tarifa mensual provisoria en ARS; predeterminado `7000` |
 | `CORREO_ORIGIN_POSTAL_CODE` | `7600` — despacho desde Mar del Plata, confirmado por el titular |
 | `CORREO_PACKAGES_JSON` | Peso en gramos y medidas en cm de cada plan ya embalado |
 

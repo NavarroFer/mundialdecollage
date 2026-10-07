@@ -103,7 +103,7 @@ const quoteRequests = new Map<string, Promise<number>>()
 export async function quoteSubscriptionShipping(plan: string, branch: CorreoBranch) {
   // Temporary merchant tariff until the MiCorreo rate integration is enabled.
   if (process.env.CORREO_SHIPPING_RATE_MODE !== 'api') {
-    const fee = Number(process.env.CORREO_FLAT_SHIPPING_FEE ?? '5000')
+    const fee = Number(process.env.CORREO_FLAT_SHIPPING_FEE ?? '7000')
     if (!Number.isFinite(fee) || fee <= 0) throw new Error('Invalid fixed shipping fee')
     return Math.round(fee * 100) / 100
   }

@@ -49,11 +49,11 @@ afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 describe('official API and tariff', () => {
   it('uses the provisional monthly fee without requesting a provider quote', async () => {
     vi.stubEnv('CORREO_SHIPPING_RATE_MODE', '')
-    vi.stubEnv('CORREO_FLAT_SHIPPING_FEE', '5000')
+    vi.stubEnv('CORREO_FLAT_SHIPPING_FEE', '7000')
     vi.stubEnv('CORREO_API_USER', '')
     const fetch = vi.fn(); vi.stubGlobal('fetch', fetch)
     const correo = await import('./correo')
-    expect(await correo.quoteSubscriptionShipping('inicial', branch)).toBe(5000)
+    expect(await correo.quoteSubscriptionShipping('inicial', branch)).toBe(7000)
     expect(fetch).not.toHaveBeenCalled()
     vi.stubEnv('CORREO_FLAT_SHIPPING_FEE', '-1')
     await expect(correo.quoteSubscriptionShipping('inicial', branch)).rejects.toThrow('Invalid fixed shipping fee')
