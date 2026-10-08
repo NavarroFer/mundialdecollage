@@ -36,3 +36,6 @@ supabase/.temp/
 
 # Codex local config (may hold secrets, e.g. the Mercado Pago token)
 .codex/
+
+# Generated marketing images (carousels, covers): kept locally, not in git
+/output/
