@@ -1,16 +1,18 @@
-import Link from 'next/link'
+import { ObraLink } from '@/components/obra-modal'
 import type { ArtistProfileArtwork } from '@/lib/artist-profiles'
 import { imageSrc } from '@/lib/image-src'
 
 export function ArtistArtworks({
   artworks,
   artistName,
+  countryCode,
   untitled,
   artworkBy,
   techniques,
 }: {
   artworks: ArtistProfileArtwork[]
   artistName: string
+  countryCode: string
   untitled: string
   artworkBy: (title: string, name: string) => string
   techniques: Record<string, string>
@@ -21,8 +23,8 @@ export function ArtistArtworks({
         const title = artwork.title ?? untitled
         return (
           <li key={artwork.slug}>
-            <Link
-              href={`/obras/${artwork.slug}`}
+            <ObraLink
+              obra={{ slug: artwork.slug, artworkTitle: artwork.title, name: artistName, countryCode, imageUrl: artwork.imageUrl }}
               className="group block overflow-hidden rounded-2xl border-2 border-ink/10 bg-card shadow-sm transition hover:-translate-y-1 hover:border-ink/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-collage-blue/30"
             >
               <div className="aspect-square overflow-hidden bg-muted">
@@ -44,7 +46,7 @@ export function ArtistArtworks({
                   {title}
                 </h2>
               </div>
-            </Link>
+            </ObraLink>
           </li>
         )
       })}

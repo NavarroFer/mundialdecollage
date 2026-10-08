@@ -119,6 +119,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             <ArtistArtworks
               artworks={artist.artworks}
               artistName={artist.name}
+              countryCode={artist.countryCode}
               untitled={m.common.untitled}
               artworkBy={(title, name) => fmt(m.common.artworkBy, { title, name })}
               techniques={m.common.techniques}

@@ -205,6 +205,9 @@ const de: Messages = {
     discoverMore: 'Weitere Werke entdecken',
     back: 'Zurück zu den Werken',
     loading: 'Werk wird geladen…',
+    close: 'Schließen',
+    loadError: 'Wir konnten nicht alle Angaben zu diesem Werk laden.',
+    openPage: 'Seite des Werks öffnen',
   },
   countrySelect: {
     placeholder: 'Wähle dein Land',

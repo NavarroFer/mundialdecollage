@@ -205,6 +205,9 @@ const it: Messages = {
     discoverMore: 'Scopri altre opere',
     back: 'Torna alle opere',
     loading: 'Caricamento dell’opera…',
+    close: 'Chiudi',
+    loadError: 'Non siamo riusciti a caricare tutti i dati di quest’opera.',
+    openPage: 'Apri la pagina dell’opera',
   },
   countrySelect: {
     placeholder: 'Scegli il tuo paese',

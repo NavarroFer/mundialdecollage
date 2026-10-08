@@ -18,6 +18,7 @@ import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
 import { SurpriseArtwork } from '@/components/surprise-artwork'
+import { obraNeighbors } from '@/lib/obra-detail'
 
 // Slugs come from live submissions, so pages render on demand per request
 // instead of at build time.
@@ -65,14 +66,7 @@ export default async function ObraPage({
   if (!finalist) notFound()
   const title = finalist.artworkTitle ?? m.common.untitled
   const artistHref = `/artistas/${artistProfileSlug(finalist.name, finalist.profileId)}`
-  const relatedArtworks = finalists
-    .filter((artwork) => artwork.profileId === finalist.profileId && artwork.slug !== finalist.slug)
-    .slice(0, 3)
-  const currentIndex = finalists.findIndex((artwork) => artwork.slug === finalist.slug)
-  const previousArtwork = currentIndex > 0 ? finalists[currentIndex - 1] : undefined
-  const nextArtwork = currentIndex >= 0 && currentIndex < finalists.length - 1
-    ? finalists[currentIndex + 1]
-    : undefined
+  const { related: relatedArtworks, previous: previousArtwork, next: nextArtwork } = obraNeighbors(finalists, finalist)
 
   return (
     <>
@@ -193,7 +187,7 @@ export default async function ObraPage({
                 <SurpriseArtwork label={m.artwork.surprise} exclude={finalist.slug} />
               </div>
               <nav className="mt-5 grid gap-4 sm:grid-cols-2" aria-label={m.artwork.discoverMore}>
-                {[previousArtwork, nextArtwork].filter((artwork) => artwork !== undefined).map((artwork) => (
+                {[previousArtwork, nextArtwork].filter((artwork) => artwork !== null).map((artwork) => (
                   <TrackedLink
                     key={artwork.slug}
                     href={`/obras/${artwork.slug}`}

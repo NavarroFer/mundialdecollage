@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useRef, type CSSProperties } from 'react'
 import type { ArtworkSummary } from '@/lib/finalists'
 import { CountryFlag } from '@/components/country-flag'
+import { ObraLink } from '@/components/obra-modal'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 import './obras-collage.css'
@@ -93,8 +93,8 @@ export function ObrasCollage({
               '--entrance-delay': `${Math.min(index * 35, 280)}ms`,
             } as CSSProperties}
           >
-            <Link
-              href={`/obras/${artwork.slug}`}
+            <ObraLink
+              obra={artwork}
               className="obras-collage__window"
               aria-label={fmt(m.collage.viewArtwork, { title: artwork.artworkTitle ?? m.common.untitled, name: artwork.name })}
             >
@@ -117,7 +117,7 @@ export function ObrasCollage({
                 className="obras-collage__image"
               />
               <span className="obras-collage__caption">{artwork.artworkTitle ?? m.common.untitled}</span>
-            </Link>
+            </ObraLink>
           </li>
         ))}
       </ul>

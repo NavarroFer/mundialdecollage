@@ -41,7 +41,7 @@ function PromoCard({ href, event, icon: Icon, eyebrow, title, body, cta, classNa
 // obra (forArtist) and on every obra page. `event` says where the click came
 // from (STORE_ENTRY_EVENTS in lib/funnel.ts).
 export function StorePromo({ m, event, forArtist = false, className }: {
-  m: Messages
+  m: Pick<Messages, 'growth'>
   event: Extract<FunnelEvent, `store_click_${string}`>
   forArtist?: boolean
   className?: string

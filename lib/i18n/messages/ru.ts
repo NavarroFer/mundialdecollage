@@ -210,6 +210,9 @@ const ru: Messages = {
     discoverMore: 'Откройте другие работы',
     back: 'Назад к работам',
     loading: 'Загружаем работу…',
+    close: 'Закрыть',
+    loadError: 'Не удалось загрузить все данные об этой работе.',
+    openPage: 'Открыть страницу работы',
   },
   countrySelect: {
     placeholder: 'Выберите страну',

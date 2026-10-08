@@ -9,6 +9,7 @@ const CLIENT_NAMESPACES = [
   'countdown',
   'hero',
   'stamps',
+  'artwork',
   'collage',
   'map',
   'search',

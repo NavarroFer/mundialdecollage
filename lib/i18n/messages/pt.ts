@@ -205,6 +205,9 @@ const pt: Messages = {
     discoverMore: 'Descubra mais obras',
     back: 'Voltar às obras',
     loading: 'Carregando obra…',
+    close: 'Fechar',
+    loadError: 'Não conseguimos carregar todos os dados desta obra.',
+    openPage: 'Abrir a página da obra',
   },
   countrySelect: {
     placeholder: 'Escolha seu país',

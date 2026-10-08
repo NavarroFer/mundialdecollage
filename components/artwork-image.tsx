@@ -5,7 +5,7 @@ import { ArtworkLoader } from '@/components/artwork-loader'
 import { cn } from '@/lib/utils'
 
 /** Main artwork image: the paper-scrap loader plays until the file arrives, then the artwork fades in. */
-export function ArtworkImage({ src, alt }: { src: string; alt: string }) {
+export function ArtworkImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
   const ref = useRef<HTMLImageElement>(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -27,6 +27,7 @@ export function ArtworkImage({ src, alt }: { src: string; alt: string }) {
         className={cn(
           'w-full object-cover transition-[opacity,transform,filter] duration-700 ease-out motion-reduce:transition-none',
           loaded ? 'scale-100 opacity-100 blur-0' : 'scale-[1.02] opacity-0 blur-sm',
+          className,
         )}
       />
     </div>

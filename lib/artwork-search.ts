@@ -22,17 +22,17 @@ export function normalizeSearch(text: string): string {
 // Every word typed has to appear in the title, the artist or the country
 // (in the reader's language). A title or name starting with the query ranks
 // first, then words starting with it, then matches anywhere.
-export function searchArtworks(
-  entries: SearchEntry[],
+export function searchArtworks<Entry extends SearchEntry>(
+  entries: Entry[],
   query: string,
   countryName: (code: string) => string,
   limit = 8,
-): SearchEntry[] {
+): Entry[] {
   const words = normalizeSearch(query).split(/\s+/).filter(Boolean)
   if (!words.length) return []
   const whole = words.join(' ')
 
-  const ranked: { entry: SearchEntry; score: number }[] = []
+  const ranked: { entry: Entry; score: number }[] = []
   for (const entry of entries) {
     const title = normalizeSearch(entry.title ?? '')
     const name = normalizeSearch(entry.name)

@@ -205,6 +205,9 @@ const en: Messages = {
     discoverMore: 'Discover more artworks',
     back: 'Back to the artworks',
     loading: 'Loading artwork…',
+    close: 'Close',
+    loadError: 'We couldn’t load everything about this artwork.',
+    openPage: 'Open the artwork’s page',
   },
   countrySelect: {
     placeholder: 'Choose your country',

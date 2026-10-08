@@ -205,6 +205,9 @@ const fr: Messages = {
     discoverMore: 'Découvrez d’autres œuvres',
     back: 'Retour aux œuvres',
     loading: 'Chargement de l’œuvre…',
+    close: 'Fermer',
+    loadError: 'Nous n’avons pas pu charger toutes les informations de cette œuvre.',
+    openPage: 'Ouvrir la page de l’œuvre',
   },
   countrySelect: {
     placeholder: 'Choisis ton pays',

@@ -205,6 +205,9 @@ const id: Messages = {
     discoverMore: 'Temukan karya lainnya',
     back: 'Kembali ke karya',
     loading: 'Memuat karya…',
+    close: 'Tutup',
+    loadError: 'Kami tidak dapat memuat semua data karya ini.',
+    openPage: 'Buka halaman karya',
   },
   countrySelect: {
     placeholder: 'Pilih negaramu',

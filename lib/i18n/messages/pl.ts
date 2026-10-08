@@ -210,6 +210,9 @@ const pl: Messages = {
     discoverMore: 'Odkryj więcej prac',
     back: 'Wróć do prac',
     loading: 'Ładowanie pracy…',
+    close: 'Zamknij',
+    loadError: 'Nie udało się wczytać wszystkich informacji o tej pracy.',
+    openPage: 'Otwórz stronę pracy',
   },
   countrySelect: {
     placeholder: 'Wybierz kraj',

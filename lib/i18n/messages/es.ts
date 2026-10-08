@@ -206,6 +206,9 @@ const es = {
     discoverMore: 'Descubrí más obras',
     back: 'Volver a las obras',
     loading: 'Cargando obra…',
+    close: 'Cerrar',
+    loadError: 'No pudimos cargar todos los datos de esta obra.',
+    openPage: 'Abrir la página de la obra',
   },
   countrySelect: {
     placeholder: 'Elegí tu país',

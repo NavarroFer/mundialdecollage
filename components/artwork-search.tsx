@@ -5,19 +5,23 @@ import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
-import { searchArtworks, type SearchEntry } from '@/lib/artwork-search'
+import { searchArtworks, type ObraEntry } from '@/lib/artwork-search'
 import { loadObras } from '@/lib/obras-client'
+import { ObraLink, useOpenObra } from '@/components/obra-modal'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 
 type Status = 'idle' | 'loading' | 'ready' | 'error'
+
+const toSummary = ({ slug, title, name, countryCode, imageUrl }: ObraEntry) => ({ slug, artworkTitle: title, name, countryCode, imageUrl })
 
 // Homepage search over every published obra. Opening it also invites
 // signed-out artists to sign up and see their own obra.
 export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
   const { locale, m } = useI18n()
   const router = useRouter()
-  const [entries, setEntries] = useState<SearchEntry[]>([])
+  const openObra = useOpenObra()
+  const [entries, setEntries] = useState<ObraEntry[]>([])
   const [status, setStatus] = useState<Status>('idle')
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -64,7 +68,10 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
       setActive((current) => (current + step + results.length) % results.length)
     } else if (event.key === 'Enter') {
       const chosen = results[Math.max(active, 0)]
-      if (chosen) router.push(`/obras/${chosen.slug}`)
+      if (!chosen) return
+      setOpen(false)
+      if (openObra) openObra(toSummary(chosen))
+      else router.push(`/obras/${chosen.slug}`)
     }
   }
 
@@ -116,17 +123,18 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
             <ul id={listId} role="listbox" aria-label={m.search.label} className="max-h-[50vh] overflow-y-auto py-2">
               {results.map((entry, index) => (
                 <li key={entry.slug} id={`${listId}-${index}`} role="option" aria-selected={index === active}>
-                  <a
-                    href={`/obras/${entry.slug}`}
+                  <ObraLink
+                    obra={toSummary(entry)}
                     tabIndex={-1}
                     onPointerEnter={() => setActive(index)}
+                    onClick={() => setOpen(false)}
                     className={`flex min-h-12 flex-col justify-center px-5 py-2 ${index === active ? 'bg-collage-blue/10' : ''}`}
                   >
                     <span className="font-semibold text-ink">{entry.title ?? m.common.untitled}</span>
                     <span className="text-sm text-muted-foreground">
                       <span aria-hidden>{countryCodeToFlag(entry.countryCode)}</span> {entry.name} · {countryCodeToName(entry.countryCode, locale)}
                     </span>
-                  </a>
+                  </ObraLink>
                 </li>
               ))}
             </ul>
