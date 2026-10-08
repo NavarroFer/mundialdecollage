@@ -142,8 +142,10 @@ const en: Messages = {
     close: "Close this country's artworks",
     countryArtworks: 'Artworks from {country}',
     none: 'No published artworks from this country yet.',
-    sample: p({ one: 'Showing 1 at random.', other: 'Showing {count} at random.' }),
-    reshuffle: 'Show others',
+    pageRange: '{from}–{to} of {total}',
+    prevPage: 'Previous',
+    nextPage: 'Next',
+    pagesLabel: 'Artwork pages',
     openExplorer: 'Explore fullscreen', explorerEyebrow: 'Interactive map', explorerTitle: 'Explore the World Cup', closeExplorer: 'Close map explorer', zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetView: 'Reset world view', explorerHint: 'Drag to explore · use the wheel to zoom', explorerEmptyTitle: 'Choose a country', explorerEmpty: 'Zoom in, explore the map, and select a country with artworks to meet its participants.', explorerCountryHint: 'Published artworks from this community.',
   },
   jury: {

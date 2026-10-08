@@ -5,12 +5,13 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from 'next/link'
-import { useMemo, useState, type KeyboardEvent } from 'react'
+import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import type { GeoJsonObject } from 'geojson'
-import { Minus, Move, Plus, RotateCcw, Shuffle, X } from 'lucide-react'
+import { Minus, Move, Plus, RotateCcw, X } from 'lucide-react'
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { CountryFlag } from '@/components/country-flag'
+import { MapPager } from '@/components/map-pager'
 import type { ArtworkSummary } from '@/lib/finalists'
 import rawWorldTopology from '@/lib/data/world-countries-110m.json'
 import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
@@ -19,31 +20,33 @@ import { countryCodeToName } from '@/lib/participants'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
-import { countryArtworks, sampleCountryArtworks } from '@/lib/country-sample'
+import { countryPage } from '@/lib/country-pages'
 
 const worldTopology = rawWorldTopology as unknown as GeoJsonObject
 const INITIAL_CENTER: [number, number] = [0, 15]
 const INITIAL_ZOOM = 1
 type CountryCount = { countryCode: string; count: number }
 
-export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, initialCountryCode }: { open: boolean; onOpenChange: (open: boolean) => void; breakdown: CountryCount[]; artworks: ArtworkSummary[]; flags: Record<string, string>; initialCountryCode: string | null }) {
+export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, initialCountryCode, initialPage }: { open: boolean; onOpenChange: (open: boolean) => void; breakdown: CountryCount[]; artworks: ArtworkSummary[]; flags: Record<string, string>; initialCountryCode: string | null; initialPage: number }) {
   const { locale, m } = useI18n()
   const initialCoordinates = initialCountryCode ? COUNTRY_MARKER_COORDINATES[initialCountryCode] : undefined
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(initialCountryCode)
-  const [shownArtworks, setShownArtworks] = useState(() => initialCountryCode ? sampleCountryArtworks(artworks, initialCountryCode) : [])
+  // Opens on the page the home's map was showing (see lib/country-pages.ts).
+  const [page, setPage] = useState(initialPage)
+  const asideRef = useRef<HTMLElement>(null)
   const [center, setCenter] = useState<[number, number]>(initialCoordinates ?? INITIAL_CENTER)
   const [zoom, setZoom] = useState(initialCoordinates ? 3.25 : INITIAL_ZOOM)
   const countryName = (code: string) => countryCodeToName(code, locale)
   const countsByCode = useMemo(() => new Map(breakdown.map((item) => [item.countryCode, item.count])), [breakdown])
   const artworkCountries = useMemo(() => new Set(artworks.map((artwork) => artwork.countryCode.toUpperCase())), [artworks])
   const maxCount = useMemo(() => breakdown.reduce((max, item) => Math.max(max, item.count), 1), [breakdown])
-  const selectedTotal = selectedCountryCode ? countryArtworks(artworks, selectedCountryCode).length : 0
+  const shownPage = selectedCountryCode ? countryPage(artworks, selectedCountryCode, page) : null
   const markerCodes = useMemo(() => [...new Set([...countsByCode.keys(), ...artworkCountries])].filter((code) => code in COUNTRY_MARKER_COORDINATES), [countsByCode, artworkCountries])
 
   function selectCountry(countryCode: string) {
     if (!artworkCountries.has(countryCode)) return
     setSelectedCountryCode(countryCode)
-    setShownArtworks(sampleCountryArtworks(artworks, countryCode))
+    setPage(0)
     const coordinates = COUNTRY_MARKER_COORDINATES[countryCode]
     if (coordinates) { setCenter(coordinates); setZoom(3.25) }
   }
@@ -59,6 +62,7 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
     }
   }
   function resetView() { setCenter(INITIAL_CENTER); setZoom(INITIAL_ZOOM) }
+  function changePage(next: number) { setPage(next); asideRef.current?.scrollTo({ top: 0 }) }
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent showClose={false} overlayClassName="bg-ink/80" className="h-[100dvh] max-h-none w-screen max-w-none overflow-hidden rounded-none border-0 bg-paper p-0 shadow-none">
@@ -87,8 +91,8 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
           </div>
           <p className="pointer-events-none absolute right-4 bottom-4 hidden items-center gap-2 rounded-full bg-paper/90 px-3 py-2 text-xs font-semibold text-ink shadow-sm sm:flex"><Move className="size-3.5" aria-hidden /> {m.map.explorerHint}</p>
         </main>
-        <aside className="min-h-0 overflow-y-auto border-t-2 border-ink/10 bg-card p-5 lg:border-t-0 lg:border-l-2 lg:p-6">
-          {selectedCountryCode ? <div><p className="flex items-center gap-2 text-sm font-bold tracking-[0.16em] text-collage-red uppercase"><CountryFlag countryCode={selectedCountryCode} svg={flags[selectedCountryCode]} /> {countryName(selectedCountryCode)}</p><h3 className="font-display mt-2 text-4xl leading-none uppercase">{plural(locale, selectedTotal, m.map.artworks)}</h3><p className="mt-3 text-sm text-muted-foreground">{m.map.explorerCountryHint}</p>{selectedTotal > shownArtworks.length && <p className="mt-1 flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground">{plural(locale, shownArtworks.length, m.map.sample)}<button type="button" onClick={() => setShownArtworks(sampleCountryArtworks(artworks, selectedCountryCode))} className="inline-flex min-h-11 items-center gap-1.5 font-bold text-collage-blue underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"><Shuffle className="size-4" aria-hidden /> {m.map.reshuffle}</button></p>}<ul className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-1">{shownArtworks.map((artwork) => <li key={artwork.slug}><Link href={`/obras/${artwork.slug}`} className="group grid overflow-hidden rounded-lg border-2 border-ink/10 bg-paper transition hover:-translate-y-0.5 hover:border-collage-blue focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-collage-blue lg:grid-cols-[5.25rem_1fr]"><img src={imageSrc(artwork.imageUrl, 384)} alt="" width={168} height={120} loading="lazy" decoding="async" className="aspect-square h-full w-full object-cover lg:aspect-auto" /><span className="p-3"><strong className="block truncate text-sm text-ink">{artwork.artworkTitle ?? m.common.untitled}</strong><span className="mt-1 block truncate text-xs text-muted-foreground">{artwork.name}</span></span></Link></li>)}</ul></div> : <div className="flex min-h-40 flex-col justify-center"><p className="font-display text-3xl uppercase">{m.map.explorerEmptyTitle}</p><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{m.map.explorerEmpty}</p></div>}
+        <aside ref={asideRef} className="min-h-0 overflow-y-auto border-t-2 border-ink/10 bg-card p-5 lg:border-t-0 lg:border-l-2 lg:p-6">
+          {selectedCountryCode && shownPage ? <div><p className="flex items-center gap-2 text-sm font-bold tracking-[0.16em] text-collage-red uppercase"><CountryFlag countryCode={selectedCountryCode} svg={flags[selectedCountryCode]} /> {countryName(selectedCountryCode)}</p><h3 className="font-display mt-2 text-4xl leading-none uppercase">{plural(locale, shownPage.total, m.map.artworks)}</h3><p className="mt-3 text-sm text-muted-foreground">{m.map.explorerCountryHint}</p><MapPager page={shownPage} onPageChange={changePage} className="mt-1 -ml-2" /><ul className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-1">{shownPage.items.map((artwork) => <li key={artwork.slug}><Link href={`/obras/${artwork.slug}`} className="group grid overflow-hidden rounded-lg border-2 border-ink/10 bg-paper transition hover:-translate-y-0.5 hover:border-collage-blue focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-collage-blue lg:grid-cols-[5.25rem_1fr]"><img src={imageSrc(artwork.imageUrl, 384)} alt="" width={168} height={120} loading="lazy" decoding="async" className="aspect-square h-full w-full object-cover lg:aspect-auto" /><span className="p-3"><strong className="block truncate text-sm text-ink">{artwork.artworkTitle ?? m.common.untitled}</strong><span className="mt-1 block truncate text-xs text-muted-foreground">{artwork.name}</span></span></Link></li>)}</ul><MapPager page={shownPage} onPageChange={changePage} className="mt-4 justify-center" /></div> : <div className="flex min-h-40 flex-col justify-center"><p className="font-display text-3xl uppercase">{m.map.explorerEmptyTitle}</p><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{m.map.explorerEmpty}</p></div>}
         </aside>
       </div>
     </DialogContent>

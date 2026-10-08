@@ -147,8 +147,10 @@ const pl: Messages = {
     close: 'Zamknij prace z tego kraju',
     countryArtworks: 'Prace: {country}',
     none: 'Z tego kraju nie ma jeszcze opublikowanych prac.',
-    sample: p({ one: 'Pokazujemy {count} losową pracę.', few: 'Pokazujemy {count} losowe prace.', many: 'Pokazujemy {count} losowych prac.', other: 'Pokazujemy {count} losowej pracy.' }),
-    reshuffle: 'Pokaż inne',
+    pageRange: '{from}–{to} z {total}',
+    prevPage: 'Poprzednie',
+    nextPage: 'Następne',
+    pagesLabel: 'Strony prac',
     openExplorer: 'Odkrywaj na pełnym ekranie', explorerEyebrow: 'Interaktywna mapa', explorerTitle: 'Odkrywaj Mundial', closeExplorer: 'Zamknij mapę', zoomIn: 'Powiększ mapę', zoomOut: 'Pomniejsz mapę', resetView: 'Przywróć widok świata', explorerHint: 'Przeciągnij, aby odkrywać · użyj kółka, aby przybliżyć', explorerEmptyTitle: 'Wybierz kraj', explorerEmpty: 'Przybliż mapę i wybierz kraj z pracami.', explorerCountryHint: 'Opublikowane prace tej społeczności.',
   },
   jury: {

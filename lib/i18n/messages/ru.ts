@@ -147,8 +147,10 @@ const ru: Messages = {
     close: 'Закрыть работы страны',
     countryArtworks: 'Работы: {country}',
     none: 'Из этой страны пока нет опубликованных работ.',
-    sample: p({ one: 'Показана {count} случайная работа.', few: 'Показаны {count} случайные работы.', many: 'Показаны {count} случайных работ.', other: 'Показаны {count} случайной работы.' }),
-    reshuffle: 'Показать другие',
+    pageRange: '{from}–{to} из {total}',
+    prevPage: 'Предыдущие',
+    nextPage: 'Следующие',
+    pagesLabel: 'Страницы работ',
     openExplorer: 'Открыть на весь экран', explorerEyebrow: 'Интерактивная карта', explorerTitle: 'Исследуйте чемпионат', closeExplorer: 'Закрыть карту', zoomIn: 'Увеличить карту', zoomOut: 'Уменьшить карту', resetView: 'Сбросить вид карты', explorerHint: 'Перетаскивайте карту · используйте колесо для масштаба', explorerEmptyTitle: 'Выберите страну', explorerEmpty: 'Увеличьте карту и выберите страну с работами.', explorerCountryHint: 'Опубликованные работы этого сообщества.',
   },
   jury: {

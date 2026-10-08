@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import type { Feature, GeoJsonObject, MultiPolygon, Position } from 'geojson'
-import { Expand, Shuffle, X } from 'lucide-react'
+import { Expand, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { ObrasCollage } from '@/components/obras-collage'
@@ -16,7 +16,8 @@ import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
-import { countryArtworks, sampleCountryArtworks } from '@/lib/country-sample'
+import { countryPage } from '@/lib/country-pages'
+import { MapPager } from '@/components/map-pager'
 import { StampConfetti } from '@/components/stamp-confetti'
 import { announceStampUnlocked } from '@/lib/stamps'
 
@@ -76,16 +77,16 @@ export function WorldMap({
     const code = countryFromMapHash(window.location.hash)
     return code && artworks.some((artwork) => artwork.countryCode.toUpperCase() === code) ? code : null
   })
-  // A fresh random handful each time a country opens (see lib/country-sample.ts).
-  const [shownArtworks, setShownArtworks] = useState(() =>
-    selectedCountryCode ? sampleCountryArtworks(artworks, selectedCountryCode) : [],
-  )
+  // The open country's obras, a page at a time (see lib/country-pages.ts).
+  const [page, setPage] = useState(0)
+  const regionRef = useRef<HTMLDivElement>(null)
   const { locale, m } = useI18n()
   const countryName = (code: string) => countryCodeToName(code, locale)
 
   const countsByCode = new Map(breakdown.map((b) => [b.countryCode, b.count]))
   const maxCount = breakdown.reduce((max, b) => Math.max(max, b.count), 1)
-  const selectedTotal = selectedCountryCode ? countryArtworks(artworks, selectedCountryCode).length : 0
+  const shownPage = selectedCountryCode ? countryPage(artworks, selectedCountryCode, page) : null
+  const shownArtworks = shownPage?.items ?? []
 
   const artworkCountries = new Set(artworks.map((artwork) => artwork.countryCode.toUpperCase()))
 
@@ -105,8 +106,16 @@ export function WorldMap({
         if (data.awarded) { setCelebrateStamp(true); window.setTimeout(() => setCelebrateStamp(false), 2200) }
       })
     setSelectedCountryCode(countryCode)
-    setShownArtworks(sampleCountryArtworks(artworks, countryCode))
+    setPage(0)
     setTooltip(null)
+  }
+
+  function changePage(next: number) {
+    setPage(next)
+    // The pager under the collage leaves the visitor at its bottom; the new
+    // page starts from the top of the country's obras.
+    const region = regionRef.current
+    if (region && region.getBoundingClientRect().top < 0) region.scrollIntoView({ block: 'start' })
   }
 
   // The browser can't scroll to #mapa-AR on its own (no element has that
@@ -123,7 +132,7 @@ export function WorldMap({
       const code = (event as CustomEvent<string>).detail
       if (!codes.has(code)) return
       setSelectedCountryCode(code)
-      setShownArtworks(sampleCountryArtworks(artworks, code))
+      setPage(0)
       setTooltip(null)
     }
     window.addEventListener(MAP_COUNTRY_EVENT, onCountry)
@@ -300,8 +309,9 @@ export function WorldMap({
         </div>
       )}
 
-      {selectedCountryCode && (
+      {selectedCountryCode && shownPage && (
         <div
+          ref={regionRef}
           className="mt-8 border-t-2 border-ink/10 pt-8"
           role="region"
           aria-labelledby={`country-artworks-${selectedCountryCode}`}
@@ -318,21 +328,9 @@ export function WorldMap({
                 id={`country-artworks-${selectedCountryCode}`}
                 className="font-display mt-2 text-3xl uppercase text-ink sm:text-4xl"
               >
-                {plural(locale, selectedTotal, m.map.artworks)}
+                {plural(locale, shownPage.total, m.map.artworks)}
               </h3>
-              {selectedTotal > shownArtworks.length && (
-                <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                  {plural(locale, shownArtworks.length, m.map.sample)}
-                  <button
-                    type="button"
-                    onClick={() => setShownArtworks(sampleCountryArtworks(artworks, selectedCountryCode))}
-                    className="inline-flex min-h-11 items-center gap-1.5 font-bold text-collage-blue underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"
-                  >
-                    <Shuffle className="size-4" aria-hidden="true" />
-                    {m.map.reshuffle}
-                  </button>
-                </p>
-              )}
+              <MapPager page={shownPage} onPageChange={changePage} className="mt-2 -ml-2" />
             </div>
             <button
               type="button"
@@ -345,14 +343,17 @@ export function WorldMap({
           </div>
 
           {shownArtworks.length > 0 ? (
-            <ObrasCollage
-              key={selectedCountryCode}
-              finalists={shownArtworks}
-              flags={flags}
-              animateEntrance
-              showHint={false}
-              ariaLabel={fmt(m.map.countryArtworks, { country: countryName(selectedCountryCode) })}
-            />
+            <>
+              <ObrasCollage
+                key={`${selectedCountryCode}-${shownPage.page}`}
+                finalists={shownArtworks}
+                flags={flags}
+                animateEntrance
+                showHint={false}
+                ariaLabel={fmt(m.map.countryArtworks, { country: countryName(selectedCountryCode) })}
+              />
+              <MapPager page={shownPage} onPageChange={changePage} className="justify-center" />
+            </>
           ) : (
             <p className="mt-6 text-muted-foreground">{m.map.none}</p>
           )}
@@ -366,6 +367,7 @@ export function WorldMap({
           artworks={artworks}
           flags={flags}
           initialCountryCode={selectedCountryCode}
+          initialPage={shownPage?.page ?? 0}
         />
       )}
     </div>

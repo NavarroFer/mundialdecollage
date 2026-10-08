@@ -142,8 +142,10 @@ const de: Messages = {
     close: 'Werke des Landes schließen',
     countryArtworks: 'Werke aus {country}',
     none: 'Aus diesem Land gibt es noch keine veröffentlichten Werke.',
-    sample: p({ one: '1 Werk, zufällig ausgewählt.', other: '{count} Werke, zufällig ausgewählt.' }),
-    reshuffle: 'Andere zeigen',
+    pageRange: '{from}–{to} von {total}',
+    prevPage: 'Vorherige',
+    nextPage: 'Nächste',
+    pagesLabel: 'Werkseiten',
     openExplorer: 'Vollbild erkunden', explorerEyebrow: 'Interaktive Karte', explorerTitle: 'Die Weltmeisterschaft erkunden', closeExplorer: 'Kartenansicht schließen', zoomIn: 'Karte vergrößern', zoomOut: 'Karte verkleinern', resetView: 'Weltansicht zurücksetzen', explorerHint: 'Zum Erkunden ziehen · mit dem Rad zoomen', explorerEmptyTitle: 'Land auswählen', explorerEmpty: 'Vergrößere die Karte und wähle ein Land mit Werken.', explorerCountryHint: 'Veröffentlichte Werke dieser Gemeinschaft.',
   },
   jury: {
