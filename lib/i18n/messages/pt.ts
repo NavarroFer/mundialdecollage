@@ -38,6 +38,7 @@ const pt: Messages = {
   },
   header: {
     nav: 'Navegação principal',
+    home: 'Início',
     shop: 'Loja',
     workshop: 'Oficina',
     participants: 'Participantes',

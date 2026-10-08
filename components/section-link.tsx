@@ -20,8 +20,6 @@ export function SectionLink({ href, onClick, ...props }: React.ComponentProps<ty
         const target = document.getElementById(id)
         if (!target) return
         e.preventDefault()
-        // Closes the mobile <details> menu the link sits in, if any.
-        e.currentTarget.closest('details')?.removeAttribute('open')
         // No explicit behavior: the CSS scroll-behavior (smooth, auto under
         // reduced motion) and scroll-padding-top apply.
         target.scrollIntoView({ block: 'start' })

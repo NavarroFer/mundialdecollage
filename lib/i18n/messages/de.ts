@@ -38,6 +38,7 @@ const de: Messages = {
   },
   header: {
     nav: 'Hauptnavigation',
+    home: 'Start',
     shop: 'Shop',
     workshop: 'Workshop',
     participants: 'Teilnehmende',

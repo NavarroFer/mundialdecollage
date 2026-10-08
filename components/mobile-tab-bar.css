@@ -1,0 +1,138 @@
+/* The phone's bottom tab bar (components/mobile-tab-bar.tsx). */
+
+/* Room under the page for the bar, and a variable other floating buttons
+   (the stamp album) add to their own offset so they sit above it. */
+@media (width < 64rem) {
+  body:has(.mobile-tab-bar) {
+    --tab-bar-space: calc(4.25rem + env(safe-area-inset-bottom));
+    padding-bottom: var(--tab-bar-space);
+  }
+}
+
+.mobile-tab-bar {
+  /* The finger slides across the tabs instead of scrolling the page. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+/* Follows the finger during a drag, then springs onto the tab it lands on. */
+.mobile-tab-bar__lens {
+  position: absolute;
+  top: 0.375rem;
+  bottom: 0.375rem;
+  left: 0.25rem;
+  width: calc(20% - 0.5rem);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--collage-yellow) 22%, var(--paper));
+  border: 2px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 460ms cubic-bezier(0.3, 1.45, 0.5, 1),
+    opacity 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.mobile-tab-bar[data-dragging='true'] .mobile-tab-bar__lens {
+  transition:
+    transform 110ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 120ms ease,
+    box-shadow 200ms ease;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
+.mobile-tab-bar__tab {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  -webkit-touch-callout: none;
+  transition: color 160ms ease;
+}
+
+.mobile-tab-bar__tab:focus-visible {
+  outline: 2px solid var(--collage-blue);
+  outline-offset: -4px;
+  border-radius: 1rem;
+}
+
+.mobile-tab-bar__tab[data-lit='true'] {
+  color: var(--ink);
+}
+
+.mobile-tab-bar__icon {
+  display: grid;
+  place-items: center;
+  transition: transform 260ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.mobile-tab-bar[data-dragging='true'] .mobile-tab-bar__tab[data-lit='true'] .mobile-tab-bar__icon {
+  transform: translateY(-3px) scale(1.18);
+}
+
+.mobile-tab-bar__icon[data-pop='true'] {
+  animation: tab-pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.mobile-tab-bar__label {
+  max-width: 100%;
+  overflow: hidden;
+  padding-inline: 0.125rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* «Participar»: a raised red disc that sits above the bar. */
+.mobile-tab-bar__tab[data-featured='true'] {
+  color: var(--ink);
+}
+
+.mobile-tab-bar__tab[data-featured='true'] .mobile-tab-bar__icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-top: -1.5rem;
+  border: 2px solid var(--ink);
+  border-radius: 9999px;
+  background: var(--collage-red);
+  color: var(--paper);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.mobile-tab-bar[data-dragging='true'] .mobile-tab-bar__tab[data-featured='true'][data-lit='true'] .mobile-tab-bar__icon {
+  transform: translateY(-4px) scale(1.1) rotate(-6deg);
+  box-shadow: 4px 6px 0 var(--ink);
+}
+
+@keyframes tab-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.28) translateY(-3px); }
+  65% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-tab-bar__lens,
+  .mobile-tab-bar[data-dragging='true'] .mobile-tab-bar__lens,
+  .mobile-tab-bar__icon {
+    transition: none;
+  }
+
+  .mobile-tab-bar__icon[data-pop='true'] {
+    animation: none;
+  }
+
+  .mobile-tab-bar[data-dragging='true'] .mobile-tab-bar__tab[data-lit='true'] .mobile-tab-bar__icon,
+  .mobile-tab-bar[data-dragging='true'] .mobile-tab-bar__tab[data-featured='true'][data-lit='true'] .mobile-tab-bar__icon {
+    transform: none;
+  }
+}

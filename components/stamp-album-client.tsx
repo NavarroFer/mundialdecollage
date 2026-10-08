@@ -76,7 +76,7 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
 
   return (
     <>
-      <button type="button" onClick={() => { setTutorialOpen(false); setAlbumOpen(true) }} className="fixed right-3 bottom-5 z-40 flex items-center gap-2 rounded-full border-2 border-ink bg-collage-yellow px-4 py-3 text-sm font-bold text-ink shadow-[4px_4px_0_var(--color-ink)] transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue sm:right-6" aria-label={m.stamps.title}>
+      <button type="button" onClick={() => { setTutorialOpen(false); setAlbumOpen(true) }} className="fixed right-3 bottom-[calc(1.25rem+var(--tab-bar-space,0px))] z-40 flex items-center gap-2 rounded-full border-2 border-ink bg-collage-yellow px-4 py-3 text-sm font-bold text-ink shadow-[4px_4px_0_var(--color-ink)] transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue sm:right-6" aria-label={m.stamps.title}>
         <BookOpen className="size-5" aria-hidden="true" /> <span className="hidden sm:inline">{m.stamps.eyebrow}</span><span className="rounded-full border border-ink/25 bg-paper px-1.5 py-0.5 text-xs tabular-nums">{unlockedStamps.length}/3</span>
       </button>
 

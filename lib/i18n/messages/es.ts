@@ -40,6 +40,7 @@ const es = {
   },
   header: {
     nav: 'Navegación principal',
+    home: 'Inicio',
     shop: 'Tienda',
     workshop: 'Taller',
     participants: 'Participantes',
