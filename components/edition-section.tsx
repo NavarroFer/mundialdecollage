@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { TrackedLink } from '@/components/track'
 import { FadeIn } from '@/components/fade-in'
-import { AnimatedNumber } from '@/components/animated-number'
+import { LiveReceivedCount } from '@/components/live-received-count'
 import { SectionLink } from '@/components/section-link'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { getI18n } from '@/lib/i18n/server'
@@ -34,7 +34,7 @@ export async function EditionSection() {
               <>
                 <span className="text-3xl uppercase sm:text-5xl">{m.edition.received}</span>
                 <span className="my-3 inline-block -rotate-3 bg-paper px-6 py-3 text-8xl leading-none tracking-tight text-collage-red shadow-[6px_6px_0_var(--color-ink)] sm:px-10 sm:text-9xl">
-                  <AnimatedNumber value={submissionsCount} />
+                  <LiveReceivedCount initial={submissionsCount} />
                 </span>
                 <span className="text-4xl uppercase sm:text-6xl">
                   {plural(locale, submissionsCount, m.edition.artworks)}
