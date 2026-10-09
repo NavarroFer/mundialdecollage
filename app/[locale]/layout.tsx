@@ -12,6 +12,7 @@ import { getCallState } from '@/lib/call-state'
 import { pickClientMessages } from '@/lib/i18n/messages/client'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { LOCALE_INFO, LOCALES } from '@/lib/i18n/locales'
+import { HIDE_SEEN_SPLASH_SCRIPT } from '@/lib/splash'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' })
 const anton = Anton({
@@ -67,6 +68,10 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
   const { locale, m } = await getI18n()
   return (
     <html lang={locale} data-scroll-behavior="smooth" className={`${geist.variable} ${anton.variable} ${oswald.variable}`}>
+      <head>
+        {/* Blocking on purpose: it has to run before the home's splash paints. */}
+        <script dangerouslySetInnerHTML={{ __html: HIDE_SEEN_SPLASH_SCRIPT }} />
+      </head>
       <body className="bg-background font-sans text-foreground antialiased">
         <ReferralCapture />
         <I18nProvider locale={locale} messages={pickClientMessages(m)}>

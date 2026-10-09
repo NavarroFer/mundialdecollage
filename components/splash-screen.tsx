@@ -2,8 +2,9 @@
 
 import Image from 'next/image'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useI18n } from '@/lib/i18n/client'
+import { markSplashSeen, splashSeen } from '@/lib/splash'
 
 // The papers clear the frame first, then the logo dissolves into the page.
 const INTRO_MS = 1250
@@ -12,11 +13,19 @@ const EXIT_MS = 350
 // fully gone, so they're already moving as the page comes into view.
 const HEAD_START_MS = 500
 
+// Only read on render: the flag is written as the cover unmounts, so no
+// re-render while it plays sees it change.
+const noopSubscribe = () => () => {}
+
 export function SplashScreen() {
   // Render the cover in the server HTML. Waiting for an effect here exposes
   // the home page for a frame before hydration finishes.
   const [mounted, setMounted] = useState(true)
   const [visible, setVisible] = useState(true)
+  // Hydration takes the server's answer (cover on) and then drops it for a
+  // returning visitor, whose copy the <head> script (lib/splash.ts) already hid.
+  const seen = useSyncExternalStore(noopSubscribe, splashSeen, () => false)
+  const covering = mounted && !seen
   const dismissedRef = useRef(false)
   const coverRef = useRef<HTMLDivElement>(null)
   const { m } = useI18n()
@@ -35,7 +44,7 @@ export function SplashScreen() {
   }, [markLeaving])
 
   useEffect(() => {
-    if (!visible) return
+    if (!visible || seen) return
 
     const timer = window.setTimeout(dismiss, INTRO_MS)
     const headStart = window.setTimeout(markLeaving, INTRO_MS + EXIT_MS - HEAD_START_MS)
@@ -49,21 +58,26 @@ export function SplashScreen() {
       window.clearTimeout(headStart)
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [dismiss, markLeaving, visible])
+  }, [dismiss, markLeaving, visible, seen])
 
   // Keep the covered page out of the keyboard and accessibility flow until
   // Framer Motion has finished the exit animation.
   useEffect(() => {
     const content = document.getElementById('site-content')
-    content?.toggleAttribute('inert', mounted)
+    content?.toggleAttribute('inert', covering)
     return () => content?.removeAttribute('inert')
-  }, [mounted])
+  }, [covering])
 
-  if (!mounted) return null
+  if (!covering) return null
 
   return (
     <MotionConfig reducedMotion="user">
-      <AnimatePresence onExitComplete={() => setMounted(false)}>
+      <AnimatePresence
+        onExitComplete={() => {
+          markSplashSeen()
+          setMounted(false)
+        }}
+      >
         {visible && (
           <motion.div
           key="brand-splash"
