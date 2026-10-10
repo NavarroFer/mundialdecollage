@@ -7,6 +7,9 @@ import { announceStampUnlocked } from '@/lib/stamps'
 export function StampVisit({ stamp }: { stamp: 'gallery' | 'world' }) {
   const [celebrate, setCelebrate] = useState(false)
   useEffect(() => {
+    // Stamps are for signed-in visitors: without Supabase's session cookie
+    // the call could only answer 401, at the cost of a Function invocation.
+    if (!document.cookie.split('; ').some((part) => part.startsWith('sb-'))) return
     void fetch('/api/stamps', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ stamp }) })
       .then((response) => response.ok ? response.json() as Promise<{ awarded: boolean }> : null)
       .then((data) => {
