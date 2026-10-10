@@ -45,11 +45,15 @@ async function proxy(request: NextRequest, path: string[]) {
     return new NextResponse('Not found', { status: 404 })
   }
 
+  // Only what Clarity reads, never the visitor's cookies. `accept` is how
+  // clarity.js flags a gzipped upload (application/x-clarity-gzip): without
+  // it Clarity can't read the body, answers 400, and the script stops
+  // recording that session.
   const headers = new Headers()
-  const userAgent = request.headers.get('user-agent')
-  if (userAgent) headers.set('user-agent', userAgent)
-  const contentType = request.headers.get('content-type')
-  if (contentType) headers.set('content-type', contentType)
+  for (const name of ['user-agent', 'content-type', 'accept']) {
+    const value = request.headers.get(name)
+    if (value) headers.set(name, value)
+  }
 
   let upstream: Response
   try {

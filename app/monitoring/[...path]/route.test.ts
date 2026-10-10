@@ -49,6 +49,20 @@ describe('/monitoring', () => {
     expect(response.headers.get('set-cookie')).toBe('MUID=1; path=/')
   })
 
+  it("forwards the header that marks a gzipped upload, and no cookies", async () => {
+    upstream(null, {}, 204)
+    await call(POST, '/monitoring/k.clarity.ms/collect', {
+      method: 'POST',
+      body: new Uint8Array([0x1f, 0x8b]),
+      headers: { accept: 'application/x-clarity-gzip', cookie: 'sb-abc-auth-token=secret' },
+    })
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('https://k.clarity.ms/collect')
+    const sent = new Headers(init.headers)
+    expect(sent.get('accept')).toBe('application/x-clarity-gzip')
+    expect(sent.get('cookie')).toBeNull()
+  })
+
   it('refuses hosts other than Clarity', async () => {
     const fetch = vi.fn()
     vi.stubGlobal('fetch', fetch)
