@@ -406,6 +406,7 @@ const id: Messages = {
     startTitle: 'Jelajahi pameran',
     enter: 'MASUK KE PAMERAN',
     resume: 'Klik untuk melanjutkan',
+    loading: 'Menyiapkan galeri…',
     hintTouch: 'Joystick untuk bergerak · Geser untuk melihat · Ketuk “Lihat karya” saat di dekatnya',
     orientation: {
       title: "Putar ponsel ke posisi horizontal",

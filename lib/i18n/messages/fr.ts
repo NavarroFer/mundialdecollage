@@ -406,6 +406,7 @@ const fr: Messages = {
     startTitle: "Parcours l'exposition",
     enter: "ENTRER DANS L'EXPOSITION",
     resume: 'Clique pour continuer',
+    loading: 'Préparation de la galerie…',
     hintTouch: 'Joystick pour te déplacer · Glisse pour regarder · Touche « Voir l’œuvre » à proximité',
     orientation: {
       title: "Tournez votre téléphone à l’horizontale",

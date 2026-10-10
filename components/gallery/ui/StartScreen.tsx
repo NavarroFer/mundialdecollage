@@ -17,6 +17,8 @@ type StartScreenProps = {
   /** Today's walls, to name the artist whose shared link brought this visitor. */
   artworks: Artwork[]
   label: string
+  /** The scene is loading after ENTRAR: the button shows it and can't be pressed again. */
+  loading: boolean
   hint: string
   /** Show how many people are inside — only meaningful before the first entry. */
   showPresence: boolean
@@ -51,7 +53,7 @@ function useInviter(artworks: Artwork[]): string | null {
   return inviter
 }
 
-export function StartScreen({ artworks, label, hint, showPresence, onEnter }: StartScreenProps) {
+export function StartScreen({ artworks, label, loading, hint, showPresence, onEnter }: StartScreenProps) {
   const { m } = useI18n()
   const inviter = useInviter(artworks)
   return (
@@ -64,8 +66,9 @@ export function StartScreen({ artworks, label, hint, showPresence, onEnter }: St
         <h1 id="gallery-start-title" className={styles.title}>{m.gallery.startTitle}</h1>
       <button
         type="button"
-        id="gallery-enter-button"
         onClick={onEnter}
+        disabled={loading}
+        aria-busy={loading}
         className={styles.enterButton}
       >
         {label}

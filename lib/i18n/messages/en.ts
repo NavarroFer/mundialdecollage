@@ -407,6 +407,7 @@ const en: Messages = {
     startTitle: 'Walk through the exhibition',
     enter: 'ENTER THE EXHIBITION',
     resume: 'Click to continue',
+    loading: 'Setting up the gallery…',
     hintTouch: 'Joystick to move · Drag to look · Tap “View artwork” when nearby',
     orientation: {
       title: "Turn your phone sideways",

@@ -416,6 +416,7 @@ const pl: Messages = {
     startTitle: 'Przejdź się po wystawie',
     enter: 'WEJDŹ NA WYSTAWĘ',
     resume: 'Kliknij, aby kontynuować',
+    loading: 'Przygotowujemy galerię…',
     hintTouch: 'Joystick — ruch · Przeciągnij — rozglądanie się · Dotknij „Zobacz pracę” w pobliżu',
     orientation: {
       title: "Obróć telefon poziomo",

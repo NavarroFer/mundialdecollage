@@ -410,6 +410,7 @@ const es = {
     startTitle: 'Recorré la exposición',
     enter: 'ENTRAR A LA EXPOSICIÓN',
     resume: 'Click para continuar',
+    loading: 'Preparando la galería…',
     hintTouch: 'Joystick para moverte · Arrastrá para mirar · Tocá «Ver obra» al acercarte',
     orientation: {
       title: "Girá el celular a horizontal",

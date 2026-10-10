@@ -406,6 +406,7 @@ const de: Messages = {
     startTitle: 'Geh durch die Ausstellung',
     enter: 'AUSSTELLUNG BETRETEN',
     resume: 'Klicken zum Fortfahren',
+    loading: 'Die Galerie wird vorbereitet…',
     hintTouch: 'Joystick zum Bewegen · Ziehen zum Umsehen · Tippe in der Nähe auf „Werk ansehen“',
     orientation: {
       title: "Dreh dein Handy ins Querformat",

@@ -198,6 +198,9 @@
   letter-spacing: .05em;
 }
 
+/* While the scene loads after ENTRAR (Game.tsx). */
+.enterButton:disabled { cursor: progress; opacity: .75; }
+
 .windows98 .enterButton {
   border: 2px solid;
   border-color: #fff #000 #000 #fff;

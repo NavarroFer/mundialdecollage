@@ -1,21 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { Menu, Smartphone, X } from 'lucide-react'
-import { Canvas } from '@react-three/fiber'
-import { KeyboardControls } from '@react-three/drei'
-import { Physics } from '@react-three/rapier'
 import type { Artwork } from '@/data/artworks'
-import { FloatingReactions } from './artwork/FloatingReactions'
-import { FirstPersonCamera, type FirstPersonCameraHandle } from './camera/FirstPersonCamera'
-import { InteractionManager } from './interaction/InteractionManager'
-import { PlayerTracker } from './minimap/PlayerTracker'
 import { GalleryPresence } from './presence/GalleryPresence'
 import { TouchControls } from './mobile/TouchControls'
-import { TouchLookController } from './mobile/TouchLookController'
-import { Player } from './player/Player'
-import { keyboardMap } from './player/controls'
 import { ArtworkModal } from './ui/ArtworkModal'
 import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusic'
 import { ControlsTutorial } from './ui/ControlsTutorial'
@@ -26,12 +17,9 @@ import { Souvenir } from './ui/Souvenir'
 import { StartScreen } from './ui/StartScreen'
 import { ThemePicker } from './ui/ThemePicker'
 import { useInteractionStore } from './interaction/store'
-import { SouvenirCapture } from './souvenir/SouvenirCapture'
-import { CollageWall, WallAim } from './wall/CollageWall'
 import { WallDialog } from './wall/WallDialog'
 import { loadWall, useWallStore } from './wall/store'
 import { useSouvenirStore } from './souvenir/store'
-import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
@@ -57,6 +45,16 @@ const getIsLandscape = () => window.matchMedia('(orientation: landscape)').match
 // client enhancement and should not replace the initial page markup.
 const getLandscapeServerSnapshot = () => true
 
+// three.js, drei and Rapier only arrive once the page has settled (or on
+// ENTRAR, whichever comes first) and only mount on ENTRAR: see Scene.tsx.
+const preloadScene = () => import('./Scene')
+const Scene = dynamic(() => preloadScene().then((module) => module.Scene), { ssr: false })
+
+// Chrome returns a promise here; Safari/Firefox return nothing and only fire pointerlockerror.
+function requestLock(element: HTMLElement, onError: () => void) {
+  Promise.resolve(element.requestPointerLock()).catch(onError)
+}
+
 export function Game({ artworks }: { artworks: Artwork[] }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const isLandscape = useSyncExternalStore(subscribeToOrientation, getIsLandscape, getLandscapeServerSnapshot)
@@ -70,15 +68,47 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   const wallOpen = useWallStore((state) => state.placing !== null)
   const wallWeek = useWallStore((state) => state.weekStart)
   const musicRef = useRef<BackgroundMusicHandle>(null)
-  const controlsRef = useRef<FirstPersonCameraHandle>(null)
+  // Desktop locks the pointer to the whole shell, not the canvas: the lock
+  // has to be asked for in the ENTRAR click, before the canvas exists.
+  const [shell, setShell] = useState<HTMLDivElement | null>(null)
   const [resuming, setResuming] = useState(false)
+  const [sceneReady, setSceneReady] = useState(false)
+  const loading = hasStarted && !sceneReady
 
   // Desktop has no concept of "started but not locked" — Pointer Lock IS
   // the active state. Touch has no Pointer Lock at all, so tapping ENTRAR
   // is the whole activation.
   // A 3D game needs the horizontal viewport: touch play pauses in portrait
   // and resumes automatically as soon as the visitor turns the phone back.
-  const isActive = isTouchDevice ? hasStarted && isLandscape && !optionsOpen : locked
+  const isActive = sceneReady && (isTouchDevice ? hasStarted && isLandscape && !optionsOpen : locked)
+  // Under the start screen, the turn-the-phone notice or the phone menu
+  // nothing needs to move, so the scene stops drawing frames and stepping
+  // physics. Reading an obra, the collage or the souvenir keep it going:
+  // the camera glides to the obra and the walls show around the dialog.
+  const paused = !loading && ((isTouchDevice && !isLandscape) || (!isActive && !openId && !souvenirOpen && !wallOpen && !resuming))
+
+  useEffect(() => {
+    if (isTouchDevice || !shell) return
+    const onChange = () => {
+      const isLocked = document.pointerLockElement === shell
+      setLocked(isLocked)
+      if (isLocked) setResuming(false)
+    }
+    document.addEventListener('pointerlockchange', onChange)
+    return () => document.removeEventListener('pointerlockchange', onChange)
+  }, [isTouchDevice, shell])
+
+  // The page settled: fetch the scene now so ENTRAR rarely waits on it.
+  useEffect(() => {
+    const preload = () => void preloadScene()
+    // Safari has no requestIdleCallback.
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(preload, { timeout: 5000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = setTimeout(preload, 2000)
+    return () => clearTimeout(id)
+  }, [])
 
   // Reading an obra shouldn't feel like pausing. The modal needs the cursor,
   // so opening it releases Pointer Lock; closing it with E, the × or a click
@@ -86,7 +116,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   // before the pause screen can show. Escape isn't one the browser accepts
   // for that, so it still lands on "Click para continuar".
   useEffect(() => {
-    if (isTouchDevice) return
+    if (isTouchDevice || !shell) return
     let resumeOnClose = false
     const stopResuming = () => setResuming(false)
     document.addEventListener('pointerlockerror', stopResuming)
@@ -104,11 +134,9 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       }
       if (!resumeOnClose) return
       resumeOnClose = false
-      const element = controlsRef.current?.domElement
-      if (!element || navigator.userActivation?.isActive === false) return
+      if (navigator.userActivation?.isActive === false) return
       setResuming(true)
-      // Chrome returns a promise here; Safari/Firefox return nothing and only fire pointerlockerror.
-      Promise.resolve(element.requestPointerLock()).catch(stopResuming)
+      requestLock(shell, stopResuming)
     }
     const unsubscribeInteraction = useInteractionStore.subscribe(onChange)
     const unsubscribeWall = useWallStore.subscribe(onChange)
@@ -117,7 +145,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       unsubscribeWall()
       document.removeEventListener('pointerlockerror', stopResuming)
     }
-  }, [isTouchDevice])
+  }, [isTouchDevice, shell])
 
   // Back from signing in with Google to like or comment: reopen that obra so
   // ArtworkLike / ArtworkComments can finish the action, and drop the
@@ -162,10 +190,9 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   // Same as after reading an obra: the click that closes the photo is the
   // gesture the browser needs to give the mouse back to the walk.
   function resumeWalk() {
-    const element = controlsRef.current?.domElement
-    if (!element) return
+    if (!shell) return
     setResuming(true)
-    Promise.resolve(element.requestPointerLock()).catch(() => setResuming(false))
+    requestLock(shell, () => setResuming(false))
   }
 
   useEffect(() => {
@@ -178,52 +205,36 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   function handleEnter() {
     if (!hasStarted) track('gallery_enter')
     setHasStarted(true)
+    // Right here, in the click: the browser only grants the lock to a user
+    // gesture, and the scene may take a few seconds more to load.
+    if (!isTouchDevice && shell) requestLock(shell, () => {})
     musicRef.current?.play()
   }
 
   return (
-    <div className={cn(styles.shell, theme === 'windows98' && styles.windows98, theme === 'collage' && styles.collage, theme === 'garden' && styles.garden)}>
-      <KeyboardControls map={keyboardMap}>
-        <Canvas
-          shadows="variance"
-          // R3F's Canvas hardcodes the container div to width/height 100% and
-          // merges any `style` prop on top — a `className` can't win against
-          // that inline style, so the viewport-relative height has to go here.
-          style={{ width: '100%', height: '100dvh', background: galleryThemes[theme].canvas }}
-        >
-          <Physics>
-            <World artworks={artworks} theme={theme} />
-            <Player active={isActive} artworks={artworks} />
-          </Physics>
-          {!isTouchDevice && (
-            <FirstPersonCamera
-              ref={controlsRef}
-              selector="#gallery-enter-button"
-              pointerSpeed={0.75}
-              onLock={() => {
-                setLocked(true)
-                setResuming(false)
-              }}
-              onUnlock={() => setLocked(false)}
-            />
-          )}
-          <TouchLookController active={isActive} />
-          <InteractionManager artworks={artworks} />
-          <PlayerTracker />
-          <FloatingReactions artworks={artworks} />
-          <SouvenirCapture />
-          <WallAim />
-          <CollageWall
+    <div ref={setShell} className={cn(styles.shell, theme === 'windows98' && styles.windows98, theme === 'collage' && styles.collage, theme === 'garden' && styles.garden)}>
+      {/* The canvas's size and color before it loads, so nothing shifts when it does. */}
+      <div style={{ height: '100dvh', background: galleryThemes[theme].canvas }}>
+        {hasStarted && (
+          <Scene
+            artworks={artworks}
             theme={theme}
-            title={m.gallery.wall.plaque}
-            subtitle={wallWeek ? fmt(m.gallery.wall.week, { date: formatDayMonth(locale, `${wallWeek}T12:00:00-03:00`) }) : ''}
-            cyrillic={locale === 'ru'}
+            active={isActive}
+            paused={paused}
+            isTouchDevice={isTouchDevice}
+            lockTarget={isTouchDevice ? null : shell}
+            wall={{
+              title: m.gallery.wall.plaque,
+              subtitle: wallWeek ? fmt(m.gallery.wall.week, { date: formatDayMonth(locale, `${wallWeek}T12:00:00-03:00`) }) : '',
+              cyrillic: locale === 'ru',
+            }}
+            onReady={() => setSceneReady(true)}
           />
-        </Canvas>
-      </KeyboardControls>
+        )}
+      </div>
       <GalleryPresence inside={isTouchDevice ? hasStarted && isLandscape : isActive} artworks={artworks} />
       {isTouchDevice && isActive && !openId && !souvenirOpen && !wallOpen && <TouchControls theme={theme} />}
-      {isTouchDevice && hasStarted && isLandscape && !openId && !souvenirOpen && !wallOpen && <button type="button" className={styles.mobileOptionsTrigger} onClick={() => setOptionsOpen((open) => !open)} aria-label={optionsOpen ? m.gallery.mobileMenu.close : m.gallery.mobileMenu.open} aria-expanded={optionsOpen} aria-controls="gallery-mobile-options">{optionsOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button>}
+      {isTouchDevice && sceneReady && isLandscape && !openId && !souvenirOpen && !wallOpen && <button type="button" className={styles.mobileOptionsTrigger} onClick={() => setOptionsOpen((open) => !open)} aria-label={optionsOpen ? m.gallery.mobileMenu.close : m.gallery.mobileMenu.open} aria-expanded={optionsOpen} aria-controls="gallery-mobile-options">{optionsOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button>}
       <div id="gallery-mobile-options" className={isTouchDevice ? styles.mobileOptions : undefined} hidden={isTouchDevice && (!optionsOpen || !hasStarted || !isLandscape || Boolean(openId) || souvenirOpen || wallOpen)}>
         {isTouchDevice && <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>}
         <BackgroundMusic ref={musicRef} theme={theme} inline={isTouchDevice} />
@@ -253,7 +264,8 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       {!isActive && !openId && !souvenirOpen && !wallOpen && !resuming && !optionsOpen && (
         <StartScreen
           artworks={artworks}
-          label={hasStarted ? m.gallery.resume : m.gallery.enter}
+          label={loading ? m.gallery.loading : hasStarted ? m.gallery.resume : m.gallery.enter}
+          loading={loading}
           showPresence={!hasStarted}
           hint={isTouchDevice ? m.gallery.hintTouch : m.gallery.hintDesktop}
           onEnter={handleEnter}
