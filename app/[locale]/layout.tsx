@@ -5,6 +5,7 @@ import '../globals.css'
 import { site, getSiteUrl } from '@/lib/site'
 import { ClarityAnalytics } from '@/components/clarity'
 import { VercelAnalytics } from '@/components/vercel-analytics'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ReferralCapture } from '@/components/referral-capture'
 import { getI18n } from '@/lib/i18n/server'
 import { I18nProvider } from '@/lib/i18n/client'
@@ -79,6 +80,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
         </I18nProvider>
         <ClarityAnalytics />
         <VercelAnalytics />
+        <SpeedInsights />
       </body>
     </html>
   )

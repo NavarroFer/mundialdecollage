@@ -11,3 +11,10 @@ export function imageSrc(src: string, width: number): string {
   const allowed = IMAGE_WIDTHS.find((w) => w >= width) ?? IMAGE_WIDTHS[IMAGE_WIDTHS.length - 1]
   return `/api/img?url=${encodeURIComponent(src)}&w=${allowed}`
 }
+
+// Width descriptors let the browser pick a derivative for the actual card
+// size and pixel density instead of downloading 828px for every thumbnail.
+export function imageSrcSet(src: string): string | undefined {
+  if (imageSrc(src, 384) === src) return undefined
+  return IMAGE_WIDTHS.map((width) => `${imageSrc(src, width)} ${width}w`).join(', ')
+}

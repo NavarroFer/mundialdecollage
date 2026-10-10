@@ -7,7 +7,7 @@ import { ObraLink } from '@/components/obra-modal'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 import './obras-collage.css'
-import { imageSrc } from '@/lib/image-src'
+import { imageSrc, imageSrcSet } from '@/lib/image-src'
 
 export function ObrasCollage({
   finalists,
@@ -109,6 +109,8 @@ export function ObrasCollage({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageSrc(artwork.imageUrl, 828)}
+                srcSet={imageSrcSet(artwork.imageUrl)}
+                sizes="(max-width: 639px) 58vw, 245px"
                 alt={artwork.artworkTitle ?? m.common.untitled}
                 width={400}
                 height={440}

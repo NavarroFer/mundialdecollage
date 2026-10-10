@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { imageSrc } from './image-src'
+import { imageSrc, imageSrcSet } from './image-src'
 
 const photo = 'https://abc.supabase.co/storage/v1/object/public/artworks/u1/1-0.jpg'
 
@@ -14,6 +14,12 @@ describe('imageSrc', () => {
 
   it('caps the width at the largest allowed one', () => {
     expect(imageSrc(photo, 4000)).toContain('&w=1920')
+  })
+
+  it('offers allowed derivatives with matching width descriptors', () => {
+    expect(imageSrcSet(photo)).toContain(`${imageSrc(photo, 384)} 384w`)
+    expect(imageSrcSet(photo)).toContain(`${imageSrc(photo, 640)} 640w`)
+    expect(imageSrcSet('/banner-mundial.png')).toBeUndefined()
   })
 
   it('leaves local files, previews and other hosts alone', () => {

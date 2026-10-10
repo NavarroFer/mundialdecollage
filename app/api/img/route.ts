@@ -1,4 +1,5 @@
 import sharp from 'sharp'
+import { createHash } from 'node:crypto'
 import { IMAGE_QUALITY, IMAGE_WIDTHS } from '@/lib/image-widths.mjs'
 import { MAX_FETCH_BYTES } from '@/lib/onboarding-image'
 import { imageStore, imageStorePrefix, imageStoreRoot, isVersionedSource, type ImageStore } from '@/lib/r2'
@@ -59,7 +60,7 @@ export async function GET(request: Request) {
         folder = await cachedFolder(store, src)
         if (folder) {
           const stored = await store.get(variantKey(folder, width))
-          if (stored) return webp(stored, true)
+          if (stored) return webp(stored, true, request)
         }
       }
 
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
       }
       if (folder) {
         const stored = await store.get(variantKey(folder, width))
-        if (stored) return webp(stored, immutable)
+        if (stored) return webp(stored, immutable, request)
         original = await store.get(`${folder}/original`)
       }
     } catch (error) {
@@ -101,7 +102,7 @@ export async function GET(request: Request) {
       .webp({ quality: IMAGE_QUALITY })
       .toBuffer()
     if (store && folder) await save(store, variantKey(folder, width), output, 'image/webp')
-    return webp(output, immutable)
+    return webp(output, immutable, request)
   } catch (error) {
     // Not something sharp can read: hand back the original.
     console.error('api/img: resize failed', src, error)
@@ -109,9 +110,22 @@ export async function GET(request: Request) {
   }
 }
 
-function webp(body: Buffer, immutable = false) {
+function webp(body: Buffer, immutable: boolean, request: Request) {
+  const etag = `"${createHash('sha256').update(body).digest('hex')}"`
+  const headers = {
+    'Content-Type': `image/${IMAGE_FORMAT}`,
+    'Cache-Control': immutable ? IMMUTABLE_CACHE : MUTABLE_CACHE,
+    ETag: etag,
+  }
+  // Mutable photos expire in the browser. Validate their exact derivative
+  // so an unchanged photo can be reused without transferring its body again.
+  const matches = request.headers.get('if-none-match')?.split(',').some((value) => {
+    const candidate = value.trim().replace(/^W\//, '')
+    return candidate === '*' || candidate === etag
+  })
+  if (matches) return new Response(null, { status: 304, headers })
   return new Response(new Uint8Array(body), {
-    headers: { 'Content-Type': `image/${IMAGE_FORMAT}`, 'Cache-Control': immutable ? IMMUTABLE_CACHE : MUTABLE_CACHE },
+    headers,
   })
 }
 

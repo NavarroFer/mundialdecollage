@@ -57,6 +57,25 @@ describe('GET /api/img', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })))
     expect((await GET(request(photo, 640))).status).toBe(404)
   })
+
+  it('reuses unchanged derivatives with a bodyless 304, but sends changed ones', async () => {
+    const original = await sharp({ create: { width: 100, height: 100, channels: 3, background: '#c33' } }).jpeg().toBuffer()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array(original))))
+    const first = await GET(request(photo, 640))
+    const etag = first.headers.get('etag')!
+    for (const match of [etag, `W/${etag}`, `"other", ${etag}`]) {
+      const conditional = request(photo, 640)
+      conditional.headers.set('if-none-match', match)
+      const cached = await GET(conditional)
+      expect(cached.status).toBe(304)
+      expect(await cached.text()).toBe('')
+      expect(cached.headers.get('etag')).toBe(etag)
+      expect(cached.headers.get('cache-control')).toContain('s-maxage')
+    }
+    const changed = request(photo, 640)
+    changed.headers.set('if-none-match', '"old-image"')
+    expect((await GET(changed)).status).toBe(200)
+  })
 })
 
 describe('GET /api/img with R2', () => {
