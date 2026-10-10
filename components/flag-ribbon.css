@@ -20,10 +20,22 @@
   animation-play-state: paused;
 }
 
+/* Off screen nothing moves (FlagRibbonFrame): sixty flags animating out of
+   sight still cost the main thread every frame. */
+.flag-ribbon[data-offscreen] *,
+.flag-ribbon[data-offscreen] *::after {
+  animation-play-state: paused;
+}
+
+/* Stop-motion jitter: the flag snaps between a few off-kilter poses, like a
+   paper cut-out being nudged frame by frame, on top of its resting tilt.
+   The negative delay staggers each flag so they never twitch in unison. */
 .flag-ribbon__link {
   display: block;
   border-radius: 2px;
   outline-offset: 4px;
+  animation: flag-ribbon-jitter 1.2s steps(1, end) infinite;
+  animation-delay: calc(var(--i) * -0.37s);
 }
 
 .flag-ribbon__link:focus-visible {
@@ -41,13 +53,10 @@
   list-style: none;
 }
 
-/* Stop-motion jitter: the flag snaps between a few off-kilter poses, like a
-   paper cut-out being nudged frame by frame. The negative delay staggers
-   each flag so they never twitch in unison. */
+/* Cut-out paper never lands straight. The tilt stays out of the jitter's
+   keyframes: a var() there keeps Chrome redoing styles every frame. */
 .flag-ribbon__item {
   transform: rotate(var(--tilt));
-  animation: flag-ribbon-jitter 1.2s steps(1, end) infinite;
-  animation-delay: calc(var(--i) * -0.37s);
 }
 
 .flag-ribbon__flag {
@@ -70,7 +79,10 @@
 }
 
 /* The flag itself, with a sliding band of light and shade over it that
-   reads as folds travelling along the cloth. */
+   reads as folds travelling along the cloth. The band slides by transform,
+   not background-position, which would repaint every flag every frame:
+   it's three cloths wide and moves one gradient tile (two cloths) per loop,
+   always covering the flag. */
 .flag-ribbon__cloth {
   position: relative;
   display: block;
@@ -87,7 +99,10 @@
 .flag-ribbon__cloth::after {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: -200%;
+  width: 300%;
   background: linear-gradient(
     100deg,
     transparent 0%,
@@ -98,7 +113,7 @@
     rgb(255 255 255 / 0.22) 72%,
     transparent 86%
   );
-  background-size: 200% 100%;
+  background-size: calc(200% / 3) 100%;
   animation: flag-ribbon-folds 2.6s linear infinite;
   animation-delay: calc(var(--i) * -0.29s);
 }
@@ -126,16 +141,16 @@
 
 @keyframes flag-ribbon-jitter {
   0% {
-    transform: rotate(var(--tilt)) translate(0, 0);
+    transform: none;
   }
   25% {
-    transform: rotate(calc(var(--tilt) + 2deg)) translate(1px, -2px);
+    transform: rotate(2deg) translate(1px, -2px);
   }
   50% {
-    transform: rotate(calc(var(--tilt) - 1.5deg)) translate(-1px, 1px);
+    transform: rotate(-1.5deg) translate(-1px, 1px);
   }
   75% {
-    transform: rotate(calc(var(--tilt) + 1deg)) translate(1px, 2px);
+    transform: rotate(1deg) translate(1px, 2px);
   }
 }
 
@@ -153,18 +168,15 @@
 }
 
 @keyframes flag-ribbon-folds {
-  from {
-    background-position: 100% 0;
-  }
   to {
-    background-position: -100% 0;
+    transform: translateX(calc(200% / 3));
   }
 }
 
 /* Still flags, still tilted like cut-outs; the strip just stops moving. */
 @media (prefers-reduced-motion: reduce) {
   .flag-ribbon__track,
-  .flag-ribbon__item,
+  .flag-ribbon__link,
   .flag-ribbon__flag,
   .flag-ribbon__cloth::after {
     animation: none;

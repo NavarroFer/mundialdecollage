@@ -4,6 +4,7 @@ import { countByCountry } from '@/lib/country-breakdown'
 import { countryCodeToName, getFinalists } from '@/lib/finalists'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
+import { FlagRibbonFrame } from '@/components/flag-ribbon-frame'
 import { FlagRibbonLink } from '@/components/flag-ribbon-link'
 import './flag-ribbon.css'
 
@@ -17,8 +18,9 @@ const TILTS = [-5, 3, -2, 6, -4, 2, -6, 4]
 // The blue torn strip under the hero, now carrying one flag per country with
 // published obras (live from the database, like the map). The flags march
 // past like a banner and each one flutters with a stop-motion jitter, all in
-// CSS; tapping one opens that country on the map. The SVGs are inlined here
-// on the server, so the browser never loads the ~1.6MB flag set.
+// CSS, and only while the strip is on screen (FlagRibbonFrame); tapping one
+// opens that country on the map. The SVGs are inlined here on the server, so
+// the browser never loads the ~1.6MB flag set.
 export async function FlagRibbon() {
   const [artworks, { locale, m }] = await Promise.all([getFinalists(), getI18n()])
   const countries = countByCountry(artworks.map((artwork) => artwork.countryCode)).flatMap(({ countryCode }) => {
@@ -36,11 +38,7 @@ export async function FlagRibbon() {
   )
 
   return (
-    <section
-      aria-label={m.map.flagsLabel}
-      className="flag-ribbon torn-top bg-collage-blue"
-      style={{ '--flags': loop.length } as CSSProperties}
-    >
+    <FlagRibbonFrame label={m.map.flagsLabel} style={{ '--flags': loop.length } as CSSProperties}>
       {/* Two identical halves: the track slides exactly one half, then
           starts over where it began, so the loop has no visible seam. Only
           the first flag of each country is announced and focusable; the
@@ -73,6 +71,6 @@ export async function FlagRibbon() {
           </ul>
         ))}
       </div>
-    </section>
+    </FlagRibbonFrame>
   )
 }
