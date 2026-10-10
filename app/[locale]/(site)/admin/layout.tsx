@@ -26,6 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 alt=""
                 width={512}
                 height={512}
+                sizes="36px"
                 className="h-9 w-9 rounded-md"
               />
               <span className="font-display text-lg leading-none tracking-wide text-ink">

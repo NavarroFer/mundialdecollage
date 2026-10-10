@@ -84,6 +84,8 @@ export async function HeroSection() {
             alt=""
             width={512}
             height={512}
+            sizes="(min-width: 640px) 144px, 96px"
+            loading="eager"
             className="h-24 w-24 shrink-0 sm:h-36 sm:w-36"
           />
           {/* min-w-0 overrides the flex item's default automatic minimum
@@ -94,6 +96,8 @@ export async function HeroSection() {
             alt="Mundial de Collage"
             width={949}
             height={322}
+            sizes="(min-width: 640px) 448px, 60vw"
+            loading="eager"
             className="h-auto w-full min-w-0 max-w-sm sm:max-w-md"
           />
         </div>

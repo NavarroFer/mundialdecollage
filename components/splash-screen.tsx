@@ -118,10 +118,15 @@ export function SplashScreen() {
             transition={{ duration: 0.56, delay: 0.43, ease: [0.7, 0, 0.84, 0] }}
           />
 
+          {/* The first visit's largest image, so fetched ahead of the rest —
+              but lazy rather than preloaded: for a returning visitor the
+              cover is display:none from the <head> script, and a lazy image
+              that never lays out is never downloaded. */}
           <Image
             src="/logo.png"
             alt="Mundial de Collage"
-            priority
+            fetchPriority="high"
+            sizes="(min-width: 1067px) 896px, 84vw"
             width={1415}
             height={370}
             className="relative z-10 h-auto w-[84vw] max-w-4xl drop-shadow-[6px_8px_0_rgba(27,17,12,0.16)]"

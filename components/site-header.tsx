@@ -82,12 +82,13 @@ export async function SiteHeader() {
       <SiteHeaderMotion>
         <div className="mx-auto flex min-h-[4.75rem] max-w-6xl items-center justify-between gap-3 px-4 py-3 transition-[min-height,padding] duration-300 ease-out group-data-[scrolled=true]/header:min-h-[4.25rem] group-data-[scrolled=true]/header:py-2 motion-reduce:transition-none sm:px-8 lg:min-h-[5.5rem] lg:group-data-[scrolled=true]/header:min-h-[4.75rem]">
           <Link href="/#top" className="group flex shrink-0 items-center gap-2.5 transition-opacity duration-300 hover:opacity-75 focus-visible:rounded-lg">
-            <Image src="/logo-mark.png" alt="" width={512} height={512} className="h-10 w-10 transition-[height,width,transform] duration-300 ease-out group-data-[scrolled=true]/header:h-8 group-data-[scrolled=true]/header:w-8 motion-reduce:transition-none group-hover:rotate-[-4deg]" />
+            <Image src="/logo-mark.png" alt="" width={512} height={512} sizes="40px" className="h-10 w-10 transition-[height,width,transform] duration-300 ease-out group-data-[scrolled=true]/header:h-8 group-data-[scrolled=true]/header:w-8 motion-reduce:transition-none group-hover:rotate-[-4deg]" />
             <Image
               src="/wordmark.png"
               alt="Mundial de Collage"
               width={949}
               height={322}
+              sizes="83px"
               className="hidden h-7 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/header:h-6 motion-reduce:transition-none sm:block"
             />
           </Link>
