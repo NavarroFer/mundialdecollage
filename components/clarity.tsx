@@ -8,13 +8,17 @@ const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID
 // Sin NEXT_PUBLIC_CLARITY_PROJECT_ID no se inyecta nada (ver README). Se
 // excluye /admin para no grabar la sesión de quien administra el sitio junto
 // con la de los visitantes.
+//
+// lazyOnload: Clarity copia el DOM entero al arrancar y escucha cada toque;
+// cargado después del load, en tiempo ocioso, no compite con la hidratación
+// ni con los primeros toques del visitante.
 export function ClarityAnalytics() {
   const pathname = usePathname()
 
   if (!CLARITY_PROJECT_ID || pathname?.startsWith('/admin')) return null
 
   return (
-    <Script id="clarity-analytics" strategy="afterInteractive">
+    <Script id="clarity-analytics" strategy="lazyOnload">
       {`(function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="/monitoring/www.clarity.ms/tag/"+i;
