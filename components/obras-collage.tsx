@@ -35,6 +35,7 @@ export function ObrasCollage({
     if (!scrollDriven || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     let frame: number | undefined
+    let last: { progress: number; mobile: boolean } | undefined
     const update = () => {
       frame = undefined
       const root = rootRef.current
@@ -46,6 +47,10 @@ export function ObrasCollage({
       // than a delayed entrance animation.
       const progress = Math.max(0, Math.min(1, (viewport * 0.82 - rect.top) / (rect.height + viewport * 0.18)))
       const mobile = window.matchMedia('(max-width: 639px)').matches
+      // Scrolling anywhere else on the page leaves progress pinned at 0 or 1:
+      // rewriting the same 80 properties would restyle the pile every frame.
+      if (last?.progress === progress && last.mobile === mobile) return
+      last = { progress, mobile }
 
       itemRefs.current.forEach((item, index) => {
         if (!item) return
