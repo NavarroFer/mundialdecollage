@@ -213,3 +213,6 @@ export function isFunnelEvent(value: unknown): value is FunnelEvent {
 /** First-party cookie holding the anonymous visitor id. */
 export const VISITOR_COOKIE = 'mdc-vid'
 export const VISITOR_ID_PATTERN = /^[a-zA-Z0-9-]{8,64}$/
+
+/** Most steps one /api/track call carries (lib/track.ts sends them in batches). */
+export const TRACK_BATCH_MAX = 20
