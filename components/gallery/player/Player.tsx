@@ -23,8 +23,8 @@ const JUMP_SPEED = 3.2
 // Capsule centre to its bottom is the same standing or crouched (the
 // collider shifts down as it shrinks), plus a little slack for the ground.
 const GROUND_PROBE = PLAYER_HALF_HEIGHT + PLAYER_RADIUS + 0.05
-// The camera initially looks toward -Z. Start in front of the central bench
-// (at z=2.25), with room to walk forward into the gallery.
+// The camera initially looks toward -Z. Start in the middle of the entrance
+// hall, with room to walk forward into the gallery.
 const SPAWN_POSITION: [number, number, number] = [0, 0.9, -0.5]
 
 const UP = new THREE.Vector3(0, 1, 0)
