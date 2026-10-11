@@ -429,6 +429,7 @@ const en: Messages = {
     },
     reactLive: 'React live',
     reactions: ['Love it', 'Applause', 'Fire', 'Brilliant'],
+    access: {"title": "Enter the gallery", "body": "Create an account or sign in with Google to explore the exhibition. You do not need to submit artwork.", "error": "Sign-in failed. Please try again.", "measurement": "We measure viewing time and artwork details you open, linked to your account, to understand your interests and improve the gallery.", "privacy": "Privacy"},
     preferences: {"sensitivity": "Camera sensitivity", "slow": "Gentle", "normal": "Normal", "fast": "Fast", "visited": "Opened artworks", "resume": "Resume from the last artwork", "reset": "Clear my tour", "local": "Saved in this browser."},
     musicOn: 'Turn music on',
     musicOff: 'Mute music',

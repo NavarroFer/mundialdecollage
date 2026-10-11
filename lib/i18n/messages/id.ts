@@ -428,6 +428,7 @@ const id: Messages = {
     },
     reactLive: 'Beri reaksi langsung',
     reactions: ['Suka sekali', 'Tepuk tangan', 'Keren', 'Cemerlang'],
+    access: {"title": "Masuk ke galeri", "body": "Buat akun atau masuk dengan Google untuk menjelajahi pameran. Anda tidak perlu mengirim karya.", "error": "Gagal masuk. Silakan coba lagi.", "measurement": "Kami mengukur waktu pengamatan dan detail karya yang dibuka, terkait dengan akun Anda, untuk memahami minat Anda dan meningkatkan galeri.", "privacy": "Privasi"},
     preferences: {"sensitivity": "Sensitivitas kamera", "slow": "Lembut", "normal": "Normal", "fast": "Cepat", "visited": "Karya yang dibuka", "resume": "Lanjutkan dari karya terakhir", "reset": "Hapus tur saya", "local": "Disimpan di browser ini."},
     musicOn: 'Nyalakan musik',
     musicOff: 'Matikan musik',

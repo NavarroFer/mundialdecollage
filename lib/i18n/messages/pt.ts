@@ -428,6 +428,7 @@ const pt: Messages = {
     },
     reactLive: 'Reaja ao vivo',
     reactions: ['Amei', 'Aplausos', 'Fogo', 'Brilhante'],
+    access: {"title": "Entre na galeria", "body": "Crie sua conta ou entre com o Google para visitar a exposição. Não é necessário enviar uma obra.", "error": "Não foi possível entrar. Tente novamente.", "measurement": "Medimos o tempo de observação e as fichas consultadas, associados à sua conta, para entender seus interesses e melhorar a galeria.", "privacy": "Privacidade"},
     preferences: {"sensitivity": "Sensibilidade da câmera", "slow": "Suave", "normal": "Normal", "fast": "Rápida", "visited": "Obras abertas", "resume": "Retomar da última obra", "reset": "Limpar meu percurso", "local": "Salvo neste navegador."},
     musicOn: 'Ligar música',
     musicOff: 'Silenciar música',

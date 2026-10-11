@@ -438,6 +438,7 @@ const pl: Messages = {
     },
     reactLive: 'Reaguj na żywo',
     reactions: ['Uwielbiam', 'Brawo', 'Ogień', 'Genialne'],
+    access: {"title": "Wejdź do galerii", "body": "Utwórz konto lub zaloguj się przez Google, aby zwiedzić wystawę. Nie musisz przesyłać pracy.", "error": "Logowanie nie powiodło się. Spróbuj ponownie.", "measurement": "Mierzymy czas oglądania i otwierane opisy prac, powiązane z kontem, aby poznać Twoje zainteresowania i ulepszać galerię.", "privacy": "Prywatność"},
     preferences: {"sensitivity": "Czułość kamery", "slow": "Łagodna", "normal": "Normalna", "fast": "Szybka", "visited": "Otwarte prace", "resume": "Wznów od ostatniej pracy", "reset": "Wyczyść moją trasę", "local": "Zapisano w tej przeglądarce."},
     musicOn: 'Włącz muzykę',
     musicOff: 'Wycisz muzykę',

@@ -433,6 +433,7 @@ const es = {
     },
     reactLive: 'Reaccioná en vivo',
     reactions: ['Me encanta', 'Aplausos', 'Fuego', 'Brillante'],
+    access: {"title": "Entrá a la galería", "body": "Creá tu cuenta o iniciá sesión con Google para recorrer la exposición. No hace falta enviar una obra.", "error": "No pudimos iniciar sesión. Volvé a intentarlo.", "measurement": "Medimos el tiempo de observación y las fichas que consultás, asociado a tu cuenta, para entender tus intereses y mejorar la galería.", "privacy": "Privacidad"},
     preferences: {"sensitivity": "Sensibilidad de la cámara", "slow": "Suave", "normal": "Normal", "fast": "Rápida", "visited": "Obras abiertas", "resume": "Retomar desde la última obra", "reset": "Borrar mi recorrido", "local": "Se guarda en este navegador."},
     musicOn: 'Activar música',
     musicOff: 'Silenciar música',
