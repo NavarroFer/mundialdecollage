@@ -1,3 +1,4 @@
+import { GalleryAttentionStats } from '@/components/admin/gallery-attention-stats'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { CollapsibleSection } from '@/components/admin/collapsible-section'
 import { StatBar } from '@/components/admin/stat-bar'
@@ -172,6 +173,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           </Link>
         ))}
       </nav>
+      <GalleryAttentionStats days={periodDays} />
       <section className="mt-6 grid gap-3 lg:grid-cols-12" aria-label="Panorama de la convocatoria">
         <div className="relative overflow-hidden rounded-3xl bg-collage-blue p-6 text-paper lg:col-span-4">
           <p className="text-xs font-bold tracking-[0.18em] text-paper/70 uppercase">Panorama general</p>

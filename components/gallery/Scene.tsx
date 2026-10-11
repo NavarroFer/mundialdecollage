@@ -1,5 +1,6 @@
 'use client'
 
+import { AttentionRay } from './attention/AttentionRay'
 import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
@@ -60,6 +61,7 @@ export function Scene({ artworks, theme, active, paused, isTouchDevice, lockTarg
         <TouchLookController active={active} />
         <InteractionManager artworks={artworks} />
         <PlayerTracker />
+        <AttentionRay active={active} />
         <FloatingReactions artworks={artworks} />
         <SouvenirCapture />
         <WallAim />

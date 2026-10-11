@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { AttentionRecorder } from './attention/AttentionRecorder'
 import { Menu, Smartphone, X } from 'lucide-react'
 import type { Artwork } from '@/data/artworks'
 import { GalleryPresence } from './presence/GalleryPresence'
@@ -56,7 +57,7 @@ function requestLock(element: HTMLElement, onError: () => void) {
   Promise.resolve(element.requestPointerLock()).catch(onError)
 }
 
-export function Game({ artworks }: { artworks: Artwork[] }) {
+export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const isLandscape = useSyncExternalStore(subscribeToOrientation, getIsLandscape, getLandscapeServerSnapshot)
   const [optionsOpen, setOptionsOpen] = useState(false)
@@ -244,6 +245,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           />
         )}
       </div>
+      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!souvenirOpen && !wallOpen && !optionsOpen && (!isTouchDevice || isLandscape) && (isActive || Boolean(openId))} />
       <GalleryPresence inside={isTouchDevice ? hasStarted && isLandscape : isActive} artworks={artworks} />
       {isTouchDevice && isActive && !openId && !souvenirOpen && !wallOpen && <TouchControls theme={theme} />}
       {isTouchDevice && sceneReady && isLandscape && !openId && !souvenirOpen && !wallOpen && <button type="button" className={styles.mobileOptionsTrigger} onClick={() => setOptionsOpen((open) => !open)} aria-label={optionsOpen ? m.gallery.mobileMenu.close : m.gallery.mobileMenu.open} aria-expanded={optionsOpen} aria-controls="gallery-mobile-options">{optionsOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button>}

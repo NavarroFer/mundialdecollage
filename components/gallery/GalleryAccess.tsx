@@ -19,7 +19,7 @@ export function GalleryAccess({ artworks, userId }: { artworks: Artwork[]; userI
     })
     return () => data.subscription.unsubscribe()
   }, [userId])
-  return signedIn ? <Game artworks={artworks} /> : <GallerySignIn />
+  return signedIn ? <Game artworks={artworks} userId={userId} /> : <GallerySignIn />
 }
 
 export function GallerySignIn() {

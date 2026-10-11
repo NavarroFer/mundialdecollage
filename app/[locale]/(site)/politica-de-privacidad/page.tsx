@@ -46,7 +46,7 @@ export default async function PoliticaDePrivacidadPage() {
             Política de Privacidad
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Última actualización: septiembre de 2026
+            Última actualización: octubre de 2026
           </p>
 
           <p className="mt-8 text-sm leading-relaxed text-foreground sm:text-base">
@@ -94,6 +94,17 @@ export default async function PoliticaDePrivacidadPage() {
                 email nunca se muestra. Al dar like te sumamos a las novedades del
                 Mundial por email; podés darte de baja cuando quieras. Los likes y
                 comentarios que recibe una obra se le cuentan a su artista por email.
+              </li>
+              <li>
+                <span className="font-semibold text-foreground">Recorrido por la galería:</span>{' '}
+                para entrar necesitás una cuenta. Registramos, asociados a tu cuenta,
+                la obra, la sesión, el tiempo acumulado de observación en 3D y de
+                consulta de su ficha, y la cantidad de tramos de observación. Usamos
+                estos datos para entender intereses y mejorar la experiencia. No
+                guardamos un historial de movimientos ni realizamos seguimiento ocular.
+                Los datos individuales no se muestran a otros visitantes ni artistas.
+                El tema visual, el sonido, la sensibilidad y las obras abiertas se
+                guardan en este navegador; podés borrar el recorrido desde las opciones.
               </li>
               <li>
                 <span className="font-semibold text-foreground">Uso del Sitio:</span>{' '}

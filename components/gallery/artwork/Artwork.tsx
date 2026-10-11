@@ -84,7 +84,7 @@ export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryThem
         <planeGeometry args={[matWidth, matHeight]} />
         <meshStandardMaterial color={frame.mat} roughness={0.9} />
       </mesh>
-      <mesh position={[0, 0, FRAME_DEPTH + 0.006]}>
+      <mesh position={[0, 0, FRAME_DEPTH + 0.006]} userData={{ attentionArtworkId: data.id }}>
         <planeGeometry args={[renderWidth, renderHeight]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
