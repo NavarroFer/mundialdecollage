@@ -235,9 +235,9 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
       <GalleryPresence inside={isTouchDevice ? hasStarted && isLandscape : isActive} artworks={artworks} />
       {isTouchDevice && isActive && !openId && !souvenirOpen && !wallOpen && <TouchControls theme={theme} />}
       {isTouchDevice && sceneReady && isLandscape && !openId && !souvenirOpen && !wallOpen && <button type="button" className={styles.mobileOptionsTrigger} onClick={() => setOptionsOpen((open) => !open)} aria-label={optionsOpen ? m.gallery.mobileMenu.close : m.gallery.mobileMenu.open} aria-expanded={optionsOpen} aria-controls="gallery-mobile-options">{optionsOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button>}
+      <BackgroundMusic ref={musicRef} theme={theme} inline={isTouchDevice} />
       <div id="gallery-mobile-options" className={isTouchDevice ? styles.mobileOptions : undefined} hidden={isTouchDevice && (!optionsOpen || !hasStarted || !isLandscape || Boolean(openId) || souvenirOpen || wallOpen)}>
         {isTouchDevice && <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>}
-        <BackgroundMusic ref={musicRef} theme={theme} inline={isTouchDevice} />
         {hasStarted && <Souvenir theme={theme} isTouchDevice={isTouchDevice} onResume={resumeWalk} inline={isTouchDevice} />}
         <Minimap theme={theme} artworks={artworks} />
         {hasStarted && <PresenceCounter />}
