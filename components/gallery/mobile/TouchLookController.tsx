@@ -1,6 +1,7 @@
 'use client'
 
 import { useFrame, useThree } from '@react-three/fiber'
+import { useGalleryPreferences } from '../preferences/store'
 import * as THREE from 'three'
 import { useTouchStore } from './touchStore'
 
@@ -22,8 +23,8 @@ export function TouchLookController({ active }: { active: boolean }) {
     if (!active || (x === 0 && y === 0)) return
 
     euler.setFromQuaternion(camera.quaternion)
-    euler.y -= x * LOOK_SENSITIVITY
-    euler.x -= y * LOOK_SENSITIVITY
+    euler.y -= x * LOOK_SENSITIVITY * useGalleryPreferences.getState().sensitivity
+    euler.x -= y * LOOK_SENSITIVITY * useGalleryPreferences.getState().sensitivity
     euler.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, euler.x))
     camera.quaternion.setFromEuler(euler)
   })

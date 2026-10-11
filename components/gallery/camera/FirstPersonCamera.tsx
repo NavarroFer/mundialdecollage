@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
+import { useGalleryPreferences } from '../preferences/store'
 import * as THREE from 'three'
 
 // three-stdlib's PointerLockControls values, so the mouse feels the same.
@@ -32,8 +33,8 @@ export function FirstPersonCamera({ target, pointerSpeed = 1 }: FirstPersonCamer
     function look(event: MouseEvent) {
       if (document.pointerLockElement !== target) return
       euler.setFromQuaternion(camera.quaternion)
-      euler.y -= event.movementX * MOUSE_SENSITIVITY * pointerSpeed
-      euler.x -= event.movementY * MOUSE_SENSITIVITY * pointerSpeed
+      euler.y -= event.movementX * MOUSE_SENSITIVITY * pointerSpeed * useGalleryPreferences.getState().sensitivity
+      euler.x -= event.movementY * MOUSE_SENSITIVITY * pointerSpeed * useGalleryPreferences.getState().sensitivity
       euler.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, euler.x))
       camera.quaternion.setFromEuler(euler)
     }
