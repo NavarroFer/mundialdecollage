@@ -1,5 +1,7 @@
 'use client'
 
+import { useGalleryPreferences } from '../preferences/store'
+import { useI18n } from '@/lib/i18n/client'
 import type { Artwork } from '@/data/artworks'
 import { usePlayerTrackerStore } from '../minimap/store'
 import { useEffect, useState } from 'react'
@@ -30,6 +32,8 @@ const mapColors: Record<GalleryTheme, { floor: string; wall: string; player: str
 }
 
 export function Minimap({ theme, artworks }: { theme: GalleryTheme; artworks: Artwork[] }) {
+  const visited = useGalleryPreferences((state) => state.visited)
+  const t = useI18n().m.gallery.preferences
   const x = usePlayerTrackerStore((state) => state.x)
   const z = usePlayerTrackerStore((state) => state.z)
   const heading = usePlayerTrackerStore((state) => state.heading)
@@ -49,7 +53,8 @@ export function Minimap({ theme, artworks }: { theme: GalleryTheme; artworks: Ar
 
   return (
     <div className={`${styles.hudPanel} animate-in fade-in absolute top-4 right-4 z-20 w-56 duration-300`}>
-      <svg viewBox={viewBox} className="block w-full" style={{ aspectRatio: `${maxX - minX + PADDING * 2} / ${maxZ - minZ + PADDING * 2}` }}>
+      <p className="px-2 py-1 text-xs">✓ {t.visited}: {artworks.filter((artwork) => visited.includes(artwork.id)).length}/{artworks.length}</p>
+      <svg role="img" aria-label={t.visited} viewBox={viewBox} className="block w-full" style={{ aspectRatio: `${maxX - minX + PADDING * 2} / ${maxZ - minZ + PADDING * 2}` }}>
         <rect x={minX} y={minZ} width={maxX - minX} height={maxZ - minZ} fill={colors.floor} />
         {walls.map((wall) => (
           <rect
@@ -61,6 +66,7 @@ export function Minimap({ theme, artworks }: { theme: GalleryTheme; artworks: Ar
             fill={colors.wall}
           />
         ))}
+        {artworks.filter((artwork) => visited.includes(artwork.id)).map((artwork) => <text key={`visited-${artwork.id}`} x={artwork.position[0]} y={artwork.position[2]} fill={colors.player} stroke={colors.stroke} strokeWidth={0.06} fontSize={1.5} textAnchor="middle">✓<title>{artwork.title}</title></text>)}
         {/* Obras someone else has open right now. */}
         {artworks.filter((artwork) => viewers[artwork.id]).map((artwork) => (
           <circle

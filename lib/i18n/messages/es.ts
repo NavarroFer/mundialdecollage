@@ -433,6 +433,7 @@ const es = {
     },
     reactLive: 'Reaccioná en vivo',
     reactions: ['Me encanta', 'Aplausos', 'Fuego', 'Brillante'],
+    preferences: {"sensitivity": "Sensibilidad de la cámara", "slow": "Suave", "normal": "Normal", "fast": "Rápida", "visited": "Obras abiertas", "resume": "Retomar desde la última obra", "reset": "Borrar mi recorrido", "local": "Se guarda en este navegador."},
     musicOn: 'Activar música',
     musicOff: 'Silenciar música',
     souvenir: {

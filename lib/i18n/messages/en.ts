@@ -429,6 +429,7 @@ const en: Messages = {
     },
     reactLive: 'React live',
     reactions: ['Love it', 'Applause', 'Fire', 'Brilliant'],
+    preferences: {"sensitivity": "Camera sensitivity", "slow": "Gentle", "normal": "Normal", "fast": "Fast", "visited": "Opened artworks", "resume": "Resume from the last artwork", "reset": "Clear my tour", "local": "Saved in this browser."},
     musicOn: 'Turn music on',
     musicOff: 'Mute music',
     souvenir: {

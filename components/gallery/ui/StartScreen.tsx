@@ -9,6 +9,7 @@ import { readReferralCookie, readReferralParam } from '@/lib/referral'
 import { createClient } from '@/lib/supabase/client'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import styles from '../gallery-theme.module.css'
+import { VisitPreferences } from './VisitPreferences'
 import { PresenceNote } from './PresenceCounter'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
@@ -22,6 +23,7 @@ type StartScreenProps = {
   hint: string
   /** Show how many people are inside — only meaningful before the first entry. */
   showPresence: boolean
+  onResume: (id: string) => void
   onEnter: () => void
 }
 
@@ -53,12 +55,12 @@ function useInviter(artworks: Artwork[]): string | null {
   return inviter
 }
 
-export function StartScreen({ artworks, label, loading, hint, showPresence, onEnter }: StartScreenProps) {
+export function StartScreen({ artworks, label, loading, hint, showPresence, onEnter, onResume }: StartScreenProps) {
   const { m } = useI18n()
   const inviter = useInviter(artworks)
   return (
-    <div className={`${styles.startScreen} animate-in fade-in absolute inset-0 z-30 flex items-center justify-center p-4 duration-300`}>
-      <section className={styles.startPanel} aria-labelledby="gallery-start-title">
+    <div className={`${styles.startScreen} animate-in fade-in absolute inset-0 z-30 flex items-start justify-center overflow-y-auto p-4 pt-20 duration-300`}>
+      <section className={`${styles.startPanel} my-auto`} aria-labelledby="gallery-start-title">
         <div className={styles.windowsTitlebar} aria-hidden="true">
           <span>museo.exe</span><span>□ ×</span>
         </div>
@@ -73,6 +75,7 @@ export function StartScreen({ artworks, label, loading, hint, showPresence, onEn
       >
         {label}
       </button>
+      <details className="mt-3"><summary className="cursor-pointer py-2">{m.gallery.mobileMenu.open}</summary><VisitPreferences artworks={artworks} onResume={onResume} /></details>
       {showPresence && <PresenceNote />}
       <p className={styles.hint}>{hint}</p>
       {inviter && (

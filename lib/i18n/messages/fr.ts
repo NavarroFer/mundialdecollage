@@ -428,6 +428,7 @@ const fr: Messages = {
     },
     reactLive: 'Réagis en direct',
     reactions: ["J'adore", 'Bravo', 'Feu', 'Brillant'],
+    preferences: {"sensitivity": "Sensibilité de la caméra", "slow": "Douce", "normal": "Normale", "fast": "Rapide", "visited": "Œuvres ouvertes", "resume": "Reprendre à la dernière œuvre", "reset": "Effacer mon parcours", "local": "Enregistré dans ce navigateur."},
     musicOn: 'Activer la musique',
     musicOff: 'Couper la musique',
     souvenir: {

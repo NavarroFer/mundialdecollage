@@ -15,12 +15,13 @@ import { Minimap } from './ui/Minimap'
 import { PresenceCounter } from './ui/PresenceCounter'
 import { Souvenir } from './ui/Souvenir'
 import { StartScreen } from './ui/StartScreen'
-import { ThemePicker } from './ui/ThemePicker'
+import { VisitPreferences } from './ui/VisitPreferences'
+import { useGalleryPreferences } from './preferences/store'
 import { useInteractionStore } from './interaction/store'
 import { WallDialog } from './wall/WallDialog'
 import { loadWall, useWallStore } from './wall/store'
 import { useSouvenirStore } from './souvenir/store'
-import { galleryThemes, type GalleryTheme } from './themes'
+import { galleryThemes } from './themes'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
@@ -62,8 +63,12 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
   const [locked, setLocked] = useState(false)
   const { locale, m } = useI18n()
   const [hasStarted, setHasStarted] = useState(false)
-  const [theme, setTheme] = useState<GalleryTheme>('collage')
+  const theme = useGalleryPreferences((state) => state.theme)
+  useEffect(() => { useGalleryPreferences.getState().hydrate() }, [])
   const openId = useInteractionStore((state) => state.openId)
+  useEffect(() => {
+    if (openId && artworks.some((artwork) => artwork.id === openId)) useGalleryPreferences.getState().visit(openId)
+  }, [openId, artworks])
   const souvenirOpen = useSouvenirStore((state) => state.open)
   const wallOpen = useWallStore((state) => state.placing !== null)
   const wallWeek = useWallStore((state) => state.weekStart)
@@ -202,13 +207,20 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
     return () => window.removeEventListener('keydown', close)
   }, [optionsOpen])
 
-  function handleEnter() {
+  function handleEnter(lockPointer = true) {
     if (!hasStarted) track('gallery_enter')
     setHasStarted(true)
     // Right here, in the click: the browser only grants the lock to a user
     // gesture, and the scene may take a few seconds more to load.
-    if (!isTouchDevice && shell) requestLock(shell, () => {})
+    if (lockPointer && !isTouchDevice && shell) requestLock(shell, () => {})
     musicRef.current?.play()
+  }
+
+  function resumeArtwork(id: string) {
+    useGalleryPreferences.setState({ resumeArtwork: id })
+    setOptionsOpen(false)
+    handleEnter(false)
+    useInteractionStore.getState().open(id)
   }
 
   return (
@@ -241,7 +253,7 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
         {hasStarted && <Souvenir theme={theme} isTouchDevice={isTouchDevice} onResume={resumeWalk} inline={isTouchDevice} />}
         <Minimap theme={theme} artworks={artworks} />
         {hasStarted && <PresenceCounter />}
-        {!openId && !souvenirOpen && !wallOpen && <ThemePicker theme={theme} onChange={setTheme} inline={isTouchDevice} />}
+        {isTouchDevice && <VisitPreferences artworks={artworks} onResume={resumeArtwork} />}
         {isTouchDevice && <section className="space-y-2 border-t border-current/20 pt-3 text-xs"><h3 className="font-bold">{m.gallery.tutorial.title}</h3><p>{m.gallery.tutorial.touchIntro}</p><p>{m.gallery.tutorial.lookTouch}</p><p>{m.gallery.tutorial.interactTouch}</p><button type="button" className={styles.mobileOptionsResume} onClick={() => setOptionsOpen(false)}>{m.gallery.mobileMenu.resume}</button></section>}
       </div>
       {!isTouchDevice && <ControlsTutorial active={isActive} isTouchDevice={false} />}
@@ -268,7 +280,8 @@ export function Game({ artworks }: { artworks: Artwork[] }) {
           loading={loading}
           showPresence={!hasStarted}
           hint={isTouchDevice ? m.gallery.hintTouch : m.gallery.hintDesktop}
-          onEnter={handleEnter}
+          onEnter={() => handleEnter()}
+          onResume={resumeArtwork}
         />
       )}
     </div>

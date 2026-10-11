@@ -428,6 +428,7 @@ const de: Messages = {
     },
     reactLive: 'Live reagieren',
     reactions: ['Liebe ich', 'Applaus', 'Feuer', 'Brillant'],
+    preferences: {"sensitivity": "Kameraempfindlichkeit", "slow": "Sanft", "normal": "Normal", "fast": "Schnell", "visited": "Geöffnete Werke", "resume": "Beim letzten Werk fortsetzen", "reset": "Rundgang löschen", "local": "In diesem Browser gespeichert."},
     musicOn: 'Musik einschalten',
     musicOff: 'Musik stummschalten',
     souvenir: {

@@ -19,7 +19,7 @@ export function ThemePicker({ theme, onChange, inline = false }: { theme: Galler
   const t = m.gallery.themes
 
   return (
-    <aside className={styles.themePicker}>
+    <aside className={inline ? styles.themePickerInline : styles.themePicker}>
       {(open || inline) && (
         <div className={styles.themeMenu} role="radiogroup" aria-label={t.label}>
           <div className={styles.themeMenuTitle}>

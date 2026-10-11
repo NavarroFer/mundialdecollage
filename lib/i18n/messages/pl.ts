@@ -438,6 +438,7 @@ const pl: Messages = {
     },
     reactLive: 'Reaguj na żywo',
     reactions: ['Uwielbiam', 'Brawo', 'Ogień', 'Genialne'],
+    preferences: {"sensitivity": "Czułość kamery", "slow": "Łagodna", "normal": "Normalna", "fast": "Szybka", "visited": "Otwarte prace", "resume": "Wznów od ostatniej pracy", "reset": "Wyczyść moją trasę", "local": "Zapisano w tej przeglądarce."},
     musicOn: 'Włącz muzykę',
     musicOff: 'Wycisz muzykę',
     souvenir: {

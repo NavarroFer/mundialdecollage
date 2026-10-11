@@ -428,6 +428,7 @@ const id: Messages = {
     },
     reactLive: 'Beri reaksi langsung',
     reactions: ['Suka sekali', 'Tepuk tangan', 'Keren', 'Cemerlang'],
+    preferences: {"sensitivity": "Sensitivitas kamera", "slow": "Lembut", "normal": "Normal", "fast": "Cepat", "visited": "Karya yang dibuka", "resume": "Lanjutkan dari karya terakhir", "reset": "Hapus tur saya", "local": "Disimpan di browser ini."},
     musicOn: 'Nyalakan musik',
     musicOff: 'Matikan musik',
     souvenir: {

@@ -8,6 +8,7 @@ import * as THREE from 'three'
 import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
 import { useTouchStore } from '../mobile/touchStore'
+import { useGalleryPreferences } from '../preferences/store'
 import type { Controls } from './controls'
 
 const WALK_SPEED = 2.6
@@ -83,6 +84,20 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
   useFrame(({ camera }, delta) => {
     const body = bodyRef.current
     if (!body) return
+
+    const resumeId = useGalleryPreferences.getState().resumeArtwork
+    if (resumeId) {
+      const artwork = artworks.find((item) => item.id === resumeId)
+      useGalleryPreferences.setState({ resumeArtwork: null })
+      if (artwork) {
+        // Resume on the floor in front of the work, never at the camera's
+        // elevated viewing position or inside its wall.
+        const distance = Math.max(artwork.width, artwork.height) * 0.62 + 0.75
+        body.setTranslation({ x: artwork.position[0] + Math.sin(artwork.rotation[1]) * distance, y: SPAWN_POSITION[1], z: artwork.position[2] + Math.cos(artwork.rotation[1]) * distance }, true)
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        camera.rotation.set(0, artwork.rotation[1], 0)
+      }
+    }
 
     const openId = useInteractionStore.getState().openId
     const modalOpen = openId !== null
