@@ -127,10 +127,12 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
 const pulse = 'animate-pulse rounded-full bg-ink/10 motion-reduce:animate-none'
 
 // Where the invitation to send an obra appears: under the like or the comment
-// that triggered it. Once shown or dismissed it stays that way while this
-// obra is open, and "Ahora no" silences it for the rest of the visit.
+// that triggered it. It doesn't go away on its own: closing the obra (a tap
+// outside, E) used to take it with it before anyone could read it, so once
+// shown it comes back under the like of every obra opened afterwards, until
+// «Ahora no» or «Mandá tu obra» settle it for the rest of the visit.
 type Invite = 'like' | 'comment' | 'dismissed' | null
-let inviteDismissed = false
+let inviteForVisit: 'unseen' | 'pending' | 'settled' = 'unseen'
 
 // Likes and comments share one request and appear in the same frame, over
 // placeholders the size of what replaces them so nothing below jumps.
@@ -139,13 +141,18 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
   // Already fetched (the usual case): it opens with the modal, no fade of its own.
   const [instant] = useState(() => result !== undefined)
   const [attempt, setAttempt] = useState(0)
-  const [invite, setInvite] = useState<Invite>(() => (inviteDismissed ? 'dismissed' : null))
+  const [invite, setInvite] = useState<Invite>(() => (inviteForVisit === 'settled' ? 'dismissed' : inviteForVisit === 'pending' ? 'like' : null))
   const { m } = useI18n()
+  const showInvite = useCallback((from: 'like' | 'comment') => setInvite((current) => {
+    if (current) return current
+    inviteForVisit = 'pending'
+    return from
+  }), [])
   // Stable, so ArtworkLike/ArtworkComments can keep them in their callbacks' deps.
-  const afterLike = useCallback(() => setInvite((current) => current ?? 'like'), [])
-  const afterComment = useCallback(() => setInvite((current) => current ?? 'comment'), [])
-  const dismissInvite = useCallback(() => {
-    inviteDismissed = true
+  const afterLike = useCallback(() => showInvite('like'), [showInvite])
+  const afterComment = useCallback(() => showInvite('comment'), [showInvite])
+  const settleInvite = useCallback(() => {
+    inviteForVisit = 'settled'
     setInvite('dismissed')
   }, [])
 
@@ -158,7 +165,7 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
   const social = result && !('error' in result) ? result : undefined
   const failed = result !== undefined && !social
   const reveal = cn(!instant && 'animate-in fade-in duration-300 motion-reduce:animate-none')
-  const inviteUnder = (from: Invite) => social?.canJoin && invite === from && <ArtistInvite onDismiss={dismissInvite} />
+  const inviteUnder = (from: Invite) => social?.canJoin && invite === from && <ArtistInvite onDismiss={settleInvite} onAccept={settleInvite} />
 
   return (
     <>

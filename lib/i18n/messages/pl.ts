@@ -92,7 +92,7 @@ const pl: Messages = {
   artistInvite: {
     title: 'Też robisz kolaże?',
     body: 'Masz już konto: wyślij swoją pracę i weź bezpłatnie udział w Mistrzostwach Świata w Kolażu.',
-    cta: 'Wyślij moją pracę',
+    cta: 'Wyślij swoją pracę',
     dismiss: 'Nie teraz',
   },
   bases: {

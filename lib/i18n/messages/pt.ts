@@ -92,7 +92,7 @@ const pt: Messages = {
   artistInvite: {
     title: 'Você também faz colagem?',
     body: 'Você já tem sua conta: envie sua obra e participe grátis do Mundial de Colagem.',
-    cta: 'Enviar minha obra',
+    cta: 'Envie sua obra',
     dismiss: 'Agora não',
   },
   bases: {

@@ -92,7 +92,7 @@ const id: Messages = {
   artistInvite: {
     title: 'Kamu juga membuat kolase?',
     body: 'Kamu sudah punya akun: kirim karyamu dan ikuti Piala Dunia Kolase secara gratis.',
-    cta: 'Kirim karyaku',
+    cta: 'Kirim karyamu',
     dismiss: 'Nanti saja',
   },
   bases: {

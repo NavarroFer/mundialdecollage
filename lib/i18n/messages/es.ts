@@ -94,7 +94,7 @@ const es = {
   artistInvite: {
     title: '¿Vos también hacés collage?',
     body: 'Ya tenés tu cuenta: mandá tu obra y participá gratis del Mundial de Collage.',
-    cta: 'Mandar mi obra',
+    cta: 'Mandá tu obra',
     dismiss: 'Ahora no',
   },
   bases: {

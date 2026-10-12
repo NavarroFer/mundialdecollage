@@ -92,7 +92,7 @@ const en: Messages = {
   artistInvite: {
     title: 'Do you make collage too?',
     body: 'You already have an account: send your artwork and take part in the Collage World Cup for free.',
-    cta: 'Send my artwork',
+    cta: 'Send your artwork',
     dismiss: 'Not now',
   },
   bases: {

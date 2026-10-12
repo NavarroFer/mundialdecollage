@@ -56,7 +56,8 @@ export function WaitlistSignup({ source, className, title, body }: { source: Wai
 }
 
 // One tap for someone already signed in with Google (the gallery, right
-// after a like or comment): their account's email is used.
+// after a like or comment): their account's email is used. The secondary
+// choice next to «Mandá tu obra», so it's an outline button, not a link.
 export function WaitlistOneClick({ className }: { className?: string }) {
   const { m } = useI18n()
   const t = m.growth
@@ -65,7 +66,8 @@ export function WaitlistOneClick({ className }: { className?: string }) {
   if (state === 'done') return <p role="status" className={cn('text-sm font-semibold', className)}>{t.waitlistDone}</p>
   return (
     <form action={action} className={className}>
-      <button type="submit" disabled={pending} className="text-left text-sm font-semibold underline underline-offset-4 disabled:opacity-60">
+      <button type="submit" disabled={pending} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[var(--gallery-radius,0.75rem)] border-2 border-ink/20 px-4 py-2 text-center text-sm font-semibold text-ink hover:border-ink/45 disabled:opacity-60">
+        {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
         {t.waitlistOneClick}
       </button>
       {state !== 'idle' && <p role="alert" className="mt-1 text-sm text-collage-red">{t.waitlistErrors[state]}</p>}
