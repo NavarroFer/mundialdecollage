@@ -4,12 +4,14 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { AttentionRecorder } from './attention/AttentionRecorder'
-import { Menu, Smartphone, X } from 'lucide-react'
+import { BookOpen, Menu, Smartphone, X } from 'lucide-react'
 import type { Artwork } from '@/data/artworks'
 import { GalleryPresence } from './presence/GalleryPresence'
 import { TouchControls } from './mobile/TouchControls'
 import { ArtworkModal } from './ui/ArtworkModal'
 import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusic'
+import { Passport, PassportRecorder } from './ui/Passport'
+import { usePassportStore } from './passport/store'
 import { WalkNotice } from './navigation/WalkNotice'
 import { ControlChoice } from './ui/ControlChoice'
 import { ControlsTutorial } from './ui/ControlsTutorial'
@@ -67,6 +69,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // Walking by clicks or on a phone there's no Pointer Lock to say whether
   // the visitor is in the walk or on the pause screen, so this does.
   const [playing, setPlaying] = useState(false)
+  const passportOpen = usePassportStore((state) => state.open)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [locked, setLocked] = useState(false)
   const { locale, m } = useI18n()
@@ -94,8 +97,8 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // A 3D game needs the horizontal viewport: touch play pauses in portrait
   // and resumes automatically as soon as the visitor turns the phone back.
   const usesPointerLock = !isTouchDevice && controlMode === 'classic'
-  // Something in front of the walk: an obra, the photo, the collage.
-  const dialogOpen = Boolean(openId) || souvenirOpen || wallOpen
+  // Something in front of the walk: an obra, the photo, the collage, the passport.
+  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen
   const overlayOpen = optionsOpen || dialogOpen
   const isActive = sceneReady && !overlayOpen && (!isTouchDevice || isLandscape) && (usesPointerLock ? locked : hasStarted && playing)
   // Under the start screen, the turn-the-phone notice or the phone menu
@@ -234,7 +237,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
     }
   }, [usesPointerLock, isActive, isTouchDevice])
 
-  // H while walking shows the tutorial again.
+  // Shortcuts while walking: H shows the tutorial again, P opens the passport.
   useEffect(() => {
     if (!isActive || isTouchDevice) return
     const onKey = (event: KeyboardEvent) => {
@@ -242,6 +245,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       const element = document.activeElement
       if (element instanceof HTMLElement && (element.matches('input, textarea, select') || element.isContentEditable)) return
       if (event.code === 'KeyH') replayTutorial()
+      if (event.code === 'KeyP') openPassport()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -262,6 +266,12 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   function toggleOptions() {
     if (document.pointerLockElement) document.exitPointerLock()
     setOptionsOpen((open) => !open)
+  }
+
+  function openPassport() {
+    if (document.pointerLockElement) document.exitPointerLock()
+    setOptionsOpen(false)
+    usePassportStore.getState().setOpen(true)
   }
 
   function resumeArtwork(id: string) {
@@ -293,7 +303,8 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           />
         )}
       </div>
-      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!souvenirOpen && !wallOpen && !optionsOpen && (!isTouchDevice || isLandscape) && (isActive || Boolean(openId))} />
+      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (!isTouchDevice || isLandscape) && (isActive || Boolean(openId))} />
+      <PassportRecorder userId={userId} started={hasStarted} />
       <GalleryPresence inside={isTouchDevice ? hasStarted && isLandscape : isActive} artworks={artworks} />
       {isTouchDevice && isActive && <TouchControls theme={theme} />}
       {/* The visit's own buttons, on the pause screen too: on a computer at
@@ -304,6 +315,10 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
         <button type="button" className={styles.hudButton} onClick={toggleOptions} aria-expanded={optionsOpen} aria-controls="gallery-options">
           {optionsOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
           <span className={styles.visitToolbarLabel}>{m.gallery.mobileMenu.open}</span>
+        </button>
+        <button type="button" className={styles.hudButton} onClick={openPassport} aria-label={m.gallery.passport.button} title={isTouchDevice ? undefined : `${m.gallery.passport.button} (P)`}>
+          <BookOpen size={18} aria-hidden="true" />
+          <span className={styles.visitToolbarLabel}>{m.gallery.passport.button}</span>
         </button>
         {!isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice={false} active={isActive} onResume={resumeWalk} />}
       </nav>
@@ -328,6 +343,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
       {isActive && !isTouchDevice && <InteractionPrompt theme={theme} pointMode={controlMode === 'point'} />}
       {isActive && <WalkNotice />}
+      <Passport artworks={artworks} theme={theme} onClose={resumeWalk} onResume={resumeArtwork} />
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
       {isTouchDevice && !isLandscape && (
