@@ -38,6 +38,7 @@ export const HOME_EVENTS = [
   { name: 'home_view', label: 'Abrieron la home' },
   { name: 'hero_cta_view', label: 'Vieron «Enviá tu obra» en la portada' },
   { name: 'submit_click_hero', label: 'Tocaron «Enviá tu obra» en la portada' },
+  { name: 'submit_click_bases', label: 'Tocaron «Enviá tu obra» junto a las bases' },
   { name: 'submit_click_edition', label: 'Tocaron «Sumá tu obra» en la sección amarilla' },
   { name: 'submit_click_header', label: 'Tocaron «Participar» en el encabezado (cualquier página)' },
   { name: 'submit_click_tabbar', label: 'Tocaron «Participar» en la barra de abajo del celular (cualquier página)' },
@@ -45,7 +46,6 @@ export const HOME_EVENTS = [
   { name: 'gallery_click_hero', label: 'Fueron a la Galería 3D desde el hero' },
   { name: 'gallery_click_home', label: 'Fueron a la Galería 3D desde la sección de participantes' },
   { name: 'gallery_click_tabbar', label: 'Fueron a la Galería 3D desde la barra de abajo del celular' },
-  { name: 'surprise_click_home', label: 'Tocaron «Sorprendeme» en la home' },
 ] as const
 
 // Sharing an obra from its page, the home's «Ya estás participando» card or
