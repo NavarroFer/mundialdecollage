@@ -13,7 +13,7 @@ vi.mock('@/lib/supabase/config', () => ({ isSupabaseConfigured: true }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: mocks.from, rpc: mocks.rpc, storage: { from: mocks.storageFrom } }) }))
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }))
 vi.mock('next/navigation', () => ({ redirect: mocks.redirect }))
-vi.mock('@/lib/track-server', () => ({ trackServer: async () => {} }))
+vi.mock('@/lib/track-server', () => ({ trackServer: async () => {}, trackSignupSource: async () => {} }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ from: mocks.adminFrom }) }))
 import { completeOnboarding, confirmArtistDetails } from './actions'
 

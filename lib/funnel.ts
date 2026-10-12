@@ -110,9 +110,54 @@ export const ONBOARDING_EVENTS = [
 // journeys; including any of those in a funnel would create false increases.
 export const ONBOARDING_FORM_EVENTS = [
   { name: 'onboarding_form_view', label: 'Vieron el formulario de la obra' },
+  { name: 'file_picker_open', label: 'Abrieron el selector de imagen' },
   { name: 'onboarding_image_selected', label: 'Eligieron la imagen de su obra' },
   { name: 'onboarding_submit', label: 'Tocaron «Enviar»' },
 ] as const
+
+// Side branches of the same form: what was typed coming back after the
+// page reloaded (Instagram's browser does it around the file picker), and
+// the form sent back with an error.
+export const FORM_RESCUE_EVENTS = [
+  { name: 'form_restored', label: 'Recuperaron lo que habían escrito al volver a la página' },
+  { name: 'onboarding_error', label: 'Volvieron al formulario con un error' },
+] as const
+
+// Every «Ingresar con Google», wherever it is (components/auth/google-sign-in-button.tsx):
+// the tap, a return with a session (app/[locale]/(site)/auth/callback) and
+// a failure on either side.
+export const LOGIN_EVENTS = [
+  { name: 'login_google_click', label: 'Tocaron «Ingresar con Google»' },
+  { name: 'login_google_return_ok', label: 'Volvieron de Google con la sesión iniciada' },
+  { name: 'login_google_error', label: 'El ingreso con Google falló' },
+] as const
+
+// Each sign-up by where its artist first came from (lib/visit-source.ts).
+export const SIGNUP_SOURCE_EVENTS = [
+  { name: 'signup_source_instagram', label: 'Llegaron por Instagram' },
+  { name: 'signup_source_facebook', label: 'Llegaron por Facebook' },
+  { name: 'signup_source_artist', label: 'Llegaron por el link de un artista' },
+  { name: 'signup_source_google', label: 'Llegaron desde Google' },
+  { name: 'signup_source_email', label: 'Llegaron por un mail' },
+  { name: 'signup_source_direct', label: 'Entraron directo o desde una app sin origen' },
+  { name: 'signup_source_other', label: 'Llegaron desde otro sitio' },
+] as const
+
+// How long the Galería 3D took from opening to ready to walk (Game.tsx).
+// Names can't carry digits (funnel_events.name), hence words for the ranges.
+export const GALLERY_READY_EVENTS = [
+  { name: 'gallery_ready_fast', label: 'Lista en menos de 3 segundos' },
+  { name: 'gallery_ready_ok', label: 'Lista en 3 a 8 segundos' },
+  { name: 'gallery_ready_slow', label: 'Lista en 8 a 20 segundos' },
+  { name: 'gallery_ready_very_slow', label: 'Lista en más de 20 segundos' },
+] as const
+
+export function galleryReadyEvent(ms: number): (typeof GALLERY_READY_EVENTS)[number]['name'] {
+  if (ms < 3000) return 'gallery_ready_fast'
+  if (ms < 8000) return 'gallery_ready_ok'
+  if (ms < 20000) return 'gallery_ready_slow'
+  return 'gallery_ready_very_slow'
+}
 
 // Public artwork and artist pages turn discovery and shared traffic into a
 // path back to the artist and, from there, into a new free submission.
@@ -195,6 +240,11 @@ export type FunnelEvent =
   | (typeof INVITE_EVENTS)[number]['name']
   | (typeof REFERRAL_EVENTS)[number]['name']
   | (typeof ONBOARDING_EVENTS)[number]['name']
+  | (typeof ONBOARDING_FORM_EVENTS)[number]['name']
+  | (typeof FORM_RESCUE_EVENTS)[number]['name']
+  | (typeof LOGIN_EVENTS)[number]['name']
+  | (typeof SIGNUP_SOURCE_EVENTS)[number]['name']
+  | (typeof GALLERY_READY_EVENTS)[number]['name']
   | (typeof DISCOVERY_EVENTS)[number]['name']
   | (typeof STORE_FUNNEL_EVENTS)[number]['name']
   | (typeof STORE_ENTRY_EVENTS)[number]['name']
@@ -206,9 +256,12 @@ export type FunnelEvent =
 const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
+    ...ONBOARDING_FORM_EVENTS, ...FORM_RESCUE_EVENTS, ...LOGIN_EVENTS, ...SIGNUP_SOURCE_EVENTS, ...GALLERY_READY_EVENTS,
     ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS,
   ].map((step) => step.name),
 )
+
+export const FUNNEL_EVENT_NAMES: readonly string[] = [...NAMES]
 
 export function isFunnelEvent(value: unknown): value is FunnelEvent {
   return typeof value === 'string' && NAMES.has(value)

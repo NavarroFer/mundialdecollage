@@ -5,6 +5,9 @@
 // the page being left right after (e.g. the redirect to Google), and nothing
 // here may ever break the page it's called from.
 import { TRACK_BATCH_MAX, VISITOR_COOKIE, VISITOR_ID_PATTERN, type FunnelEvent } from '@/lib/funnel'
+import { inAppBrowser } from '@/lib/in-app-browser'
+import { REFERRAL_COOKIE } from '@/lib/referral'
+import { VISIT_SOURCE_COOKIE, visitSource } from '@/lib/visit-source'
 
 // Long enough to catch a page's opening steps (home_view, then the hero's
 // CTA coming into view) in one call; short enough that a tab closed without
@@ -26,6 +29,23 @@ function visitorId(): string {
   return id
 }
 
+const readCookie = (name: string) => document.cookie.split('; ').find((part) => part.startsWith(`${name}=`))?.split('=')[1]
+
+// Where this visitor first came from, decided on the first page they open
+// and kept 30 days for the sign-up to read (lib/visit-source.ts).
+function rememberVisitSource() {
+  try {
+    if (readCookie(VISIT_SOURCE_COOKIE)) return
+    const source = visitSource({
+      url: window.location.href,
+      referrer: document.referrer,
+      userAgent: navigator.userAgent,
+      referralCookie: Boolean(readCookie(REFERRAL_COOKIE)),
+    })
+    document.cookie = `${VISIT_SOURCE_COOKIE}=${source}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`
+  } catch {}
+}
+
 function send(body: string) {
   if (navigator.sendBeacon?.('/api/track', new Blob([body], { type: 'application/json' }))) return
   void fetch('/api/track', { method: 'POST', body, keepalive: true, headers: { 'content-type': 'application/json' } }).catch(() => {})
@@ -40,7 +60,7 @@ export function flushTracking() {
       const vid = queue[0].vid
       const batch = queue.slice(0, TRACK_BATCH_MAX).filter((entry) => entry.vid === vid)
       queue = queue.filter((entry) => !batch.includes(entry))
-      send(JSON.stringify({ names: batch.map((entry) => entry.name), vid }))
+      send(JSON.stringify({ names: batch.map((entry) => entry.name), vid, inApp: inAppBrowser(navigator.userAgent) }))
     }
   } catch {}
 }
@@ -55,6 +75,7 @@ export function track(name: FunnelEvent) {
     queue.push({ name, vid: visitorId() })
     if (!listening) {
       listening = true
+      rememberVisitSource()
       // pagehide: leaving or reloading; hidden: a phone switching apps, which may never come back.
       window.addEventListener('pagehide', flushTracking)
       document.addEventListener('visibilitychange', onHidden)

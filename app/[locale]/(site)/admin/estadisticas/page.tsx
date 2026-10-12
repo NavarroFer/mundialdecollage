@@ -12,7 +12,7 @@ import { formatCount } from '@/lib/chart-math'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, GALLERY_HAPPY_PATH, HOME_EVENTS, INVITE_EVENTS, ONBOARDING_FORM_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -47,12 +47,25 @@ function buenosAiresDay(date: Date) {
   return `${value('year')}-${value('month')}-${value('day')}`
 }
 
-// Distinct visitors per circuit step (lib/funnel.ts) since `days` ago.
-async function getFunnel(days: number): Promise<FunnelCounts | null> {
+// Which app's browser the visits came from: funnel_events.in_app, recorded
+// since October 12, 2026 (earlier steps count as «Otros»).
+const BROWSERS = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'facebook', label: 'Facebook' },
+  { value: 'otros', label: 'Otros' },
+] as const
+type Browser = (typeof BROWSERS)[number]['value']
+
+// Distinct visitors per circuit step (lib/funnel.ts) since `days` ago, from
+// every browser or one kind (funnel_summary_by_browser).
+async function getFunnel(days: number, browser: Browser): Promise<FunnelCounts | null> {
   if (!isSupabaseConfigured) return null
   const supabase = await createClient()
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
-  const { data, error } = await supabase.rpc('funnel_summary', { since })
+  const { data, error } = browser === 'todos'
+    ? await supabase.rpc('funnel_summary', { since })
+    : await supabase.rpc('funnel_summary_by_browser', { since, browser: browser === 'otros' ? 'other' : browser })
   if (error) return null
   return new Map(((data ?? []) as { name: string; visitors: number | string }[]).map((row) => [row.name, Number(row.visitors)]))
 }
@@ -100,6 +113,7 @@ function JourneySection({
   steps,
   baseStep,
   baseLabel,
+  figureLabel,
   footnote,
   windows,
   recentDays,
@@ -113,6 +127,8 @@ function JourneySection({
   // Without a base step the share is left out.
   baseStep?: string
   baseLabel?: string
+  // The headline's label when the base isn't one of the steps shown.
+  figureLabel?: string
   footnote?: string
   windows: Windows
   recentDays: number
@@ -126,7 +142,7 @@ function JourneySection({
   const completion = baseStep && base ? finalCount / base : undefined
   const figure: ChartFigure | undefined = primaryCount === null ? undefined : {
     value: formatCount(primaryCount),
-    label: steps.find((step) => step.name === primaryStep)?.label ?? 'Personas',
+    label: steps.find((step) => step.name === primaryStep)?.label ?? figureLabel ?? 'Personas',
     details: [
       ...(recentPrimaryCount !== null ? [{ label: `${formatCount(recentPrimaryCount)} · ${recentDays} d`, series: 'recent' as const }] : []),
       ...(completion !== undefined && variant === 'funnel' ? [{ label: `${percent(completion)} al final` }] : []),
@@ -146,13 +162,18 @@ function JourneySection({
 
 const PERIODS = [7, 30, 90] as const
 
-export default async function EstadisticasPage({ searchParams }: { searchParams: Promise<{ period?: string; grouping?: string }> }) {
-  const { period, grouping: requestedGrouping } = await searchParams
+function statsHref({ period, grouping, browser }: { period: number; grouping: HistoryGrouping; browser: Browser }) {
+  return `/admin/estadisticas?period=${period}&grouping=${grouping}${browser === 'todos' ? '' : `&navegador=${browser}`}`
+}
+
+export default async function EstadisticasPage({ searchParams }: { searchParams: Promise<{ period?: string; grouping?: string; navegador?: string }> }) {
+  const { period, grouping: requestedGrouping, navegador } = await searchParams
+  const browser: Browser = BROWSERS.find((option) => option.value === navegador)?.value ?? 'todos'
   const periodDays = PERIODS.includes(Number(period) as (typeof PERIODS)[number]) ? Number(period) : 30
   const grouping: HistoryGrouping = requestedGrouping === 'week' || requestedGrouping === 'month' ? requestedGrouping : 'day'
   const comparisonDays = periodDays === 7 ? 1 : 7
   const windows: Windows = { period: `Últimos ${periodDays} días`, recent: comparisonDays === 1 ? 'Último día' : `Últimos ${comparisonDays} días` }
-  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays), getFunnel(periodDays), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping)])
+  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays, browser), getFunnel(periodDays, browser), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping)])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
@@ -167,7 +188,12 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         De dónde vienen los artistas, qué técnicas eligen, cómo avanza la publicación y cómo se mueve la gente por la galería.
       </p>
-      <StatsControlBar periodDays={periodDays} periods={PERIODS.map((days) => ({ days, href: `/admin/estadisticas?period=${days}&grouping=${grouping}` }))} />
+      <StatsControlBar
+        periodDays={periodDays}
+        periods={PERIODS.map((days) => ({ days, href: statsHref({ period: days, grouping, browser }) }))}
+        browser={browser}
+        browsers={BROWSERS.map(({ value, label }) => ({ value, label, href: statsHref({ period: periodDays, grouping, browser: value }) }))}
+      />
       <GalleryAttentionStats days={periodDays} />
       <section className="mt-6 grid gap-3 lg:grid-cols-12" aria-label="Panorama de la convocatoria">
         <div className="relative overflow-hidden rounded-3xl bg-collage-blue p-6 text-paper lg:col-span-4">
@@ -199,7 +225,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
             options={(['day', 'week', 'month'] as const).map((option) => ({
               value: option,
               label: option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual',
-              href: `/admin/estadisticas?period=${periodDays}&grouping=${option}`,
+              href: statsHref({ period: periodDays, grouping: option, browser }),
             }))}
           />
         )}
@@ -297,6 +323,51 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
       </StatsSection>
 
       <StatsSection id="action-comparisons-title" tone="red" eyebrow="Acciones alternativas" title="Comparativas" description="No son pasos consecutivos: sirven para comparar qué acción genera más movimiento.">
+        <JourneySection
+          {...journey}
+          title="Origen de las inscripciones"
+          description="Cada inscripción terminada, según de dónde llegó su artista la primera vez que entró (Instagram, el link de un artista, Google, un mail…). Se mide desde el 12 de octubre de 2026."
+          steps={SIGNUP_SOURCE_EVENTS}
+          baseStep="signup_done"
+          baseLabel="De las inscripciones terminadas"
+          figureLabel="Inscripciones terminadas"
+          footnote="Quien entró por primera vez antes del 12 de octubre no tiene origen guardado: la diferencia con el total son esas inscripciones. Los mails solo se reconocen cuando el link lleva ?desde=mail o utm_source."
+          variant="comparison"
+        />
+
+        <JourneySection
+          {...journey}
+          title="Ingreso con Google"
+          description="Todos los botones «Ingresar con Google» del sitio: cuántos lo tocaron, cuántos volvieron con la sesión iniciada y cuántos ingresos fallaron. Se mide desde el 12 de octubre de 2026."
+          steps={LOGIN_EVENTS}
+          baseStep="login_google_click"
+          baseLabel="De quienes tocaron «Ingresar con Google»"
+          variant="comparison"
+        />
+
+        <JourneySection
+          {...journey}
+          title="Formulario: recuperaciones y errores"
+          description="Quienes volvieron al formulario y encontraron lo que habían escrito (el navegador de Instagram recarga la página al elegir la imagen) y quienes recibieron un error al enviar. «Recuperaron» se mide desde el 12 de octubre de 2026."
+          steps={FORM_RESCUE_EVENTS}
+          baseStep="onboarding_form_view"
+          baseLabel="De quienes vieron el formulario"
+          figureLabel="Vieron el formulario"
+          variant="comparison"
+        />
+
+        <JourneySection
+          {...journey}
+          title="Tiempo de carga de la galería"
+          description="Cuánto tardó la Galería 3D en estar lista para caminar, desde que se abrió. Se mide desde el 12 de octubre de 2026."
+          steps={GALLERY_READY_EVENTS}
+          baseStep="gallery_view"
+          baseLabel="De quienes abrieron la galería"
+          figureLabel="Abrieron la galería"
+          footnote="La diferencia entre quienes abrieron la galería y la suma de estos rangos son quienes se fueron antes de que terminara de cargar."
+          variant="comparison"
+        />
+
         <JourneySection
           {...journey}
           title="Botones de la home"

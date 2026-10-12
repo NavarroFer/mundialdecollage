@@ -108,6 +108,7 @@ export function OnboardingForm({
   // mobile data.
   const uploadedPaths = useRef(new WeakMap<File, string>())
   const imageTracked = useRef(false)
+  const pickerTracked = useRef(false)
 
   const countries = useMemo(
     () =>
@@ -142,6 +143,7 @@ export function OnboardingForm({
     const defaults = { name: defaultName, country: defaultCountryCode ?? '', instagram: defaultInstagram, website: defaultWebsite }
     if (!saved || !hasContent(saved, defaults)) return
     const count = Math.max(1, Math.min(saved.artworks.length, maxArtworks))
+    if (tracked) track('form_restored')
     // sessionStorage only exists after hydration, and the server render
     // can't know it: one extra render, once, when there's a draft.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -429,6 +431,13 @@ export function OnboardingForm({
                 aria-invalid={slot.problem ? true : undefined}
                 aria-describedby={slot.problem ? id('artwork_image_problem') : id('artwork_image_name')}
                 onChange={(event) => pickImage(slot.key, event.target.files?.[0])}
+                // Also fires when its label (the visible button) is tapped.
+                onClick={() => {
+                  if (tracked && !pickerTracked.current) {
+                    pickerTracked.current = true
+                    track('file_picker_open')
+                  }
+                }}
                 className="peer sr-only"
               />
               <label

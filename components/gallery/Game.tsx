@@ -35,6 +35,7 @@ import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { readGalleryReturn, readSharedArtwork, readWallReturn } from '@/lib/gallery-return'
 import { readReferralParam, withReferral } from '@/lib/referral'
 import { track } from '@/lib/track'
+import { galleryReadyEvent } from '@/lib/funnel'
 
 // Doesn't change over a session, so no subscription is needed — just a
 // client-only snapshot read via useSyncExternalStore (SSR-safe, and no
@@ -89,6 +90,12 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   const [shell, setShell] = useState<HTMLDivElement | null>(null)
   const [resuming, setResuming] = useState(false)
   const [sceneReady, setSceneReady] = useState(false)
+  // When the gallery opened, to measure how long the scene takes to be
+  // ready to walk (GALLERY_READY_EVENTS in lib/funnel.ts).
+  const openedAt = useRef(0)
+  useEffect(() => {
+    if (sceneReady) track(galleryReadyEvent(performance.now() - openedAt.current))
+  }, [sceneReady])
   const loading = hasStarted && !sceneReady
 
   // With the keyboard on a computer, Pointer Lock IS the active state. Touch
@@ -173,6 +180,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // (the day rotated meanwhile) is just skipped.
   useEffect(() => {
     track('gallery_view')
+    openedAt.current = performance.now()
     void loadWall()
     // Back from signing in to paste on the collective collage: reopen its
     // dialog at the same spot of the frame.

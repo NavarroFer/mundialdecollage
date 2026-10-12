@@ -9,7 +9,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { slugify } from '@/lib/slug'
 import { getAllCountryCodes } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
-import { trackServer } from '@/lib/track-server'
+import { trackServer, trackSignupSource } from '@/lib/track-server'
 import { recordReferral } from '@/lib/referral-server'
 import { site } from '@/lib/site'
 import { refreshPublicData } from '@/lib/public-data-cache'
@@ -226,7 +226,9 @@ export async function completeOnboarding(formData: FormData) {
     await trackServer('signup_done', user.id)
     // Arrived through an artist's shared link: that artist gets the credit
     // (lib/referral-server.ts — never throws, a failure is only logged).
-    if (await recordReferral(user.id)) await trackServer('referral_signup', user.id)
+    const referred = await recordReferral(user.id)
+    if (referred) await trackServer('referral_signup', user.id)
+    await trackSignupSource(user.id, referred)
   }
   // With more than one obra on the account, the artist chooses which takes
   // part before anything else.
@@ -276,6 +278,7 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
   revalidatePath('/edicion-2026')
   revalidatePath(`/obras/${artwork.slug}`)
   await trackServer('signup_done', user.id)
+  await trackSignupSource(user.id, false)
   redirect('/onboarding/confirmado')
 }
 

@@ -8,12 +8,19 @@ import { usePageView } from './view-settings'
 // One row above everything it scopes: the period first (it re-renders the
 // page on the server), then the view settings for every chart at once. A
 // chart's own toolbar can still change its copy afterwards.
-export function StatsControlBar({ periods, periodDays }: { periods: { days: number; href: string }[]; periodDays: number }) {
+export function StatsControlBar({ periods, periodDays, browsers, browser }: {
+  periods: { days: number; href: string }[]
+  periodDays: number
+  // Which app's browser the visits came from (lib/in-app-browser.ts); also in the URL.
+  browsers: { value: string; label: string; href: string }[]
+  browser: string
+}) {
   const { settings, set } = usePageView()
   return (
     <div className="sticky top-0 z-30 -mx-5 mt-6 border-y-2 border-ink/10 bg-background/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <Segmented label="Período de estadísticas" value={periodDays} options={periods.map(({ days, href }) => ({ value: days, label: `${days} días`, href }))} />
+        <Segmented label="Navegador de las visitas" value={browser} options={browsers} />
         <span aria-hidden="true" className="mx-1 hidden h-6 w-px bg-ink/15 sm:block" />
         <span className="text-[10px] font-bold tracking-[0.18em] text-muted-foreground uppercase">Todos los gráficos</span>
         <Segmented label="Filas de los rankings" options={LIMIT_OPTIONS} value={settings.limit} onChange={(limit) => set('limit', limit)} />

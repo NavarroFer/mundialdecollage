@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/lib/i18n/client'
+import { track } from '@/lib/track'
 
 function GoogleIcon() {
   return (
@@ -33,10 +34,12 @@ function GoogleIcon() {
 // like and comment, see lib/gallery-return.ts). Resolves with an error only
 // when the redirect couldn't even start.
 export async function startGoogleSignIn(next: string) {
+  track('login_google_click')
   const { error } = await createClient().auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
   })
+  if (error) track('login_google_error')
   return { error }
 }
 
