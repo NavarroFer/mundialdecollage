@@ -3,6 +3,8 @@ import { createPublicClient } from '@/lib/supabase/public'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { artworkTag } from '@/lib/public-cache-tags'
+import { isAnonymousRender } from '@/lib/render-mode'
 import { cachedPublicData } from '@/lib/public-data-cache'
 
 export { countryCodeToName } from '@/lib/participants'
@@ -89,6 +91,20 @@ export const getFinalists = cache(cachedPublicData(async (): Promise<Finalist[]>
     .filter((f): f is Finalist => f !== undefined)
 }, 'finalists'))
 
+// Only membership/order, shared by obra navigation. Editing a title, technique
+// or replacing an existing photo leaves this index intact. Publication/hiding
+// and profile completion still invalidate it through refreshPublicData().
+export const getFinalistIndex = cachedPublicData(async (): Promise<Pick<Finalist, 'slug' | 'profileId'>[]> => {
+  if (!isSupabaseConfigured) return []
+  const { data, error } = await createPublicClient().from('artworks')
+    .select(SELECT_COLUMNS).eq('is_selected', true).order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as unknown as FinalistRow[])
+    .map(rowToFinalist)
+    .filter((f): f is Finalist => f !== undefined)
+    .map(({ slug, profileId }) => ({ slug, profileId }))
+}, 'finalist-index')
+
 // The public finalists among these artwork ids, keyed by id — RLS drops any
 // that are no longer selected/published. Used for the daily exhibition
 // (lib/gallery-artworks.ts), which stores artwork ids.
@@ -122,6 +138,7 @@ export async function getFinalistsByIds(ids: string[]): Promise<Map<string, Fina
 // the anon key when there's no session cookie.
 export const getFinalistBySlug = cache(async (slug: string): Promise<Finalist | undefined> => {
   if (!isSupabaseConfigured) return undefined
+  if (isAnonymousRender()) return getPublishedFinalistBySlug(slug)
 
   const supabase = await createClient()
   const { data } = await supabase.from('artworks').select(SELECT_COLUMNS).eq('slug', slug).maybeSingle()
@@ -135,15 +152,17 @@ export const getFinalistBySlug = cache(async (slug: string): Promise<Finalist | 
 export const getPublishedFinalistBySlug = cachedPublicData(async (slug: string): Promise<Finalist | undefined> => {
   if (!isSupabaseConfigured) return undefined
 
-  const { data } = await createPublicClient().from('artworks').select(SELECT_COLUMNS).eq('slug', slug).maybeSingle()
+  const { data, error } = await createPublicClient().from('artworks').select(SELECT_COLUMNS).eq('slug', slug).maybeSingle()
 
+  if (error) throw new Error(error.message)
   return data ? rowToFinalist(data as unknown as FinalistRow) : undefined
-}, 'published-finalist')
+}, 'published-finalist', (slug) => [artworkTag(slug)])
 
 // Whether a link to this obra works for everyone, and whether the reader is
 // the artist — which decides what components/share-artwork.tsx offers.
 export async function getArtworkShareState(slug: string): Promise<{ isPublic: boolean; isOwn: boolean }> {
   if (!isSupabaseConfigured) return { isPublic: false, isOwn: false }
+  if (isAnonymousRender()) return { isPublic: Boolean(await getPublishedFinalistBySlug(slug)), isOwn: false }
 
   const [published, user] = await Promise.all([
     createPublicClient().from('artworks').select('slug').eq('slug', slug).maybeSingle(),

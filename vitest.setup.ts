@@ -9,4 +9,5 @@ vi.mock('next/root-params', () => ({ locale: async () => undefined }))
 vi.mock('@/lib/public-data-cache', () => ({
   cachedPublicData: <T>(fn: T) => fn,
   refreshPublicData: vi.fn(),
+  refreshArtworkData: vi.fn(),
 }))

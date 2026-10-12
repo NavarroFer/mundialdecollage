@@ -1,4 +1,6 @@
 import { cache } from 'react'
+import { cachedPublicData } from '@/lib/public-data-cache'
+import { artistTag } from '@/lib/public-cache-tags'
 import { slugify } from '@/lib/slug'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createPublicClient } from '@/lib/supabase/public'
@@ -52,17 +54,17 @@ export function artistProfileIdFromSlug(slug: string): string | undefined {
 // this page must contain only works that the public RLS policy allows. Today
 // that is the selected work; if the policy later exposes more entered works,
 // this query starts showing all of them without changing the route.
-export const getArtistProfileBySlug = cache(async (slug: string): Promise<ArtistProfile | undefined> => {
-  const profileId = artistProfileIdFromSlug(slug)
-  if (!isSupabaseConfigured || !profileId) return undefined
+const getArtistProfileById = cachedPublicData(async (profileId: string): Promise<ArtistProfile | undefined> => {
+  if (!isSupabaseConfigured) return undefined
 
-  const { data } = await createPublicClient()
+  const { data, error } = await createPublicClient()
     .from('artworks')
     .select('slug, title, technique, image_url, profiles!inner(id, name, country_code, instagram, website)')
     .eq('profile_id', profileId)
     .is('archived_at', null)
     .order('created_at', { ascending: false })
 
+  if (error) throw new Error(error.message)
   const rows = (data ?? []) as unknown as ArtistArtworkRow[]
   const firstProfile = rows[0]?.profiles
   if (!firstProfile?.name || !firstProfile.country_code) return undefined
@@ -86,4 +88,9 @@ export const getArtistProfileBySlug = cache(async (slug: string): Promise<Artist
     website: firstProfile.website ?? undefined,
     artworks,
   }
+}, 'artist-profile', (profileId) => [artistTag(profileId)])
+
+export const getArtistProfileBySlug = cache(async (slug: string): Promise<ArtistProfile | undefined> => {
+  const profileId = artistProfileIdFromSlug(slug)
+  return profileId ? getArtistProfileById(profileId) : undefined
 })

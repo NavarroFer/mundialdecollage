@@ -15,7 +15,7 @@ import { guessCountryCodeFromName } from '@/lib/participants'
 import { provisionLegacyProfiles, publishPendingLegacySubmissions } from '@/lib/publish-legacy'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { ADMIN_EMAILS } from '@/lib/admin'
-import { refreshPublicData } from '@/lib/public-data-cache'
+import { refreshArtworkData, refreshPublicData } from '@/lib/public-data-cache'
 
 // The service-role client bypasses RLS entirely, so any action that reaches
 // for it (unlike the rest of this file, which relies on the session client +
@@ -180,16 +180,15 @@ export async function setSubmissionsTechnique(ids: string[], technique: string |
   const admin = createAdminClient()
 
   const results = await Promise.all([
-    artworkIds.length > 0 ? admin.from('artworks').update({ technique }).in('id', artworkIds) : null,
+    artworkIds.length > 0 ? admin.from('artworks').update({ technique }).in('id', artworkIds).select('slug, profile_id') : null,
     legacyIds.length > 0 ? admin.from('legacy_submissions').update({ technique }).in('id', legacyIds) : null,
-    legacyIds.length > 0 ? admin.from('artworks').update({ technique }).in('legacy_submission_id', legacyIds) : null,
+    legacyIds.length > 0 ? admin.from('artworks').update({ technique }).in('legacy_submission_id', legacyIds).select('slug, profile_id') : null,
   ])
   const error = results.find((result) => result?.error)?.error
+  // Expire successful writes even if another source in the batch failed.
+  refreshArtworkData([...(results[0]?.data ?? []), ...(results[2]?.data ?? [])])
   if (error) throw new Error(error.message)
-
-  refreshPublicData()
   revalidatePath('/admin/obras')
-  revalidatePath('/')
 }
 
 type ParsedLegacyLine = {
@@ -599,25 +598,20 @@ export async function updateSubmissionTitle(id: string, value: string): Promise<
   const admin = createAdminClient()
   const title = value.trim() || null
   const legacy = id.startsWith('legacy-')
-  const { data: row, error } = await admin
-    .from(legacy ? 'legacy_submissions' : 'artworks')
-    .update({ title })
-    .eq('id', legacy ? id.slice('legacy-'.length) : id)
-    .select('id')
-    .maybeSingle()
-  if (error) return { error: error.message }
-  if (!row) return { error: 'No se encontró la obra.' }
+  const sourceId = legacy ? id.slice('legacy-'.length) : id
   if (legacy) {
-    const { error: linkedError } = await admin.from('artworks')
-      .update({ title }).eq('legacy_submission_id', row.id)
-    if (linkedError) return { error: 'No se pudo actualizar el nombre de la obra publicada. Probá de nuevo.' }
+    const { data: row, error } = await admin.from('legacy_submissions')
+      .update({ title }).eq('id', sourceId).select('id').maybeSingle()
+    if (error) return { error: error.message }
+    if (!row) return { error: 'No se encontró la obra.' }
   }
-  refreshPublicData()
+  const { data: affected, error } = await admin.from('artworks')
+    .update({ title }).eq(legacy ? 'legacy_submission_id' : 'id', sourceId)
+    .select('slug, profile_id')
+  if (error) return { error: error.message }
+  if (!legacy && !affected?.length) return { error: 'No se encontró la obra.' }
+  refreshArtworkData(affected ?? [])
   revalidatePath('/admin/obras')
-  revalidatePath('/')
-  revalidatePath('/edicion-2026')
-  revalidatePath('/galeria-3d')
-  revalidatePath('/[locale]/(site)/obras/[slug]', 'page')
   return {}
 }
 
@@ -649,6 +643,7 @@ export async function updateArtwork(input: {
     technique: input.technique || null,
   }
 
+  let completesImage = false
   if (input.imagePath) {
     const extension = input.imagePath.split('.').pop()?.toLowerCase() ?? ''
     const prefix = `admin/${input.artworkId}/`
@@ -659,6 +654,11 @@ export async function updateArtwork(input: {
     ) {
       return { error: 'Imagen inválida.' }
     }
+    const { data: original, error: lookupError } = await admin.from('artworks')
+      .select('image_url').eq('id', input.artworkId).maybeSingle()
+    if (lookupError) return { error: lookupError.message }
+    if (!original) return { error: 'No se encontró la obra.' }
+    completesImage = !original.image_url
     update.image_url = admin.storage.from('artworks').getPublicUrl(input.imagePath).data.publicUrl
   }
 
@@ -666,17 +666,14 @@ export async function updateArtwork(input: {
     .from('artworks')
     .update(update)
     .eq('id', input.artworkId)
-    .select('slug')
+    .select('slug, profile_id')
     .maybeSingle()
   if (error) return { error: error.message }
   if (!row) return { error: 'No se encontró la obra.' }
 
-  refreshPublicData()
+  if (completesImage) refreshPublicData() // The obra just became eligible for the catalog.
+  else refreshArtworkData([row])
   revalidatePath('/admin/obras')
-  revalidatePath('/')
-  revalidatePath('/edicion-2026')
-  revalidatePath('/galeria-3d')
-  revalidatePath(`/obras/${row.slug}`)
   return {}
 }
 

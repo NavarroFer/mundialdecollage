@@ -12,13 +12,13 @@ import { ScrollToTop } from '@/components/scroll-to-top'
 import { ArtworkImage } from '@/components/artwork-image'
 import { Button } from '@/components/ui/button'
 import { countryCodeToFlag } from '@/lib/participants'
-import { countryCodeToName, getArtworkShareState, getFinalistBySlug, getFinalists } from '@/lib/finalists'
+import { countryCodeToName, getArtworkShareState, getFinalistBySlug } from '@/lib/finalists'
 import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
 import { SurpriseArtwork } from '@/components/surprise-artwork'
-import { obraNeighbors } from '@/lib/obra-detail'
+import { getPublicObraNeighbors } from '@/lib/public-obra-neighbors'
 
 // Slugs come from live submissions, so pages render on demand per request
 // instead of at build time.
@@ -55,18 +55,17 @@ export default async function ObraPage({
   searchParams: Promise<{ ref?: string | string[] }>
 }) {
   const [{ slug }, { ref }] = await Promise.all([params, searchParams])
-  const [finalist, { locale, m }, shareState, finalists, { open: callOpen }] = await Promise.all([
+  const [finalist, { locale, m }, shareState, { open: callOpen }] = await Promise.all([
     getFinalistBySlug(slug),
     getI18n(),
     getArtworkShareState(slug),
-    getFinalists(),
     getCallState(),
   ])
 
   if (!finalist) notFound()
   const title = finalist.artworkTitle ?? m.common.untitled
   const artistHref = `/artistas/${artistProfileSlug(finalist.name, finalist.profileId)}`
-  const { related: relatedArtworks, previous: previousArtwork, next: nextArtwork } = obraNeighbors(finalists, finalist)
+  const { related: relatedArtworks, previous: previousArtwork, next: nextArtwork } = await getPublicObraNeighbors(finalist)
 
   return (
     <>
