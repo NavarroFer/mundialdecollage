@@ -527,30 +527,40 @@
   .floatingReaction { animation-duration: .01s; }
 }
 
-.mobileOptionsTrigger {
+/* The visit's own buttons (Opciones, the passport): bottom left on a
+   computer, clear of the music and photo buttons and the minimap; top left
+   on a phone, clear of the joysticks, as icons only. */
+.visitToolbar {
   position: absolute;
-  top: max(.75rem, env(safe-area-inset-top));
-  left: max(.75rem, env(safe-area-inset-left));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: max(1rem, env(safe-area-inset-left));
   z-index: 45;
   display: flex;
-  width: 2.75rem;
-  height: 2.75rem;
+  gap: .5rem;
+}
+.visitToolbar > button {
+  display: flex;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  color: var(--gallery-text);
-  background: var(--gallery-panel);
+  gap: .5rem;
+  padding: 0 .9rem;
+  font-size: .875rem;
+  font-weight: 700;
+  transition: transform .15s ease;
 }
-.mobileOptions {
+.visitToolbar[hidden] { display: none; }
+.visitToolbar > button:hover { transform: translateY(-1px); }
+.visitMenu {
   position: absolute;
-  top: max(.75rem, env(safe-area-inset-top));
-  left: calc(max(.75rem, env(safe-area-inset-left)) + 3.25rem);
+  bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 3.5rem);
+  left: max(1rem, env(safe-area-inset-left));
   z-index: 40;
   display: grid;
   gap: .75rem;
-  width: min(20rem, calc(100vw - 5rem));
-  max-height: calc(100dvh - 2rem);
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 6rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 1rem;
@@ -558,15 +568,22 @@
   border-radius: var(--gallery-radius);
   color: var(--gallery-text);
   background: var(--gallery-panel);
+  box-shadow: var(--gallery-shadow);
   backdrop-filter: blur(16px);
   touch-action: pan-y;
 }
-.mobileOptions[hidden] { display: none; }
-.mobileOptions > .hudButton, .mobileOptions > .hudPanel, .mobileOptions .themePicker {
+.visitMenu[hidden] { display: none; }
+@media (pointer: coarse) {
+  .visitToolbar { top: max(.75rem, env(safe-area-inset-top)); bottom: auto; left: max(.75rem, env(safe-area-inset-left)); }
+  .visitToolbar > button { padding: 0; }
+  .visitToolbarLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .visitMenu { top: calc(max(.75rem, env(safe-area-inset-top)) + 3.5rem); bottom: auto; left: max(.75rem, env(safe-area-inset-left)); max-height: calc(100dvh - 5rem); }
+}
+.visitMenu > .hudButton, .visitMenu > .hudPanel, .visitMenu .themePicker {
   position: static !important;
   transform: none;
 }
-.mobileOptions > .hudButton {
+.visitMenu > .hudButton {
   width: 100%;
   height: auto;
   min-height: 2.75rem;
@@ -575,15 +592,79 @@
   padding: .5rem .75rem;
   font-size: .875rem;
 }
-.mobileOptions > .hudPanel, .mobileOptions .themeMenu { width: 100%; }
-.mobileOptions .themeMenuOption { min-height: 2.75rem; }
-.mobileOptionsResume {
+.visitMenu > .hudPanel, .visitMenu .themeMenu { width: 100%; }
+.visitMenu .themeMenuOption { min-height: 2.75rem; }
+.visitMenuButton {
   width: 100%;
   min-height: 2.75rem;
-  margin-top: .5rem;
   border: 1px solid currentColor;
   border-radius: var(--gallery-radius);
   font-weight: 700;
+}
+
+/* Walk by clicks or the videogame way: two cards, the chosen one ticked. */
+.controlChoice { min-width: 0; margin: 0; padding: 0; border: 0; text-align: left; }
+.controlCards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.controlCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  padding: .85rem;
+  border: 2px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  background: rgba(255, 255, 255, .06);
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+}
+.controlCard:hover { transform: translateY(-1px); }
+.controlCard:focus-within { outline: 3px solid var(--gallery-accent); outline-offset: 2px; }
+.controlCard[data-selected='true'] { border-color: var(--gallery-accent); background: rgba(255, 255, 255, .15); }
+.controlCard[data-selected='true']::after {
+  content: '✓';
+  position: absolute;
+  top: .45rem;
+  right: .6rem;
+  color: var(--gallery-accent);
+  font-weight: 900;
+}
+.controlCard strong { padding-right: 1rem; font-size: .95rem; line-height: 1.2; }
+.controlCard span { font-size: .78rem; line-height: 1.35; opacity: .85; }
+.windows98 .controlCard { border: 2px solid; border-color: #fff #000 #000 #fff; background: #c0c0c0; }
+.windows98 .controlCard[data-selected='true'] { border-color: #000 #fff #fff #000; background: #d4d0c8; }
+.windows98 .controlCard[data-selected='true']::after { color: #000080; }
+.garden .controlCard[data-selected='true'] { box-shadow: inset 3px 0 0 #ffcf45; }
+.collage .controlCard { border-style: dashed; }
+@media (max-width: 480px) {
+  .controlCards { grid-template-columns: 1fr; }
+}
+
+/* Click-to-walk: walking (with Frenar), arrived, or that spot can't be reached. */
+.walkNotice {
+  position: absolute;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: 25;
+  display: flex;
+  max-width: min(24rem, calc(100% - 2rem));
+  align-items: center;
+  gap: .75rem;
+  padding: .5rem 1rem;
+  transform: translateX(-50%);
+  font-size: .875rem;
+  font-weight: 700;
+}
+.walkNotice button {
+  min-height: 2.25rem;
+  margin-right: -.5rem;
+  padding: 0 .85rem;
+  border: 1px solid currentColor;
+  border-radius: var(--gallery-radius);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .controlCard, .visitToolbar > button { transition: none; }
 }
 
 .themePickerInline { position: static; transform: none; }

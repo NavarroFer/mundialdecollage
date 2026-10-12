@@ -10,6 +10,8 @@ import { GalleryPresence } from './presence/GalleryPresence'
 import { TouchControls } from './mobile/TouchControls'
 import { ArtworkModal } from './ui/ArtworkModal'
 import { BackgroundMusic, type BackgroundMusicHandle } from './ui/BackgroundMusic'
+import { WalkNotice } from './navigation/WalkNotice'
+import { ControlChoice } from './ui/ControlChoice'
 import { ControlsTutorial } from './ui/ControlsTutorial'
 import { InteractionPrompt } from './ui/InteractionPrompt'
 import { Minimap } from './ui/Minimap'
@@ -60,6 +62,10 @@ function requestLock(element: HTMLElement, onError: () => void) {
 export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const isLandscape = useSyncExternalStore(subscribeToOrientation, getIsLandscape, getLandscapeServerSnapshot)
+  const controlMode = useGalleryPreferences((state) => state.controlMode)
+  // Walking by clicks or on a phone there's no Pointer Lock to say whether
+  // the visitor is in the walk or on the pause screen, so this does.
+  const [playing, setPlaying] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [locked, setLocked] = useState(false)
   const { locale, m } = useI18n()
@@ -81,12 +87,16 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   const [sceneReady, setSceneReady] = useState(false)
   const loading = hasStarted && !sceneReady
 
-  // Desktop has no concept of "started but not locked" — Pointer Lock IS
-  // the active state. Touch has no Pointer Lock at all, so tapping ENTRAR
-  // is the whole activation.
+  // With the keyboard on a computer, Pointer Lock IS the active state. Touch
+  // and click-to-walk have no Pointer Lock, so ENTRAR is the activation and
+  // Escape (or leaving the window) the pause.
   // A 3D game needs the horizontal viewport: touch play pauses in portrait
   // and resumes automatically as soon as the visitor turns the phone back.
-  const isActive = sceneReady && (isTouchDevice ? hasStarted && isLandscape && !optionsOpen : locked)
+  const usesPointerLock = !isTouchDevice && controlMode === 'classic'
+  // Something in front of the walk: an obra, the photo, the collage.
+  const dialogOpen = Boolean(openId) || souvenirOpen || wallOpen
+  const overlayOpen = optionsOpen || dialogOpen
+  const isActive = sceneReady && !overlayOpen && (!isTouchDevice || isLandscape) && (usesPointerLock ? locked : hasStarted && playing)
   // Under the start screen, the turn-the-phone notice or the phone menu
   // nothing needs to move, so the scene stops drawing frames and stepping
   // physics. Reading an obra, the collage or the souvenir keep it going:
@@ -122,7 +132,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // before the pause screen can show. Escape isn't one the browser accepts
   // for that, so it still lands on "Click para continuar".
   useEffect(() => {
-    if (isTouchDevice || !shell) return
+    if (!usesPointerLock || !shell) return
     let resumeOnClose = false
     const stopResuming = () => setResuming(false)
     document.addEventListener('pointerlockerror', stopResuming)
@@ -151,7 +161,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       unsubscribeWall()
       document.removeEventListener('pointerlockerror', stopResuming)
     }
-  }, [isTouchDevice, shell])
+  }, [usesPointerLock, shell])
 
   // Back from signing in with Google to like or comment: reopen that obra so
   // ArtworkLike / ArtworkComments can finish the action, and drop the
@@ -196,7 +206,8 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // Same as after reading an obra: the click that closes the photo is the
   // gesture the browser needs to give the mouse back to the walk.
   function resumeWalk() {
-    if (!shell) return
+    setPlaying(true)
+    if (!usesPointerLock || !shell) return
     setResuming(true)
     requestLock(shell, () => setResuming(false))
   }
@@ -208,13 +219,35 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
     return () => window.removeEventListener('keydown', close)
   }, [optionsOpen])
 
+  // Without Pointer Lock, Escape and leaving the window are the pause that
+  // the browser gives the keyboard walk for free.
+  useEffect(() => {
+    if (usesPointerLock || !isActive) return
+    const pause = (event: KeyboardEvent) => { if (event.key === 'Escape') setPlaying(false) }
+    const leave = () => { if (!isTouchDevice) setPlaying(false) }
+    window.addEventListener('keydown', pause)
+    window.addEventListener('blur', leave)
+    return () => {
+      window.removeEventListener('keydown', pause)
+      window.removeEventListener('blur', leave)
+    }
+  }, [usesPointerLock, isActive, isTouchDevice])
+
   function handleEnter(lockPointer = true) {
     if (!hasStarted) track('gallery_enter')
     setHasStarted(true)
+    setPlaying(true)
+    setOptionsOpen(false)
     // Right here, in the click: the browser only grants the lock to a user
     // gesture, and the scene may take a few seconds more to load.
-    if (lockPointer && !isTouchDevice && shell) requestLock(shell, () => {})
+    if (lockPointer && usesPointerLock && shell) requestLock(shell, () => {})
     musicRef.current?.play()
+  }
+
+  // The walk's buttons need the mouse back from Pointer Lock first.
+  function toggleOptions() {
+    if (document.pointerLockElement) document.exitPointerLock()
+    setOptionsOpen((open) => !open)
   }
 
   function resumeArtwork(id: string) {
@@ -233,6 +266,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
             artworks={artworks}
             theme={theme}
             active={isActive}
+            controlMode={controlMode}
             paused={paused}
             isTouchDevice={isTouchDevice}
             lockTarget={isTouchDevice ? null : shell}
@@ -247,19 +281,38 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       </div>
       <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!souvenirOpen && !wallOpen && !optionsOpen && (!isTouchDevice || isLandscape) && (isActive || Boolean(openId))} />
       <GalleryPresence inside={isTouchDevice ? hasStarted && isLandscape : isActive} artworks={artworks} />
-      {isTouchDevice && isActive && !openId && !souvenirOpen && !wallOpen && <TouchControls theme={theme} />}
-      {isTouchDevice && sceneReady && isLandscape && !openId && !souvenirOpen && !wallOpen && <button type="button" className={styles.mobileOptionsTrigger} onClick={() => setOptionsOpen((open) => !open)} aria-label={optionsOpen ? m.gallery.mobileMenu.close : m.gallery.mobileMenu.open} aria-expanded={optionsOpen} aria-controls="gallery-mobile-options">{optionsOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button>}
+      {isTouchDevice && isActive && <TouchControls theme={theme} />}
+      {/* The visit's own buttons, on the pause screen too: on a computer at
+          the bottom, out of the minimap's way; on a phone at the top, out of
+          the joysticks' way. Hidden, not unmounted, under a dialog: the photo
+          button's own dialog lives in here. */}
+      <nav className={styles.visitToolbar} aria-label={m.gallery.controls.toolbar} hidden={!sceneReady || (isTouchDevice && !isLandscape) || dialogOpen}>
+        <button type="button" className={styles.hudButton} onClick={toggleOptions} aria-expanded={optionsOpen} aria-controls="gallery-options">
+          {optionsOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          <span className={styles.visitToolbarLabel}>{m.gallery.mobileMenu.open}</span>
+        </button>
+        {!isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice={false} active={isActive} onResume={resumeWalk} />}
+      </nav>
       <BackgroundMusic ref={musicRef} theme={theme} inline={isTouchDevice} />
-      <div id="gallery-mobile-options" className={isTouchDevice ? styles.mobileOptions : undefined} hidden={isTouchDevice && (!optionsOpen || !hasStarted || !isLandscape || Boolean(openId) || souvenirOpen || wallOpen)}>
-        {isTouchDevice && <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>}
-        {hasStarted && <Souvenir theme={theme} isTouchDevice={isTouchDevice} onResume={resumeWalk} inline={isTouchDevice} />}
-        <Minimap theme={theme} artworks={artworks} />
-        {hasStarted && <PresenceCounter />}
-        {isTouchDevice && <VisitPreferences artworks={artworks} onResume={resumeArtwork} />}
-        {isTouchDevice && <section className="space-y-2 border-t border-current/20 pt-3 text-xs"><h3 className="font-bold">{m.gallery.tutorial.title}</h3><p>{m.gallery.tutorial.touchIntro}</p><p>{m.gallery.tutorial.lookTouch}</p><p>{m.gallery.tutorial.interactTouch}</p><button type="button" className={styles.mobileOptionsResume} onClick={() => setOptionsOpen(false)}>{m.gallery.mobileMenu.resume}</button></section>}
+      {/* On a computer the minimap stays on screen; a phone keeps it (and
+          the photo button) in Opciones, so the walk has the whole screen. */}
+      {!isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
+      {!isTouchDevice && hasStarted && <PresenceCounter />}
+      <div id="gallery-options" className={styles.visitMenu} hidden={!optionsOpen || !hasStarted || (isTouchDevice && !isLandscape) || dialogOpen}>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>
+          <button type="button" className="flex min-h-11 min-w-11 items-center justify-center" onClick={() => setOptionsOpen(false)} aria-label={m.gallery.mobileMenu.close}><X size={20} aria-hidden="true" /></button>
+        </div>
+        <ControlChoice touch={isTouchDevice} />
+        {isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice active={false} onResume={resumeWalk} inline />}
+        {isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
+        {isTouchDevice && hasStarted && <PresenceCounter />}
+        <VisitPreferences artworks={artworks} onResume={resumeArtwork} />
+        <button type="button" className={styles.visitMenuButton} onClick={() => handleEnter()}>{m.gallery.mobileMenu.resume}</button>
       </div>
       {!isTouchDevice && <ControlsTutorial active={isActive} isTouchDevice={false} />}
-      {!isTouchDevice && <InteractionPrompt theme={theme} />}
+      {isActive && !isTouchDevice && <InteractionPrompt theme={theme} pointMode={controlMode === 'point'} />}
+      {isActive && <WalkNotice />}
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
       {isTouchDevice && !isLandscape && (
@@ -275,13 +328,14 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           <Link href="/" className={styles.orientationExit}>{m.gallery.orientation.back}</Link>
         </section>
       )}
-      {!isActive && !openId && !souvenirOpen && !wallOpen && !resuming && !optionsOpen && (
+      {!isActive && !overlayOpen && !resuming && (
         <StartScreen
           artworks={artworks}
+          touch={isTouchDevice}
           label={loading ? m.gallery.loading : hasStarted ? m.gallery.resume : m.gallery.enter}
           loading={loading}
           showPresence={!hasStarted}
-          hint={isTouchDevice ? m.gallery.hintTouch : m.gallery.hintDesktop}
+          hint={controlMode === 'point' ? (isTouchDevice ? m.gallery.controls.hintTap : m.gallery.controls.hintClick) : isTouchDevice ? m.gallery.hintTouch : m.gallery.hintDesktop}
           onEnter={() => handleEnter()}
           onResume={resumeArtwork}
         />

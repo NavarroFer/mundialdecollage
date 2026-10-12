@@ -90,6 +90,19 @@ export const doorways: Doorway[] = [
   { id: 'door-2-3', center: [6, 0, 0], axis: 'z' },
 ]
 
+/** The garden theme's flowers, along the walls. */
+export const GARDEN_FLOWERS = [
+  { x: -16, z: -4.25, color: '#ef6f61' },
+  { x: -13.2, z: 4.25, color: '#ffd23f' },
+  { x: -9, z: -4.25, color: '#8f67b1' },
+  { x: -3.5, z: 4.25, color: '#ef6f61' },
+  { x: 2.5, z: -4.25, color: '#ff8f3d' },
+  { x: 4.7, z: 4.25, color: '#8f67b1' },
+  { x: 8.5, z: -4.25, color: '#ffd23f' },
+  { x: 13, z: 4.25, color: '#ef6f61' },
+  { x: 16.2, z: -4.25, color: '#ff8f3d' },
+]
+
 /** The ceiling around the skylights, as [minX, minZ, maxX, maxZ] rectangles. */
 export function ceilingAroundSkylights(): [number, number, number, number][] {
   const [minX, minZ, maxX, maxZ] = GALLERY_BOUNDS

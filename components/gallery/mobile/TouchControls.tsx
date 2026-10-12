@@ -2,6 +2,8 @@
 
 import { useI18n } from '@/lib/i18n/client'
 import { useInteractionStore } from '../interaction/store'
+import { useNavigationStore } from '../navigation/store'
+import { useGalleryPreferences } from '../preferences/store'
 import { useWallStore } from '../wall/store'
 
 import { useEffect, useRef, useState } from 'react'
@@ -11,6 +13,9 @@ import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
 
 const JOYSTICK_RADIUS = 55
+// A finger that moves less than this, and lifts quickly, tapped.
+const TAP_PX = 8
+const TAP_MS = 600
 
 type Vec2 = { x: number; y: number }
 
@@ -33,9 +38,15 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
     const joystickOriginPoint = { current: null as Vec2 | null }
     const lookTouchId = { current: null as number | null }
     const lookLast = { current: { x: 0, y: 0 } }
+    // The look finger, while it could still be a tap on the floor or an obra.
+    let tap: { x: number; y: number; at: number } | null = null
 
+    // Walking by taps, the joystick is only its own circle: the rest of the
+    // lower left is floor to tap. Without them, half the screen grabs it.
     function isMoveZone(x: number, y: number) {
-      return x < window.innerWidth * 0.5 && y > window.innerHeight * 0.45
+      if (useGalleryPreferences.getState().controlMode === 'classic') return x < window.innerWidth * 0.5 && y > window.innerHeight * 0.45
+      const stick = layer!.querySelector('[data-move-stick]')?.getBoundingClientRect()
+      return stick ? x >= stick.left && x <= stick.right && y >= stick.top && y <= stick.bottom : false
     }
 
     function onTouchStart(event: TouchEvent) {
@@ -53,6 +64,8 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
           }
           setMoveKnobOffset({ x: 0, y: 0 })
         } else if (lookTouchId.current === null && joystickTouchId.current !== touch.identifier) {
+          // A second finger down means a gesture, not a tap.
+          tap = event.touches.length > 1 ? null : { x: touch.clientX, y: touch.clientY, at: performance.now() }
           lookTouchId.current = touch.identifier
           lookLast.current = { x: touch.clientX, y: touch.clientY }
           setLookKnobOffset({ x: 0, y: 0 })
@@ -77,6 +90,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
           useTouchStore.getState().setMove(offsetX / JOYSTICK_RADIUS, -offsetY / JOYSTICK_RADIUS)
         } else if (touch.identifier === lookTouchId.current) {
           handled = true
+          if (tap && Math.hypot(touch.clientX - tap.x, touch.clientY - tap.y) > TAP_PX) tap = null
           const dx = touch.clientX - lookLast.current.x
           const dy = touch.clientY - lookLast.current.y
           lookLast.current = { x: touch.clientX, y: touch.clientY }
@@ -99,6 +113,9 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
           setMoveKnobOffset({ x: 0, y: 0 })
           useTouchStore.getState().setMove(0, 0)
         } else if (touch.identifier === lookTouchId.current) {
+          const tapped = event.type === 'touchend' && tap && performance.now() - tap.at < TAP_MS
+          if (tapped && useGalleryPreferences.getState().controlMode === 'point') useNavigationStore.getState().requestPoint(touch.clientX, touch.clientY)
+          tap = null
           lookTouchId.current = null
           setLookKnobOffset({ x: 0, y: 0 })
         }
@@ -120,7 +137,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
 
   return (
     <div ref={layerRef} className="absolute inset-0 z-20" style={{ touchAction: 'none' }}>
-      <VirtualStick className={styles.moveStick} offset={moveKnobOffset} />
+      <VirtualStick move className={styles.moveStick} offset={moveKnobOffset} />
       <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
 
       {(targetId || aimingAtWall) && <button
@@ -137,9 +154,9 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
   )
 }
 
-function VirtualStick({ className, offset }: { className: string; offset: Vec2 }) {
+function VirtualStick({ className, offset, move = false }: { className: string; offset: Vec2; move?: boolean }) {
   return (
-    <div className={`${className} pointer-events-none absolute h-28 w-28 rounded-full border-2 border-paper/45 bg-paper/10`} aria-hidden="true">
+    <div data-move-stick={move || undefined} className={`${className} pointer-events-none absolute h-28 w-28 rounded-full border-2 border-paper/45 bg-paper/10`} aria-hidden="true">
       <div
         className="absolute h-12 w-12 rounded-full border border-ink/15 bg-paper/70 shadow-sm transition-transform duration-75"
         style={{ left: 32 + offset.x, top: 32 + offset.y }}

@@ -39,7 +39,15 @@ function loadBanner() {
  * the camera button, or F while walking. Taking it lets go of the mouse so
  * the preview can be used; closing it with a click takes the walk back.
  */
-export function Souvenir({ theme, isTouchDevice, onResume, inline = false }: { theme: GalleryTheme; isTouchDevice: boolean; onResume: () => void; inline?: boolean }) {
+export function Souvenir({ theme, isTouchDevice, active, onResume, inline = false }: {
+  theme: GalleryTheme
+  isTouchDevice: boolean
+  /** Walking: F takes the photo. */
+  active: boolean
+  onResume: () => void
+  /** In the phone's Opciones menu, with its label; otherwise in the visit toolbar. */
+  inline?: boolean
+}) {
   const { locale, m } = useI18n()
   const t = m.gallery.souvenir
   const open = useSouvenirStore((state) => state.open)
@@ -49,6 +57,8 @@ export function Souvenir({ theme, isTouchDevice, onResume, inline = false }: { t
   const [failed, setFailed] = useState(false)
   const wasLocked = useRef(false)
   const busy = useRef(false)
+  const walking = useRef(active)
+  useEffect(() => { walking.current = active }, [active])
 
   const take = useCallback(async () => {
     const { capture, setOpen } = useSouvenirStore.getState()
@@ -89,7 +99,7 @@ export function Souvenir({ theme, isTouchDevice, onResume, inline = false }: { t
       if (event.code !== 'KeyF' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return
       const element = document.activeElement
       if (element instanceof HTMLElement && (element.matches('input, textarea, select') || element.isContentEditable)) return
-      if (document.pointerLockElement === null) return
+      if (!walking.current) return
       void take()
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -126,7 +136,7 @@ export function Souvenir({ theme, isTouchDevice, onResume, inline = false }: { t
           onClick={() => void take()}
           aria-label={t.button}
           title={isTouchDevice ? t.button : `${t.button} (F)`}
-          className={`${styles.hudButton} animate-in fade-in absolute top-4 left-16 z-20 flex h-10 w-10 items-center justify-center duration-300 transition-transform hover:scale-105`}
+          className={`${styles.hudButton} relative flex items-center justify-center`}
         >
           <Camera className="h-5 w-5" aria-hidden="true" />
           {/* While walking the mouse is captured, so on a computer the key is the way in. */}

@@ -1,5 +1,6 @@
 'use client'
 
+import { PointNavigation } from './navigation/PointNavigation'
 import { AttentionRay } from './attention/AttentionRay'
 import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
@@ -22,6 +23,7 @@ export type SceneProps = {
   artworks: Artwork[]
   theme: GalleryTheme
   /** The visitor is walking: keys, joystick and look drags move them. */
+  controlMode: 'point' | 'classic'
   active: boolean
   /** Nothing on screen needs to move (start screen, turn-the-phone notice, phone menu). */
   paused: boolean
@@ -39,7 +41,7 @@ export type SceneProps = {
  * mounting them behind the start screen kept the GPU and the physics busy for
  * a scene nobody could see yet.
  */
-export function Scene({ artworks, theme, active, paused, isTouchDevice, lockTarget, wall, onReady }: SceneProps) {
+export function Scene({ artworks, theme, active, controlMode, paused, isTouchDevice, lockTarget, wall, onReady }: SceneProps) {
   return (
     <KeyboardControls map={keyboardMap}>
       <Canvas
@@ -57,8 +59,9 @@ export function Scene({ artworks, theme, active, paused, isTouchDevice, lockTarg
           <World artworks={artworks} theme={theme} />
           <Player active={active} artworks={artworks} />
         </Physics>
-        {!isTouchDevice && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}
+        {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}
         <TouchLookController active={active} />
+        <PointNavigation active={active && controlMode === 'point'} touch={isTouchDevice} artworks={artworks} garden={theme === 'garden'} />
         <InteractionManager artworks={artworks} />
         <PlayerTracker />
         <AttentionRay active={active} />

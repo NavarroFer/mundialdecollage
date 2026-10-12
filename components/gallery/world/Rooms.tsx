@@ -6,6 +6,7 @@ import {
   GALLERY_BOUNDS,
   WALL_HEIGHT,
   WALL_THICKNESS,
+  GARDEN_FLOWERS,
   ceilingAroundSkylights,
   doorways,
   walls,
@@ -76,18 +77,6 @@ function WindowsPaintDetails() {
     </group>
   )
 }
-
-const GARDEN_FLOWERS = [
-  { x: -16, z: -4.25, color: '#ef6f61' },
-  { x: -13.2, z: 4.25, color: '#ffd23f' },
-  { x: -9, z: -4.25, color: '#8f67b1' },
-  { x: -3.5, z: 4.25, color: '#ef6f61' },
-  { x: 2.5, z: -4.25, color: '#ff8f3d' },
-  { x: 4.7, z: 4.25, color: '#8f67b1' },
-  { x: 8.5, z: -4.25, color: '#ffd23f' },
-  { x: 13, z: 4.25, color: '#ef6f61' },
-  { x: 16.2, z: -4.25, color: '#ff8f3d' },
-]
 
 function GardenFlower({ x, z, color }: { x: number; z: number; color: string }) {
   return (

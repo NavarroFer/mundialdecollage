@@ -9,12 +9,16 @@ import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
 import { useTouchStore } from '../mobile/touchStore'
 import { useGalleryPreferences } from '../preferences/store'
+import { useNavigationStore } from '../navigation/store'
 import type { Controls } from './controls'
 
 const WALK_SPEED = 2.6
 const RUN_SPEED = 5.2
 const CROUCH_SPEED = 1.3
 const CROUCH_DROP = 0.6
+// Close enough to a clicked route's waypoint to head for the next one.
+const WAYPOINT_REACHED = 0.12
+const STALL_SECONDS = 1.5
 const PLAYER_RADIUS = 0.35
 const PLAYER_HALF_HEIGHT = 0.5
 const EYE_HEIGHT_OFFSET = 0.75
@@ -43,6 +47,7 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
   const wasCrouching = useRef(false)
   const getKeys = useKeyboardControls<Controls>()[1]
 
+  const stalled = useRef({ x: 0, z: 0, seconds: 0 })
   const forward = useRef(new THREE.Vector3())
   const right = useRef(new THREE.Vector3())
   const moveDirection = useRef(new THREE.Vector3())
@@ -180,13 +185,39 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
     // The joystick's push distance doubles as a run trigger — no separate
     // mobile run control needed, same as pushing a stick further in a
     // console FPS.
-    const speed = crouching
+    let speed = crouching
       ? CROUCH_SPEED
       : touchActive
       ? THREE.MathUtils.lerp(WALK_SPEED, RUN_SPEED, Math.min(moveDirection.current.length(), 1))
       : run
         ? RUN_SPEED
         : WALK_SPEED
+    // Walking to a clicked spot, until a key, the stick or a jump takes over.
+    const navigation = useNavigationStore.getState()
+    if (inputX !== 0 || inputZ !== 0 || jumpRequested.current) navigation.cancel()
+    else if (navigation.path.length) {
+      const position = body.translation()
+      const waypoint = navigation.path[0]
+      const remaining = Math.hypot(waypoint.x - position.x, waypoint.z - position.z)
+      if (remaining < WAYPOINT_REACHED) {
+        navigation.advance()
+        if (navigation.path.length === 1 && navigation.artworkId) useInteractionStore.getState().open(navigation.artworkId)
+      } else {
+        moveDirection.current.set(waypoint.x - position.x, 0, waypoint.z - position.z).normalize()
+        // Slows down for the last few centimetres instead of overshooting.
+        speed = Math.min(WALK_SPEED, remaining / Math.max(delta, 0.001))
+      }
+      // Pushed against something the route didn't know about (another
+      // visitor, a door jamb): give up instead of walking into it forever.
+      const stall = stalled.current
+      stall.seconds = Math.hypot(stall.x - position.x, stall.z - position.z) < 0.001 ? stall.seconds + delta : 0
+      stall.x = position.x
+      stall.z = position.z
+      if (stall.seconds > STALL_SECONDS) {
+        navigation.cancel(true)
+        stall.seconds = 0
+      }
+    } else stalled.current.seconds = 0
     const velocity = body.linvel()
     let velocityY = velocity.y
     if (jumpRequested.current) {
