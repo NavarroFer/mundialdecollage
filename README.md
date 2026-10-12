@@ -90,7 +90,9 @@ BREVO_WEBHOOK_SECRET=
 
 # Microsoft Clarity — https://clarity.microsoft.com, creá un proyecto para el
 # dominio del sitio y copiá el Project ID (Settings > Setup). Sin esto no se
-# inyecta ningún script (ver components/clarity.tsx). Da heatmaps de clicks,
+# inyecta ningún script (ver components/clarity.tsx). El navegador envía los
+# datos directamente a Microsoft, sin pasar por Functions de Vercel; los
+# bloqueadores de privacidad pueden impedir la grabación. Da heatmaps de clicks,
 # mapas de scroll y grabaciones de sesión; no se carga en /admin.
 # NEXT_PUBLIC_CLARITY_PROJECT_ID=
 ```

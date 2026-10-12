@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Compatibility for tabs opened before the direct Clarity integration. New
+// pages load Microsoft directly (components/clarity.tsx); keep this endpoint
+// so an already-running recorder can finish its session after deployment.
+//
 // Proxies Microsoft Clarity's loader + telemetry endpoints through our own
 // domain. `clarity.ms` (all subdomains) sits on common tracker blocklists
 // (EasyPrivacy etc.), so browsers with an ad/privacy blocker fail the direct
