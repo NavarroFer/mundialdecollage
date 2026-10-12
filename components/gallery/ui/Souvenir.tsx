@@ -115,6 +115,15 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
     wasLocked.current = false
   }
 
+  function download() {
+    if (!photo) return
+    track('souvenir_download')
+    const link = document.createElement('a')
+    link.href = photo.url
+    link.download = FILE_NAME
+    link.click()
+  }
+
   async function share() {
     if (!photo) return
     track('souvenir_share')
@@ -123,8 +132,10 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
         files: [new File([photo.blob], FILE_NAME, { type: 'image/jpeg' })],
         text: `${t.shareText} ${window.location.origin}/galeria-3d`,
       })
-    } catch {
-      // Closing the share sheet rejects too — nothing to report.
+    } catch (error) {
+      // Closing the share sheet rejects with AbortError: nothing to do.
+      // Anything else (an app's browser that won't share files) saves it instead.
+      if (!(error instanceof DOMException && error.name === 'AbortError')) download()
     }
   }
 
@@ -161,21 +172,26 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
             ) : (
               <p role="status" className="py-10 text-sm text-muted-foreground">{t.making}</p>
             )}
-            <div className="flex flex-wrap justify-center gap-2">
+            {/* Sharing (the phone's share sheet, straight to a story) is the
+                one primary action where the browser can share files; saving
+                the photo takes its place where it can't. */}
+            <div className="flex w-full flex-col items-center gap-2">
               {photo?.canShare && (
                 <button type="button" onClick={() => void share()}
-                  className="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-collage-yellow px-5 py-2.5 text-sm font-semibold text-ink">
-                  <Share2 className="h-4 w-4" aria-hidden="true" /> {t.share}
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-ink/20 bg-collage-yellow px-5 py-3 text-base font-semibold text-ink">
+                  <Share2 className="h-5 w-5" aria-hidden="true" /> {t.share}
                 </button>
               )}
               {photo && (
                 <a href={photo.url} download={FILE_NAME} onClick={() => track('souvenir_download')}
-                  className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-5 py-2.5 text-sm font-semibold">
+                  className={photo.canShare
+                    ? 'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-ink/20 px-5 py-2.5 text-sm font-semibold'
+                    : 'inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-ink/20 bg-collage-yellow px-5 py-3 text-base font-semibold text-ink'}>
                   <Download className="h-4 w-4" aria-hidden="true" /> {t.download}
                 </a>
               )}
               <button type="button" onClick={() => close(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-5 py-2.5 text-sm font-semibold">
+                className="inline-flex min-h-11 items-center gap-2 px-5 py-2 text-sm font-semibold underline">
                 {t.close}
               </button>
             </div>
