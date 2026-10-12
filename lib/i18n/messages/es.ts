@@ -455,6 +455,12 @@ const es = {
       blocked: 'Por ahí no se puede pasar. Probá en otro lugar del piso.',
       click: 'Clic',
     },
+    contemplation: {
+      details: 'Ver ficha',
+      hideDetails: 'Volver a la obra',
+      back: 'Seguir recorriendo',
+      keys: 'Seguir recorriendo (E o Esc)',
+    },
     musicOn: 'Activar música',
     musicOff: 'Silenciar música',
     souvenir: {

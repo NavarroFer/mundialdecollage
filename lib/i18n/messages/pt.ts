@@ -450,6 +450,12 @@ const pt: Messages = {
       blocked: 'Por ali não dá para passar. Tente outro lugar do chão.',
       click: 'Clique',
     },
+    contemplation: {
+      details: 'Ver ficha',
+      hideDetails: 'Voltar à obra',
+      back: 'Continuar o passeio',
+      keys: 'Continuar o passeio (E ou Esc)',
+    },
     musicOn: 'Ligar música',
     musicOff: 'Silenciar música',
     souvenir: {

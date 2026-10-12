@@ -6,6 +6,9 @@ type InteractionState = {
   targetId: string | null
   /** Artwork id whose modal is open, if any. */
   openId: string | null
+  /** The open obra shows its details (likes, comments, stamp), not just its name. */
+  detailsOpen: boolean
+  setDetails: (open: boolean) => void
   setTarget: (id: string | null) => void
   open: (id: string) => void
   close: () => void
@@ -22,21 +25,23 @@ type InteractionState = {
 export const useInteractionStore = create<InteractionState>((set, get) => ({
   targetId: null,
   openId: null,
+  detailsOpen: false,
+  setDetails: (detailsOpen) => set({ detailsOpen }),
   setTarget: (id) => {
     if (get().targetId !== id) set({ targetId: id })
   },
-  open: (id) => set({ openId: id }),
-  close: () => set({ openId: null }),
+  open: (id) => set({ openId: id, detailsOpen: false }),
+  close: () => set({ openId: null, detailsOpen: false }),
   toggle: () => {
     const { targetId, openId } = get()
     if (openId) {
-      set({ openId: null })
+      set({ openId: null, detailsOpen: false })
       return
     }
-    if (targetId) set({ openId: targetId })
+    if (targetId) set({ openId: targetId, detailsOpen: false })
   },
   pendingReturn: null,
-  resume: (pending) => set({ pendingReturn: pending, openId: pending.slug }),
+  resume: (pending) => set({ pendingReturn: pending, openId: pending.slug, detailsOpen: true }),
   consumeIntent: (slug, intent) => {
     const pending = get().pendingReturn
     if (pending?.slug !== slug || pending.intent !== intent) return false

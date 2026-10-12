@@ -450,6 +450,12 @@ const it: Messages = {
       blocked: 'Di lì non si passa. Prova un altro punto del pavimento.',
       click: 'Clic',
     },
+    contemplation: {
+      details: 'Vedi scheda',
+      hideDetails: "Torna all'opera",
+      back: 'Continua il percorso',
+      keys: 'Continua il percorso (E o Esc)',
+    },
     musicOn: 'Attiva la musica',
     musicOff: 'Disattiva la musica',
     souvenir: {

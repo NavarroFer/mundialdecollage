@@ -450,6 +450,12 @@ const de: Messages = {
       blocked: 'Dort kommst du nicht durch. Versuch eine andere Stelle am Boden.',
       click: 'Klick',
     },
+    contemplation: {
+      details: 'Details',
+      hideDetails: 'Zurück zum Werk',
+      back: 'Weiter erkunden',
+      keys: 'Weiter erkunden (E oder Esc)',
+    },
     musicOn: 'Musik einschalten',
     musicOff: 'Musik stummschalten',
     souvenir: {

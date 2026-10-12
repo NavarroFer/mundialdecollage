@@ -460,6 +460,12 @@ const pl: Messages = {
       blocked: 'Tędy nie da się przejść. Spróbuj innego miejsca na podłodze.',
       click: 'Klik',
     },
+    contemplation: {
+      details: 'Zobacz opis',
+      hideDetails: 'Wróć do pracy',
+      back: 'Zwiedzaj dalej',
+      keys: 'Zwiedzaj dalej (E lub Esc)',
+    },
     musicOn: 'Włącz muzykę',
     musicOff: 'Wycisz muzykę',
     souvenir: {

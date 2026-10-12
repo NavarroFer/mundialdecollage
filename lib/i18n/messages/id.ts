@@ -450,6 +450,12 @@ const id: Messages = {
       blocked: 'Tidak bisa lewat sana. Coba titik lain di lantai.',
       click: 'Klik',
     },
+    contemplation: {
+      details: 'Lihat detail',
+      hideDetails: 'Kembali ke karya',
+      back: 'Lanjutkan menjelajah',
+      keys: 'Lanjutkan menjelajah (E atau Esc)',
+    },
     musicOn: 'Nyalakan musik',
     musicOff: 'Matikan musik',
     souvenir: {

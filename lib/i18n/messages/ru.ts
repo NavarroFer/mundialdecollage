@@ -460,6 +460,12 @@ const ru: Messages = {
       blocked: 'Туда не пройти. Попробуйте другое место на полу.',
       click: 'Клик',
     },
+    contemplation: {
+      details: 'Подробнее',
+      hideDetails: 'Назад к работе',
+      back: 'Продолжить прогулку',
+      keys: 'Продолжить прогулку (E или Esc)',
+    },
     musicOn: 'Включить музыку',
     musicOff: 'Выключить музыку',
     souvenir: {

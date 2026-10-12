@@ -451,6 +451,12 @@ const en: Messages = {
       blocked: "You can't get through there. Try another spot on the floor.",
       click: 'Click',
     },
+    contemplation: {
+      details: 'Details',
+      hideDetails: 'Back to the artwork',
+      back: 'Keep exploring',
+      keys: 'Keep exploring (E or Esc)',
+    },
     musicOn: 'Turn music on',
     musicOff: 'Mute music',
     souvenir: {

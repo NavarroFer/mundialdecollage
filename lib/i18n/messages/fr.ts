@@ -450,6 +450,12 @@ const fr: Messages = {
       blocked: 'Impossible de passer par là. Essaie un autre endroit du sol.',
       click: 'Clic',
     },
+    contemplation: {
+      details: 'Voir la fiche',
+      hideDetails: "Revenir à l'œuvre",
+      back: 'Continuer la visite',
+      keys: 'Continuer la visite (E ou Échap)',
+    },
     musicOn: 'Activer la musique',
     musicOff: 'Couper la musique',
     souvenir: {

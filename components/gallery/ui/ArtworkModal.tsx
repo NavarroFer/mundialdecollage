@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import { ArrowLeft, Info, X } from 'lucide-react'
 import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
@@ -24,10 +25,19 @@ import { useI18n } from '@/lib/i18n/client'
 // comments are fetched: skips the ones they only sweep past.
 const PREFETCH_DWELL_MS = 250
 
+/**
+ * An obra up close. It opens in contemplation: the camera glides in front of
+ * it and only its name stays on screen, over the walk, so the image is what
+ * the visitor sees. The details (story, likes, comments, stamp) unfold on
+ * request, and are already open when coming back from signing in to use them.
+ */
 export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
   const openId = useInteractionStore((state) => state.openId)
+  const detailsOpen = useInteractionStore((state) => state.detailsOpen)
   const artwork = artworks.find((item) => item.id === openId)
   const { m } = useI18n()
+  const t = m.gallery.contemplation
+  const themeClass = cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'collage' && styles.collage, theme === 'garden' && styles.garden)
 
   useEffect(() => {
     if (openId) track('artwork_open')
@@ -50,13 +60,42 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
 
   if (!artwork) return null
 
+  const close = () => useInteractionStore.getState().close()
+
+  if (!detailsOpen) {
+    return (
+      <Dialog open onOpenChange={(open) => { if (!open) close() }}>
+        <DialogContent
+          aria-describedby={undefined}
+          showClose={false}
+          overlayClassName="bg-transparent"
+          className={cn(themeClass, styles.contemplation, 'top-auto bottom-4 flex w-[min(40rem,calc(100%-2rem))] translate-y-0 items-center gap-3 px-4 py-3')}
+        >
+          <div className="min-w-0 flex-1">
+            <DialogTitle className="font-display truncate text-xl leading-tight text-ink">{artwork.title}</DialogTitle>
+            <p className="truncate text-sm font-semibold text-muted-foreground">{artwork.artist} · {artwork.year}</p>
+          </div>
+          <button type="button" className={styles.contemplationButton} onClick={() => useInteractionStore.getState().setDetails(true)}>
+            <Info className="h-4 w-4" aria-hidden="true" /> {t.details}
+          </button>
+          <button type="button" className={styles.contemplationClose} onClick={close} aria-label={t.back} title={t.keys}>
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) useInteractionStore.getState().close() }}>
+    <Dialog open onOpenChange={(open) => { if (!open) close() }}>
       <DialogContent
         aria-describedby={undefined}
         overlayClassName="bg-ink/25 backdrop-blur-[1px]"
-        className={cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'collage' && styles.collage, theme === 'garden' && styles.garden, 'flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl flex-col gap-6 overflow-y-auto p-6 sm:left-auto sm:right-6 sm:w-[min(25rem,calc(100%-3rem))] sm:max-w-md sm:translate-x-0 sm:p-8')}
+        className={cn(themeClass, 'flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl flex-col gap-6 overflow-y-auto p-6 sm:left-auto sm:right-6 sm:w-[min(25rem,calc(100%-3rem))] sm:max-w-md sm:translate-x-0 sm:p-8')}
       >
+        <button type="button" className="-mb-3 inline-flex min-h-11 items-center gap-2 self-start text-sm font-semibold underline" onClick={() => useInteractionStore.getState().setDetails(false)}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t.hideDetails}
+        </button>
         <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-lg bg-card sm:hidden">
           <Image
             src={artwork.image}
