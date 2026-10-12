@@ -41,8 +41,29 @@ function nearestCell(point: Point, garden: boolean): Point | null {
   return best
 }
 
-// Nothing in the way between two points, checked every 10 cm.
+// Whether the segment a→b touches a wall's box grown by CLEARANCE, exactly
+// (the slab method): sampling alone can step over a box's corner.
+function crossesWall(a: Point, b: Point, x: number, z: number, halfWidth: number, halfDepth: number): boolean {
+  let enter = 0
+  let exit = 1
+  for (const [start, delta, center, half] of [[a.x, b.x - a.x, x, halfWidth + CLEARANCE], [a.z, b.z - a.z, z, halfDepth + CLEARANCE]]) {
+    if (delta === 0) {
+      if (Math.abs(start - center) > half) return false
+      continue
+    }
+    const t0 = (center - half - start) / delta
+    const t1 = (center + half - start) / delta
+    enter = Math.max(enter, Math.min(t0, t1))
+    exit = Math.min(exit, Math.max(t0, t1))
+    if (enter > exit) return false
+  }
+  return true
+}
+
+// Nothing in the way between two points: no wall, and every 10 cm inside the
+// gallery and (in the garden) away from the flowers.
 function clear(a: Point, b: Point, garden: boolean): boolean {
+  if (walls.some(({ position, size }) => crossesWall(a, b, position[0], position[2], size[0] / 2, size[2] / 2))) return false
   const steps = Math.ceil(distance(a, b) / 0.1)
   for (let i = 1; i <= steps; i++) {
     if (!walkable({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, garden)) return false
