@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { Check, CircleDot, Eye, Hand, Mouse, MousePointerClick, Pointer } from 'lucide-react'
+import { Check, Hand, Mouse, MousePointerClick, Pointer } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 import { useInteractionStore } from '../interaction/store'
@@ -36,7 +36,6 @@ const key = (label: string) => <kbd key={label} className={styles.tutorialKey}>{
 const GLYPHS: Record<ControlScheme, Record<LearnStep, ReactNode>> = {
   keys: { look: <Mouse size={22} />, move: ['W', 'A', 'S', 'D'].map(key), open: key('E') },
   click: { look: <Hand size={22} />, move: <MousePointerClick size={22} />, open: <MousePointerClick size={22} /> },
-  stick: { look: <Hand size={22} />, move: <CircleDot size={22} />, open: <Eye size={22} /> },
   tap: { look: <Hand size={22} />, move: <Pointer size={22} />, open: <Pointer size={22} /> },
 }
 

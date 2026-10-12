@@ -61,7 +61,7 @@ export function Scene({ artworks, theme, active, controlMode, paused, isTouchDev
         </Physics>
         {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}
         <TouchLookController active={active} />
-        <PointNavigation active={active && controlMode === 'point'} touch={isTouchDevice} artworks={artworks} garden={theme === 'garden'} />
+        <PointNavigation active={active} touch={isTouchDevice} pointerLock={!isTouchDevice && controlMode === 'classic'} artworks={artworks} garden={theme === 'garden'} />
         <InteractionManager artworks={artworks} />
         <PlayerTracker />
         <AttentionRay active={active} />

@@ -332,7 +332,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>
           <button type="button" className="flex min-h-11 min-w-11 items-center justify-center" onClick={() => setOptionsOpen(false)} aria-label={m.gallery.mobileMenu.close}><X size={20} aria-hidden="true" /></button>
         </div>
-        <ControlChoice touch={isTouchDevice} />
+        {!isTouchDevice && <ControlChoice />}
         {isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice active={false} onResume={resumeWalk} inline />}
         {isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
         {isTouchDevice && hasStarted && <PresenceCounter />}
@@ -341,7 +341,9 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
         <button type="button" className={styles.visitMenuButton} onClick={() => handleEnter()}>{m.gallery.mobileMenu.resume}</button>
       </div>
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
-      {isActive && !isTouchDevice && <InteractionPrompt theme={theme} pointMode={controlMode === 'point'} />}
+      {isActive && !isTouchDevice && <InteractionPrompt theme={theme} />}
+      {/* With the mouse captured, where a click walks to (or which obra it opens). */}
+      {isActive && usesPointerLock && <span className={styles.crosshair} aria-hidden="true" />}
       {isActive && <WalkNotice />}
       <Passport artworks={artworks} theme={theme} onClose={resumeWalk} onResume={resumeArtwork} />
       <ArtworkModal artworks={artworks} theme={theme} />
@@ -362,11 +364,10 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       {!isActive && !overlayOpen && !resuming && (
         <StartScreen
           artworks={artworks}
-          touch={isTouchDevice}
           label={loading ? m.gallery.loading : hasStarted ? m.gallery.resume : m.gallery.enter}
           loading={loading}
           showPresence={!hasStarted}
-          hint={controlMode === 'point' ? (isTouchDevice ? m.gallery.controls.hintTap : m.gallery.controls.hintClick) : isTouchDevice ? m.gallery.hintTouch : m.gallery.hintDesktop}
+          hint={isTouchDevice ? m.gallery.controls.hintTap : controlMode === 'point' ? m.gallery.controls.hintClick : m.gallery.controls.hintLock}
           onEnter={() => handleEnter()}
           onResume={resumeArtwork}
         />

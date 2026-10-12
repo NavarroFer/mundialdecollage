@@ -3,10 +3,11 @@ import { MESSAGES } from '@/lib/i18n/messages'
 import { HOW_TO, LEARN_STEPS, controlScheme, createPoseTracker, nextStep } from './steps'
 
 describe('controlScheme', () => {
-  it('picks the way to walk for each device and choice', () => {
+  it('picks the way to look around for each device and choice', () => {
     expect(controlScheme(false, 'classic')).toBe('keys')
     expect(controlScheme(false, 'point')).toBe('click')
-    expect(controlScheme(true, 'classic')).toBe('stick')
+    // A phone taps and has the joystick whatever was chosen on a computer.
+    expect(controlScheme(true, 'classic')).toBe('tap')
     expect(controlScheme(true, 'point')).toBe('tap')
   })
 

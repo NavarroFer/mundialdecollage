@@ -3,7 +3,6 @@
 import { useI18n } from '@/lib/i18n/client'
 import { useInteractionStore } from '../interaction/store'
 import { useNavigationStore } from '../navigation/store'
-import { useGalleryPreferences } from '../preferences/store'
 import { useWallStore } from '../wall/store'
 
 import { useEffect, useRef, useState } from 'react'
@@ -16,6 +15,7 @@ const JOYSTICK_RADIUS = 55
 // A finger that moves less than this, and lifts quickly, tapped.
 const TAP_PX = 8
 const TAP_MS = 600
+const STICK_MARGIN_PX = 24
 
 type Vec2 = { x: number; y: number }
 
@@ -41,12 +41,12 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
     // The look finger, while it could still be a tap on the floor or an obra.
     let tap: { x: number; y: number; at: number } | null = null
 
-    // Walking by taps, the joystick is only its own circle: the rest of the
-    // lower left is floor to tap. Without them, half the screen grabs it.
+    // The joystick is its own circle (and a thumb's width around it): the
+    // rest of the lower left is floor to tap.
     function isMoveZone(x: number, y: number) {
-      if (useGalleryPreferences.getState().controlMode === 'classic') return x < window.innerWidth * 0.5 && y > window.innerHeight * 0.45
       const stick = layer!.querySelector('[data-move-stick]')?.getBoundingClientRect()
-      return stick ? x >= stick.left && x <= stick.right && y >= stick.top && y <= stick.bottom : false
+      if (!stick) return false
+      return x >= stick.left - STICK_MARGIN_PX && x <= stick.right + STICK_MARGIN_PX && y >= stick.top - STICK_MARGIN_PX && y <= stick.bottom + STICK_MARGIN_PX
     }
 
     function onTouchStart(event: TouchEvent) {
@@ -113,8 +113,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
           setMoveKnobOffset({ x: 0, y: 0 })
           useTouchStore.getState().setMove(0, 0)
         } else if (touch.identifier === lookTouchId.current) {
-          const tapped = event.type === 'touchend' && tap && performance.now() - tap.at < TAP_MS
-          if (tapped && useGalleryPreferences.getState().controlMode === 'point') useNavigationStore.getState().requestPoint(touch.clientX, touch.clientY)
+          if (event.type === 'touchend' && tap && performance.now() - tap.at < TAP_MS) useNavigationStore.getState().requestPoint(touch.clientX, touch.clientY)
           tap = null
           lookTouchId.current = null
           setLookKnobOffset({ x: 0, y: 0 })

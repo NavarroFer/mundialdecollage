@@ -4,11 +4,15 @@ import type { ControlMode } from '../preferences/store'
 export const LEARN_STEPS = ['look', 'move', 'open'] as const
 export type LearnStep = (typeof LEARN_STEPS)[number]
 
-/** The four ways to walk the gallery: computer or phone, by clicks or the videogame way. */
-export type ControlScheme = 'keys' | 'click' | 'stick' | 'tap'
+/**
+ * Clicks and keys (or taps and the joystick) always both walk; what differs
+ * is how a computer looks around: dragging with a free cursor, or the mouse
+ * captured with a crosshair, the videogame way.
+ */
+export type ControlScheme = 'keys' | 'click' | 'tap'
 
 export function controlScheme(touch: boolean, mode: ControlMode): ControlScheme {
-  if (touch) return mode === 'point' ? 'tap' : 'stick'
+  if (touch) return 'tap'
   return mode === 'point' ? 'click' : 'keys'
 }
 
@@ -16,7 +20,6 @@ export function controlScheme(touch: boolean, mode: ControlMode): ControlScheme 
 export const HOW_TO = {
   keys: { look: 'lookMouse', move: 'moveKeys', open: 'openKey' },
   click: { look: 'lookDrag', move: 'moveClick', open: 'openClick' },
-  stick: { look: 'lookTouch', move: 'moveStick', open: 'openButton' },
   tap: { look: 'lookTouch', move: 'moveTap', open: 'openTap' },
 } as const satisfies Record<ControlScheme, Record<LearnStep, string>>
 

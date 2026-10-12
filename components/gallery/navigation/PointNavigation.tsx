@@ -20,12 +20,14 @@ const pointer = new Vector2()
 const playerPosition = new Vector3()
 
 /**
- * Click-to-walk: a click (or a tap from TouchControls) on the floor walks
- * there along a route around the walls, and one on an obra walks up to it
- * and opens it. Dragging with the mouse looks around, the way a finger does
- * on a phone; WASD and the joystick keep working and take over at any time.
+ * Click-to-walk, alongside WASD and the joystick (either takes over at any
+ * time): a click (or a tap from TouchControls) on the floor walks there
+ * along a route around the walls, and one on an obra walks up to it and
+ * opens it. With a free cursor, dragging looks around the way a finger does
+ * on a phone; with the mouse captured (Pointer Lock), the click goes where
+ * the crosshair in the middle of the screen points.
  */
-export function PointNavigation({ active, touch, artworks, garden }: { active: boolean; touch: boolean; artworks: Artwork[]; garden: boolean }) {
+export function PointNavigation({ active, touch, pointerLock, artworks, garden }: { active: boolean; touch: boolean; pointerLock: boolean; artworks: Artwork[]; garden: boolean }) {
   const { camera, scene, gl } = useThree()
   const ray = useMemo(() => new Raycaster(), [])
   const destination = useNavigationStore((state) => state.path.at(-1))
@@ -63,6 +65,22 @@ export function PointNavigation({ active, touch, artworks, garden }: { active: b
       return () => {
         unsubscribe()
         useNavigationStore.getState().cancel()
+      }
+    }
+
+    if (pointerLock) {
+      const aimClick = (event: MouseEvent) => {
+        // Only a click with the mouse already captured: the one that takes
+        // the lock (ENTRAR, closing an obra) isn't aimed at anything.
+        if (event.button !== 0 || document.pointerLockElement === null) return
+        const rect = canvas.getBoundingClientRect()
+        useNavigationStore.getState().requestPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+      }
+      document.addEventListener('mousedown', aimClick)
+      return () => {
+        unsubscribe()
+        useNavigationStore.getState().cancel()
+        document.removeEventListener('mousedown', aimClick)
       }
     }
 
@@ -106,7 +124,7 @@ export function PointNavigation({ active, touch, artworks, garden }: { active: b
       canvas.removeEventListener('pointerup', up)
       canvas.removeEventListener('pointercancel', cancel)
     }
-  }, [active, touch, camera, scene, gl, ray, artworks, garden])
+  }, [active, touch, pointerLock, camera, scene, gl, ray, artworks, garden])
 
   // A ring on the floor where the walk ends (above the garden's stepping
   // stones); the raycast looks through it.

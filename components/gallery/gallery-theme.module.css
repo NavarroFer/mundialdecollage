@@ -524,7 +524,8 @@
   display: grid;
   gap: .75rem;
   width: min(22rem, calc(100vw - 2rem));
-  max-height: calc(100dvh - 6rem);
+  /* Clear of the music button above it. */
+  max-height: calc(100dvh - 9rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 1rem;
@@ -601,6 +602,22 @@
 .collage .controlCard { border-style: dashed; }
 @media (max-width: 480px) {
   .controlCards { grid-template-columns: 1fr; }
+}
+
+/* With the mouse captured, the point a click walks to. */
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 15;
+  width: .5rem;
+  height: .5rem;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .35);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .45);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
 }
 
 /* Click-to-walk: walking (with Frenar), arrived, or that spot can't be reached. */

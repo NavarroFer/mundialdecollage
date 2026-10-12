@@ -9,7 +9,6 @@ import { readReferralCookie, readReferralParam } from '@/lib/referral'
 import { createClient } from '@/lib/supabase/client'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import styles from '../gallery-theme.module.css'
-import { ControlChoice } from './ControlChoice'
 import { VisitPreferences } from './VisitPreferences'
 import { PresenceNote } from './PresenceCounter'
 import { useI18n } from '@/lib/i18n/client'
@@ -18,8 +17,6 @@ import { fmt } from '@/lib/i18n/format'
 type StartScreenProps = {
   /** Today's walls, to name the artist whose shared link brought this visitor. */
   artworks: Artwork[]
-  /** A phone or tablet: the control choice talks about taps and the joystick. */
-  touch: boolean
   label: string
   /** The scene is loading after ENTRAR: the button shows it and can't be pressed again. */
   loading: boolean
@@ -58,7 +55,7 @@ function useInviter(artworks: Artwork[]): string | null {
   return inviter
 }
 
-export function StartScreen({ artworks, touch, label, loading, hint, showPresence, onEnter, onResume }: StartScreenProps) {
+export function StartScreen({ artworks, label, loading, hint, showPresence, onEnter, onResume }: StartScreenProps) {
   const { m } = useI18n()
   const inviter = useInviter(artworks)
   return (
@@ -70,7 +67,6 @@ export function StartScreen({ artworks, touch, label, loading, hint, showPresenc
         <p className="mb-2 text-xs font-bold tracking-[0.18em] opacity-60">{m.gallery.startEyebrow}</p>
         <h1 id="gallery-start-title" className={styles.title}>{m.gallery.startTitle}</h1>
       <p className="mt-3 mb-5 text-base">{m.gallery.tutorial.welcome}</p>
-      <ControlChoice touch={touch} />
       <button
         type="button"
         onClick={onEnter}
