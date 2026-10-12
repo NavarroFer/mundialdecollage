@@ -1,9 +1,14 @@
 import { GalleryAttentionStats } from '@/components/admin/gallery-attention-stats'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
-import { CollapsibleSection } from '@/components/admin/collapsible-section'
-import { StatBar } from '@/components/admin/stat-bar'
-import { ArtworkHistoryChart, DailyActivityChart, FunnelChart, JourneyComparison } from '@/components/admin/dashboard-charts'
+import { BarList, FunnelChart, Meter, type Windows } from '@/components/admin/stats/bar-charts'
+import { ChartFrame, type ChartFigure } from '@/components/admin/stats/chart-frame'
+import { ChartError, EmptyChart } from '@/components/admin/stats/chart-kit'
+import { StatsControlBar, StatsSection } from '@/components/admin/stats/control-bar'
+import { Segmented } from '@/components/admin/stats/controls'
+import { TimeSeriesChart } from '@/components/admin/stats/time-series-chart'
+import { StatsViewProvider } from '@/components/admin/stats/view-settings'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
+import { formatCount } from '@/lib/chart-math'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -79,12 +84,13 @@ async function getSubmissionHistory(days: number, grouping: HistoryGrouping) {
     const date = new Date(`${bucket}T12:00:00-03:00`)
     const options: Intl.DateTimeFormatOptions = grouping === 'month'
       ? { month: 'short', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' }
-      : grouping === 'week'
-        ? { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }
-        : { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }
+      : { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }
     return { label: date.toLocaleDateString('es-AR', options), value: Number(works) }
   })
 }
+
+const percent = (share: number) => new Intl.NumberFormat('es-AR', { style: 'percent', maximumFractionDigits: 0 }).format(share)
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1)
 
 function JourneySection({
   week,
@@ -95,7 +101,8 @@ function JourneySection({
   baseStep,
   baseLabel,
   footnote,
-  periodDays,
+  windows,
+  recentDays,
   variant = 'funnel',
 }: {
   week: FunnelCounts | null
@@ -107,43 +114,33 @@ function JourneySection({
   baseStep?: string
   baseLabel?: string
   footnote?: string
-  periodDays: number
+  windows: Windows
+  recentDays: number
   variant?: 'funnel' | 'comparison'
 }) {
-  const base = baseStep ? month?.get(baseStep) ?? 0 : 0
+  const base = baseStep ? month?.get(baseStep) ?? 0 : undefined
   const primaryStep = baseStep ?? steps[0]?.name
   const primaryCount = primaryStep && month ? month.get(primaryStep) ?? 0 : null
   const recentPrimaryCount = primaryStep && week ? week.get(primaryStep) ?? 0 : null
   const finalCount = month?.get(steps.at(-1)?.name ?? '') ?? 0
-  const completion = baseStep && base > 0 ? finalCount / base : undefined
-  const comparisonDays = periodDays === 7 ? 1 : 7
+  const completion = baseStep && base ? finalCount / base : undefined
+  const figure: ChartFigure | undefined = primaryCount === null ? undefined : {
+    value: formatCount(primaryCount),
+    label: steps.find((step) => step.name === primaryStep)?.label ?? 'Personas',
+    details: [
+      ...(recentPrimaryCount !== null ? [{ label: `${formatCount(recentPrimaryCount)} · ${recentDays} d`, series: 'recent' as const }] : []),
+      ...(completion !== undefined && variant === 'funnel' ? [{ label: `${percent(completion)} al final` }] : []),
+    ],
+  }
+  const rows = steps.map((step) => ({ label: step.label, value: month?.get(step.name) ?? 0, recent: week?.get(step.name) ?? 0 }))
+  const note = baseLabel ? `% ${lowerFirst(baseLabel)}.` : undefined
   return (
-    <CollapsibleSection
-      title={title}
-      description={description}
-      steps={steps.length}
-      kpi={primaryCount}
-      kpiLabel={steps.find((step) => step.name === primaryStep)?.label ?? 'Personas'}
-      recentKpi={recentPrimaryCount}
-      comparisonDays={comparisonDays}
-      completion={completion}
-    >
-      {!week || !month ? (
-        <p role="status" className="text-sm text-collage-red">No pudimos cargar el circuito. Recargá la página para reintentar.</p>
-      ) : (
-        <div>
-          <JourneyComparison
-            steps={steps.map((step) => ({ label: step.label, week: week.get(step.name) ?? 0, month: month.get(step.name) ?? 0 }))}
-            base={baseStep ? base : undefined}
-            baseLabel={baseLabel}
-            periodDays={periodDays}
-            comparisonDays={comparisonDays}
-            variant={variant}
-          />
-          {footnote && <p className="mt-5 border-t border-ink/10 pt-4 text-xs leading-relaxed text-muted-foreground">{footnote}</p>}
-        </div>
-      )}
-    </CollapsibleSection>
+    <ChartFrame collapsible level={3} title={title} description={description} footnote={footnote} figure={figure} controls={['compare']}>
+      {!week || !month ? <ChartError>No pudimos cargar el circuito. Recargá la página para reintentar.</ChartError>
+        : variant === 'funnel'
+          ? <FunnelChart steps={rows} base={base} label={`${title}, ${lowerFirst(windows.period)}`} note={note} windows={windows} />
+          : <BarList rows={rows} total={base} label={`${title}, ${lowerFirst(windows.period)}`} note={note} windows={windows} />}
+    </ChartFrame>
   )
 }
 
@@ -154,25 +151,23 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
   const periodDays = PERIODS.includes(Number(period) as (typeof PERIODS)[number]) ? Number(period) : 30
   const grouping: HistoryGrouping = requestedGrouping === 'week' || requestedGrouping === 'month' ? requestedGrouping : 'day'
   const comparisonDays = periodDays === 7 ? 1 : 7
+  const windows: Windows = { period: `Últimos ${periodDays} días`, recent: comparisonDays === 1 ? 'Último día' : `Últimos ${comparisonDays} días` }
   const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays), getFunnel(periodDays), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping)])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
   const countryLabel = (code: string | null) => (code ? countryCodeToName(code) : 'Sin país registrado')
+  const historyUnit = grouping === 'day' ? 'día' : grouping === 'week' ? 'semana' : 'mes'
+  const journey = { week: funnelWeek, month: funnelMonth, windows, recentDays: comparisonDays }
+  const sum = (points: { value: number }[]) => points.reduce((total, point) => total + point.value, 0)
 
   return (
-    <div>
+    <StatsViewProvider periodLabel={windows.period}>
       <AdminPageHeader eyebrow="Convocatoria" title="Estadísticas" description={adminDescription('/admin/estadisticas')} />
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         De dónde vienen los artistas, qué técnicas eligen, cómo avanza la publicación y cómo se mueve la gente por la galería.
       </p>
-      <nav aria-label="Período de estadísticas" className="mt-5 flex flex-wrap gap-2">
-        {PERIODS.map((days) => (
-          <Link key={days} href={`/admin/estadisticas?period=${days}&grouping=${grouping}`} className={`rounded-full px-4 py-2 text-sm font-semibold ${days === periodDays ? 'bg-collage-blue text-primary-foreground' : 'bg-card text-muted-foreground hover:text-ink'}`}>
-            Últimos {days} días
-          </Link>
-        ))}
-      </nav>
+      <StatsControlBar periodDays={periodDays} periods={PERIODS.map((days) => ({ days, href: `/admin/estadisticas?period=${days}&grouping=${grouping}` }))} />
       <GalleryAttentionStats days={periodDays} />
       <section className="mt-6 grid gap-3 lg:grid-cols-12" aria-label="Panorama de la convocatoria">
         <div className="relative overflow-hidden rounded-3xl bg-collage-blue p-6 text-paper lg:col-span-4">
@@ -190,344 +185,252 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         </div>
       </section>
 
-      <section className="mt-8 overflow-hidden rounded-3xl border-2 border-ink/10 bg-card" aria-labelledby="submission-history-title">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink/10 px-5 py-5 sm:px-6">
-          <div>
-            <p className="text-xs font-bold tracking-[0.18em] text-collage-red uppercase">Obras recibidas</p>
-            <h2 id="submission-history-title" className="font-display mt-1 text-2xl tracking-tight text-ink uppercase">Histórico de participaciones</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Incluye envíos desde Registro y participaciones directas, sin duplicarlas.</p>
-          </div>
-          <nav aria-label="Agrupación del histórico de obras" className="flex rounded-full bg-muted p-1">
-            {(['day', 'week', 'month'] as const).map((option) => {
-              const label = option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual'
-              return <Link key={option} href={`/admin/estadisticas?period=${periodDays}&grouping=${option}`} className={`rounded-full px-3 py-1.5 text-xs font-bold ${grouping === option ? 'bg-collage-red text-primary-foreground' : 'text-muted-foreground hover:text-ink'}`}>{label}</Link>
-            })}
-          </nav>
+      <ChartFrame
+        className="mt-8"
+        eyebrow="Obras recibidas"
+        title="Histórico de participaciones"
+        description="Incluye envíos desde Registro y participaciones directas, sin duplicarlas."
+        figure={submissionHistory ? { value: formatCount(sum(submissionHistory)), label: `obras · ${lowerFirst(windows.period)}` } : undefined}
+        controls={['values', 'table']}
+        actions={(
+          <Segmented
+            label="Agrupación del histórico de obras"
+            value={grouping}
+            options={(['day', 'week', 'month'] as const).map((option) => ({
+              value: option,
+              label: option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual',
+              href: `/admin/estadisticas?period=${periodDays}&grouping=${option}`,
+            }))}
+          />
+        )}
+      >
+        {submissionHistory
+          ? <TimeSeriesChart data={submissionHistory} unit={{ one: 'obra', other: 'obras' }} label={`Obras recibidas por ${historyUnit}`} />
+          : <ChartError>No pudimos cargar el histórico de obras. Recargá la página para reintentar.</ChartError>}
+      </ChartFrame>
+
+      <StatsSection id="pulse-title" eyebrow="Lectura rápida" title="El pulso de la convocatoria">
+        <div className="grid items-start gap-6 lg:grid-cols-2">
+          <ChartFrame
+            title="Actividad reciente"
+            description="Visitas únicas a la galería por día. Ayuda a detectar picos después de una publicación, difusión o campaña."
+            figure={galleryHistory ? { value: formatCount(sum(galleryHistory)), label: `visitas · ${lowerFirst(windows.period)}` } : undefined}
+            controls={['values', 'table']}
+          >
+            {galleryHistory
+              ? <TimeSeriesChart data={galleryHistory} unit={{ one: 'visita', other: 'visitas' }} label="Visitas únicas a la galería por día" />
+              : <ChartError>No pudimos cargar el histórico. Recargá la página para reintentar.</ChartError>}
+          </ChartFrame>
+          <ChartFrame
+            title="Embudo principal"
+            description={`El camino principal para descubrir obras, en los últimos ${periodDays} días.`}
+            figure={funnelMonth ? { value: formatCount(funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0), label: GALLERY_HAPPY_PATH[0].label } : undefined}
+            controls={['compare']}
+          >
+            {funnelMonth
+              ? <FunnelChart
+                  label={`Embudo de la galería, ${lowerFirst(windows.period)}`}
+                  steps={GALLERY_HAPPY_PATH.map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0, recent: funnelWeek?.get(step.name) }))}
+                  base={funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0}
+                  note="% de quienes abrieron la galería."
+                  windows={windows}
+                />
+              : <ChartError>No pudimos cargar el embudo.</ChartError>}
+          </ChartFrame>
         </div>
-        <div className="p-5 sm:p-6">
-          {submissionHistory ? <ArtworkHistoryChart data={submissionHistory} grouping={grouping} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el histórico de obras. Recargá la página para reintentar.</p>}
-        </div>
-      </section>
+      </StatsSection>
 
-      <section className="mt-8 overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">
-        <div className="border-b-2 border-ink/10 bg-collage-blue px-5 py-5 text-paper sm:px-6">
-          <p className="text-xs font-bold tracking-[0.18em] text-paper/75 uppercase">Lectura rápida</p>
-          <h2 className="font-display mt-1 text-2xl tracking-tight uppercase">El pulso de la convocatoria</h2>
-        </div>
-        <div className="grid divide-y-2 divide-ink/10 lg:grid-cols-2 lg:divide-x-2 lg:divide-y-0">
-          <div className="p-5 sm:p-6">
-            <h3 className="font-display text-xl tracking-tight text-ink uppercase">Actividad reciente</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Una lectura diaria ayuda a detectar picos después de una publicación, difusión o campaña.</p>
-            <div className="mt-5">{galleryHistory ? <DailyActivityChart data={galleryHistory} days={periodDays} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el histórico. Recargá la página para reintentar.</p>}</div>
-          </div>
-          <div className="p-5 sm:p-6">
-            <h3 className="font-display text-xl tracking-tight text-ink uppercase">Embudo principal</h3>
-            <p className="mt-1 text-sm text-muted-foreground">El camino principal para descubrir obras, en los últimos {periodDays} días.</p>
-            <div className="mt-6">{funnelMonth ? <FunnelChart periodDays={periodDays} steps={GALLERY_HAPPY_PATH.map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0 }))} /> : <p role="status" className="py-12 text-center text-sm text-collage-red">No pudimos cargar el embudo.</p>}</div>
-          </div>
-        </div>
-      </section>
+      <StatsSection id="linear-journeys-title" eyebrow="Recorridos lineales" title="Embudos" description="Etapas consecutivas: cada bloque muestra el avance del mismo camino.">
+        <JourneySection
+          {...journey}
+          title="Circuito de la galería"
+          description="El camino central de descubrimiento: abrir la Galería 3D, entrar a recorrerla y descubrir una obra. Cada navegador cuenta una vez, con un identificador anónimo. Se mide desde el 25 de septiembre de 2026."
+          steps={GALLERY_HAPPY_PATH}
+          baseStep="gallery_view"
+          baseLabel="De quienes abrieron la galería"
+        />
 
-      <section className="mt-12" aria-labelledby="linear-journeys-title">
-        <div className="border-l-4 border-collage-blue pl-4">
-          <p className="text-xs font-bold tracking-[0.18em] text-collage-blue uppercase">Recorridos lineales</p>
-          <h2 id="linear-journeys-title" className="font-display mt-1 text-2xl tracking-tight text-ink uppercase">Embudos</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Etapas consecutivas: cada bloque muestra el avance del mismo camino.</p>
-        </div>
+        <JourneySection
+          {...journey}
+          title="Invitación después de un like o comentario"
+          description="Quien da like o comenta una obra en la galería (muchas veces gente que llegó porque el artista la compartió) ve ahí mismo la invitación a mandar su propia obra. Se mide desde el 28 de septiembre de 2026."
+          steps={INVITE_EVENTS}
+          baseStep="artist_invite_view"
+          baseLabel="De quienes vieron la invitación"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Circuito de la galería"
-        description="El camino central de descubrimiento: abrir la Galería 3D, entrar a recorrerla y descubrir una obra. Cada navegador cuenta una vez, con un identificador anónimo. Se mide desde el 25 de septiembre de 2026."
-        steps={GALLERY_HAPPY_PATH}
-        baseStep="gallery_view"
-        baseLabel="De quienes abrieron la galería"
-        periodDays={periodDays}
-      />
+        <JourneySection
+          {...journey}
+          title="Invitaciones de los artistas"
+          description="Los links que comparten los artistas llevan su invitación: quien llega por uno ve «te invita a participar» y, si se inscribe, cuenta para ese artista. Se mide desde el 28 de septiembre de 2026."
+          steps={REFERRAL_EVENTS}
+          baseStep="referral_open"
+          baseLabel="De quienes llegaron invitados"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Invitación después de un like o comentario"
-        description="Quien da like o comenta una obra en la galería (muchas veces gente que llegó porque el artista la compartió) ve ahí mismo la invitación a mandar su propia obra. Se mide desde el 28 de septiembre de 2026."
-        steps={INVITE_EVENTS}
-        baseStep="artist_invite_view"
-        baseLabel="De quienes vieron la invitación"
-        periodDays={periodDays}
-      />
+        <JourneySection
+          {...journey}
+          title="Formulario de inscripción"
+          description="El recorrido lineal dentro del formulario: desde verlo hasta tocar «Enviar». Se mide desde el 28 de septiembre de 2026."
+          steps={ONBOARDING_FORM_EVENTS}
+          baseStep="onboarding_form_view"
+          baseLabel="De quienes vieron el formulario"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Invitaciones de los artistas"
-        description="Los links que comparten los artistas llevan su invitación: quien llega por uno ve «te invita a participar» y, si se inscribe, cuenta para ese artista. Se mide desde el 28 de septiembre de 2026."
-        steps={REFERRAL_EVENTS}
-        baseStep="referral_open"
-        baseLabel="De quienes llegaron invitados"
-        periodDays={periodDays}
-      />
+        <JourneySection
+          {...journey}
+          title="Tienda"
+          description="Desde abrir la tienda hasta que PayPal aprueba la suscripción, para ver en qué paso se pierde la venta. Se mide desde el 1 de octubre de 2026."
+          steps={STORE_FUNNEL_EVENTS}
+          baseStep="store_view"
+          baseLabel="De quienes abrieron la tienda"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Formulario de inscripción"
-        description="El recorrido lineal dentro del formulario: desde verlo hasta tocar «Enviar». Se mide desde el 28 de septiembre de 2026."
-        steps={ONBOARDING_FORM_EVENTS}
-        baseStep="onboarding_form_view"
-        baseLabel="De quienes vieron el formulario"
-        periodDays={periodDays}
-      />
+        <JourneySection
+          {...journey}
+          title="Preventa de la revista"
+          description="Desde abrir /revista hasta pagar con Mercado Pago. Mientras la preventa no tenga precio, la página junta mails (ver «Avisame»). Se mide desde el 1 de octubre de 2026."
+          steps={MAGAZINE_FUNNEL_EVENTS}
+          baseStep="magazine_view"
+          baseLabel="De quienes abrieron la revista"
+        />
+      </StatsSection>
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Tienda"
-        description="Desde abrir la tienda hasta que PayPal aprueba la suscripción, para ver en qué paso se pierde la venta. Se mide desde el 1 de octubre de 2026."
-        steps={STORE_FUNNEL_EVENTS}
-        baseStep="store_view"
-        baseLabel="De quienes abrieron la tienda"
-        periodDays={periodDays}
-      />
+      <StatsSection id="action-comparisons-title" tone="red" eyebrow="Acciones alternativas" title="Comparativas" description="No son pasos consecutivos: sirven para comparar qué acción genera más movimiento.">
+        <JourneySection
+          {...journey}
+          title="Botones de la home"
+          description="Personas distintas que tocaron cada botón, para comparar cuál lleva más gente a mandar su obra. Mismo identificador anónimo que el circuito de la galería. Se mide desde el 26 de septiembre de 2026."
+          steps={HOME_EVENTS}
+          baseStep="home_view"
+          baseLabel="De quienes abrieron la home"
+          footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
+          variant="comparison"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Preventa de la revista"
-        description="Desde abrir /revista hasta pagar con Mercado Pago. Mientras la preventa no tenga precio, la página junta mails (ver «Avisame»). Se mide desde el 1 de octubre de 2026."
-        steps={MAGAZINE_FUNNEL_EVENTS}
-        baseStep="magazine_view"
-        baseLabel="De quienes abrieron la revista"
-        periodDays={periodDays}
-      />
+        <JourneySection
+          {...journey}
+          title="Compartir obras"
+          description="Acciones para difundir obras desde sus páginas, la home, la confirmación y la galería. Abrir WhatsApp o completar el menú de compartir no confirma una publicación. Las copias exitosas y las nuevas opciones de galería se miden desde el 6 de octubre de 2026; los clics originales, desde el 26 de septiembre."
+          steps={SHARE_EVENTS}
+          variant="comparison"
+        />
 
-      </section>
+        <JourneySection
+          {...journey}
+          title="Collage colectivo"
+          description="Desde abrir el cuadro de la Sala 1 (E frente a él) hasta pegar una foto. «Sin vidas» cuenta a quien intentó pegar con las tres vidas usadas. Se mide desde el 2 de octubre de 2026."
+          steps={WALL_EVENTS}
+          baseStep="wall_open"
+          baseLabel="De quienes abrieron el collage"
+          variant="comparison"
+        />
 
-      <section className="mt-14" aria-labelledby="action-comparisons-title">
-        <div className="border-l-4 border-collage-red pl-4">
-          <p className="text-xs font-bold tracking-[0.18em] text-collage-red uppercase">Acciones alternativas</p>
-          <h2 id="action-comparisons-title" className="font-display mt-1 text-2xl tracking-tight text-ink uppercase">Comparativas</h2>
-          <p className="mt-1 text-sm text-muted-foreground">No son pasos consecutivos: sirven para comparar qué acción genera más movimiento.</p>
-        </div>
+        <JourneySection
+          {...journey}
+          title="Foto souvenir de la galería"
+          description="Personas distintas que sacaron una foto en la Galería 3D (botón de la cámara o tecla F) y qué hicieron con ella. Se mide desde el 2 de octubre de 2026."
+          steps={SOUVENIR_EVENTS}
+          baseStep="souvenir_photo"
+          baseLabel="De quienes sacaron una foto"
+          variant="comparison"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Botones de la home"
-        description="Personas distintas que tocaron cada botón, para comparar cuál lleva más gente a mandar su obra. Mismo identificador anónimo que el circuito de la galería. Se mide desde el 26 de septiembre de 2026."
-        steps={HOME_EVENTS}
-        baseStep="home_view"
-        baseLabel="De quienes abrieron la home"
-        footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
-        periodDays={periodDays}
-        variant="comparison"
-      />
+        <JourneySection
+          {...journey}
+          title="Descubrimiento de obras y artistas"
+          description="Cómo las páginas públicas de obra y artista llevan a conocer más del proyecto o a empezar una participación."
+          steps={DISCOVERY_EVENTS}
+          baseStep="artwork_page_view"
+          baseLabel="De quienes abrieron una obra"
+          variant="comparison"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Compartir obras"
-        description="Acciones para difundir obras desde sus páginas, la home, la confirmación y la galería. Abrir WhatsApp o completar el menú de compartir no confirma una publicación. Las copias exitosas y las nuevas opciones de galería se miden desde el 6 de octubre de 2026; los clics originales, desde el 26 de septiembre."
-        steps={SHARE_EVENTS}
-        periodDays={periodDays}
-        variant="comparison"
-      />
+        <JourneySection
+          {...journey}
+          title="Cómo llegan a la tienda"
+          description="Personas distintas que fueron a la tienda desde el encabezado, una página de obra o el mail diario «Así le fue a tu obra». Se mide desde el 1 de octubre de 2026."
+          steps={STORE_ENTRY_EVENTS}
+          variant="comparison"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Collage colectivo"
-        description="Desde abrir el cuadro de la Sala 1 (E frente a él) hasta pegar una foto. «Sin vidas» cuenta a quien intentó pegar con las tres vidas usadas. Se mide desde el 2 de octubre de 2026."
-        steps={WALL_EVENTS}
-        baseStep="wall_open"
-        baseLabel="De quienes abrieron el collage"
-        periodDays={periodDays}
-        variant="comparison"
-      />
+        <JourneySection
+          {...journey}
+          title="Cómo llegan a la revista"
+          description="Personas distintas que fueron a /revista desde la tienda, después de inscribirse o desde la tarjeta «Ya estás participando» de la home. Se mide desde el 1 de octubre de 2026."
+          steps={MAGAZINE_ENTRY_EVENTS}
+          variant="comparison"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Foto souvenir de la galería"
-        description="Personas distintas que sacaron una foto en la Galería 3D (botón de la cámara o tecla F) y qué hicieron con ella. Se mide desde el 2 de octubre de 2026."
-        steps={SOUVENIR_EVENTS}
-        baseStep="souvenir_photo"
-        baseLabel="De quienes sacaron una foto"
-        periodDays={periodDays}
-        variant="comparison"
-      />
+        <JourneySection
+          {...journey}
+          title="«Avisame» de finalistas y revista"
+          description="Personas que dejaron su mail para enterarse de las finalistas y la revista, según dónde lo hicieron. Quedan en Contactos con el origen «aviso_…». Se mide desde el 1 de octubre de 2026."
+          steps={WAITLIST_EVENTS}
+          variant="comparison"
+        />
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Descubrimiento de obras y artistas"
-        description="Cómo las páginas públicas de obra y artista llevan a conocer más del proyecto o a empezar una participación."
-        steps={DISCOVERY_EVENTS}
-        baseStep="artwork_page_view"
-        baseLabel="De quienes abrieron una obra"
-        periodDays={periodDays}
-        variant="comparison"
-      />
+        <JourneySection
+          {...journey}
+          title="Partners y marcas"
+          description="Personas distintas que abrieron /partners, desde dónde llegaron y cuántas tocaron el mail para escribirnos. Se mide desde el 4 de octubre de 2026."
+          steps={PARTNER_EVENTS}
+          variant="comparison"
+        />
+      </StatsSection>
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Cómo llegan a la tienda"
-        description="Personas distintas que fueron a la tienda desde el encabezado, una página de obra o el mail diario «Así le fue a tu obra». Se mide desde el 1 de octubre de 2026."
-        steps={STORE_ENTRY_EVENTS}
-        periodDays={periodDays}
-        variant="comparison"
-      />
+      <StatsSection
+        id="site-data-title"
+        eyebrow="Datos actuales del sitio"
+        title="Artistas y obras"
+        description="Sobre las obras seleccionadas, con imagen y sin archivar (publicadas y pendientes). Países cuenta artistas y técnicas cuenta obras. Las barras se escalan al grupo más grande; los porcentajes usan el total de cada gráfico y, por redondeo, la suma puede diferir de 100%."
+      >
+        <div className="grid items-start gap-6 xl:grid-cols-12">
+          <ChartFrame
+            className="xl:col-span-5"
+            title="Artistas por país"
+            description="Cada artista cuenta una vez, con el país de su perfil."
+            figure={artistStats ? { value: formatCount(artistStats.totalArtists), label: 'artistas' } : undefined}
+            footnote={artistStats ? `Base: ${artistStats.totalArtists} artistas. ${artistStats.totalArtists - artistStats.withCountry} sin país registrado.` : undefined}
+            controls={['limit']}
+          >
+            {!artistStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
+              : artistStats.totalArtists === 0 ? <EmptyChart>Todavía no hay artistas con una obra seleccionada.</EmptyChart>
+                : (
+                  <BarList
+                    label="Distribución de artistas por país"
+                    rows={artistStats.countries.map(({ countryCode, count }) => ({ label: countryLabel(countryCode), value: count }))}
+                    total={artistStats.totalArtists}
+                    note={leadingCountry ? `${countryLabel(leadingCountry.countryCode)} reúne el ${formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.` : undefined}
+                  />
+                )}
+          </ChartFrame>
 
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Cómo llegan a la revista"
-        description="Personas distintas que fueron a /revista desde la tienda, después de inscribirse o desde la tarjeta «Ya estás participando» de la home. Se mide desde el 1 de octubre de 2026."
-        steps={MAGAZINE_ENTRY_EVENTS}
-        periodDays={periodDays}
-        variant="comparison"
-      />
-
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="«Avisame» de finalistas y revista"
-        description="Personas que dejaron su mail para enterarse de las finalistas y la revista, según dónde lo hicieron. Quedan en Contactos con el origen «aviso_…». Se mide desde el 1 de octubre de 2026."
-        steps={WAITLIST_EVENTS}
-        periodDays={periodDays}
-        variant="comparison"
-      />
-
-      <JourneySection
-        week={funnelWeek}
-        month={funnelMonth}
-        title="Partners y marcas"
-        description="Personas distintas que abrieron /partners, desde dónde llegaron y cuántas tocaron el mail para escribirnos. Se mide desde el 4 de octubre de 2026."
-        steps={PARTNER_EVENTS}
-        periodDays={periodDays}
-        variant="comparison"
-      />
-      </section>
-
-      <div className="mt-12 grid items-start gap-6 xl:grid-cols-12">
-        <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 xl:col-span-5">
-          <h2 className="font-display text-xl tracking-tight text-ink uppercase">Artistas por país</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Datos actuales del sitio: artistas con una obra seleccionada, publicada o pendiente, sin archivar.
-            Cada artista cuenta una vez, con el país de su perfil.
-          </p>
-          {!artistStats ? (
-            <p role="status" className="mt-6 text-sm text-collage-red">No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</p>
-          ) : artistStats.totalArtists === 0 ? (
-            <p className="mt-6 text-sm text-muted-foreground">Todavía no hay artistas con una obra seleccionada.</p>
-          ) : (
-            <>
-              {leadingCountry && (
-                <p className="mt-4 rounded-xl bg-collage-blue/10 p-3 text-sm text-ink">
-                  <strong>{countryLabel(leadingCountry.countryCode)}</strong> reúne el {formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.
-                </p>
-              )}
-              <ul className="mt-6 max-h-96 space-y-5 overflow-y-auto pr-3" aria-label="Distribución de artistas por país">
-                {artistStats.countries.map(({ countryCode, count }) => (
-                  <li key={countryCode ?? 'missing-country'}>
-                    <StatBar
-                      label={countryLabel(countryCode)}
-                      value={count}
-                      maxValue={artistStats.countries[0]?.count ?? 0}
-                      total={artistStats.totalArtists}
-                      color="var(--color-collage-blue)"
-                    />
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-6 text-xs text-muted-foreground">
-                Base: {artistStats.totalArtists} artistas. {artistStats.totalArtists - artistStats.withCountry} sin país registrado.
-              </p>
-            </>
-          )}
-        </section>
-
-        <div className="grid gap-6 md:grid-cols-2 xl:col-span-7">
-          {artworkStats && artworkStats.total > 0 && (
-            <section className="relative overflow-hidden rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6">
-              <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-collage-red/10" aria-hidden="true" />
-              <h2 className="font-display relative text-xl tracking-tight text-ink uppercase">Datos de técnica</h2>
-              <p className="relative mt-2 text-sm text-muted-foreground">Una señal rápida de qué tan completo está este dato.</p>
-              <div className="relative mt-6">
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <strong className="font-display text-5xl leading-none tracking-tight text-collage-red">{formatShare(artworkStats.total - artworkStats.withTechnique, artworkStats.total)}</strong>
-                    <p className="mt-2 max-w-52 text-sm font-semibold leading-snug text-ink">sin técnica registrada</p>
-                  </div>
-                  <span className="rounded-full bg-collage-yellow px-3 py-1.5 text-xs font-bold text-ink">{artworkStats.withTechnique} completas</span>
-                </div>
-                <div className="mt-5 h-4 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-                  <div className="h-full rounded-full bg-collage-red" style={{ width: `${((artworkStats.total - artworkStats.withTechnique) / artworkStats.total) * 100}%` }} />
-                </div>
-                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{artworkStats.total - artworkStats.withTechnique} de {artworkStats.total} obras necesitan completar este dato. El desglose de técnicas está abajo.</p>
-              </div>
-            </section>
-          )}
-          <section className="rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 md:col-span-2">
-            <h2 className="font-display text-xl tracking-tight text-ink uppercase">Obras por técnica</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Datos actuales del sitio: obras seleccionadas, con imagen, sin archivar.
-              Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio.
-            </p>
-            {!artworkStats ? (
-              <p role="status" className="mt-6 text-sm text-collage-red">No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</p>
-            ) : artworkStats.total === 0 ? (
-              <p className="mt-6 text-sm text-muted-foreground">Todavía no hay obras seleccionadas con imagen para analizar.</p>
-            ) : (
-              <>
-                <ul className="mt-6 space-y-5" aria-label="Distribución de obras por técnica">
-                  {artworkStats.techniques.map(({ label, count }) => (
-                    <li key={label}>
-                      <StatBar label={label} value={count} maxValue={artworkStats.techniques[0]?.count ?? 0} total={artworkStats.total} color="var(--color-collage-red)" />
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-5 text-xs text-muted-foreground">
-                  Base: {artworkStats.total} obras. {artworkStats.total - artworkStats.withTechnique} sin técnica registrada.
-                  Los porcentajes incluyen los datos faltantes.
-                </p>
-              </>
+          <div className="grid gap-6 md:grid-cols-2 xl:col-span-7">
+            {artworkStats && artworkStats.total > 0 && (
+              <ChartFrame title="Estado de publicación" description="Obras seleccionadas que ya se ven en el sitio.">
+                <Meter value={artworkStats.published} total={artworkStats.total} label="publicadas" remainder={{ label: 'pendientes', done: 'Todo al día' }} />
+              </ChartFrame>
             )}
-          </section>
-
-          {artworkStats && artworkStats.total > 0 && (
-            <section className="relative overflow-hidden rounded-3xl border-2 border-ink/10 bg-card p-5 sm:p-6 md:col-start-2 md:row-start-1">
-              <div className="absolute -right-7 -bottom-10 h-36 w-36 rounded-full border-[18px] border-collage-blue/10" aria-hidden="true" />
-              <h2 className="font-display relative text-xl tracking-tight text-ink uppercase">Estado de publicación</h2>
-              <p className="relative mt-2 text-sm text-muted-foreground">Sobre las mismas {artworkStats.total} obras seleccionadas del sitio.</p>
-              <div className="relative mt-6 flex items-end justify-between gap-4">
-                <div>
-                  <strong className="font-display text-5xl leading-none tracking-tight text-collage-blue">{artworkStats.published}</strong>
-                  <p className="mt-2 text-sm font-semibold text-ink">obras publicadas</p>
-                </div>
-                <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${artworkStats.pending === 0 ? 'bg-collage-blue text-primary-foreground' : 'bg-collage-red text-primary-foreground'}`}>
-                  {artworkStats.pending === 0 ? 'Todo al día' : `${artworkStats.pending} pendientes`}
-                </span>
-              </div>
-              <div className="relative mt-5 h-4 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-                <div className="h-full rounded-full bg-collage-blue" style={{ width: `${(artworkStats.published / artworkStats.total) * 100}%` }} />
-              </div>
-              <p className="relative mt-3 text-xs leading-relaxed text-muted-foreground">
-                {artworkStats.pending === 0
-                  ? 'Las obras seleccionadas ya están visibles en el sitio.'
-                  : `${artworkStats.pending} obras todavía no están visibles para el público.`}
-              </p>
-            </section>
-          )}
-          <p className="md:col-span-2 text-xs leading-relaxed text-muted-foreground">
-            Países cuenta artistas y técnicas cuenta obras, ambos sobre las mismas obras seleccionadas del sitio.
-            Las barras de país y técnica se escalan al grupo más grande; los porcentajes usan el total de cada sección.
-            Por redondeo, la suma puede diferir de 100%.
-          </p>
+            {artworkStats && artworkStats.total > 0 && (
+              <ChartFrame title="Datos de técnica" description="Qué tan completo está este dato.">
+                <Meter value={artworkStats.withTechnique} total={artworkStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
+              </ChartFrame>
+            )}
+            <ChartFrame
+              className="md:col-span-2"
+              title="Obras por técnica"
+              description="Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio."
+              figure={artworkStats ? { value: formatCount(artworkStats.total), label: 'obras seleccionadas' } : undefined}
+              footnote={artworkStats ? `Base: ${artworkStats.total} obras. ${artworkStats.total - artworkStats.withTechnique} sin técnica registrada. Los porcentajes incluyen los datos faltantes.` : undefined}
+            >
+              {!artworkStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
+                : artworkStats.total === 0 ? <EmptyChart>Todavía no hay obras seleccionadas con imagen para analizar.</EmptyChart>
+                  : <BarList label="Distribución de obras por técnica" rows={artworkStats.techniques.map(({ label, count }) => ({ label, value: count }))} total={artworkStats.total} />}
+            </ChartFrame>
+          </div>
         </div>
-      </div>
-    </div>
+      </StatsSection>
+    </StatsViewProvider>
   )
 }
-import Link from 'next/link'

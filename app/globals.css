@@ -37,6 +37,13 @@
   --border: color-mix(in srgb, var(--ink) 12%, var(--paper));
   --input: color-mix(in srgb, var(--ink) 12%, var(--paper));
   --ring: var(--collage-blue);
+  /* The two data series of the /admin/estadisticas charts: the period and
+     the recent window it's compared with. The brand blue as is sits too dark
+     (OKLCH L 0.40) to weigh the same as the red beside it; 10% paper lifts it
+     to L 0.46, which passes the categorical checks (lightness band, CVD and
+     normal-vision separation, 3:1 on paper) together with the red. */
+  --chart-1: color-mix(in oklab, var(--collage-blue) 90%, var(--paper));
+  --chart-2: var(--collage-red);
   --radius: 0.75rem;
 }
 
@@ -67,6 +74,8 @@
   --color-collage-blue: var(--collage-blue);
   --color-collage-red: var(--collage-red);
   --color-collage-yellow: var(--collage-yellow);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
