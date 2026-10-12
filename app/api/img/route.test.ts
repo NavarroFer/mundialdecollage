@@ -1,6 +1,6 @@
 import sharp from 'sharp'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { imageStore, type ImageStore } from '@/lib/r2'
+import { imageStore, isVersionedSource, type ImageStore } from '@/lib/r2'
 import { GET } from './route'
 
 vi.mock('@/lib/r2', async (original) => ({ ...(await original<typeof import('@/lib/r2')>()), imageStore: vi.fn(() => null) }))
@@ -156,6 +156,30 @@ describe('GET /api/img with R2', () => {
     expect(fetch).not.toHaveBeenCalled()
     expect(cached.headers.get('cache-control')).toContain('immutable')
     expect([...files.keys()]).toContainEqual(expect.stringMatching(/\/640w-q75\.webp$/))
+  })
+
+  it('generates a new width from a versioned R2 original without contacting Storage', async () => {
+    const versioned = 'https://abc.supabase.co/storage/v1/object/public/artworks/u1/1760000000000-0.jpg'
+    memoryStore()
+    await storage()
+    expect((await GET(request(versioned, 640))).headers.get('x-image-cache')).toBe('storage')
+    const fetch = vi.fn(async () => { throw new Error('Storage unavailable') })
+    vi.stubGlobal('fetch', fetch)
+    const response = await GET(request(versioned, 1080))
+    expect(response.status).toBe(200)
+    expect(response.headers.get('x-image-cache')).toBe('r2-original')
+    expect((await sharp(Buffer.from(await response.arrayBuffer())).metadata()).width).toBe(1080)
+    expect(fetch).not.toHaveBeenCalled()
+    expect((await GET(request(versioned, 1080))).headers.get('x-image-cache')).toBe('r2-hit')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('recognizes timestamped manual legacy uploads but keeps overwriteable paths mutable', () => {
+    const base = 'https://abc.supabase.co/storage/v1/object/public/artworks/legacy/'
+    const id = '85f7cd7d-ec3e-4f98-99c8-d18fa09a671a'
+    expect(isVersionedSource(`${base}${id}-1760000000000.jpg`)).toBe(true)
+    expect(isVersionedSource(`${base}${id}.jpg`)).toBe(false)
+    expect(isVersionedSource(`${base}${id}-123.jpg`)).toBe(false)
   })
 
   it('still serves the image when R2 is down', async () => {

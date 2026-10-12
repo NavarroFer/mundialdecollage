@@ -60,28 +60,34 @@ export async function GET(request: Request) {
         folder = await cachedFolder(store, src)
         if (folder) {
           const stored = await store.get(variantKey(folder, width))
-          if (stored) return webp(stored, true, request)
+          if (stored) return webp(stored, true, request, 'r2-hit')
+          // A new width can be generated from the saved original too. No
+          // Supabase HEAD is needed for a URL that cannot change.
+          original = await store.get(`${folder}/original`)
         }
       }
 
-      const head = await fetch(src, { method: 'HEAD', cache: 'no-store' })
-      if (head.status === 404) return notFound(404)
-      const version = head.headers.get('etag') ?? head.headers.get('last-modified')
-      if (head.ok && version) folder = imageStorePrefix(src, version)
-      if (!folder) {
-        folder = await cachedFolder(store, src)
-        console.warn('api/img: Storage version unavailable, using R2 fallback when present', src, head.status)
-      }
-      if (folder) {
-        const stored = await store.get(variantKey(folder, width))
-        if (stored) return webp(stored, immutable, request)
-        original = await store.get(`${folder}/original`)
+      if (!original) {
+        const head = await fetch(src, { method: 'HEAD', cache: 'no-store' })
+        if (head.status === 404) return notFound(404)
+        const version = head.headers.get('etag') ?? head.headers.get('last-modified')
+        if (head.ok && version) folder = imageStorePrefix(src, version)
+        if (!folder) {
+          folder = await cachedFolder(store, src)
+          console.warn('api/img: Storage version unavailable, using R2 fallback when present', src, head.status)
+        }
+        if (folder) {
+          const stored = await store.get(variantKey(folder, width))
+          if (stored) return webp(stored, immutable, request, 'r2-hit')
+          original = await store.get(`${folder}/original`)
+        }
       }
     } catch (error) {
       console.error('api/img: R2 read failed, resizing from Storage', src, error)
     }
   }
 
+  const imageCache = original ? 'r2-original' : 'storage'
   if (!original) {
     const upstream = await fetch(src, { cache: 'no-store' })
     if (!upstream.ok) return notFound(upstream.status === 404 ? 404 : 502)
@@ -102,7 +108,7 @@ export async function GET(request: Request) {
       .webp({ quality: IMAGE_QUALITY })
       .toBuffer()
     if (store && folder) await save(store, variantKey(folder, width), output, 'image/webp')
-    return webp(output, immutable, request)
+    return webp(output, immutable, request, imageCache)
   } catch (error) {
     // Not something sharp can read: hand back the original.
     console.error('api/img: resize failed', src, error)
@@ -110,12 +116,15 @@ export async function GET(request: Request) {
   }
 }
 
-function webp(body: Buffer, immutable: boolean, request: Request) {
+function webp(body: Buffer, immutable: boolean, request: Request, imageCache: 'r2-hit' | 'r2-original' | 'storage') {
   const etag = `"${createHash('sha256').update(body).digest('hex')}"`
   const headers = {
     'Content-Type': `image/${IMAGE_FORMAT}`,
     'Cache-Control': immutable ? IMMUTABLE_CACHE : MUTABLE_CACHE,
     ETag: etag,
+    // Describes the origin fill, preserved on CDN hits. Pair with
+    // x-vercel-cache when measuring; this is not a per-view R2 hit counter.
+    'X-Image-Cache': imageCache,
   }
   // Mutable photos expire in the browser. Validate their exact derivative
   // so an unchanged photo can be reused without transferring its body again.

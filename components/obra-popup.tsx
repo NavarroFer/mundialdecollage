@@ -19,7 +19,7 @@ import type { ObraDetail } from '@/lib/obra-detail'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
-import { imageSrc } from '@/lib/image-src'
+import { imageSrc, imageSrcSet } from '@/lib/image-src'
 import { track } from '@/lib/track'
 
 // One request per obra and visit, answered by the CDN; a failed one is
@@ -114,6 +114,8 @@ export function ObraPopup({
             <ArtworkImage
               key={obra.slug}
               src={imageSrc(obra.imageUrl, 1200)}
+              srcSet={imageSrcSet(obra.imageUrl, 1200)}
+              sizes="(min-width: 816px) 700px, (min-width: 640px) calc(100vw - 116px), calc(100vw - 44px)"
               alt={fmt(m.common.artworkBy, { title, name: obra.name })}
               // The whole obra in view, whatever its format, with its title
               // and artist still on screen below it.

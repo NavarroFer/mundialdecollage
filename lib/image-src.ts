@@ -22,7 +22,7 @@ export function imageSrc(src: string, width: number): string {
 
 // Width descriptors let the browser pick a derivative for the actual card
 // size and pixel density instead of downloading 828px for every thumbnail.
-export function imageSrcSet(src: string): string | undefined {
+export function imageSrcSet(src: string, maxWidth = IMAGE_WIDTHS[IMAGE_WIDTHS.length - 1]): string | undefined {
   if (imageSrc(src, 384) === src) return undefined
-  return IMAGE_WIDTHS.map((width) => `${imageSrc(src, width)} ${width}w`).join(', ')
+  return IMAGE_WIDTHS.filter((width) => width <= maxWidth).map((width) => `${imageSrc(src, width)} ${width}w`).join(', ')
 }

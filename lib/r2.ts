@@ -16,9 +16,11 @@ export type ImageStore = {
 // Current uploads use a timestamp in their filename, for example
 // `user/1760000000000-0.jpg` or `admin/id/1760000000000.jpg`: never
 // overwritten, so what's made from one can be kept for good. Not so
-// legacy/<id>.jpg, which is intentionally overwritten.
+// legacy/<id>.jpg, which is intentionally overwritten. Manual legacy
+// replacements use legacy/<uuid>-<timestamp>.jpg and are versioned too.
 export function isVersionedSource(src: string): boolean {
   return /\/\d{13}(?:-\d+)?\.[a-zA-Z0-9]+(?:\?|$)/.test(src)
+    || /\/legacy\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}-\d{13}\.[a-zA-Z0-9]+(?:\?|$)/i.test(src)
 }
 
 export function imageStoreRoot(src: string): string {

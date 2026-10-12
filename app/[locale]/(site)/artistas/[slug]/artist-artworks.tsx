@@ -1,6 +1,6 @@
 import { ObraLink } from '@/components/obra-modal'
 import type { ArtistProfileArtwork } from '@/lib/artist-profiles'
-import { imageSrc } from '@/lib/image-src'
+import { imageSrc, imageSrcSet } from '@/lib/image-src'
 
 export function ArtistArtworks({
   artworks,
@@ -32,6 +32,10 @@ export function ArtistArtworks({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imageSrc(artwork.imageUrl, 640)}
+                  srcSet={imageSrcSet(artwork.imageUrl, 640)}
+                  sizes="(min-width: 1024px) 478px, (min-width: 640px) calc((100vw - 72px) / 2), calc(100vw - 44px)"
+                  loading="lazy"
+                  decoding="async"
                   alt={artworkBy(title, artistName)}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                 />

@@ -24,6 +24,14 @@ describe('imageSrc', () => {
     expect(imageSrcSet('/banner-mundial.png')).toBeUndefined()
   })
 
+  it('caps responsive candidates at the existing detail resolution', () => {
+    const candidates = imageSrcSet(photo, 1200)!
+    expect(candidates).toContain(' 640w')
+    expect(candidates).toContain(' 1200w')
+    expect(candidates).not.toContain(' 1920w')
+    expect(imageSrcSet(photo, 640)).not.toContain(' 828w')
+  })
+
   it('leaves local files, previews and other hosts alone', () => {
     for (const src of ['/banner-mundial.png', 'blob:https://x/1', 'https://other.supabase.co/storage/v1/object/public/a.jpg']) {
       expect(imageSrc(src, 640)).toBe(src)

@@ -16,7 +16,7 @@ import { countryCodeToName, getArtworkShareState, getFinalistBySlug } from '@/li
 import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
-import { imageSrc } from '@/lib/image-src'
+import { imageSrc, imageSrcSet } from '@/lib/image-src'
 import { SurpriseArtwork } from '@/components/surprise-artwork'
 import { getPublicObraNeighbors } from '@/lib/public-obra-neighbors'
 
@@ -88,6 +88,8 @@ export default async function ObraPage({
           <div className="mt-8 overflow-hidden rounded-2xl border-2 border-ink/10 bg-muted">
             <ArtworkImage
               src={imageSrc(finalist.imageUrl, 1200)}
+              srcSet={imageSrcSet(finalist.imageUrl, 1200)}
+              sizes="(min-width: 896px) 852px, calc(100vw - 44px)"
               alt={fmt(m.common.artworkBy, { title, name: finalist.name })}
             />
           </div>

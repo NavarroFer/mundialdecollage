@@ -5,7 +5,7 @@ import { ArtworkLoader } from '@/components/artwork-loader'
 import { cn } from '@/lib/utils'
 
 /** Main artwork image: the paper-scrap loader plays until the file arrives, then the artwork fades in. */
-export function ArtworkImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+export function ArtworkImage({ src, srcSet, sizes, alt, className }: { src: string; srcSet?: string; sizes?: string; alt: string; className?: string }) {
   const ref = useRef<HTMLImageElement>(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -21,6 +21,8 @@ export function ArtworkImage({ src, alt, className }: { src: string; alt: string
       <img
         ref={ref}
         src={src}
+        srcSet={srcSet}
+        sizes={sizes}
         alt={alt}
         onLoad={() => setLoaded(true)}
         onError={() => setLoaded(true)}

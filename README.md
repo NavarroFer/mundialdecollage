@@ -97,6 +97,13 @@ BREVO_WEBHOOK_SECRET=
 # NEXT_PUBLIC_CLARITY_PROJECT_ID=
 ```
 
+Para diagnosticar `/api/img`, la respuesta incluye `X-Image-Cache`: `r2-hit`
+reutilizó una variante, `r2-original` generó un tamaño desde el original guardado,
+y `storage` descargó el original de Supabase. Leelo junto con `x-vercel-cache`:
+el CDN conserva ese encabezado, así que describe cómo se llenó la caché y no
+cuenta accesos actuales a R2. El bucket sigue privado; estas respuestas todavía
+se sirven a través de Vercel.
+
 Una vez creado el proyecto de Supabase, corré la migración en
 `supabase/migrations/` (Supabase CLI o pegada directo en el SQL editor) para
 crear la tabla `profiles`.
