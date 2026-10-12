@@ -1,8 +1,8 @@
 'use client'
 
-import { startTransition, useActionState, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Loader2, Plus, X } from 'lucide-react'
+import { ImagePlus, Loader2, Plus, X } from 'lucide-react'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { Button } from '@/components/ui/button'
 import { CountrySelect } from '@/components/ui/country-select'
@@ -14,6 +14,7 @@ import { track } from '@/lib/track'
 import { fmt, formatMoney } from '@/lib/i18n/format'
 import { site } from '@/lib/site'
 import { downscaleImage } from '@/lib/downscale-image'
+import { clearDraft, draftFromForm, hasContent, readDraft, writeDraft, type OnboardingDraft } from '@/lib/onboarding-draft'
 
 type Slot = {
   key: number
@@ -23,6 +24,8 @@ type Slot = {
   // Found as soon as the file was picked (lib/onboarding-input.ts).
   problem: 'invalid_image' | 'image_too_large' | null
 }
+
+const emptySlot = (key: number): Slot => ({ key, pickedFileName: null, preview: null, problem: null })
 
 const inputClass =
   'mt-1.5 w-full rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5 text-sm outline-none focus:border-collage-blue'
@@ -87,8 +90,13 @@ export function OnboardingForm({
   const [clientError, setClientError] = useState<string | null>(null)
   // One entry per obra in the form. The first one can fall back to the
   // prefilled image; the rest always need a file.
-  const [slots, setSlots] = useState<Slot[]>([{ key: 0, pickedFileName: null, preview: null, problem: null }])
+  const [slots, setSlots] = useState<Slot[]>([emptySlot(0)])
   const [nextKey, setNextKey] = useState(1)
+  // What was typed before the page reloaded (lib/onboarding-draft.ts), put
+  // back right after mounting: the form remounts with it as its defaults.
+  const [draft, setDraft] = useState<OnboardingDraft | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const draftScope = `${userId}${another ? ':another' : ''}`
   const hasImagePrefill = Boolean(prefillImageUrl && prefillImagePath)
   const { locale, m } = useI18n()
   const errorMessages = m.onboarding.errors
@@ -128,6 +136,26 @@ export function OnboardingForm({
     // These two mean the stored file itself was the problem: upload it again.
     if (error === 'upload_failed' || error === 'invalid_image') uploadedPaths.current = new WeakMap()
   }, [tracked, error])
+
+  useEffect(() => {
+    const saved = readDraft(draftScope)
+    const defaults = { name: defaultName, country: defaultCountryCode ?? '', instagram: defaultInstagram, website: defaultWebsite }
+    if (!saved || !hasContent(saved, defaults)) return
+    const count = Math.max(1, Math.min(saved.artworks.length, maxArtworks))
+    // sessionStorage only exists after hydration, and the server render
+    // can't know it: one extra render, once, when there's a draft.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDraft(saved)
+    setSlots(Array.from({ length: count }, (_, key) => emptySlot(key)))
+    setNextKey(count)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount
+  }, [])
+
+  const saveDraft = useCallback(() => {
+    if (formRef.current) writeDraft(draftScope, draftFromForm(formRef.current))
+  }, [draftScope])
+  // After React has rendered the change (a country picked, an obra added or removed).
+  const saveDraftSoon = () => setTimeout(saveDraft, 0)
 
   const displayError = clientError ?? (error && errorMessages[error])
   // The form is long on a phone and the alert sits at its top, out of view
@@ -235,14 +263,24 @@ export function OnboardingForm({
 
     formData.delete('artwork_image')
     for (const path of paths) formData.append('artwork_image_path', path)
+    // The photos are up: what's left is the server's, and the draft would
+    // only prefill the next obra with this one.
+    clearDraft()
     startTransition(() => formAction(formData))
   }
 
   return (
     <form
+      key={draft ? 'restored' : 'fresh'}
+      ref={formRef}
       onSubmit={handleSubmit}
+      onChange={saveDraft}
       className="mt-8 space-y-5 rounded-2xl border-2 border-ink/10 bg-card p-7"
     >
+      {draft && (
+        <p role="status" className="rounded-lg bg-collage-yellow/20 px-3 py-2 text-sm font-medium text-ink">{m.onboarding.restored}</p>
+      )}
+
       {displayError && (
         <p ref={alertRef} role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
           {displayError}
@@ -283,7 +321,7 @@ export function OnboardingForm({
           name="name"
           type="text"
           required
-          defaultValue={defaultName}
+          defaultValue={draft ? draft.name : defaultName}
           placeholder={m.onboarding.namePlaceholder}
           autoComplete="name"
           className={inputClass}
@@ -298,7 +336,8 @@ export function OnboardingForm({
           id="country_code"
           name="country_code"
           countries={countries}
-          defaultValue={defaultCountryCode}
+          defaultValue={draft?.country || defaultCountryCode}
+          onChange={saveDraftSoon}
           required
         />
       </div>
@@ -316,6 +355,7 @@ export function OnboardingForm({
                   onClick={() => {
                     if (slot.preview) URL.revokeObjectURL(slot.preview)
                     setSlots((previous) => previous.filter((other) => other.key !== slot.key))
+                    saveDraftSoon()
                   }}
                   className="flex min-h-11 items-center gap-1 text-sm font-semibold text-collage-red"
                 >
@@ -334,6 +374,7 @@ export function OnboardingForm({
                 name="artwork_title"
                 type="text"
                 required
+                defaultValue={draft?.artworks[index]?.title ?? ''}
                 placeholder={m.onboarding.artworkTitlePlaceholder}
                 className={inputClass}
               />
@@ -343,7 +384,7 @@ export function OnboardingForm({
               <label htmlFor={id('technique')} className="text-sm font-semibold text-ink">
                 {m.onboarding.technique} <span className="font-normal text-muted-foreground">{m.common.optional}</span>
               </label>
-              <select id={id('technique')} name="technique" defaultValue="" className={inputClass}>
+              <select id={id('technique')} name="technique" defaultValue={draft?.artworks[index]?.technique ?? ''} className={inputClass}>
                 <option value="">{m.onboarding.techniqueNone}</option>
                 {TECHNIQUES.map((technique) => (
                   <option key={technique} value={technique}>
@@ -375,17 +416,31 @@ export function OnboardingForm({
                 </div>
               )}
 
+              {/* The browser's own file input says «Choose File» in English
+                  inside Instagram's browser: it stays (visually hidden) for
+                  the form and the keyboard, and its label is the button. A
+                  missing image is caught by handleSubmit, in the reader's
+                  language, rather than by `required` on a hidden field. */}
               <input
                 id={id('artwork_image')}
                 name="artwork_image"
                 type="file"
                 accept="image/*"
-                required={!canUsePrefill}
                 aria-invalid={slot.problem ? true : undefined}
-                aria-describedby={slot.problem ? id('artwork_image_problem') : undefined}
+                aria-describedby={slot.problem ? id('artwork_image_problem') : id('artwork_image_name')}
                 onChange={(event) => pickImage(slot.key, event.target.files?.[0])}
-                className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-collage-blue file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary-foreground`}
+                className="peer sr-only"
               />
+              <label
+                htmlFor={id('artwork_image')}
+                className="mt-1.5 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-collage-blue/50 bg-collage-blue/5 px-4 py-3 text-center text-sm font-semibold text-collage-blue transition-colors hover:bg-collage-blue/10 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-collage-blue"
+              >
+                <ImagePlus className="size-5 shrink-0" aria-hidden="true" />
+                {slot.pickedFileName ? m.onboarding.changeImage : m.onboarding.pickImage}
+              </label>
+              <p id={id('artwork_image_name')} className="mt-1.5 truncate text-xs text-muted-foreground">
+                {slot.pickedFileName ?? (canUsePrefill ? m.onboarding.previousImageNote : m.onboarding.noImageYet)}
+              </p>
               {slot.problem && (
                 <p id={id('artwork_image_problem')} className="mt-2 text-sm font-medium text-collage-red">
                   {errorMessages[slot.problem]}
@@ -421,8 +476,9 @@ export function OnboardingForm({
         <button
           type="button"
           onClick={() => {
-            setSlots((previous) => [...previous, { key: nextKey, pickedFileName: null, preview: null, problem: null }])
+            setSlots((previous) => [...previous, emptySlot(nextKey)])
             setNextKey((key) => key + 1)
+            saveDraftSoon()
           }}
           className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-collage-blue/40 text-sm font-semibold text-collage-blue hover:bg-collage-blue/5"
         >
@@ -436,7 +492,7 @@ export function OnboardingForm({
           Instagram <span className="font-normal text-muted-foreground">{m.common.optional}</span>
         </label>
         <input
-          defaultValue={defaultInstagram}
+          defaultValue={draft ? draft.instagram : defaultInstagram}
           id="instagram"
           name="instagram"
           type="text"
@@ -455,7 +511,7 @@ export function OnboardingForm({
         {/* Not type="url": that makes the browser refuse "misitio.com" in its
             own words; cleanWebsiteInput adds the https:// instead. */}
         <input
-          defaultValue={defaultWebsite}
+          defaultValue={draft ? draft.website : defaultWebsite}
           id="website"
           name="website"
           type="text"

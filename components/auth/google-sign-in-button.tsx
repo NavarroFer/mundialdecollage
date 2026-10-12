@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/lib/i18n/client'
@@ -30,12 +30,48 @@ function GoogleIcon() {
 
 // Sends the visitor to Google; /auth/callback brings them back to `next`.
 // Exported for flows that sign in from their own button (the gallery's
-// like and comment, see lib/gallery-return.ts).
+// like and comment, see lib/gallery-return.ts). Resolves with an error only
+// when the redirect couldn't even start.
 export async function startGoogleSignIn(next: string) {
-  await createClient().auth.signInWithOAuth({
+  const { error } = await createClient().auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
   })
+  return { error }
+}
+
+const SLOW_SIGN_IN_MS = 8000
+
+// A sign-in button's wait for Google. It stays disabled meanwhile (taps on
+// it while the redirect was starting were most of the dead clicks on
+// /onboarding) and, still here after SLOW_SIGN_IN_MS, says the page may be
+// stuck in an app's browser. Coming back with Back restores the page from
+// the back-forward cache with the button still waiting: pageshow frees it.
+export function useGoogleSignIn(next: string, onStart?: () => void) {
+  const [state, setState] = useState<'idle' | 'opening' | 'slow'>('idle')
+
+  useEffect(() => {
+    if (state !== 'opening') return
+    const timer = setTimeout(() => setState('slow'), SLOW_SIGN_IN_MS)
+    return () => clearTimeout(timer)
+  }, [state])
+
+  useEffect(() => {
+    const reset = (event: PageTransitionEvent) => {
+      if (event.persisted) setState('idle')
+    }
+    window.addEventListener('pageshow', reset)
+    return () => window.removeEventListener('pageshow', reset)
+  }, [])
+
+  async function start() {
+    onStart?.()
+    setState('opening')
+    const { error } = await startGoogleSignIn(next)
+    if (error) setState('idle')
+  }
+
+  return { loading: state !== 'idle', slow: state === 'slow', start }
 }
 
 export { GoogleIcon }
@@ -43,16 +79,11 @@ export { GoogleIcon }
 // `compact` shows just the Google mark on phones (label kept for screen
 // readers), so the header fits next to the language switcher.
 export function GoogleSignInButton({ next = '/onboarding', compact = false }: { next?: string; compact?: boolean }) {
-  const [loading, setLoading] = useState(false)
+  const { loading, start } = useGoogleSignIn(next)
   const { m } = useI18n()
 
-  async function handleClick() {
-    setLoading(true)
-    await startGoogleSignIn(next)
-  }
-
   return (
-    <Button variant="outline" size="sm" onClick={handleClick} disabled={loading} className="gap-2">
+    <Button variant="outline" size="sm" onClick={() => void start()} disabled={loading} className="gap-2">
       <GoogleIcon />
       <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{loading ? m.auth.signingIn : m.auth.signIn}</span>
     </Button>

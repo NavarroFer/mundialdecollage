@@ -13,6 +13,7 @@ import { OnboardingSteps } from './onboarding-steps'
 import { completeOnboarding } from './actions'
 import { ArtistConfirmation } from './artist-confirmation'
 import { OnboardingSignInButton } from '@/components/onboarding-sign-in-button'
+import { InAppBrowserNotice } from '@/components/in-app-browser-notice'
 import { TrackView } from '@/components/track'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
@@ -48,16 +49,19 @@ export default async function OnboardingPage({
     return (
       <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
         <TrackView event="onboarding_signin_view" />
-        <div className="w-full max-w-lg rounded-2xl bg-card p-8 text-center">
-          <OnboardingSteps current="signin" m={m} />
-          <h1 className="font-display text-3xl uppercase">{m.onboarding.signInTitle}</h1>
-          <p className="mt-6 text-muted-foreground">{m.onboarding.signInBody}</p>
-          <p className="mt-4 mb-6 rounded-xl bg-collage-blue/5 p-4 text-sm text-ink">{m.onboarding.signInNeeds}</p>
-          <OnboardingSignInButton />
-          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">{m.footer.googleWhy}</p>
-          <Link href="/politica-de-privacidad" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-collage-blue underline underline-offset-4">
-            {m.footer.privacy}
-          </Link>
+        <div className="w-full max-w-lg">
+          <InAppBrowserNotice className="mb-4" />
+          <div className="rounded-2xl bg-card p-8 text-center">
+            <OnboardingSteps current="signin" m={m} />
+            <h1 className="font-display text-3xl uppercase">{m.onboarding.signInTitle}</h1>
+            <p className="mt-6 text-muted-foreground">{m.onboarding.signInBody}</p>
+            <p className="mt-4 mb-6 rounded-xl bg-collage-blue/5 p-4 text-sm text-ink">{m.onboarding.signInNeeds}</p>
+            <OnboardingSignInButton />
+            <p className="mt-5 text-xs leading-relaxed text-muted-foreground">{m.footer.googleWhy}</p>
+            <Link href="/politica-de-privacidad" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-collage-blue underline underline-offset-4">
+              {m.footer.privacy}
+            </Link>
+          </div>
         </div>
       </main>
     )
@@ -207,6 +211,7 @@ export default async function OnboardingPage({
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-lg">
+        <InAppBrowserNotice className="mb-6" />
         <OnboardingSteps current="details" m={m} />
         <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">
           {hasLegacyMatch ? m.onboarding.welcomeEyebrow : m.onboarding.formEyebrow}
