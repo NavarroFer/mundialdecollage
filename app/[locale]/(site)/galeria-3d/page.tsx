@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: m.meta.galleryTitle, description: m.meta.galleryDescription }
 }
 
-// The same daily selection of 20 as the homepage — see lib/gallery-artworks.ts.
+// The same daily selection as the homepage — see lib/gallery-artworks.ts.
 export const dynamic = 'force-dynamic'
 
 export default async function Galeria3DPage() {

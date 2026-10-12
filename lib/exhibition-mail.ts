@@ -1,5 +1,5 @@
 // The daily "hoy tu obra está en el museo" mail: every morning at 09:00
-// Argentina, app/api/cron/exhibition writes to the artists of the 20 obras
+// Argentina, app/api/cron/exhibition writes to the artists of the obras
 // hanging in the 3D gallery that day (supabase/migrations/
 // 20260925120000_exhibition_days.sql). Its wording is the `museo_hoy`
 // system template (lib/system-templates.ts), editable from /admin/plantillas.

@@ -49,8 +49,13 @@ function setSrgb(texture: { colorSpace: string }) {
   texture.colorSpace = SRGBColorSpace
 }
 
+// 37 obras in GPU memory at once: a phone gets the 828px copy (the one the
+// home's collage already has the CDN keep for the same obras), a computer
+// the sharper 1080px one for contemplating up close.
+const TEXTURE_WIDTH = window.matchMedia('(pointer: coarse)').matches ? 828 : 1080
+
 export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryTheme }) {
-  const texture = useTexture(imageSrc(data.image, 1080), setSrgb)
+  const texture = useTexture(imageSrc(data.image, TEXTURE_WIDTH), setSrgb)
   const frame = galleryThemes[theme].frame
   const label = useMemo(() => artistLabel(data.artist, data.flagSvg), [data.artist, data.flagSvg])
   const labelTexture = useTexture(label.url, setSrgb)

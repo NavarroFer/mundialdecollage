@@ -94,31 +94,42 @@ export function hang({ roomId, wall: wallId, facing, count, presetOffset, span }
   })
 }
 
-// 20 spots (5 / 8 / 7 per room), the number ensure_exhibition_today fills
-// each day. Room 1's west wall is the collective collage
-// (components/gallery/wall), so it hangs on its long walls and both faces of
-// its panel. The hall, the widest room, takes the most. Room 3 hangs one per
-// face around its bays. Blank stretches are left on purpose where a frame
-// would crowd a doorway or a panel's end.
+// 37 spots (9 / 14 / 14 per room), the number ensure_exhibition_today fills
+// each day, hung at an even density: about a metre of bare wall between
+// frames everywhere. Room 1's west wall is the collective collage
+// (components/gallery/wall), so it hangs on its long walls, both faces of
+// its panel and the small cabinet the panel closes off by the door. The
+// hall, the widest room, takes the most, on every wall. Room 3 hangs one per
+// face around its bays, one on your right as you come in, and three on its
+// end wall. Blank stretches are left
+// on purpose where a frame would crowd a doorway or a panel's end.
 export const HANGINGS: Hanging[] = [
-  { roomId: 'room-01', wall: 'r1-north', facing: 'south', count: 2, presetOffset: 0 },
-  { roomId: 'room-01', wall: 'r1-south', facing: 'north', count: 1, presetOffset: 2, span: [-17.9, -11.6] },
+  { roomId: 'room-01', wall: 'r1-north', facing: 'south', count: 3, presetOffset: 0 },
+  { roomId: 'room-01', wall: 'r1-south', facing: 'north', count: 2, presetOffset: 1, span: [-17.9, -11.6] },
   { roomId: 'room-01', wall: 'panel-1', facing: 'west', count: 1, presetOffset: 1 },
+  // The cabinet between the panel and the doorway.
   { roomId: 'room-01', wall: 'panel-1', facing: 'east', count: 1, presetOffset: 1 },
+  { roomId: 'room-01', wall: 'r1-south', facing: 'north', count: 1, presetOffset: 1, span: [-11.4, -8.1] },
+  { roomId: 'room-01', wall: 'div-1-2-b', facing: 'west', count: 1, presetOffset: 2, span: [0, 4.9] },
 
-  { roomId: 'room-02', wall: 'r2-north', facing: 'south', count: 3, presetOffset: 0 },
-  { roomId: 'room-02', wall: 'r2-south', facing: 'north', count: 2, presetOffset: 1 },
+  { roomId: 'room-02', wall: 'r2-north', facing: 'south', count: 4, presetOffset: 0 },
+  { roomId: 'room-02', wall: 'r2-south', facing: 'north', count: 4, presetOffset: 1 },
   { roomId: 'room-02', wall: 'panel-2', facing: 'north', count: 1, presetOffset: 2 },
   { roomId: 'room-02', wall: 'panel-2', facing: 'south', count: 1, presetOffset: 0 },
-  { roomId: 'room-02', wall: 'div-2-3-a', facing: 'west', count: 1, presetOffset: 1 },
+  { roomId: 'room-02', wall: 'div-1-2-b', facing: 'east', count: 2, presetOffset: 1 },
+  { roomId: 'room-02', wall: 'div-2-3-a', facing: 'west', count: 2, presetOffset: 1 },
 
+  { roomId: 'room-03', wall: 'div-2-3-a', facing: 'east', count: 2, presetOffset: 1 },
   { roomId: 'room-03', wall: 'r3-north', facing: 'south', count: 1, presetOffset: 2, span: [6.1, 10.4] },
+  { roomId: 'room-03', wall: 'r3-south', facing: 'north', count: 1, presetOffset: 1, span: [6.6, 10] },
   { roomId: 'room-03', wall: 'panel-3a', facing: 'west', count: 1, presetOffset: 0 },
   { roomId: 'room-03', wall: 'panel-3a', facing: 'east', count: 1, presetOffset: 1 },
+  { roomId: 'room-03', wall: 'r3-north', facing: 'south', count: 1, presetOffset: 1, span: [10.6, 13.7] },
   { roomId: 'room-03', wall: 'r3-south', facing: 'north', count: 1, presetOffset: 2, span: [10.6, 14.4] },
   { roomId: 'room-03', wall: 'panel-3b', facing: 'west', count: 1, presetOffset: 2 },
   { roomId: 'room-03', wall: 'panel-3b', facing: 'east', count: 1, presetOffset: 0 },
-  { roomId: 'room-03', wall: 'r3-east', facing: 'west', count: 1, presetOffset: 1 },
+  { roomId: 'room-03', wall: 'r3-south', facing: 'north', count: 1, presetOffset: 1, span: [14.6, 17.9] },
+  { roomId: 'room-03', wall: 'r3-east', facing: 'west', count: 3, presetOffset: 1 },
 ]
 
 export const gallerySlots: GallerySlot[] = HANGINGS.flatMap(hang)

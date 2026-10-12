@@ -328,7 +328,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         {
           id: nextBlockId(),
           type: 'text',
-          text: 'Todos los días colgamos 20 obras del Mundial Internacional de Collage en nuestra Galería 3D, y hoy «{{obra}}» es una de ellas.',
+          text: 'Todos los días colgamos obras del Mundial Internacional de Collage en nuestra Galería 3D, y hoy «{{obra}}» es una de ellas.',
           align: 'left',
         },
         {
@@ -372,7 +372,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         {
           id: nextBlockId(),
           type: 'text',
-          text: 'Todos los días hay 20 obras nuevas colgadas. Pasá a verlas y dejales tu like a otros artistas.',
+          text: 'Todos los días hay obras nuevas colgadas. Pasá a verlas y dejales tu like a otros artistas.',
           align: 'left',
         },
         { id: nextBlockId(), type: 'button', text: 'Visitar el museo', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'red' },

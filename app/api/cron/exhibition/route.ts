@@ -22,7 +22,7 @@ export const maxDuration = 300
 // Vercel Cron calls this at 12:05 UTC (09:05 Argentina, right after the
 // exhibition rotates) with `Authorization: Bearer $CRON_SECRET`. Independent
 // jobs, so one failing doesn't stop the others:
-//   1. "hoy tu obra está en el museo" to today's 20 artists,
+//   1. "hoy tu obra está en el museo" to today's artists,
 //   2. "así le fue a tu obra" to artists with likes/comments yesterday,
 //   3. a reminder to the admins when comments are waiting for moderation,
 //   4. the welcome mail for new supporters,

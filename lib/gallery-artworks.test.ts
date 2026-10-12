@@ -16,6 +16,7 @@ vi.mock('@/lib/supabase/public', () => ({
 }))
 
 import { getFinalists, getFinalistsByIds } from '@/lib/finalists'
+import { gallerySlots } from '@/data/artworks'
 import { getDailyExhibition, getGalleryArtworks } from './gallery-artworks'
 
 const finalists: Finalist[] = Array.from({ length: 40 }, (_, index) => ({
@@ -47,19 +48,19 @@ describe('stored exhibition (no repeats)', () => {
     supabase.rpc.mockResolvedValue({ data: null, error: { message: 'function not found' } })
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.mocked(getFinalists).mockResolvedValue(finalists)
-    expect(await getDailyExhibition()).toHaveLength(20)
+    expect(await getDailyExhibition()).toHaveLength(gallerySlots.length)
   })
 })
 
 describe('daily exhibition shared by home and 3D gallery', () => {
-  it('selects the same 20 works in the same order regardless of query ordering', async () => {
+  it('selects the same works for every wall, in the same order regardless of query ordering', async () => {
     vi.useFakeTimers().setSystemTime(new Date('2026-09-22T12:00:00Z'))
     vi.mocked(getFinalists).mockResolvedValueOnce(finalists)
       .mockResolvedValueOnce([...finalists].reverse())
     const home = await getDailyExhibition()
     const gallery = await getGalleryArtworks()
-    expect(home).toHaveLength(20)
-    expect(new Set(home.map(work => work.slug)).size).toBe(20)
+    expect(home).toHaveLength(gallerySlots.length)
+    expect(new Set(home.map(work => work.slug)).size).toBe(gallerySlots.length)
     expect(gallery.map(work => work.id)).toEqual(home.map(work => work.slug))
     // A real SVG flag, not an emoji that Windows shows as bare letters.
     expect(gallery[0].flagSvg).toMatch(/^<svg /)
@@ -76,7 +77,10 @@ describe('daily exhibition shared by home and 3D gallery', () => {
     vi.setSystemTime(new Date('2026-09-23T09:00:00-03:00'))
     expect(await getDailyExhibition()).not.toEqual(today)
     vi.mocked(getFinalists).mockResolvedValue(finalists.slice(0, 3))
-    expect(await getGalleryArtworks()).toHaveLength(3)
+    const few = await getGalleryArtworks()
+    expect(few).toHaveLength(3)
+    // Spread over the gallery, not crowded into the first room.
+    expect(few.map((artwork) => artwork.roomId)).toEqual(['room-01', 'room-02', 'room-03'])
     vi.mocked(getFinalists).mockResolvedValue([])
     expect(await getGalleryArtworks()).toEqual([])
   })

@@ -18,7 +18,7 @@ const EDITION_YEAR = new Date(site.deadlineISO).getFullYear()
 // deterministic from the seed alone (no state to store or cron to run).
 const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949
 
-// One stable seed per exhibition day — same visitors see the same 20 obras
+// One stable seed per exhibition day — same visitors see the same obras
 // all day, and the selection rotates on its own at 09:00 Argentina.
 function dailySeed(date = new Date()): number {
   const isoDay = exhibitionDay(date)
@@ -80,11 +80,18 @@ export async function getDailyExhibition(): Promise<Finalist[]> {
   return goldenShuffle(ordered, dailySeed()).slice(0, gallerySlots.length)
 }
 
+// Fewer obras than walls (few published, or the moment before a day's
+// lineup grows to a new layout): spread them over the whole gallery instead
+// of filling the first rooms and leaving the last one bare.
+function slotFor(index: number, count: number) {
+  return gallerySlots[count >= gallerySlots.length ? index : Math.floor((index * gallerySlots.length) / count)]
+}
+
 export async function getGalleryArtworks(locale: Locale = DEFAULT_LOCALE): Promise<Artwork[]> {
   const selected = await getDailyExhibition()
 
   return selected.map((finalist, index) => {
-    const slot = gallerySlots[index]
+    const slot = slotFor(index, selected.length)
     return {
       id: finalist.slug,
       title: finalist.artworkTitle ?? MESSAGES[locale].common.untitled,

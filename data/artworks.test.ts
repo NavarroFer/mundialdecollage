@@ -22,8 +22,8 @@ function viewingSpot({ position, rotation, width, height }: (typeof gallerySlots
 }
 
 describe('gallerySlots', () => {
-  it('has the 20 spots ensure_exhibition_today fills each day', () => {
-    expect(gallerySlots).toHaveLength(20)
+  it('has the 37 spots ensure_exhibition_today fills each day', () => {
+    expect(gallerySlots).toHaveLength(37)
     expect(new Set(gallerySlots.map((slot) => slot.roomId))).toEqual(new Set(['room-01', 'room-02', 'room-03']))
   })
 
