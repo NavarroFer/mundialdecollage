@@ -1,10 +1,12 @@
 'use client'
 
-import { CalendarRange, ChevronDown, Hash, Table2 } from 'lucide-react'
+import { CalendarRange, Camera, ChevronDown, Hash, Table2 } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
+import { fileSlug } from '@/lib/chart-math'
 import { cn } from '@/lib/utils'
+import { CaptureDialog } from './capture-dialog'
 import { ChartViewContext, FigureBlock, type ChartFigure, type ChartView } from './chart-kit'
-import { LIMIT_OPTIONS, Segmented, ToolbarToggle } from './controls'
+import { LIMIT_OPTIONS, Segmented, ToolbarButton, ToolbarToggle } from './controls'
 import { useChartSettings, type ViewSettings } from './view-settings'
 
 // The one card every /admin/estadisticas chart sits in (a Template: the
@@ -73,6 +75,7 @@ export function ChartFrame({
   actions,
   collapsible = false,
   level = 2,
+  scope = 'period',
   initial,
   className,
   children,
@@ -87,6 +90,8 @@ export function ChartFrame({
   actions?: ReactNode
   collapsible?: boolean
   level?: 2 | 3
+  // What the capture's source line says: the page's period, or the site as it is now.
+  scope?: 'period' | 'current'
   initial?: Partial<ViewSettings>
   className?: string
   children: ReactNode
@@ -94,6 +99,7 @@ export function ChartFrame({
   const chartSettings = useChartSettings(initial)
   const [settings, set] = chartSettings
   const [sort, setSort] = useState(sortOptions?.[0]?.value ?? null)
+  const [capturing, setCapturing] = useState(false)
   const titleId = useId()
   const bodyId = useId()
   const Heading = level === 2 ? 'h2' : 'h3'
@@ -138,13 +144,34 @@ export function ChartFrame({
       {open && (
         <div id={bodyId} className={cn(collapsible && 'border-t-2 border-ink/10')}>
           <div className="flex flex-wrap items-center justify-end gap-2 px-5 pt-4 sm:px-6">
-            <ChartToolbar controls={controls} settings={chartSettings} sortOptions={sortOptions} sort={sort} onSort={setSort} actions={actions} />
+            <ChartToolbar controls={controls} settings={chartSettings} sortOptions={sortOptions} sort={sort} onSort={setSort} actions={actions}>
+              <ToolbarButton icon={Camera} onClick={() => setCapturing(true)}>Captura</ToolbarButton>
+            </ChartToolbar>
           </div>
           <div className="px-5 pt-4 pb-5 sm:px-6 sm:pb-6">
             <ChartViewContext value={chartView(settings, controls, sort, 'card')}>{children}</ChartViewContext>
           </div>
           {settings.notes && footnote && <p className="border-t-2 border-ink/10 px-5 py-4 text-xs leading-relaxed text-muted-foreground sm:px-6">{footnote}</p>}
         </div>
+      )}
+
+      {capturing && (
+        <CaptureDialog
+          open
+          onOpenChange={setCapturing}
+          title={title}
+          eyebrow={eyebrow}
+          description={description}
+          footnote={footnote}
+          figure={figure}
+          scope={scope}
+          fileName={`estadisticas-${fileSlug(title)}`}
+          view={chartView(settings, controls, sort, 'slide')}
+          onNotesChange={(notes) => set('notes', notes)}
+          toolbar={<ChartToolbar tone="dark" controls={controls} settings={chartSettings} sortOptions={sortOptions} sort={sort} onSort={setSort} actions={actions} />}
+        >
+          {children}
+        </CaptureDialog>
       )}
     </section>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { formatShare } from '@/lib/artwork-stats'
+import { cn } from '@/lib/utils'
 import { barWidth, foldRows, formatCount, type ChartRow } from '@/lib/chart-math'
 import { ChartLegend, EmptyChart, SERIES, SeriesKey, useChartView } from './chart-kit'
 
@@ -51,23 +52,42 @@ export function BarList({
   const shown = fold ? foldRows(rows, view.limit).rows : view.limit === null ? rows : rows.slice(0, view.limit)
   const compare = view.compare && shown.some((row) => row.recent !== undefined)
   const max = Math.max(...shown.map((row) => row.value), 1)
-  const columns = view.mode === 'slide' && shown.length > 8
+  // On a slide each row is one line (label, bar, numbers) so a whole
+  // ranking fits; in a card the label sits over a full-width bar.
+  const slide = view.mode === 'slide'
+  const dense = slide && shown.length > 8
   return (
     <div>
       <BarLegend windows={windows} compare={compare} note={note} />
-      <ol aria-label={label} className={columns ? 'columns-2 gap-x-12' : 'space-y-4'}>
-        {shown.map((row, index) => (
-          <li key={`${index}-${row.label}`} className={columns ? 'mb-4 break-inside-avoid' : undefined}>
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="min-w-0 text-sm font-medium leading-snug text-ink">{row.label}</span>
-              <Values value={row.value} total={total} recent={compare ? row.recent : undefined} format={format} />
-            </div>
-            <div className="mt-1.5 flex flex-col gap-[2px]" aria-hidden="true">
+      <ol aria-label={label} className={slide ? dense ? 'space-y-1.5' : 'space-y-2.5' : 'space-y-4'}>
+        {shown.map((row, index) => {
+          const bars = (
+            <div className={cn('flex flex-col gap-[2px]', !slide && 'mt-1.5')} aria-hidden="true">
               <div className="h-3 rounded-r-[4px]" style={{ width: `${barWidth(row.value, max)}%`, background: SERIES.period }} />
               {compare && <div className="h-1.5 rounded-r-[3px]" style={{ width: `${barWidth(row.recent ?? 0, max)}%`, background: SERIES.recent }} />}
             </div>
-          </li>
-        ))}
+          )
+          const values = <Values value={row.value} total={total} recent={compare ? row.recent : undefined} format={format} />
+          return (
+            <li key={`${index}-${row.label}`} className={slide ? 'grid grid-cols-[minmax(0,26rem)_minmax(0,1fr)_auto] items-center gap-x-5' : undefined}>
+              {slide ? (
+                <>
+                  <span className={cn('font-medium leading-snug text-ink', dense ? 'text-[13px]' : 'text-sm')}>{row.label}</span>
+                  {bars}
+                  {values}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 text-sm font-medium leading-snug text-ink">{row.label}</span>
+                    {values}
+                  </div>
+                  {bars}
+                </>
+              )}
+            </li>
+          )
+        })}
       </ol>
     </div>
   )
@@ -81,19 +101,26 @@ export function FunnelChart({ steps, base, label, note, windows }: { steps: Char
   if (!steps.length) return <EmptyChart />
   const compare = view.compare && steps.some((step) => step.recent !== undefined)
   const max = Math.max(...steps.map((step) => step.value), 1)
+  const slide = view.mode === 'slide'
   return (
     <div>
       <BarLegend windows={windows} compare={compare} note={note} />
-      <ol aria-label={label} className={view.mode === 'slide' && steps.length > 6 ? 'space-y-2' : 'space-y-4'}>
+      <ol aria-label={label} className={slide ? 'space-y-3' : 'space-y-4'}>
         {steps.map((step, index) => (
-          <li key={step.label} className="grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1.5">
-            <span className="font-display row-span-2 flex h-7 w-7 items-center justify-center self-start rounded-full bg-collage-yellow text-sm text-ink">{String(index + 1).padStart(2, '0')}</span>
+          <li
+            key={step.label}
+            className={slide
+              ? 'grid grid-cols-[1.75rem_minmax(0,15rem)_minmax(0,1fr)_auto] items-center gap-x-4'
+              : 'grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1.5'}
+          >
+            <span className={cn('font-display flex h-7 w-7 items-center justify-center rounded-full bg-collage-yellow text-sm text-ink', !slide && 'row-span-2 self-start')}>{String(index + 1).padStart(2, '0')}</span>
             <span className="min-w-0 text-sm font-semibold leading-snug text-ink">{step.label}</span>
-            <Values value={step.value} total={base} recent={compare ? step.recent : undefined} />
-            <div className="col-span-2 flex flex-col items-center gap-[2px]" aria-hidden="true">
+            {!slide && <Values value={step.value} total={base} recent={compare ? step.recent : undefined} />}
+            <div className={cn('flex flex-col items-center gap-[2px]', !slide && 'col-span-2')} aria-hidden="true">
               <div className="h-6 rounded-[4px]" style={{ width: `${barWidth(step.value, max)}%`, background: SERIES.period }} />
               {compare && <div className="h-1.5 rounded-[3px]" style={{ width: `${barWidth(step.recent ?? 0, max)}%`, background: SERIES.recent }} />}
             </div>
+            {slide && <Values value={step.value} total={base} recent={compare ? step.recent : undefined} />}
           </li>
         ))}
       </ol>

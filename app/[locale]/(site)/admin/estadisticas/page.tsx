@@ -388,6 +388,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         <div className="grid items-start gap-6 xl:grid-cols-12">
           <ChartFrame
             className="xl:col-span-5"
+            scope="current"
             title="Artistas por país"
             description="Cada artista cuenta una vez, con el país de su perfil."
             figure={artistStats ? { value: formatCount(artistStats.totalArtists), label: 'artistas' } : undefined}
@@ -408,17 +409,18 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
 
           <div className="grid gap-6 md:grid-cols-2 xl:col-span-7">
             {artworkStats && artworkStats.total > 0 && (
-              <ChartFrame title="Estado de publicación" description="Obras seleccionadas que ya se ven en el sitio.">
+              <ChartFrame scope="current" title="Estado de publicación" description="Obras seleccionadas que ya se ven en el sitio.">
                 <Meter value={artworkStats.published} total={artworkStats.total} label="publicadas" remainder={{ label: 'pendientes', done: 'Todo al día' }} />
               </ChartFrame>
             )}
             {artworkStats && artworkStats.total > 0 && (
-              <ChartFrame title="Datos de técnica" description="Qué tan completo está este dato.">
+              <ChartFrame scope="current" title="Datos de técnica" description="Qué tan completo está este dato.">
                 <Meter value={artworkStats.withTechnique} total={artworkStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
               </ChartFrame>
             )}
             <ChartFrame
               className="md:col-span-2"
+              scope="current"
               title="Obras por técnica"
               description="Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio."
               figure={artworkStats ? { value: formatCount(artworkStats.total), label: 'obras seleccionadas' } : undefined}

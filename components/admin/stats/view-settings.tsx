@@ -21,29 +21,44 @@ const KEYS: ViewKey[] = ['values', 'table', 'compare', 'notes', 'limit', 'open']
 export const DEFAULT_VIEW: ViewSettings = { values: false, table: false, compare: true, notes: true, limit: 10, open: false }
 const ZERO_REVISIONS = Object.fromEntries(KEYS.map((key) => [key, 0])) as Record<ViewKey, number>
 
+// How capture slides are laid out, kept for the whole page so a deck of
+// slides comes out alike: pick 16:9 on white once, capture every chart.
+export type CapturePrefs = {
+  format: '16:9' | '4:3' | '1:1'
+  text: 'normal' | 'grande' | 'enorme'
+  background: 'paper' | 'white'
+  header: boolean
+  footer: boolean
+}
+const DEFAULT_CAPTURE: CapturePrefs = { format: '16:9', text: 'normal', background: 'paper', header: true, footer: true }
+
 type PageView = {
   settings: ViewSettings
   revisions: Record<ViewKey, number>
   periodLabel: string
   set: <K extends ViewKey>(key: K, value: ViewSettings[K]) => void
+  capture: CapturePrefs
+  setCapture: (patch: Partial<CapturePrefs>) => void
 }
 
 const PageViewContext = createContext<PageView | null>(null)
 
 export function StatsViewProvider({ periodLabel, children }: { periodLabel: string; children: ReactNode }) {
   const [state, setState] = useState({ settings: DEFAULT_VIEW, revisions: ZERO_REVISIONS })
+  const [capture, setCaptureState] = useState(DEFAULT_CAPTURE)
   const set = useCallback(<K extends ViewKey>(key: K, value: ViewSettings[K]) => {
     setState((current) => ({
       settings: { ...current.settings, [key]: value },
       revisions: { ...current.revisions, [key]: current.revisions[key] + 1 },
     }))
   }, [])
-  const value = useMemo(() => ({ ...state, periodLabel, set }), [state, periodLabel, set])
+  const setCapture = useCallback((patch: Partial<CapturePrefs>) => setCaptureState((current) => ({ ...current, ...patch })), [])
+  const value = useMemo(() => ({ ...state, periodLabel, set, capture, setCapture }), [state, periodLabel, set, capture, setCapture])
   return <PageViewContext value={value}>{children}</PageViewContext>
 }
 
 export function usePageView() {
-  return use(PageViewContext) ?? { settings: DEFAULT_VIEW, revisions: ZERO_REVISIONS, periodLabel: '', set: () => {} }
+  return use(PageViewContext) ?? { settings: DEFAULT_VIEW, revisions: ZERO_REVISIONS, periodLabel: '', set: () => {}, capture: DEFAULT_CAPTURE, setCapture: () => {} }
 }
 
 type Local = Partial<Record<ViewKey, { value: ViewSettings[ViewKey]; revision: number }>>

@@ -54,7 +54,7 @@ export function TimeSeriesChart({ data, unit, label }: { data: Point[]; unit: Un
   const current = active === null ? null : data[active]
 
   return (
-    <div>
+    <div className={slide ? 'h-full' : undefined}>
       <div ref={ref} className="relative" style={slide ? { height: '100%', minHeight: CARD_HEIGHT } : { height: CARD_HEIGHT }}>
         {width > 0 && height > 0 && (
           <svg

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { barWidth, foldRows, highlightIndexes, niceTicks, valueLabelIndexes, xLabelIndexes } from './chart-math'
+import { barWidth, fileSlug, foldRows, highlightIndexes, niceTicks, valueLabelIndexes, xLabelIndexes } from './chart-math'
 
 describe('niceTicks', () => {
   it('covers the max with round, whole steps', () => {
@@ -83,5 +83,13 @@ describe('barWidth', () => {
     expect(barWidth(1, 1000)).toBe(2)
     expect(barWidth(0, 100)).toBe(0)
     expect(barWidth(5, 0)).toBe(0)
+  })
+})
+
+describe('fileSlug', () => {
+  it('turns a title into a file name', () => {
+    expect(fileSlug('Histórico de participaciones')).toBe('historico-de-participaciones')
+    expect(fileSlug('«Avisame» de finalistas y revista')).toBe('avisame-de-finalistas-y-revista')
+    expect(fileSlug('¿?')).toBe('grafico')
   })
 })

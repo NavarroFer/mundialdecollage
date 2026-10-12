@@ -31,9 +31,10 @@ export function ToolbarToggle({
   )
 }
 
-export function ToolbarButton({ onClick, icon: Icon, tone = 'light', disabled, children }: { onClick: () => void; icon: LucideIcon; tone?: Tone; disabled?: boolean; children: React.ReactNode }) {
+// An action, not a state. `primary` wears the selected look to stand out.
+export function ToolbarButton({ onClick, icon: Icon, tone = 'light', primary = false, disabled, children }: { onClick: () => void; icon: LucideIcon; tone?: Tone; primary?: boolean; disabled?: boolean; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={cn(toggleClass(false, tone), 'disabled:opacity-60')}>
+    <button type="button" onClick={onClick} disabled={disabled} className={cn(toggleClass(primary, tone), 'disabled:cursor-wait disabled:opacity-60')}>
       <Icon className="size-3.5" aria-hidden="true" />
       {children}
     </button>

@@ -72,3 +72,8 @@ export function barWidth(value: number, max: number, minimum = 2): number {
   if (!(max > 0) || !(value > 0)) return 0
   return Math.min(100, Math.max((value / max) * 100, minimum))
 }
+
+// A title as a file name: «Histórico de participaciones» → historico-de-participaciones.
+export function fileSlug(text: string): string {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'grafico'
+}
