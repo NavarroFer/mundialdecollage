@@ -1,33 +1,58 @@
-import { keyboardMap, type Controls } from '../player/controls'
+import type { ControlMode } from '../preferences/store'
 
-type MoveStep = Extract<Controls, 'forward' | 'left' | 'right' | 'backward'>
-export type TutorialStep = MoveStep | 'look' | 'interact'
+/** Learning by doing, one thing at a time, in the order a first visit needs them. */
+export const LEARN_STEPS = ['look', 'move', 'open'] as const
+export type LearnStep = (typeof LEARN_STEPS)[number]
 
-export const TUTORIAL_STEPS: TutorialStep[] = ['forward', 'left', 'right', 'backward', 'look', 'interact']
+/** The four ways to walk the gallery: computer or phone, by clicks or the videogame way. */
+export type ControlScheme = 'keys' | 'click' | 'stick' | 'tap'
 
-const MOVE_STEPS = new Set<TutorialStep>(['forward', 'left', 'right', 'backward'])
-
-// A resting thumb drifts a little; only a deliberate push counts.
-const JOYSTICK_DEADZONE = 0.35
-
-/** Movement step for a pressed key, going through the same map the player uses (so arrows count too). */
-export function keyStep(code: string): TutorialStep | null {
-  const name = keyboardMap.find((entry) => entry.keys.includes(code))?.name
-  return name && MOVE_STEPS.has(name as TutorialStep) ? (name as TutorialStep) : null
+export function controlScheme(touch: boolean, mode: ControlMode): ControlScheme {
+  if (touch) return mode === 'point' ? 'tap' : 'stick'
+  return mode === 'point' ? 'click' : 'keys'
 }
 
-/** Movement step for the joystick's dominant axis. moveZ positive = forward. */
-export function joystickStep(moveX: number, moveZ: number): TutorialStep | null {
-  if (Math.hypot(moveX, moveZ) < JOYSTICK_DEADZONE) return null
-  if (Math.abs(moveZ) >= Math.abs(moveX)) return moveZ > 0 ? 'forward' : 'backward'
-  return moveX > 0 ? 'right' : 'left'
+/** The tutorial message that says how to do each step, per scheme (keys of `gallery.tutorial`). */
+export const HOW_TO = {
+  keys: { look: 'lookMouse', move: 'moveKeys', open: 'openKey' },
+  click: { look: 'lookDrag', move: 'moveClick', open: 'openClick' },
+  stick: { look: 'lookTouch', move: 'moveStick', open: 'openButton' },
+  tap: { look: 'lookTouch', move: 'moveTap', open: 'openTap' },
+} as const satisfies Record<ControlScheme, Record<LearnStep, string>>
+
+/** The first step not done yet, or null when they all are. */
+export function nextStep(done: ReadonlySet<LearnStep>): LearnStep | null {
+  return LEARN_STEPS.find((step) => !done.has(step)) ?? null
 }
 
-// Enough mouse or finger travel to count as looking around, not a twitch.
-const LOOK_TRAVEL_PX = 250
+type Pose = { x: number; z: number; heading: number }
 
-/** Accumulates look drags; returns true once they add up to a real look around. */
-export function createLookTracker(threshold = LOOK_TRAVEL_PX) {
-  let travelled = 0
-  return (dx: number, dy: number) => (travelled += Math.abs(dx) + Math.abs(dy)) >= threshold
+// Enough to be on purpose, not a thumb resting on the stick or a twitch.
+const WALKED_METERS = 0.8
+const TURNED_RADIANS = 0.5
+// Further than this between two samples was a jump (resuming at an obra), not a walk.
+const TELEPORT_METERS = 3
+
+/**
+ * Watches the player's pose (from the minimap tracker) and says which steps
+ * it completes: walking far enough is "move", turning far enough is "look",
+ * whatever control did it. Poses that aren't the visitor's doing (the camera
+ * gliding to an open obra) are passed with `counted` false.
+ */
+export function createPoseTracker() {
+  let last: Pose | null = null
+  let walked = 0
+  let turned = 0
+  return (pose: Pose, counted = true): LearnStep[] => {
+    if (last && counted) {
+      const step = Math.hypot(pose.x - last.x, pose.z - last.z)
+      if (step < TELEPORT_METERS) walked += step
+      turned += Math.abs(Math.atan2(Math.sin(pose.heading - last.heading), Math.cos(pose.heading - last.heading)))
+    }
+    last = pose
+    const done: LearnStep[] = []
+    if (turned >= TURNED_RADIANS) done.push('look')
+    if (walked >= WALKED_METERS) done.push('move')
+    return done
+  }
 }

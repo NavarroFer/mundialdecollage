@@ -1,152 +1,129 @@
 'use client'
 
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, Hand, Mouse } from 'lucide-react'
-import { useInteractionStore } from '../interaction/store'
-import { useTouchStore } from '../mobile/touchStore'
-import { createLookTracker, joystickStep, keyStep, TUTORIAL_STEPS, type TutorialStep } from '../tutorial/steps'
-import styles from '../gallery-theme.module.css'
-import { cn } from '@/lib/utils'
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { Check, CircleDot, Eye, Hand, Mouse, MousePointerClick, Pointer } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
-import type { ClientMessages } from '@/lib/i18n/messages/client'
+import { useInteractionStore } from '../interaction/store'
+import { usePlayerTrackerStore } from '../minimap/store'
+import { useGalleryPreferences } from '../preferences/store'
+import { HOW_TO, LEARN_STEPS, controlScheme, createPoseTracker, nextStep, type ControlScheme, type LearnStep } from '../tutorial/steps'
+import { useTutorialStore } from '../tutorial/store'
+import styles from '../gallery-theme.module.css'
 
-type TutorialMessages = ClientMessages['gallery']['tutorial']
+// Long enough to read "¡Listo!" before the card goes away.
+const FINISHED_LINGER_MS = 3000
 
-const STORAGE_KEY = 'mdc-gallery-tutorial-done'
-// Long enough to read "¡Listo!" before the panel goes away.
-const FINISHED_LINGER_MS = 2500
-
-// Only read on render; the panel's own dismissed state covers the moment it's written.
+// Only read on render; the card's own dismissed state covers the moment it's written.
 const noopSubscribe = () => () => {}
-function readSeen() {
+const storageKey = (scheme: ControlScheme) => `mdc-gallery-tutorial-v2-${scheme}`
+function readSeen(scheme: ControlScheme) {
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === '1'
+    return window.localStorage.getItem(storageKey(scheme)) === '1'
   } catch {
     return false
   }
 }
-function markSeen() {
+function markSeen(scheme: ControlScheme) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, '1')
+    window.localStorage.setItem(storageKey(scheme), '1')
   } catch {}
 }
 
-const joystickIcons = { forward: ArrowUp, left: ArrowLeft, right: ArrowRight, backward: ArrowDown }
+const key = (label: string) => <kbd key={label} className={styles.tutorialKey}>{label}</kbd>
 
-const keys: Record<Exclude<TutorialStep, 'look'>, string> = { forward: 'W', left: 'A', right: 'D', backward: 'S', interact: 'E' }
-
-function stepText(step: TutorialStep, isTouchDevice: boolean, t: TutorialMessages) {
-  if (step === 'look') return isTouchDevice ? t.lookTouch : t.lookMouse
-  if (step === 'interact') return isTouchDevice ? t.interactTouch : t.interactKey
-  return t.steps[step]
+// What to press or touch for each step, drawn next to the words.
+const GLYPHS: Record<ControlScheme, Record<LearnStep, ReactNode>> = {
+  keys: { look: <Mouse size={22} />, move: ['W', 'A', 'S', 'D'].map(key), open: key('E') },
+  click: { look: <Hand size={22} />, move: <MousePointerClick size={22} />, open: <MousePointerClick size={22} /> },
+  stick: { look: <Hand size={22} />, move: <CircleDot size={22} />, open: <Eye size={22} /> },
+  tap: { look: <Hand size={22} />, move: <Pointer size={22} />, open: <Pointer size={22} /> },
 }
 
-function StepKey({ step, isTouchDevice, t }: { step: TutorialStep; isTouchDevice: boolean; t: TutorialMessages }): ReactNode {
-  if (step === 'look') {
-    const Icon = isTouchDevice ? Hand : Mouse
-    return (
-      <span className={styles.tutorialKey} aria-label={isTouchDevice ? t.drag : t.mouse}>
-        <Icon className="h-3.5 w-3.5" />
-      </span>
-    )
-  }
-  if (isTouchDevice && step !== 'interact') {
-    const Icon = joystickIcons[step]
-    return (
-      <span className={cn(styles.tutorialKey, 'rounded-full')} aria-label={fmt(t.joystick, { direction: t.steps[step] })}>
-        <Icon className="h-3.5 w-3.5" />
-      </span>
-    )
-  }
-  return <kbd className={styles.tutorialKey}>{keys[step]}</kbd>
-}
-
+/**
+ * Learning by doing: one instruction at a time (look around, walk, open an
+ * obra), each in the words of the controls the visitor chose, and it moves
+ * on when they do it. Shown once per way of walking, and again on request.
+ */
 export function ControlsTutorial({ active, isTouchDevice }: { active: boolean; isTouchDevice: boolean }) {
-  const seenBefore = useSyncExternalStore(noopSubscribe, readSeen, () => true)
-  const openId = useInteractionStore((state) => state.openId)
-  const [done, setDone] = useState<ReadonlySet<TutorialStep>>(() => new Set())
-  const [dismissed, setDismissed] = useState(false)
-  const t = useI18n().m.gallery.tutorial
+  const mode = useGalleryPreferences((state) => state.controlMode)
+  const replays = useTutorialStore((state) => state.replays)
+  const scheme = controlScheme(isTouchDevice, mode)
+  // Other controls or a replay start over from the first step.
+  return <Tutorial key={`${scheme}-${replays}`} active={active} scheme={scheme} touch={isTouchDevice} replay={replays > 0} />
+}
 
-  const tracking = active && !seenBefore && !dismissed
-  const allDone = done.size === TUTORIAL_STEPS.length
-  const showing = tracking && !openId
+function Tutorial({ active, scheme, touch, replay }: { active: boolean; scheme: ControlScheme; touch: boolean; replay: boolean }) {
+  const t = useI18n().m.gallery.tutorial
+  const seenBefore = useSyncExternalStore(noopSubscribe, () => readSeen(scheme), () => true)
+  const openId = useInteractionStore((state) => state.openId)
+  const [done, setDone] = useState<ReadonlySet<LearnStep>>(() => new Set())
+  const [dismissed, setDismissed] = useState(false)
+  const walking = useRef(active)
+  useEffect(() => { walking.current = active }, [active])
+
+  const tracking = (replay || !seenBefore) && !dismissed
+  const step = nextStep(done)
 
   useEffect(() => {
     if (!tracking) return
-    const complete = (step: TutorialStep | null) => {
-      if (step) setDone((previous) => (previous.has(step) ? previous : new Set(previous).add(step)))
+    const complete = (steps: LearnStep[]) => {
+      setDone((previous) => (steps.every((step) => previous.has(step)) ? previous : new Set([...previous, ...steps])))
     }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      // Typing in the obra modal's form shouldn't tick off movement.
-      if (useInteractionStore.getState().openId) return
-      complete(keyStep(event.code))
-    }
-    // Mouse look only turns the camera while Pointer Lock holds the cursor.
-    const lookedAround = createLookTracker()
-    function handleMouseMove(event: MouseEvent) {
-      if (document.pointerLockElement && lookedAround(event.movementX, event.movementY)) complete('look')
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('mousemove', handleMouseMove)
-    const unsubscribeTouch = useTouchStore.subscribe((state, previous) => {
-      complete(joystickStep(state.moveX, state.moveZ))
-      // Look drags pile up until the next frame consumes them back to zero;
-      // each change away from zero is one drag's worth of pixels.
-      if (state.lookDeltaX === 0 && state.lookDeltaY === 0) return
-      const dx = state.lookDeltaX - previous.lookDeltaX
-      const dy = state.lookDeltaY - previous.lookDeltaY
-      if ((dx !== 0 || dy !== 0) && lookedAround(dx, dy)) complete('look')
-    })
-    // Opening an obra is the real goal of the E step, whether by key or the mobile button.
-    const unsubscribeInteraction = useInteractionStore.subscribe((state, previous) => {
-      if (state.openId && !previous.openId) complete('interact')
+    const track = createPoseTracker()
+    // Only the visitor's own moves count, not the camera gliding to an obra.
+    const unsubscribePose = usePlayerTrackerStore.subscribe((pose) => complete(track(pose, walking.current)))
+    const unsubscribeOpen = useInteractionStore.subscribe((state, previous) => {
+      if (state.openId && !previous.openId) complete(['open'])
     })
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('mousemove', handleMouseMove)
-      unsubscribeTouch()
-      unsubscribeInteraction()
+      unsubscribePose()
+      unsubscribeOpen()
     }
   }, [tracking])
 
-  // The last step is usually opening an obra, so wait until its modal is closed
-  // and the visitor can actually see the finished checklist.
+  // The last step opens an obra: "¡Listo!" waits until it's closed and the
+  // visitor is back in the walk to see it.
   useEffect(() => {
-    if (!allDone || !showing) return
+    if (step !== null || !active || !tracking) return
     const timer = setTimeout(() => {
-      markSeen()
+      markSeen(scheme)
       setDismissed(true)
     }, FINISHED_LINGER_MS)
     return () => clearTimeout(timer)
-  }, [allDone, showing])
+  }, [step, active, tracking, scheme])
 
-  if (!showing) return null
+  if (!tracking || !active || openId) return null
+
+  const skip = () => {
+    markSeen(scheme)
+    setDismissed(true)
+  }
 
   return (
-    <section
-      aria-label={t.label}
-      className={`${styles.hudPanel} animate-in fade-in slide-in-from-left-2 pointer-events-none absolute top-28 left-4 z-20 w-56 px-3 py-2.5 text-xs duration-300`}
-    >
-      <header className="mb-2 flex items-center justify-between font-extrabold tracking-[0.14em] uppercase">
-        <span>{allDone ? t.done : t.title}</span>
-        {!allDone && <span className="opacity-60">{done.size}/{TUTORIAL_STEPS.length}</span>}
-      </header>
-      {isTouchDevice && <p className={styles.tutorialIntro}>{t.touchIntro}</p>}
-      <ul className="space-y-1.5">
-        {TUTORIAL_STEPS.map((step) => {
-          const stepDone = done.has(step)
-          return (
-            <li key={step} className={cn(styles.tutorialStep, stepDone && styles.tutorialStepDone)}>
-              <StepKey step={step} isTouchDevice={isTouchDevice} t={t} />
-              <span className="flex-1 font-semibold">{stepText(step, isTouchDevice, t)}</span>
-              {stepDone && <Check className={cn(styles.tutorialCheck, 'h-4 w-4 shrink-0')} aria-label={t.check} />}
-            </li>
-          )
-        })}
-      </ul>
-    </section>
+    <aside className={`${styles.hudPanel} ${styles.learningCard}`} aria-label={t.label}>
+      <div className="flex items-center justify-between gap-3 text-[0.68rem] font-extrabold tracking-[0.14em] uppercase">
+        <span>{t.label} · {fmt(t.progress, { current: step ? LEARN_STEPS.indexOf(step) + 1 : LEARN_STEPS.length, total: LEARN_STEPS.length })}</span>
+        {step && <button type="button" className="min-h-8 px-1 underline opacity-80 hover:opacity-100" onClick={skip}>{t.skip}</button>}
+      </div>
+      {step ? (
+        <div className="mt-2 flex items-center gap-3" aria-live="polite">
+          <span className={styles.learningGlyph} aria-hidden="true">{GLYPHS[scheme][step]}</span>
+          <p>
+            <strong className="block text-base leading-tight">{t[step]}</strong>
+            <span className="text-sm">{t[HOW_TO[scheme][step]]}</span>
+          </p>
+        </div>
+      ) : (
+        <p className="mt-2 flex items-center gap-3 text-base font-bold" role="status">
+          <span className={styles.learningGlyph} aria-hidden="true"><Check size={22} /></span>
+          {t.done}
+        </p>
+      )}
+      <ol className={styles.learningDots} aria-hidden="true">
+        {LEARN_STEPS.map((item) => <li key={item} data-done={done.has(item)} data-current={item === step} />)}
+      </ol>
+      <p className="mt-2 text-xs opacity-75">{touch ? t.helpMenu : t.helpKey}</p>
+    </aside>
   )
 }

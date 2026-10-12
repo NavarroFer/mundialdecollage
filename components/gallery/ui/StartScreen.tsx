@@ -69,6 +69,7 @@ export function StartScreen({ artworks, touch, label, loading, hint, showPresenc
         </div>
         <p className="mb-2 text-xs font-bold tracking-[0.18em] opacity-60">{m.gallery.startEyebrow}</p>
         <h1 id="gallery-start-title" className={styles.title}>{m.gallery.startTitle}</h1>
+      <p className="mt-3 mb-5 text-base">{m.gallery.tutorial.welcome}</p>
       <ControlChoice touch={touch} />
       <button
         type="button"

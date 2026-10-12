@@ -20,6 +20,7 @@ import { Souvenir } from './ui/Souvenir'
 import { StartScreen } from './ui/StartScreen'
 import { VisitPreferences } from './ui/VisitPreferences'
 import { useGalleryPreferences } from './preferences/store'
+import { replayTutorial } from './tutorial/store'
 import { useInteractionStore } from './interaction/store'
 import { WallDialog } from './wall/WallDialog'
 import { loadWall, useWallStore } from './wall/store'
@@ -233,6 +234,19 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
     }
   }, [usesPointerLock, isActive, isTouchDevice])
 
+  // H while walking shows the tutorial again.
+  useEffect(() => {
+    if (!isActive || isTouchDevice) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
+      const element = document.activeElement
+      if (element instanceof HTMLElement && (element.matches('input, textarea, select') || element.isContentEditable)) return
+      if (event.code === 'KeyH') replayTutorial()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isActive, isTouchDevice])
+
   function handleEnter(lockPointer = true) {
     if (!hasStarted) track('gallery_enter')
     setHasStarted(true)
@@ -308,9 +322,10 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
         {isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
         {isTouchDevice && hasStarted && <PresenceCounter />}
         <VisitPreferences artworks={artworks} onResume={resumeArtwork} />
+        <button type="button" className={styles.visitMenuButton} onClick={() => { replayTutorial(); handleEnter() }}>{m.gallery.tutorial.replay}</button>
         <button type="button" className={styles.visitMenuButton} onClick={() => handleEnter()}>{m.gallery.mobileMenu.resume}</button>
       </div>
-      {!isTouchDevice && <ControlsTutorial active={isActive} isTouchDevice={false} />}
+      <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
       {isActive && !isTouchDevice && <InteractionPrompt theme={theme} pointMode={controlMode === 'point'} />}
       {isActive && <WalkNotice />}
       <ArtworkModal artworks={artworks} theme={theme} />
