@@ -1,6 +1,6 @@
 'use server'
 
-import { resolvePickup, quoteSubscriptionShipping } from '@/lib/correo'
+import { correoConfigured, flatShippingFee, resolvePickup, quoteSubscriptionShipping } from '@/lib/correo'
 
 import { redirect } from 'next/navigation'
 import { createHash } from 'node:crypto'
@@ -32,7 +32,10 @@ export type MpSubscriptionState = {
 // A store subscription in Argentina: a Mercado Pago preapproval charging the
 // plan price plus the authorized shipping quote every month. The local row is created first (service role,
 // status pending) and the preapproval's notifications move it from there
-// (lib/mp-subscriptions.ts).
+// (lib/mp-subscriptions.ts). Until Correo Argentino's API credentials are
+// set, no branch can be listed or checked: the buyer types their address,
+// we choose the nearest branch by hand (branch_to_choose, shown in
+// /admin/tienda) and charge the flat tariff (lib/correo.ts flatShippingFee).
 export async function startMpSubscription(planId: string, _previous: MpSubscriptionState, formData: FormData): Promise<MpSubscriptionState> {
   // The shipping form is the magazine's, always in Argentina, one "copy".
   const read = (field: MagazineField) => (field === 'quantity' ? '1' : field === 'country_code' ? 'AR' : formData.get(field))
@@ -42,26 +45,28 @@ export async function startMpSubscription(planId: string, _previous: MpSubscript
   const plan = planById(planId)
   if (!plan || !isMercadoPagoConfigured || !isSupabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return unavailable
 
-  if (!formData.get('branch_code')) return { error: 'invalid', invalid: ['branch_code'], values }
-  let pickup: Awaited<ReturnType<typeof resolvePickup>>
-  try { pickup = await resolvePickup(String(formData.get('province') ?? ''), String(formData.get('branch_code') ?? '')) } catch { return unavailable }
-  if (!pickup) return { error: 'invalid', invalid: ['branch_code'], values }
-  formData.set('address_line_1', pickup.address)
-  formData.set('address_line_2', '')
-  formData.set('city', pickup.locality || pickup.city)
-  formData.set('postal_code', pickup.postalCode)
+  const byAddress = !correoConfigured()
+  let pickup: Awaited<ReturnType<typeof resolvePickup>> = null
+  if (!byAddress) {
+    if (!formData.get('branch_code')) return { error: 'invalid', invalid: ['branch_code'], values }
+    try { pickup = await resolvePickup(String(formData.get('province') ?? ''), String(formData.get('branch_code') ?? '')) } catch { return unavailable }
+    if (!pickup) return { error: 'invalid', invalid: ['branch_code'], values }
+    formData.set('address_line_1', pickup.address)
+    formData.set('address_line_2', '')
+    formData.set('city', pickup.locality || pickup.city)
+    formData.set('postal_code', pickup.postalCode)
+  }
 
   const parsed = parseMagazineOrder(read, 1, false)
   if (!parsed.ok) return { error: 'invalid', invalid: parsed.invalid, values }
   const { order } = parsed
   let shippingFee = 0
-  try { shippingFee = await quoteSubscriptionShipping(plan.id, pickup) } catch { return unavailable }
+  try { shippingFee = pickup ? await quoteSubscriptionShipping(plan.id, pickup) : flatShippingFee() } catch { return unavailable }
   if (!formData.get('shipping_fee') || Number(formData.get('shipping_fee')) !== shippingFee) return { error: 'invalid', invalid: ['shipping_fee'], values }
   const billingAmount = Math.round((plan.priceArs + shippingFee) * 100) / 100
-  if (pickup) Object.assign(order.shipping, {
-    delivery_type: 'branch', branch_code: pickup.code, branch_name: pickup.name,
-    shipping_payment: 'monthly', shipping_fee: shippingFee, billing_amount: billingAmount,
-  })
+  Object.assign(order.shipping, pickup
+    ? { delivery_type: 'branch', branch_code: pickup.code, branch_name: pickup.name, shipping_payment: 'monthly', shipping_fee: shippingFee, billing_amount: billingAmount }
+    : { shipping_payment: 'monthly', shipping_fee: shippingFee, billing_amount: billingAmount })
   const withCard = formData.get('payment_method') === 'card'
   const cardToken = String(formData.get('card_token') ?? '')
   const payerEmail = String(formData.get('payer_email') ?? order.email).trim().toLowerCase()
@@ -89,7 +94,8 @@ export async function startMpSubscription(planId: string, _previous: MpSubscript
           postal_code: order.shipping.postal_code,
           country_code: 'AR',
           phone: order.phone,
-          ...(pickup ? { delivery_type: 'branch', branch_code: pickup.code, branch_name: pickup.name, recipient_name: order.shipping.recipient_name || order.name, shipping_payment: 'monthly', shipping_fee: shippingFee, billing_amount: billingAmount } : {}),
+          ...(pickup ? { delivery_type: 'branch', branch_code: pickup.code, branch_name: pickup.name } : { branch_to_choose: true }),
+          recipient_name: order.shipping.recipient_name || order.name, shipping_payment: 'monthly', shipping_fee: shippingFee, billing_amount: billingAmount,
         },
       })
       .select('id')

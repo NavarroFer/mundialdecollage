@@ -12,7 +12,8 @@ import { cn } from '@/lib/utils'
 // the Mundial's news by email (app/aviso/actions.ts).
 // title/body replace the default «Enterate de las finalistas» wording where
 // the page asks for something more specific (the magazine's pre-sale).
-export function WaitlistSignup({ source, className, title, body }: { source: WaitlistSource; className?: string; title?: string; body?: string }) {
+// `compact` fits it inside a card (a store plan that can't be bought yet).
+export function WaitlistSignup({ source, className, title, body, compact = false }: { source: WaitlistSource; className?: string; title?: string; body?: string; compact?: boolean }) {
   const { m } = useI18n()
   const t = m.growth
   const [state, action, pending] = useActionState<WaitlistState, FormData>(joinWaitlist.bind(null, source), 'idle')
@@ -28,9 +29,9 @@ export function WaitlistSignup({ source, className, title, body }: { source: Wai
 
   return (
     <form action={action} className={cn('w-full max-w-md', className)}>
-      <p className="font-display text-xl tracking-tight text-ink uppercase">{title ?? t.waitlistTitle}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{body ?? t.waitlistBody}</p>
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+      <p className={compact ? 'text-sm font-bold text-ink' : 'font-display text-xl tracking-tight text-ink uppercase'}>{title ?? t.waitlistTitle}</p>
+      <p className={cn('text-muted-foreground', compact ? 'mt-0.5 text-xs' : 'mt-1 text-sm')}>{body ?? t.waitlistBody}</p>
+      <div className={cn('flex flex-col gap-2', compact ? 'mt-2' : 'mt-4 sm:flex-row')}>
         <label className="sr-only" htmlFor={`waitlist-${source}`}>{t.waitlistEmail}</label>
         <input
           id={`waitlist-${source}`}

@@ -164,7 +164,10 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
                       {phone && <p className="text-muted-foreground">{phone}</p>}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-ink">{s.payments?.subscriptions ? planName(s.payments.subscriptions.provider_plan_id) : '—'}</td>
-                    <td className="min-w-64 px-4 py-3 text-ink">{formatAddress(s.shipping_address)}</td>
+                    <td className="min-w-64 px-4 py-3 text-ink">
+                      {s.shipping_address?.branch_to_choose === true && <span className="mb-1 inline-block rounded-full bg-collage-yellow px-2 py-0.5 text-xs font-bold">Elegir sucursal cercana</span>}
+                      <span className="block">{formatAddress(s.shipping_address)}</span>
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                       {s.payments ? `${formatMoney(Number(s.payments.amount), s.payments.currency)} · ${fmtDate(s.payments.paid_at)}` : '—'}
                       <p className="text-xs">{PROVIDER[s.payments?.provider ?? ''] ?? s.payments?.provider}</p>
@@ -250,7 +253,10 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{PROVIDER[s.provider] ?? s.provider}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{s.status === 'active' ? fmtDate(s.next_billing_at) : '—'}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{fmtDate(s.created_at)}</td>
-                    <td className="min-w-64 px-4 py-3 text-ink">{formatAddress(s.shipping_address)}</td>
+                    <td className="min-w-64 px-4 py-3 text-ink">
+                      {s.shipping_address?.branch_to_choose === true && <span className="mb-1 inline-block rounded-full bg-collage-yellow px-2 py-0.5 text-xs font-bold">Elegir sucursal cercana</span>}
+                      <span className="block">{formatAddress(s.shipping_address)}</span>
+                    </td>
                   </tr>
                 )
               })}

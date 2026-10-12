@@ -12,6 +12,9 @@ export const mpPlanId = (planId: string) => `mp:${planId}`
 
 export function subscriptionPickupNote(address: Record<string, unknown> | null, locale: Parameters<typeof pickupCopy>[0]) {
   if (address?.country_code !== 'AR') return ''
+  if (address.branch_to_choose === true) {
+    return 'Tu envío se retira en la sucursal de Correo Argentino más cercana a la dirección que nos diste: te avisamos cuál es cuando lo despachemos. Para retirar, el destinatario deberá acreditar su identidad.'
+  }
   if (address.delivery_type !== 'branch') {
     return 'Los envíos dentro de Argentina se retiran en una sucursal de Correo Argentino; no se entregan a domicilio. Respondé este mail para coordinar tu sucursal de retiro antes del despacho.'
   }

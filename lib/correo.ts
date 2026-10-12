@@ -99,14 +99,18 @@ export async function resolvePickup(provinceName: string, branchCode: string) {
 const quotes = new Map<string, { expires: number; fee: number }>()
 const quoteRequests = new Map<string, Promise<number>>()
 
+// The merchant's own monthly tariff, the same anywhere in Argentina, until
+// the MiCorreo rate integration is enabled. Also what home delivery costs
+// while Correo's API credentials aren't set (/tienda/suscribirme).
+export function flatShippingFee() {
+  const fee = Number(process.env.CORREO_FLAT_SHIPPING_FEE ?? '7000')
+  if (!Number.isFinite(fee) || fee <= 0) throw new Error('Invalid fixed shipping fee')
+  return Math.round(fee * 100) / 100
+}
+
 /** Physical package dimensions must be configured from actual packed products. */
 export async function quoteSubscriptionShipping(plan: string, branch: CorreoBranch) {
-  // Temporary merchant tariff until the MiCorreo rate integration is enabled.
-  if (process.env.CORREO_SHIPPING_RATE_MODE !== 'api') {
-    const fee = Number(process.env.CORREO_FLAT_SHIPPING_FEE ?? '7000')
-    if (!Number.isFinite(fee) || fee <= 0) throw new Error('Invalid fixed shipping fee')
-    return Math.round(fee * 100) / 100
-  }
+  if (process.env.CORREO_SHIPPING_RATE_MODE !== 'api') return flatShippingFee()
   const origin = process.env.CORREO_ORIGIN_POSTAL_CODE
   let dimensions: { weight: number; height: number; width: number; length: number }
   try { dimensions = JSON.parse(process.env.CORREO_PACKAGES_JSON ?? '{}')[plan] } catch { throw new Error('Package configuration unavailable') }

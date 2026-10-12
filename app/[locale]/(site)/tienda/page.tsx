@@ -6,7 +6,8 @@ import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { ScrollToTop } from '@/components/scroll-to-top'
 import { Button } from '@/components/ui/button'
-import { cutoutPlans, subscriptionPlans } from '@/lib/store'
+import { cutoutPlans, subscriptionPlans, type SubscriptionPlan } from '@/lib/store'
+import { planWaitlistSource } from '@/lib/waitlist'
 import { cn } from '@/lib/utils'
 import { getI18n } from '@/lib/i18n/server'
 import { TrackView } from '@/components/track'
@@ -15,6 +16,7 @@ import { MagazinePromo } from '@/components/store-promo'
 import { site } from '@/lib/site'
 import { PaypalSubscriptionCheckout } from '@/components/paypal-subscription-checkout'
 import { isMercadoPagoConfigured } from '@/lib/mercadopago'
+import { correoConfigured, flatShippingFee } from '@/lib/correo'
 import { isPayPalCheckoutConfigured } from '@/lib/payments/paypal/client'
 
 // Argentina pays in pesos with Mercado Pago, everywhere else in dollars with
@@ -26,6 +28,9 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
   const copy = t.subscriptions
   const visitorCountry = requestHeaders.get('x-vercel-ip-country')
   const argentina = envio === 'ar' || (envio !== 'exterior' && (!visitorCountry || visitorCountry === 'AR'))
+  // Until Correo Argentino's credentials are set, buyers give an address and
+  // we choose the branch, at a flat fee (lib/correo.ts).
+  const byAddress = !correoConfigured()
   const priceLabel = (priceArs: number, priceUsd: number) => argentina
     ? `ARS $${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(priceArs)}`
     : `USD ${new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(priceUsd)}`
@@ -37,36 +42,27 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       {desde === 'mail' && <TrackView event="store_from_email" />}
       <SiteHeader />
       <main>
-        <section className="bg-grain relative overflow-hidden border-b-2 border-ink/10 py-18 sm:py-24">
+        {/* Short, so the plans are on the first screen: what each one costs
+            and what arrives is what visitors came for. */}
+        <section className="bg-grain relative overflow-hidden border-b-2 border-ink/10 py-10 sm:py-14">
           <Scissors className="absolute -left-7 top-8 h-36 w-36 -rotate-24 text-collage-red/15" strokeWidth={1} />
           <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
             <span className="torn-strip inline-block -rotate-1 bg-collage-red px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
               {t.badge}
             </span>
-            <h1 className="font-display mt-7 text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
+            <h1 className="font-display mt-5 text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
+            <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
               {t.intro}
             </p>
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
+            {/* On a phone the plans come right after, without the jump links. */}
+            <div className="mt-6 hidden flex-wrap justify-center gap-3 sm:flex">
               <Button asChild variant="primary" size="lg"><a href="#recortes">{copy.cutoutsNav}</a></Button>
               <Button asChild variant="outline" size="lg"><a href="#membresia">{copy.membershipNav}</a></Button>
             </div>
           </div>
         </section>
 
-        <div className="mx-auto max-w-6xl px-5 pt-14 sm:px-8 sm:pt-20">
-          <Image
-            src="/tienda-productos.webp"
-            alt={t.productsAlt}
-            width={2000}
-            height={728}
-            preload
-            sizes="(min-width: 1152px) 1088px, calc(100vw - 40px)"
-            className="h-auto w-full rounded-2xl border-2 border-ink/10 shadow-sm"
-          />
-        </div>
-
-        <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20" aria-labelledby="plans-title">
+        <section className="mx-auto max-w-6xl px-5 pt-10 pb-14 sm:px-8 sm:pt-14 sm:pb-20" aria-labelledby="plans-title">
           <div className="mb-10 flex flex-col items-center gap-3 text-center">
             <p className="text-sm font-bold tracking-[0.16em] text-ink uppercase">{t.regionLabel}</p>
             <nav aria-label={t.regionLabel} className="flex rounded-full border-2 border-ink/15 bg-card p-1">
@@ -82,7 +78,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 </Link>
               ))}
             </nav>
-            <p className="max-w-md text-sm text-muted-foreground">{argentina ? `${t.pickup.mode}. ${t.regionArNote}` : t.regionAbroadNote}</p>
+            <p className="max-w-md text-sm text-muted-foreground">{argentina ? `${byAddress ? t.pickup.addressMode : t.pickup.mode}. ${t.regionArNote}` : t.regionAbroadNote}</p>
           </div>
           <section id="membresia" aria-labelledby="membership-title" className="mb-16 scroll-mt-24">
             <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.membershipEyebrow}</p>
@@ -107,7 +103,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 <p className="mt-6 text-3xl font-bold tracking-tight">
                   {priceLabel(plan.priceArs, plan.priceUsd)} <span className="text-base font-medium">{t.perMonth}</span>
                 </p>
-                <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.shipping}</p>
+                <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{argentina && byAddress ? `${copy.shipping} ${priceLabel(flatShippingFee(), 0)}` : copy.shipping}</p>
                 <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
                   {localizedPlan.contents.map((content) => (
                     <li key={content} className="flex gap-2.5">
@@ -119,11 +115,11 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 {argentina ? (
                   isMercadoPagoConfigured
                     ? <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full"><Link href={`/tienda/suscribirme?plan=${plan.id}`}>{t.mp.subscribe}</Link></Button>
-                    : <Button size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full" disabled>{t.comingSoon}</Button>
+                    : <PlanComingSoon plan={plan} label={t.comingSoon} title={t.notifyPlan} body={t.notifyPlanBody} />
                 ) : isPayPalCheckoutConfigured ? (
                   <PaypalSubscriptionCheckout plan={plan.id} clientId={process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!} />
                 ) : (
-                  <Button size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full" disabled>{t.comingSoon}</Button>
+                  <PlanComingSoon plan={plan} label={t.comingSoon} title={t.notifyPlan} body={t.notifyPlanBody} />
                 )}
                 <p className={`mt-4 text-center text-xs ${plan.featured ? 'text-paper/70' : 'text-muted-foreground'}`}>{t.cancelAnytime}</p>
               </article>
@@ -131,6 +127,14 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
             })}
           </div>
           </section>
+          <Image
+            src="/tienda-productos.webp"
+            alt={t.productsAlt}
+            width={2000}
+            height={728}
+            sizes="(min-width: 1152px) 1088px, calc(100vw - 40px)"
+            className="mb-14 h-auto w-full rounded-2xl border-2 border-ink/10 shadow-sm"
+          />
           <div id="recortes" className="mb-8 scroll-mt-24">
             <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.cutoutsEyebrow}</p>
             <h2 className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-5xl">{copy.cutoutsTitle}</h2>
@@ -195,6 +199,19 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
         </section>
       </main>
       <Footer showWaitlist={false} />
+    </>
+  )
+}
+
+// A plan that can't be bought here yet: the disabled button, and an
+// «Avisame cuando abra» that lands in contacts as aviso_plan_<plan>.
+function PlanComingSoon({ plan, label, title, body }: { plan: SubscriptionPlan; label: string; title: string; body: string }) {
+  return (
+    <>
+      <Button size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full" disabled>{label}</Button>
+      <div className="mt-4 rounded-xl bg-card p-3 text-left text-ink">
+        <WaitlistSignup compact source={planWaitlistSource(plan.id)} title={title} body={body} />
+      </div>
     </>
   )
 }

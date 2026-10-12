@@ -10,7 +10,83 @@ import { track } from '@/lib/track'
 
 export type PickupSelection = { branch: CorreoBranch; payment: 'included' | 'monthly'; fee: number }
 
+// When the branches won't load, or none fits: the address goes to us by
+// email (the visitor's own mail app, nothing sent from here) so the sale
+// isn't lost while the Correo lookup is down.
+function ManualAddress({ plan, province }: { plan?: string; province: string }) {
+  const { m } = useI18n()
+  const t = m.store.pickup
+  const id = useId()
+  const [address, setAddress] = useState('')
+  const planName = plan && plan in m.store.plans ? m.store.plans[plan as keyof typeof m.store.plans].name : ''
+  const subject = t.manualSubject.replace('{plan}', planName).trim()
+  const body = [planName, province, address.trim()].filter(Boolean).join('\n')
+  return (
+    <div className="space-y-2 rounded-lg border-2 border-collage-blue/25 bg-collage-blue/5 p-3 text-sm">
+      <p className="font-semibold">{t.manualTitle}</p>
+      <label htmlFor={`${id}-address`} className="block text-sm font-medium">{t.manualLabel}</label>
+      <textarea id={`${id}-address`} value={address} onChange={(event) => setAddress(event.target.value)} rows={2} maxLength={300} autoComplete="street-address" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+      <a
+        href={`mailto:${site.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+        aria-disabled={!address.trim()}
+        onClick={(event) => { if (!address.trim()) event.preventDefault() }}
+        className="inline-flex min-h-11 items-center rounded-full bg-collage-blue px-4 font-semibold text-primary-foreground aria-disabled:opacity-50"
+      >
+        {t.manualSend}
+      </a>
+      <p className="text-xs text-muted-foreground">{t.manualHelp}</p>
+    </div>
+  )
+}
+
 type Result = { province: string; branches: CorreoBranch[]; payment: PickupSelection['payment']; fee: number }
+export type AddressForBranch = { address: string; city: string; province: string; fee: number }
+
+const AR_POSTAL = /^([a-z]\d{4}[a-z]{3}|\d{4})$/i
+
+// While Correo Argentino's API credentials aren't set (lib/correo.ts) no
+// branch can be listed: the buyer gives their address and we choose the
+// nearest branch by hand before shipping, at the flat tariff. Same field
+// names as the branch picker's hidden ones, so the server action reads both.
+export function AddressForBranchFields({ fee, initial, onChange }: {
+  fee: number
+  initial: Partial<Record<'province' | 'city' | 'postal_code' | 'address_line_1' | 'address_line_2', string>>
+  onChange: (delivery: AddressForBranch | null) => void
+}) {
+  const { m, locale } = useI18n()
+  const t = m.store.pickup
+  const labels = m.store.mp
+  const id = useId()
+  const [values, setValues] = useState({
+    province: initial.province ?? '', city: initial.city ?? '', postal_code: initial.postal_code ?? '',
+    address_line_1: initial.address_line_1 ?? '', address_line_2: initial.address_line_2 ?? '',
+  })
+  const complete = values.province && values.city.trim().length >= 2 && values.address_line_1.trim().length >= 3 && AR_POSTAL.test(values.postal_code.replace(/\s/g, ''))
+  useEffect(() => {
+    onChange(complete ? { address: values.address_line_1.trim(), city: values.city.trim(), province: values.province, fee } : null)
+  }, [complete, values, fee, onChange])
+  const set = (field: keyof typeof values) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setValues((current) => ({ ...current, [field]: event.target.value }))
+  const money = new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(fee)
+  const input = 'mt-1 min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+  return (
+    <fieldset className="space-y-3 rounded-xl border-2 border-ink/15 bg-background p-4 text-left">
+      <legend className="px-1 text-base font-semibold">{t.addressTitle}</legend>
+      <p className="text-sm">{t.addressHelp.replace('{fee}', money)}</p>
+      <label className="block text-sm font-medium" htmlFor={`${id}-province`}>{labels.province}</label>
+      <select id={`${id}-province`} name="province" required value={values.province} onChange={set('province')} className={input}>
+        <option value="">{labels.province}…</option>
+        {provinces.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+      </select>
+      <label className="block text-sm font-medium">{labels.city}<input name="city" required autoComplete="address-level2" maxLength={100} value={values.city} onChange={set('city')} className={input} /></label>
+      <label className="block text-sm font-medium">{labels.address}<input name="address_line_1" required autoComplete="address-line1" maxLength={200} value={values.address_line_1} onChange={set('address_line_1')} className={input} /></label>
+      <label className="block text-sm font-medium">{labels.apartment}<input name="address_line_2" autoComplete="address-line2" maxLength={100} value={values.address_line_2} onChange={set('address_line_2')} className={input} /></label>
+      <label className="block text-sm font-medium">{labels.postalCode}<input name="postal_code" required autoComplete="postal-code" inputMode="text" maxLength={10} value={values.postal_code} onChange={set('postal_code')} className={input} /></label>
+      <input type="hidden" name="branch_code" value="" />
+      <input type="hidden" name="shipping_fee" value={fee} />
+    </fieldset>
+  )
+}
+
 export function CorreoBranchPicker({ plan, initialProvince = '', initialCode = '', onChange }: {
   plan?: string
   initialProvince?: string
@@ -110,12 +186,15 @@ export function CorreoBranchPicker({ plan, initialProvince = '', initialCode = '
         <button type="button" disabled={locating} onClick={useLocation} className="min-h-11 text-sm underline disabled:opacity-50">{t.location}</button>
         {locationError && <p role="status" className="text-sm">{t.locationError}</p>}
         {!available && !error && <p role="status" className="text-sm">{t.loading}</p>}
-        {error && <div role="alert" className="space-y-2 text-sm">
-          <p>{t.unavailable}</p>
+        {error && <div className="space-y-2 text-sm">
+          <p role="alert" className="font-semibold text-collage-red">{t.unavailable}</p>
           <button type="button" onClick={() => { setError(false); setRetry((n) => n + 1) }} className="min-h-11 underline">{t.retry}</button>
-          <a href={`mailto:${site.email}?subject=${encodeURIComponent('Retiro en sucursal — Mundial de Collage')}`} className="ml-4 inline-flex min-h-11 items-center underline">{t.contact}</a>
+          <ManualAddress plan={plan} province={province} />
         </div>}
-        {available && !filtered.length && <p role="status" className="text-sm">{t.empty}</p>}
+        {available && !filtered.length && <>
+          <p role="status" className="text-sm">{t.empty}</p>
+          <ManualAddress plan={plan} province={province} />
+        </>}
         <div role="radiogroup" aria-label={t.title} className="space-y-3">
           {filtered.slice(0, limit).map((branch) => {
             const distance = location && branchDistance(branch, location)
@@ -139,7 +218,7 @@ export function CorreoBranchPicker({ plan, initialProvince = '', initialCode = '
         {filtered.length > limit && <button type="button" onClick={() => setLimit((n) => n + 10)} className="min-h-11 text-sm underline">{t.more}</button>}
       </>}
       {selected && available && <p role="status" className="text-sm font-semibold">{selected.name} · {plan ? (validQuote ? `${m.store.subscriptions.shipping}: ${new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency: 'ARS' }).format(validQuote.fee)}${m.store.perMonth}` : t.loading) : t.included}</p>}
-      {selected && quoteError && <div role="alert" className="text-sm"><p>{t.unavailable}</p><button type="button" className="min-h-11 underline" onClick={() => { setQuoteError(false); setQuoteRetry((n) => n + 1) }}>{t.retry}</button> <a href={`mailto:${site.email}`} className="underline">{t.contact}</a></div>}
+      {selected && quoteError && <div className="space-y-2 text-sm"><p role="alert" className="font-semibold text-collage-red">{t.unavailable}</p><button type="button" className="min-h-11 underline" onClick={() => { setQuoteError(false); setQuoteRetry((n) => n + 1) }}>{t.retry}</button><ManualAddress plan={plan} province={province} /></div>}
       <input type="hidden" name="branch_code" value={selected?.code ?? ''} />
       <input type="hidden" name="province" value={province} />
       <input type="hidden" name="city" value={selected?.locality || selected?.city || ''} />

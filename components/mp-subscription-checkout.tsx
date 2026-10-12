@@ -4,7 +4,7 @@ import { useActionState, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { startMpSubscription, type MpSubscriptionState } from '@/app/[locale]/(site)/tienda/actions'
-import { CorreoBranchPicker, type PickupSelection } from '@/components/correo-branch-picker'
+import { CorreoBranchPicker, AddressForBranchFields, type AddressForBranch, type PickupSelection } from '@/components/correo-branch-picker'
 import { MAGAZINE_FIELDS, type MagazineField } from '@/lib/magazine'
 import { planById, type SubscriptionPlan } from '@/lib/store'
 import { LOCALE_INFO } from '@/lib/i18n/locales'
@@ -14,7 +14,10 @@ import { MpCardSubscriptionCheckout } from '@/components/mp-card-subscription-ch
 
 const initial: MpSubscriptionState = { error: null, invalid: [], values: {} }
 
-export function MpSubscriptionCheckout({ plan }: { plan: SubscriptionPlan['id'] }) {
+// `flatShippingFee`: the buyer types an address instead of picking a Correo
+// branch (we choose the nearest one), at that monthly fee, while Correo's API
+// credentials aren't set (lib/correo.ts).
+export function MpSubscriptionCheckout({ plan, flatShippingFee }: { plan: SubscriptionPlan['id']; flatShippingFee?: number }) {
   const { m, locale } = useI18n()
   const t = m.store.mp
   const p = m.store.pickup
@@ -34,13 +37,17 @@ export function MpSubscriptionCheckout({ plan }: { plan: SubscriptionPlan['id'] 
   const [shipping, setShipping] = useState<FormData | null>(null)
   const [cardResult, setCardResult] = useState<MpSubscriptionState | null>(null)
   const [pickup, setPickup] = useState<PickupSelection | null>(null)
+  const [address, setAddress] = useState<AddressForBranch | null>(null)
+  const byAddress = flatShippingFee !== undefined
+  const destinationReady = byAddress ? address !== null : pickup !== null
+  const shippingFee = byAddress ? flatShippingFee : pickup?.fee ?? 0
   const [gift, setGift] = useState(false)
   const [review, setReview] = useState<Record<string, string>>({})
   const formRef = useRef<HTMLFormElement>(null)
   const result = cardResult ?? state
   const money = (amount: number) => new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency: 'ARS' }).format(amount)
   const price = money(planById(plan)!.priceArs)
-  const total = money(planById(plan)!.priceArs + (pickup?.fee ?? 0))
+  const total = money(planById(plan)!.priceArs + shippingFee)
   const snapshot = (form: HTMLFormElement) => Object.fromEntries(Array.from(new FormData(form).entries()).map(([field, value]) => [field, String(value)]))
 
   if (shipping) return <MpCardSubscriptionCheckout plan={plan} shipping={shipping} onResult={setCardResult} onBack={() => {
@@ -60,19 +67,21 @@ export function MpSubscriptionCheckout({ plan }: { plan: SubscriptionPlan['id'] 
     <form ref={formRef} action={action} onSubmit={(event) => {
       if (step < 2) {
         event.preventDefault()
-        if (step === 0 && pickup) setStep(1)
+        if (step === 0 && destinationReady) setStep(1)
         if (step === 1) { setReview(snapshot(event.currentTarget)); setStep(2) }
         return
       }
-      if (!pickup) { event.preventDefault(); setStep(0); return }
+      if (!destinationReady) { event.preventDefault(); setStep(0); return }
       setCardResult(null)
       if (method === 'card') { event.preventDefault(); setShipping(new FormData(event.currentTarget)) }
     }} className="space-y-5 text-left">
       <ol aria-label={p.review} className="grid grid-cols-3 gap-2 border-b pb-4 text-xs sm:text-sm">
-        {[p.title, t.details, p.review].map((label, i) => <li key={label} aria-current={step === i ? 'step' : undefined} className={step === i ? 'font-semibold text-collage-blue' : 'text-muted-foreground'}>{i + 1}. {label}</li>)}
+        {[byAddress ? p.addressTitle : p.title, t.details, p.review].map((label, i) => <li key={label} aria-current={step === i ? 'step' : undefined} className={step === i ? 'font-semibold text-collage-blue' : 'text-muted-foreground'}>{i + 1}. {label}</li>)}
       </ol>
       <div className={step === 0 ? '' : 'hidden'}>
-        <CorreoBranchPicker key={pickerVersion} plan={plan} initialProvince={result.values.province || review.province} initialCode={result.values.branch_code || review.branch_code} onChange={setPickup} />
+        {byAddress
+          ? <AddressForBranchFields key={pickerVersion} fee={flatShippingFee} initial={{ ...review, ...result.values }} onChange={setAddress} />
+          : <CorreoBranchPicker key={pickerVersion} plan={plan} initialProvince={result.values.province || review.province} initialCode={result.values.branch_code || review.branch_code} onChange={setPickup} />}
       </div>
       <div className={step === 1 ? 'space-y-3' : 'hidden'}>
         {field('name', t.name, { required: step > 0, autoComplete: 'name', maxLength: 120 })}
@@ -92,9 +101,11 @@ export function MpSubscriptionCheckout({ plan }: { plan: SubscriptionPlan['id'] 
       {step === 2 && <section aria-label={p.review} className="space-y-3 rounded-xl border p-4">
         <p className="font-semibold">{p.review}</p>
         <p>{m.store.plans[plan].name} · {price}{m.store.perMonth}</p>
-        <p className="text-sm">{p.mode}: {pickup?.branch.name}<br />{pickup?.branch.address} · {pickup?.branch.locality || pickup?.branch.city}</p>
+        {byAddress
+          ? <p className="text-sm">{p.addressMode}: {address?.address}<br />{address?.city}, {address?.province}</p>
+          : <p className="text-sm">{p.mode}: {pickup?.branch.name}<br />{pickup?.branch.address} · {pickup?.branch.locality || pickup?.branch.city}</p>}
         <p className="text-sm">{review.recipient_name || review.name}<br />{review.email} · {review.phone}</p>
-        <p className="text-sm font-semibold">{m.store.subscriptions.shipping}: {money(pickup?.fee ?? 0)}{m.store.perMonth}</p>
+        <p className="text-sm font-semibold">{m.store.subscriptions.shipping}: {money(shippingFee)}{m.store.perMonth}</p>
         <p className="border-t pt-3 font-semibold">{p.total}: {total}</p>
         <p className="text-xs text-muted-foreground">{p.recurring}</p>
         <p className="text-xs text-muted-foreground">{p.readyHelp}</p>
@@ -102,7 +113,7 @@ export function MpSubscriptionCheckout({ plan }: { plan: SubscriptionPlan['id'] 
       <input name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       {result.error && <p role="alert" className="text-sm text-collage-red">{(result.invalid.includes('branch_code') || result.invalid.includes('shipping_fee')) ? p.changed : t.errors[result.error]}</p>}
       {step > 0 && <button type="button" disabled={pending} onClick={() => { if (formRef.current) setReview(snapshot(formRef.current)); if (step === 1) setPickerVersion((version) => version + 1); setStep((n) => n - 1) }} className="min-h-11 w-full text-center text-sm underline">{p.back}</button>}
-      <Button type="submit" size="lg" disabled={pending || !pickup} className="min-h-12 w-full">
+      <Button type="submit" size="lg" disabled={pending || !destinationReady} className="min-h-12 w-full">
         {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
         {step < 2 ? p.next : method === 'card' ? t.card.continue : t.submit}
       </Button>

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), redirect: vi.fn(), track: vi.fn(), record: vi.fn(), sync: vi.fn(), resolve: vi.fn(), quote: vi.fn() }))
-vi.mock('@/lib/correo', () => ({ resolvePickup: mocks.resolve, quoteSubscriptionShipping: mocks.quote }))
+const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), redirect: vi.fn(), track: vi.fn(), record: vi.fn(), sync: vi.fn(), resolve: vi.fn(), quote: vi.fn(), configured: vi.fn(), insert: vi.fn() }))
+vi.mock('@/lib/correo', () => ({ resolvePickup: mocks.resolve, quoteSubscriptionShipping: mocks.quote, correoConfigured: mocks.configured, flatShippingFee: () => 7000 }))
 vi.mock('@/lib/customer-payment-errors', () => ({ recordCustomerPaymentError: mocks.record }))
 vi.mock('@/lib/mp-subscriptions', () => ({ syncPreapprovalById: mocks.sync }))
 vi.mock('next/navigation', () => ({ redirect: mocks.redirect }))
@@ -12,7 +12,7 @@ vi.mock('@/lib/payments/customers', () => ({ upsertCustomer: async () => 'custom
 vi.mock('@/lib/track-server', () => ({ trackServer: mocks.track }))
 vi.mock('@/lib/magazine', () => ({ MAGAZINE_FIELDS: [], parseMagazineOrder: () => ({ ok: true, order: { email: 'buyer@example.com', name: 'Buyer', phone: '123', shipping: { city: 'City', province: 'Province', postal_code: '1234', address_line_1: 'Street' } } }) }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ from: () => ({
-  insert: () => ({ select: () => ({ single: async () => ({ data: { id: 'subscription' }, error: null }) }) }),
+  insert: (row: unknown) => { mocks.insert(row); return { select: () => ({ single: async () => ({ data: { id: 'subscription' }, error: null }) }) } },
   update: mocks.update,
 }) }) }))
 import { startMpSubscription } from './actions'
@@ -26,6 +26,7 @@ beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_MP_PUBLIC_KEY', 'public-key')
   mocks.resolve.mockResolvedValue({ code: 'B0107', name: 'Monte Grande', address: 'Vicente López 448', city: 'Esteban Echeverría', locality: 'Monte Grande', postalCode: '1842' })
   mocks.quote.mockResolvedValue(4200)
+  mocks.configured.mockReturnValue(true)
   mocks.sync.mockResolvedValue('active')
   vi.spyOn(console, 'error').mockImplementation(() => {})
   mocks.update.mockImplementation(() => ({ eq: async () => ({ error: null }) }))
@@ -104,6 +105,17 @@ describe('branch and tariff validation', () => {
     mocks.resolve.mockResolvedValue(null)
     expect(await startMpSubscription('inicial', initial, checkoutForm())).toMatchObject({ invalid: ['branch_code'] })
     expect(mocks.create).not.toHaveBeenCalled()
+  })
+  it('takes an address at the flat fee while Correo is not set up, for us to choose the branch', async () => {
+    mocks.configured.mockReturnValue(false)
+    mocks.create.mockResolvedValue({ id: 'mp-id', init_point: 'https://checkout.example.com' })
+    const form = new FormData(); form.set('shipping_fee', '7000')
+    await startMpSubscription('inicial', initial, form)
+    expect(mocks.resolve).not.toHaveBeenCalled()
+    expect(mocks.insert).toHaveBeenCalledWith(expect.objectContaining({ shipping_address: expect.objectContaining({ branch_to_choose: true, shipping_fee: 7000, billing_amount: 22000 }) }))
+    expect(mocks.redirect).toHaveBeenCalledWith('https://checkout.example.com')
+    form.set('shipping_fee', '4200')
+    expect(await startMpSubscription('inicial', initial, form)).toMatchObject({ invalid: ['shipping_fee'] })
   })
   it('requires a new review if the shipping amount was altered or changed', async () => {
     const form = checkoutForm(); form.set('shipping_fee', '1')

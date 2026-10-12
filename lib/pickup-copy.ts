@@ -33,7 +33,15 @@ const es = {
   "total": "Total mensual a autorizar",
   "recurring": "Cobro automático mensual de este total, con envío incluido. La sucursal se usa para los próximos envíos; para cambiarla, respondé el email de confirmación antes del despacho.",
   "readyHelp": "Te avisaremos cuando lo despachemos. Consultá el seguimiento y esperá la confirmación de llegada antes de ir a retirar.",
-  "changed": "La sucursal o la tarifa cambió. Volvé a elegir y revisá el resumen antes de pagar."
+  "changed": "La sucursal o la tarifa cambió. Volvé a elegir y revisá el resumen antes de pagar.",
+  "manualTitle": "¿No encontrás tu sucursal? Escribinos tu dirección y coordinamos el envío.",
+  "manualLabel": "Tu dirección (calle, número, localidad y código postal)",
+  "manualSend": "Enviarla por email",
+  "manualHelp": "Se abre tu app de correo con el plan y la dirección ya escritos.",
+  "manualSubject": "Membresía {plan}: envío a mi dirección",
+  "addressTitle": "Tu dirección",
+  "addressMode": "Retiro en la sucursal de Correo Argentino más cercana a tu dirección",
+  "addressHelp": "Poné tu dirección y elegimos la sucursal de Correo Argentino más cercana: te avisamos cuál es cuando lo despachemos. Envío: {fee} por mes, incluido en el cobro mensual."
 }
 const en: typeof es = {
   "title": "Choose a pickup branch",
@@ -68,7 +76,15 @@ const en: typeof es = {
   "total": "Monthly total to authorize",
   "recurring": "Automatic monthly payment of this total, including shipping. This branch is used for future deliveries; to change it, reply to the confirmation email before dispatch.",
   "readyHelp": "We will email you when it ships. Check tracking and wait for arrival confirmation before going to collect it.",
-  "changed": "The branch or rate changed. Choose again and review before paying."
+  "changed": "The branch or rate changed. Choose again and review before paying.",
+  "manualTitle": "Can't find your branch? Send us your address and we'll arrange delivery.",
+  "manualLabel": "Your address (street, number, town and postal code)",
+  "manualSend": "Send it by email",
+  "manualHelp": "Your mail app opens with the plan and the address already written.",
+  "manualSubject": "{plan} membership: delivery to my address",
+  "addressTitle": "Your address",
+  "addressMode": "Pickup at the Correo Argentino branch nearest your address",
+  "addressHelp": "Enter your address and we'll choose the nearest Correo Argentino branch: we'll tell you which one when we ship it. Shipping: {fee} a month, included in the monthly charge."
 }
 
 // International visitors retain an English fallback for the Argentina-only pickup flow.

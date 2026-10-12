@@ -145,6 +145,7 @@ export const STORE_ENTRY_EVENTS = [
   { name: 'store_click_header', label: 'Fueron a la tienda desde el encabezado' },
   { name: 'store_click_tabbar', label: 'Fueron a la tienda desde la barra de abajo del celular' },
   { name: 'store_click_artwork', label: 'Fueron a la tienda desde la página de una obra' },
+  { name: 'store_click_confirmation', label: 'Fueron a la tienda después de inscribirse' },
   { name: 'store_from_email', label: 'Llegaron a la tienda desde el mail diario' },
 ] as const
 
@@ -155,6 +156,9 @@ export const WAITLIST_EVENTS = [
   { name: 'waitlist_signup_tienda', label: 'Dejaron su mail en la tienda' },
   { name: 'waitlist_signup_galeria', label: 'Pidieron el aviso después de un like o comentario' },
   { name: 'waitlist_signup_revista', label: 'Pidieron el aviso de la preventa de la revista' },
+  { name: 'waitlist_signup_plan_inicial', label: 'Pidieron «Avisame cuando abra» en el plan Inicial' },
+  { name: 'waitlist_signup_plan_miembro', label: 'Pidieron «Avisame cuando abra» en el plan Miembro' },
+  { name: 'waitlist_signup_plan_socio_premium', label: 'Pidieron «Avisame cuando abra» en el plan Socio Premium' },
 ] as const
 
 // Preventa de la Revista 1ª Edición (app/revista), from the page to a
