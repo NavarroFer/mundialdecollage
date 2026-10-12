@@ -576,6 +576,8 @@ const pl: Messages = {
       openTap: 'Dotknij pracy albo podejdź i dotknij „Zobacz pracę”.',
       done: 'Gotowe! Już wiesz, jak zwiedzać galerię.',
       skip: 'Pomiń',
+      touchMove: 'Przeciągnij tutaj, aby iść',
+      touchLook: 'Przeciągnij tutaj, aby się rozejrzeć',
       replay: 'Zobacz samouczek ponownie',
       helpKey: 'Naciśnij H, aby zobaczyć go ponownie.',
       helpMenu: 'Zobaczysz go ponownie w Opcjach.',

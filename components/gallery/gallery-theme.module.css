@@ -330,6 +330,14 @@
 .moveStick { left: 12%; bottom: 8%; }
 .lookStick { right: 12%; bottom: 8%; opacity: .72; }
 
+/* First visit on a phone: a finger dragging over each stick, for a moment. */
+.touchHintMove { left: 12%; bottom: 8%; }
+.touchHintLook { right: 12%; bottom: 8%; }
+.touchHintFinger { animation: gallery-hint-walk 1.2s ease-in-out infinite; }
+.touchHintFingerLook { animation: gallery-hint-look 1.2s ease-in-out infinite; }
+@keyframes gallery-hint-walk { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -22px); } }
+@keyframes gallery-hint-look { 0%, 100% { transform: translate(-16px, 0); } 50% { transform: translate(16px, 0); } }
+
 .orientationPrompt {
   position: absolute;
   inset: 0;
@@ -364,11 +372,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .orientationPhone { animation: none; transform: rotate(-90deg); }
+  .touchHintFinger, .touchHintFingerLook { animation: none; }
 }
 
 @media (pointer: coarse) and (orientation: landscape) {
-  .moveStick { left: 7%; bottom: 7%; }
-  .lookStick { right: 7%; bottom: 7%; }
+  .moveStick, .touchHintMove { left: 7%; bottom: 7%; }
+  .lookStick, .touchHintLook { right: 7%; bottom: 7%; }
 }
 
 .tutorialKey {

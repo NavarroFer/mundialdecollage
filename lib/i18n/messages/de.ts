@@ -554,6 +554,8 @@ const de: Messages = {
       openTap: 'Tipp auf ein Werk, oder geh hin und tippe auf „Werk ansehen“.',
       done: 'Fertig! Jetzt weißt du, wie du dich in der Galerie bewegst.',
       skip: 'Überspringen',
+      touchMove: 'Hier ziehen zum Gehen',
+      touchLook: 'Hier ziehen zum Umsehen',
       replay: 'Tutorial noch einmal ansehen',
       helpKey: 'Drück H, um es noch einmal zu sehen.',
       helpMenu: 'Du findest es wieder unter Optionen.',

@@ -5,7 +5,8 @@ import { useInteractionStore } from '../interaction/store'
 import { useNavigationStore } from '../navigation/store'
 import { useWallStore } from '../wall/store'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Pointer } from 'lucide-react'
 import { interact } from '../interaction/interact'
 import { useTouchStore } from './touchStore'
 import type { GalleryTheme } from '../themes'
@@ -16,6 +17,8 @@ const JOYSTICK_RADIUS = 55
 const TAP_PX = 8
 const TAP_MS = 600
 const STICK_MARGIN_PX = 24
+const HINT_KEY = 'mdc-gallery-touch-hint-seen'
+const HINT_MS = 3000
 
 type Vec2 = { x: number; y: number }
 
@@ -41,18 +44,24 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
     // The look finger, while it could still be a tap on the floor or an obra.
     let tap: { x: number; y: number; at: number } | null = null
 
-    // The joystick is its own circle (and a thumb's width around it): the
-    // rest of the lower left is floor to tap.
-    function isMoveZone(x: number, y: number) {
+    // A thumb on the joystick's circle (and a thumb's width around it)
+    // walks from the stick's center, as before. Anywhere else in the lower
+    // left quarter it walks too, from where it landed: thumbs missed the
+    // small circle. A quick tap there still walks to the floor point.
+    function isStick(x: number, y: number) {
       const stick = layer!.querySelector('[data-move-stick]')?.getBoundingClientRect()
       if (!stick) return false
       return x >= stick.left - STICK_MARGIN_PX && x <= stick.right + STICK_MARGIN_PX && y >= stick.top - STICK_MARGIN_PX && y <= stick.bottom + STICK_MARGIN_PX
     }
+    const isLowerLeft = (x: number, y: number) => x < window.innerWidth / 2 && y > window.innerHeight / 2
+    // The walk finger, while it landed off the stick and could still be a tap.
+    let moveTap: { x: number; y: number; at: number } | null = null
 
     function onTouchStart(event: TouchEvent) {
       for (const touch of Array.from(event.changedTouches)) {
-        if (joystickTouchId.current === null && isMoveZone(touch.clientX, touch.clientY)) {
+        if (joystickTouchId.current === null && isStick(touch.clientX, touch.clientY)) {
           joystickTouchId.current = touch.identifier
+          moveTap = null
           // The stick remains visibly anchored on screen. Its knob follows the
           // finger from the moment it lands, like a conventional gamepad.
           const landscape = window.matchMedia('(orientation: landscape)').matches
@@ -62,6 +71,11 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
             x: window.innerWidth * horizontalInset + JOYSTICK_RADIUS,
             y: window.innerHeight * (1 - verticalInset) - JOYSTICK_RADIUS,
           }
+          setMoveKnobOffset({ x: 0, y: 0 })
+        } else if (joystickTouchId.current === null && isLowerLeft(touch.clientX, touch.clientY)) {
+          joystickTouchId.current = touch.identifier
+          joystickOriginPoint.current = { x: touch.clientX, y: touch.clientY }
+          moveTap = event.touches.length > 1 ? null : { x: touch.clientX, y: touch.clientY, at: performance.now() }
           setMoveKnobOffset({ x: 0, y: 0 })
         } else if (lookTouchId.current === null && joystickTouchId.current !== touch.identifier) {
           // A second finger down means a gesture, not a tap.
@@ -78,6 +92,10 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
       for (const touch of Array.from(event.changedTouches)) {
         if (touch.identifier === joystickTouchId.current && joystickOriginPoint.current) {
           handled = true
+          if (moveTap) {
+            if (Math.hypot(touch.clientX - moveTap.x, touch.clientY - moveTap.y) <= TAP_PX) continue
+            moveTap = null
+          }
           const origin = joystickOriginPoint.current
           const dx = touch.clientX - origin.x
           const dy = touch.clientY - origin.y
@@ -108,6 +126,8 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
     function onTouchEnd(event: TouchEvent) {
       for (const touch of Array.from(event.changedTouches)) {
         if (touch.identifier === joystickTouchId.current) {
+          if (event.type === 'touchend' && moveTap && performance.now() - moveTap.at < TAP_MS) useNavigationStore.getState().requestPoint(touch.clientX, touch.clientY)
+          moveTap = null
           joystickTouchId.current = null
           joystickOriginPoint.current = null
           setMoveKnobOffset({ x: 0, y: 0 })
@@ -138,6 +158,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
     <div ref={layerRef} className="absolute inset-0 z-20" style={{ touchAction: 'none' }}>
       <VirtualStick move className={styles.moveStick} offset={moveKnobOffset} />
       <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
+      <TouchHint />
 
       {(targetId || aimingAtWall) && <button
         type="button"
@@ -160,6 +181,52 @@ function VirtualStick({ className, offset, move = false }: { className: string; 
         className="absolute h-12 w-12 rounded-full border border-ink/15 bg-paper/70 shadow-sm transition-transform duration-75"
         style={{ left: 32 + offset.x, top: 32 + offset.y }}
       />
+    </div>
+  )
+}
+
+function hintSeen() {
+  try {
+    return window.localStorage.getItem(HINT_KEY) === '1'
+  } catch {
+    return true
+  }
+}
+
+const noSubscription = () => () => {}
+
+// The first time on a phone, for HINT_MS: which thumb walks and which looks,
+// with a finger dragging over each stick. Marked as seen once it has been
+// on screen the whole time, so leaving right away shows it again next visit.
+function TouchHint() {
+  const { m } = useI18n()
+  const firstVisit = useSyncExternalStore(noSubscription, () => !hintSeen(), () => false)
+  const [done, setDone] = useState(false)
+  const visible = firstVisit && !done
+  useEffect(() => {
+    if (!visible) return
+    const timer = setTimeout(() => {
+      try {
+        window.localStorage.setItem(HINT_KEY, '1')
+      } catch {}
+      setDone(true)
+    }, HINT_MS)
+    return () => clearTimeout(timer)
+  }, [visible])
+  if (!visible) return null
+  return (
+    <div className="animate-in fade-in pointer-events-none absolute inset-0 z-30 duration-300 motion-reduce:animate-none" role="status">
+      <HintBubble className={styles.touchHintMove} finger={styles.touchHintFinger} label={m.gallery.tutorial.touchMove} />
+      <HintBubble className={styles.touchHintLook} finger={styles.touchHintFingerLook} label={m.gallery.tutorial.touchLook} />
+    </div>
+  )
+}
+
+function HintBubble({ className, finger, label }: { className: string; finger: string; label: string }) {
+  return (
+    <div className={`${className} absolute flex h-28 w-28 items-center justify-center rounded-full border-2 border-paper bg-paper/25`}>
+      <span className="absolute bottom-full mb-3 w-36 rounded-2xl bg-ink px-3 py-1.5 text-center text-sm leading-tight font-semibold text-paper shadow-md">{label}</span>
+      <Pointer className={`${finger} size-10 text-paper drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]`} aria-hidden="true" />
     </div>
   )
 }

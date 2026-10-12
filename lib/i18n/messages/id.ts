@@ -551,6 +551,8 @@ const id: Messages = {
       openTap: 'Ketuk sebuah karya, atau dekati lalu ketuk “Lihat karya”.',
       done: 'Selesai! Sekarang Anda tahu cara menjelajahi galeri.',
       skip: 'Lewati',
+      touchMove: 'Geser di sini untuk berjalan',
+      touchLook: 'Geser di sini untuk melihat',
       replay: 'Lihat tutorial lagi',
       helpKey: 'Tekan H untuk melihatnya lagi.',
       helpMenu: 'Anda bisa melihatnya lagi di Opsi.',

@@ -558,6 +558,8 @@ const es = {
       openTap: 'Tocá una obra, o acercate y tocá «Ver obra».',
       done: '¡Listo! Ya sabés recorrer la galería.',
       skip: 'Saltar',
+      touchMove: 'Arrastrá acá para caminar',
+      touchLook: 'Arrastrá acá para mirar',
       replay: 'Ver el tutorial de nuevo',
       helpKey: 'Apretá H para volver a verlo.',
       helpMenu: 'Lo volvés a ver en Opciones.',

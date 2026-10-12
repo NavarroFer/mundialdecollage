@@ -554,6 +554,8 @@ const it: Messages = {
       openTap: "Tocca un'opera, o avvicinati e tocca «Vedi opera».",
       done: 'Fatto! Ora sai come muoverti nella galleria.',
       skip: 'Salta',
+      touchMove: 'Trascina qui per camminare',
+      touchLook: 'Trascina qui per guardarti intorno',
       replay: 'Rivedi il tutorial',
       helpKey: 'Premi H per rivederlo.',
       helpMenu: 'Puoi rivederlo in Opzioni.',

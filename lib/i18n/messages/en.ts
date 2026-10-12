@@ -555,6 +555,8 @@ const en: Messages = {
       openTap: 'Tap an artwork, or go up to it and tap “View artwork”.',
       done: 'Done! Now you know how to get around the gallery.',
       skip: 'Skip',
+      touchMove: 'Drag here to walk',
+      touchLook: 'Drag here to look around',
       replay: 'Watch the tutorial again',
       helpKey: 'Press H to see it again.',
       helpMenu: 'You can see it again in Options.',
