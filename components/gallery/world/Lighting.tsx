@@ -1,6 +1,9 @@
 const WARM_WHITE = '#fff3df'
 
 import type { GalleryTheme } from '../themes'
+import { rooms } from './roomsData'
+
+const ROOM_CENTERS = rooms.map(({ bounds }) => (bounds[0] + bounds[2]) / 2)
 
 export function Lighting({ theme }: { theme: GalleryTheme }) {
   if (theme === 'windows98') {
@@ -34,7 +37,7 @@ export function Lighting({ theme }: { theme: GalleryTheme }) {
       {/* Two wall washes per room keep both rows of artwork bright while the
           center stays calmer. These don't cast shadows, keeping the six-light
           setup inexpensive on mobile GPUs. */}
-      {[-12, 0, 12].flatMap((x) => [-3.25, 3.25].map((z) => (
+      {ROOM_CENTERS.flatMap((x) => [-3.25, 3.25].map((z) => (
         <pointLight
           key={`${x}-${z}`}
           position={[x, 2.85, z]}

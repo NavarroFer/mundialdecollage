@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { GARDEN_FLOWERS } from '../world/roomsData'
+import { DOOR_WIDTH, GARDEN_FLOWERS, doorways } from '../world/roomsData'
 import { findWalkPath, viewingSpot, walkable, type Point } from './path'
+
+// The hall's doorway into Room 1.
+const [doorX, , doorZ] = doorways.find(({ id }) => id === 'door-1-2')!.center
 
 // Every leg of a route stays on walkable floor.
 function legsAreClear(from: Point, route: Point[]) {
@@ -16,8 +19,8 @@ function legsAreClear(from: Point, route: Point[]) {
 describe('walkable', () => {
   it('keeps the player off walls, out of the gallery edge and away from garden flowers', () => {
     expect(walkable({ x: 0, z: 0 })).toBe(true)
-    expect(walkable({ x: -6, z: 3 })).toBe(false)
-    expect(walkable({ x: -6, z: 0 })).toBe(true)
+    expect(walkable({ x: doorX, z: doorZ + DOOR_WIDTH })).toBe(false)
+    expect(walkable({ x: doorX, z: doorZ })).toBe(true)
     expect(walkable({ x: 0, z: -4.8 })).toBe(false)
     expect(walkable({ x: 20, z: 0 })).toBe(false)
     expect(walkable({ x: Number.NaN, z: 0 })).toBe(false)
@@ -34,10 +37,10 @@ describe('findWalkPath', () => {
 
   it('goes through the doorway to reach the next room', () => {
     const from = { x: 0, z: 3.5 }
-    const route = findWalkPath(from, { x: -12, z: 3.5 })
+    const route = findWalkPath(from, { x: -15, z: 3.5 })
     expect(route).not.toBeNull()
-    expect(route!.at(-1)).toEqual({ x: -12, z: 3.5 })
-    expect(route!.some((point) => Math.abs(point.z) < 1.2 && point.x > -7 && point.x < -5)).toBe(true)
+    expect(route!.at(-1)).toEqual({ x: -15, z: 3.5 })
+    expect(route!.some((point) => Math.abs(point.z - doorZ) < DOOR_WIDTH / 2 && Math.abs(point.x - doorX) < 1)).toBe(true)
     expect(legsAreClear(from, route!)).toBe(true)
   })
 

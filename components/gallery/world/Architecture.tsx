@@ -5,10 +5,11 @@ import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { galleryThemes, type GalleryTheme, type GalleryThemeDefinition } from '../themes'
 import { skyTexture } from './architectureTextures'
-import { DOOR_HEIGHT, DOOR_WIDTH, SKYLIGHT, WALL_HEIGHT, WALL_THICKNESS, doorways, rooms } from './roomsData'
+import { DOOR_HEIGHT, DOOR_WIDTH, SKYLIGHT, WALL_HEIGHT, WALL_THICKNESS, doorways, rooms, skylightOf, walls } from './roomsData'
 
 // Classical museum trim (cornice with dentils, picture rail, chair rail over
-// wainscot panels, door casings) and, when a theme turns it on, a glass
+// wainscot panels, door casings, a cap on each free-standing panel) and,
+// when a theme turns it on, a glass
 // ceiling in every room. It's
 // decoration only, so it lives outside the physics colliders, and each
 // material's pieces are merged into one mesh: a handful of draw calls total.
@@ -23,6 +24,7 @@ const CASING = 0.14
 // Low enough to clear the name label under the tallest frames.
 const CHAIR_RAIL = 0.4
 const DOOR_HALF = DOOR_WIDTH / 2
+const PANEL_CAP = 0.05
 
 function roomSides([minX, minZ, maxX, maxZ]: [number, number, number, number]): Side[] {
   return [
@@ -116,6 +118,9 @@ function buildMolding() {
     }
   }
   for (const door of doorways) doorCasing(b, door.center)
+  for (const { position, size, freestanding } of walls) {
+    if (freestanding) b.box([position[0], size[1] + PANEL_CAP / 2, position[2]], [size[0] + PANEL_CAP, PANEL_CAP, size[2] + PANEL_CAP])
+  }
   return b.merge()
 }
 
@@ -157,37 +162,38 @@ function buildSkylights() {
   const glass: THREE.BufferGeometry[] = []
   const fixtures: THREE.BufferGeometry[] = []
   const lenses: THREE.BufferGeometry[] = []
-  const { width, depth, well: rise } = SKYLIGHT
+  const rise = SKYLIGHT.well
   const glassY = WALL_HEIGHT + rise
 
   for (const room of rooms) {
-    const cx = (room.bounds[0] + room.bounds[2]) / 2
+    const [x0, z0, x1, z1] = skylightOf(room)
+    const [cx, cz, width, depth] = [(x0 + x1) / 2, (z0 + z1) / 2, x1 - x0, z1 - z0]
     // A deep frame around the opening, hanging just below the ceiling.
     const t = 0.18
-    trim.box([cx, WALL_HEIGHT - 0.06, -depth / 2 - t / 2], [width + t * 2, 0.12, t])
-    trim.box([cx, WALL_HEIGHT - 0.06, depth / 2 + t / 2], [width + t * 2, 0.12, t])
-    trim.box([cx - width / 2 - t / 2, WALL_HEIGHT - 0.06, 0], [t, 0.12, depth])
-    trim.box([cx + width / 2 + t / 2, WALL_HEIGHT - 0.06, 0], [t, 0.12, depth])
+    trim.box([cx, WALL_HEIGHT - 0.06, z0 - t / 2], [width + t * 2, 0.12, t])
+    trim.box([cx, WALL_HEIGHT - 0.06, z1 + t / 2], [width + t * 2, 0.12, t])
+    trim.box([x0 - t / 2, WALL_HEIGHT - 0.06, cz], [t, 0.12, depth])
+    trim.box([x1 + t / 2, WALL_HEIGHT - 0.06, cz], [t, 0.12, depth])
     // The shaft up to the glass.
-    well.box([cx, WALL_HEIGHT + rise / 2, -depth / 2 - 0.01], [width, rise, 0.02])
-    well.box([cx, WALL_HEIGHT + rise / 2, depth / 2 + 0.01], [width, rise, 0.02])
-    well.box([cx - width / 2 - 0.01, WALL_HEIGHT + rise / 2, 0], [0.02, rise, depth])
-    well.box([cx + width / 2 + 0.01, WALL_HEIGHT + rise / 2, 0], [0.02, rise, depth])
+    well.box([cx, WALL_HEIGHT + rise / 2, z0 - 0.01], [width, rise, 0.02])
+    well.box([cx, WALL_HEIGHT + rise / 2, z1 + 0.01], [width, rise, 0.02])
+    well.box([x0 - 0.01, WALL_HEIGHT + rise / 2, cz], [0.02, rise, depth])
+    well.box([x1 + 0.01, WALL_HEIGHT + rise / 2, cz], [0.02, rise, depth])
 
     const pane = new THREE.PlaneGeometry(width, depth)
     pane.rotateX(Math.PI / 2)
-    pane.translate(cx, glassY, 0)
+    pane.translate(cx, glassY, cz)
     glass.push(pane)
 
     // Muntins every ~0.95 m, like the grid of a real skylight.
     const columns = Math.round(width / 0.95)
     const rows = Math.round(depth / 0.95)
-    for (let i = 1; i < columns; i++) mullions.box([cx - width / 2 + (i * width) / columns, glassY - 0.03, 0], [0.035, 0.06, depth])
-    for (let j = 1; j < rows; j++) mullions.box([cx, glassY - 0.03, -depth / 2 + (j * depth) / rows], [width, 0.06, 0.035])
+    for (let i = 1; i < columns; i++) mullions.box([x0 + (i * width) / columns, glassY - 0.03, cz], [0.035, 0.06, depth])
+    for (let j = 1; j < rows; j++) mullions.box([cx, glassY - 0.03, z0 + (j * depth) / rows], [width, 0.06, 0.035])
 
     // Two tracks of spotlights along the glass, aimed at the long walls.
     for (const side of [-1, 1]) {
-      const z = side * (depth / 2 - 0.55)
+      const z = cz + side * (depth / 2 - 0.55)
       const rail = new THREE.BoxGeometry(width - 0.6, 0.035, 0.05)
       rail.translate(cx, glassY - 0.1, z)
       fixtures.push(rail)

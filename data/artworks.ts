@@ -1,3 +1,5 @@
+import { walls } from '@/components/gallery/world/roomsData'
+
 export type Artwork = {
   id: string
   title: string
@@ -24,19 +26,6 @@ export type GallerySlot = {
   height: number
 }
 
-const NORTH_Z = -4.9
-const SOUTH_Z = 4.9
-const EAST_X = 17.9
-const FIRST_DIVIDER_WEST_X = -6.1
-const FIRST_DIVIDER_EAST_X = -5.9
-const SECOND_DIVIDER_WEST_X = 5.9
-const SECOND_DIVIDER_EAST_X = 6.1
-const DOOR_HALF_WIDTH = 1.2
-const NORTH_ROTATION: [number, number, number] = [0, 0, 0]
-const SOUTH_ROTATION: [number, number, number] = [0, Math.PI, 0]
-const WEST_ROTATION: [number, number, number] = [0, Math.PI / 2, 0]
-const EAST_ROTATION: [number, number, number] = [0, -Math.PI / 2, 0]
-
 // Cycled per slot so neighboring pieces don't all read the same size —
 // the real image still keeps its own aspect ratio inside this box (see
 // Artwork.tsx's contain-fit).
@@ -46,16 +35,41 @@ const SIZE_PRESETS: Array<[number, number]> = [
   [1.9, 1.9],
 ]
 
-function wallSlotsAlongX(
-  roomId: string,
-  xFrom: number,
-  xTo: number,
-  z: number,
-  rotation: [number, number, number],
-  count: number,
-  presetOffset: number,
-): GallerySlot[] {
-  const baseY = 1.85
+const BASE_Y = 1.85
+
+/** The way a hung obra looks out from its wall; north is -z, east is +x. */
+type Facing = 'north' | 'south' | 'east' | 'west'
+
+const FACING_ROTATION: Record<Facing, number> = {
+  south: 0,
+  north: Math.PI,
+  east: Math.PI / 2,
+  west: -Math.PI / 2,
+}
+
+/** A row of obras on one face of a wall or panel from roomsData. */
+type Hanging = {
+  roomId: string
+  wall: string
+  facing: Facing
+  count: number
+  presetOffset: number
+  /** Only this stretch along the wall; the whole wall by default. */
+  span?: [number, number]
+}
+
+// The slot positions come from the wall itself, so moving a wall or a panel
+// in roomsData moves its obras with it.
+export function hang({ roomId, wall: wallId, facing, count, presetOffset, span }: Hanging): GallerySlot[] {
+  const wall = walls.find((candidate) => candidate.id === wallId)
+  if (!wall) throw new Error(`Unknown wall ${wallId}`)
+  const runsAlongX = wall.size[0] > wall.size[2]
+  if (runsAlongX !== (facing === 'north' || facing === 'south')) throw new Error(`${wallId} has no ${facing} face`)
+  const along = runsAlongX ? 0 : 2
+  const across = runsAlongX ? 2 : 0
+  const [from, to] = span ?? [wall.position[along] - wall.size[along] / 2, wall.position[along] + wall.size[along] / 2]
+  const face = wall.position[across] + (facing === 'south' || facing === 'east' ? 1 : -1) * (wall.size[across] / 2)
+
   const sizes = Array.from(
     { length: count },
     (_, i) => SIZE_PRESETS[(presetOffset + i) % SIZE_PRESETS.length],
@@ -64,56 +78,47 @@ function wallSlotsAlongX(
   // Divide every bit of empty wall into equal gaps, including the space at
   // both ends. Using the frame widths (rather than equally spaced centers)
   // keeps mixed portrait/landscape presets visually equidistant.
-  const gap = (xTo - xFrom - occupiedWidth) / (count + 1)
-  let cursor = xFrom + gap
+  const gap = (to - from - occupiedWidth) / (count + 1)
+  let cursor = from + gap
 
   return sizes.map(([width, height]) => {
-    const x = cursor + width / 2
+    const center = cursor + width / 2
     cursor += width + gap
     return {
       roomId,
-      position: [x, baseY, z],
-      rotation,
+      position: runsAlongX ? [center, BASE_Y, face] : [face, BASE_Y, center],
+      rotation: [0, FACING_ROTATION[facing], 0],
       width,
       height,
     }
   })
 }
 
-function wallSlotsAlongZ(
-  roomId: string,
-  zFrom: number,
-  zTo: number,
-  x: number,
-  rotation: [number, number, number],
-  count: number,
-  presetOffset: number,
-): GallerySlot[] {
-  return wallSlotsAlongX(roomId, zFrom, zTo, x, rotation, count, presetOffset)
-    .map((slot) => ({
-      ...slot,
-      position: [x, slot.position[1], slot.position[0]],
-    }))
-}
+// 20 spots (5 / 8 / 7 per room), the number ensure_exhibition_today fills
+// each day. Room 1's west wall is the collective collage
+// (components/gallery/wall), so it hangs on its long walls and both faces of
+// its panel. The hall, the widest room, takes the most. Room 3 hangs one per
+// face around its bays. Blank stretches are left on purpose where a frame
+// would crowd a doorway or a panel's end.
+export const HANGINGS: Hanging[] = [
+  { roomId: 'room-01', wall: 'r1-north', facing: 'south', count: 2, presetOffset: 0 },
+  { roomId: 'room-01', wall: 'r1-south', facing: 'north', count: 1, presetOffset: 2, span: [-17.9, -11.6] },
+  { roomId: 'room-01', wall: 'panel-1', facing: 'west', count: 1, presetOffset: 1 },
+  { roomId: 'room-01', wall: 'panel-1', facing: 'east', count: 1, presetOffset: 1 },
 
-// 20 spots distributed across every kind of usable wall (7 / 6 / 7 per
-// room): the long north/south runs, Room 3's dead end, and the transverse
-// wall segments beside the doors. Room 1's dead end is the collective collage
-// (components/gallery/wall), so its long runs take three obras each instead.
-// Door-wall pieces alternate faces so each room gets artwork without hanging
-// two frames back-to-back on the same segment.
-export const gallerySlots: GallerySlot[] = [
-  ...wallSlotsAlongX('room-01', -18, -6, NORTH_Z, NORTH_ROTATION, 3, 0),
-  ...wallSlotsAlongX('room-01', -18, -6, SOUTH_Z, SOUTH_ROTATION, 3, 2),
-  ...wallSlotsAlongZ('room-01', -5, -DOOR_HALF_WIDTH, FIRST_DIVIDER_WEST_X, EAST_ROTATION, 1, 0),
+  { roomId: 'room-02', wall: 'r2-north', facing: 'south', count: 3, presetOffset: 0 },
+  { roomId: 'room-02', wall: 'r2-south', facing: 'north', count: 2, presetOffset: 1 },
+  { roomId: 'room-02', wall: 'panel-2', facing: 'north', count: 1, presetOffset: 2 },
+  { roomId: 'room-02', wall: 'panel-2', facing: 'south', count: 1, presetOffset: 0 },
+  { roomId: 'room-02', wall: 'div-2-3-a', facing: 'west', count: 1, presetOffset: 1 },
 
-  ...wallSlotsAlongX('room-02', -6, 6, NORTH_Z, NORTH_ROTATION, 2, 1),
-  ...wallSlotsAlongX('room-02', -6, 6, SOUTH_Z, SOUTH_ROTATION, 2, 0),
-  ...wallSlotsAlongZ('room-02', DOOR_HALF_WIDTH, 5, FIRST_DIVIDER_EAST_X, WEST_ROTATION, 1, 2),
-  ...wallSlotsAlongZ('room-02', -5, -DOOR_HALF_WIDTH, SECOND_DIVIDER_WEST_X, EAST_ROTATION, 1, 1),
-
-  ...wallSlotsAlongX('room-03', 6, 18, NORTH_Z, NORTH_ROTATION, 2, 2),
-  ...wallSlotsAlongX('room-03', 6, 18, SOUTH_Z, SOUTH_ROTATION, 2, 1),
-  ...wallSlotsAlongZ('room-03', -5, 5, EAST_X, EAST_ROTATION, 2, 0),
-  ...wallSlotsAlongZ('room-03', DOOR_HALF_WIDTH, 5, SECOND_DIVIDER_EAST_X, WEST_ROTATION, 1, 2),
+  { roomId: 'room-03', wall: 'r3-north', facing: 'south', count: 1, presetOffset: 2, span: [6.1, 10.4] },
+  { roomId: 'room-03', wall: 'panel-3a', facing: 'west', count: 1, presetOffset: 0 },
+  { roomId: 'room-03', wall: 'panel-3a', facing: 'east', count: 1, presetOffset: 1 },
+  { roomId: 'room-03', wall: 'r3-south', facing: 'north', count: 1, presetOffset: 2, span: [10.6, 14.4] },
+  { roomId: 'room-03', wall: 'panel-3b', facing: 'west', count: 1, presetOffset: 2 },
+  { roomId: 'room-03', wall: 'panel-3b', facing: 'east', count: 1, presetOffset: 0 },
+  { roomId: 'room-03', wall: 'r3-east', facing: 'west', count: 1, presetOffset: 1 },
 ]
+
+export const gallerySlots: GallerySlot[] = HANGINGS.flatMap(hang)
