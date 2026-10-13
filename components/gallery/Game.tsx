@@ -42,6 +42,16 @@ import { galleryReadyEvent } from '@/lib/funnel'
 const noopSubscribe = () => () => {}
 const getIsTouchDevice = () => window.matchMedia('(pointer: coarse)').matches
 const getServerSnapshot = () => false
+// On a phone the menu is only an icon, and the minimap and the photo live in
+// it: a red dot on it until the visitor opens it once (on this browser).
+const MENU_SEEN_KEY = 'mdc-gallery-menu-seen'
+const getMenuUnseen = () => {
+  try {
+    return window.localStorage.getItem(MENU_SEEN_KEY) !== '1'
+  } catch {
+    return false
+  }
+}
 
 // three.js, drei and Rapier only arrive once the page has settled (or on
 // ENTRAR, whichever comes first) and only mount on ENTRAR: see Scene.tsx.
@@ -61,6 +71,8 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   const [playing, setPlaying] = useState(false)
   const passportOpen = usePassportStore((state) => state.open)
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const menuUnseen = useSyncExternalStore(noopSubscribe, getMenuUnseen, getServerSnapshot)
+  const [menuOpened, setMenuOpened] = useState(false)
   const [locked, setLocked] = useState(false)
   const { locale, m } = useI18n()
   const [hasStarted, setHasStarted] = useState(false)
@@ -261,6 +273,12 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // The walk's buttons need the mouse back from Pointer Lock first.
   function toggleOptions() {
     if (document.pointerLockElement) document.exitPointerLock()
+    if (!optionsOpen && !menuOpened) {
+      setMenuOpened(true)
+      try {
+        window.localStorage.setItem(MENU_SEEN_KEY, '1')
+      } catch {}
+    }
     setOptionsOpen((open) => !open)
   }
 
@@ -310,6 +328,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <nav className={styles.visitToolbar} aria-label={m.gallery.controls.toolbar} hidden={!sceneReady || dialogOpen}>
         <button type="button" className={styles.hudButton} onClick={toggleOptions} aria-expanded={optionsOpen} aria-controls="gallery-options">
           {optionsOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          {isTouchDevice && menuUnseen && !menuOpened && <span className={styles.menuDot} aria-hidden="true" />}
           <span className={styles.visitToolbarLabel}>{m.gallery.mobileMenu.open}</span>
         </button>
         <button type="button" className={styles.hudButton} onClick={openPassport} aria-label={m.gallery.passport.button} title={isTouchDevice ? undefined : `${m.gallery.passport.button} (P)`}>
