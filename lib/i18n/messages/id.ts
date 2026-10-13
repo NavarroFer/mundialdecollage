@@ -417,12 +417,6 @@ const id: Messages = {
     enter: 'MASUK KE PAMERAN',
     resume: 'Klik untuk melanjutkan',
     loading: 'Menyiapkan galeri…',
-    orientation: {
-      title: "Putar ponsel ke posisi horizontal",
-      body: "Untuk masuk ke galeri, putar ponsel dan pegang secara horizontal. Galeri akan tersedia secara otomatis.",
-      rotationHint: "Jika layar tidak berputar, nonaktifkan kunci rotasi ponsel lalu coba lagi.",
-      back: "Kembali ke Mundial",
-    },
     viewArtwork: 'Lihat karya',
     artworkTechnique: 'Teknik: {technique}',
     artworkOfficial: 'Karya resmi Piala Dunia Kolase {year}.',

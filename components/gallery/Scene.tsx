@@ -25,7 +25,7 @@ export type SceneProps = {
   /** The visitor is walking: keys, joystick and look drags move them. */
   controlMode: 'point' | 'classic'
   active: boolean
-  /** Nothing on screen needs to move (start screen, turn-the-phone notice, phone menu). */
+  /** Nothing on screen needs to move (start screen, phone menu). */
   paused: boolean
   isTouchDevice: boolean
   /** Desktop's Pointer Lock element (Game's shell); null on touch. */

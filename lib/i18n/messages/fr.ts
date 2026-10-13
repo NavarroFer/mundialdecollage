@@ -417,12 +417,6 @@ const fr: Messages = {
     enter: "ENTRER DANS L'EXPOSITION",
     resume: 'Clique pour continuer',
     loading: 'Préparation de la galerie…',
-    orientation: {
-      title: "Tournez votre téléphone à l’horizontale",
-      body: "Pour entrer dans la galerie, tournez votre téléphone et tenez-le à l’horizontale. La galerie devient accessible automatiquement.",
-      rotationHint: "Si l’écran ne tourne pas, désactivez le verrouillage de rotation et réessayez.",
-      back: "Retour au Mondial",
-    },
     viewArtwork: "Voir l'œuvre",
     artworkTechnique: 'Technique : {technique}',
     artworkOfficial: 'Œuvre officielle du Mondial du Collage {year}.',

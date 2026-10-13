@@ -427,12 +427,6 @@ const pl: Messages = {
     enter: 'WEJDŹ NA WYSTAWĘ',
     resume: 'Kliknij, aby kontynuować',
     loading: 'Przygotowujemy galerię…',
-    orientation: {
-      title: "Obróć telefon poziomo",
-      body: "Aby wejść do galerii, obróć telefon i trzymaj go poziomo. Galeria udostępni się automatycznie.",
-      rotationHint: "Jeśli ekran się nie obraca, wyłącz blokadę obrotu telefonu i spróbuj ponownie.",
-      back: "Wróć do Mundialu",
-    },
     viewArtwork: 'Zobacz pracę',
     artworkTechnique: 'Technika: {technique}',
     artworkOfficial: 'Oficjalna praca Mistrzostw Świata w Kolażu {year}.',

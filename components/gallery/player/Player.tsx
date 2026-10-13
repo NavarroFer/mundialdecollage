@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera, useKeyboardControls } from '@react-three/drei'
 import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
@@ -11,6 +11,7 @@ import { useTouchStore } from '../mobile/touchStore'
 import { useGalleryPreferences } from '../preferences/store'
 import { useNavigationStore } from '../navigation/store'
 import type { Controls } from './controls'
+import { verticalFov } from '../camera/fov'
 
 const WALK_SPEED = 2.6
 const RUN_SPEED = 5.2
@@ -236,7 +237,14 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
   return (
     <RigidBody ref={bodyRef} position={SPAWN_POSITION} type="dynamic" colliders={false} lockRotations>
       <CapsuleCollider ref={colliderRef} args={[PLAYER_HALF_HEIGHT, PLAYER_RADIUS]} />
-      <PerspectiveCamera makeDefault fov={70} near={0.05} position={[0, EYE_HEIGHT_OFFSET, 0]} />
+      <EyeCamera />
     </RigidBody>
   )
+}
+
+// Its own component so turning the phone only re-renders the camera, which
+// widens its view held upright (fov.ts) instead of showing a slit.
+function EyeCamera() {
+  const aspect = useThree((state) => state.size.width / state.size.height)
+  return <PerspectiveCamera makeDefault fov={verticalFov(aspect)} near={0.05} position={[0, EYE_HEIGHT_OFFSET, 0]} />
 }

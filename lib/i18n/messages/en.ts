@@ -418,12 +418,6 @@ const en: Messages = {
     enter: 'ENTER THE EXHIBITION',
     resume: 'Click to continue',
     loading: 'Setting up the gallery…',
-    orientation: {
-      title: "Turn your phone sideways",
-      body: "To enter the gallery, rotate your phone and hold it horizontally. The gallery becomes available automatically in landscape.",
-      rotationHint: "If the screen does not rotate, turn off rotation lock on your phone and try again.",
-      back: "Back to the World Cup",
-    },
     viewArtwork: 'View artwork',
     artworkTechnique: 'Technique: {technique}',
     artworkOfficial: 'Official artwork of the {year} Collage World Cup.',

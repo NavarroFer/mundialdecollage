@@ -338,40 +338,7 @@
 @keyframes gallery-hint-walk { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -22px); } }
 @keyframes gallery-hint-look { 0%, 100% { transform: translate(-16px, 0); } 50% { transform: translate(16px, 0); } }
 
-.orientationPrompt {
-  position: absolute;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  padding: 2rem 1.5rem;
-  overflow-y: auto;
-  color: var(--gallery-text);
-  background: var(--gallery-panel);
-  text-align: center;
-  backdrop-filter: blur(12px);
-}
-
-.orientationPhoneStage { display: grid; place-items: center; width: 8rem; height: 8rem; flex-shrink: 0; }
-.orientationPhone { width: 6rem; height: 6rem; color: var(--gallery-accent); animation: gallery-rotate-phone 3.2s ease-in-out infinite; }
-.orientationPrompt h2 { margin: 0; font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
-.orientationPrompt p { max-width: 21rem; margin: .75rem auto 0; font-size: 1rem; line-height: 1.5; }
-.orientationPrompt .orientationHint { font-size: .875rem; }
-.orientationExit { display: inline-flex; align-items: center; justify-content: center; min-height: 3rem; padding: .75rem 1.5rem; border: 2px solid var(--gallery-accent); border-radius: var(--gallery-radius); color: var(--gallery-ink); background: var(--gallery-accent); font-weight: 700; text-decoration: none; }
-.orientationExit:focus-visible { outline: 3px solid var(--gallery-text); outline-offset: 4px; }
-.orientationExit:hover { filter: brightness(1.08); }
-
-@keyframes gallery-rotate-phone {
-  0%, 15% { transform: rotate(0deg); }
-  45%, 80% { transform: rotate(-90deg); }
-  100% { transform: rotate(0deg); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .orientationPhone { animation: none; transform: rotate(-90deg); }
   .touchHintFinger, .touchHintFingerLook { animation: none; }
 }
 
@@ -687,6 +654,12 @@
 
 @keyframes learningIn {
   from { opacity: 0; transform: translate(-50%, -.5rem); }
+}
+
+/* A phone held upright is too narrow for the card beside the visit's
+   buttons at the top left: it goes just under them. */
+@media (pointer: coarse) and (orientation: portrait) {
+  .learningCard { top: calc(max(.75rem, env(safe-area-inset-top)) + 3.5rem); }
 }
 
 /* An obra in contemplation: just its name, low on the screen, over the walk. */

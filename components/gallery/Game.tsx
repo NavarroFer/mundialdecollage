@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
-import Link from 'next/link'
 import { AttentionRecorder } from './attention/AttentionRecorder'
-import { BookOpen, Menu, Smartphone, X } from 'lucide-react'
+import { BookOpen, Menu, X } from 'lucide-react'
 import type { Artwork } from '@/data/artworks'
 import { GalleryPresence } from './presence/GalleryPresence'
 import { TouchControls } from './mobile/TouchControls'
@@ -43,15 +42,6 @@ import { galleryReadyEvent } from '@/lib/funnel'
 const noopSubscribe = () => () => {}
 const getIsTouchDevice = () => window.matchMedia('(pointer: coarse)').matches
 const getServerSnapshot = () => false
-const subscribeToOrientation = (callback: () => void) => {
-  const query = window.matchMedia('(orientation: landscape)')
-  query.addEventListener('change', callback)
-  return () => query.removeEventListener('change', callback)
-}
-const getIsLandscape = () => window.matchMedia('(orientation: landscape)').matches
-// Render the game on the server; the orientation notice is a mobile-only
-// client enhancement and should not replace the initial page markup.
-const getLandscapeServerSnapshot = () => true
 
 // three.js, drei and Rapier only arrive once the page has settled (or on
 // ENTRAR, whichever comes first) and only mount on ENTRAR: see Scene.tsx.
@@ -65,7 +55,6 @@ function requestLock(element: HTMLElement, onError: () => void) {
 
 export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
-  const isLandscape = useSyncExternalStore(subscribeToOrientation, getIsLandscape, getLandscapeServerSnapshot)
   const controlMode = useGalleryPreferences((state) => state.controlMode)
   // Walking by clicks or on a phone there's no Pointer Lock to say whether
   // the visitor is in the walk or on the pause screen, so this does.
@@ -100,19 +89,18 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
 
   // With the keyboard on a computer, Pointer Lock IS the active state. Touch
   // and click-to-walk have no Pointer Lock, so ENTRAR is the activation and
-  // Escape (or leaving the window) the pause.
-  // A 3D game needs the horizontal viewport: touch play pauses in portrait
-  // and resumes automatically as soon as the visitor turns the phone back.
+  // Escape (or leaving the window) the pause. A phone walks held either way:
+  // the camera widens its view when held upright (Player.tsx).
   const usesPointerLock = !isTouchDevice && controlMode === 'classic'
   // Something in front of the walk: an obra, the photo, the collage, the passport.
   const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen
   const overlayOpen = optionsOpen || dialogOpen
-  const isActive = sceneReady && !overlayOpen && (!isTouchDevice || isLandscape) && (usesPointerLock ? locked : hasStarted && playing)
-  // Under the start screen, the turn-the-phone notice or the phone menu
-  // nothing needs to move, so the scene stops drawing frames and stepping
-  // physics. Reading an obra, the collage or the souvenir keep it going:
+  const isActive = sceneReady && !overlayOpen && (usesPointerLock ? locked : hasStarted && playing)
+  // Under the start screen or the phone menu nothing needs to move, so the
+  // scene stops drawing frames and stepping physics. Reading an obra, the
+  // collage or the souvenir keep it going:
   // the camera glides to the obra and the walls show around the dialog.
-  const paused = !loading && ((isTouchDevice && !isLandscape) || (!isActive && !openId && !souvenirOpen && !wallOpen && !resuming))
+  const paused = !loading && !isActive && !openId && !souvenirOpen && !wallOpen && !resuming
 
   useEffect(() => {
     if (isTouchDevice || !shell) return
@@ -311,15 +299,15 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           />
         )}
       </div>
-      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (!isTouchDevice || isLandscape) && (isActive || Boolean(openId))} />
+      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />
       <PassportRecorder userId={userId} started={hasStarted} />
-      <GalleryPresence inside={isTouchDevice ? hasStarted && isLandscape : isActive} artworks={artworks} />
+      <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} />
       {isTouchDevice && isActive && <TouchControls theme={theme} />}
       {/* The visit's own buttons, on the pause screen too: on a computer at
           the bottom, out of the minimap's way; on a phone at the top, out of
           the joysticks' way. Hidden, not unmounted, under a dialog: the photo
           button's own dialog lives in here. */}
-      <nav className={styles.visitToolbar} aria-label={m.gallery.controls.toolbar} hidden={!sceneReady || (isTouchDevice && !isLandscape) || dialogOpen}>
+      <nav className={styles.visitToolbar} aria-label={m.gallery.controls.toolbar} hidden={!sceneReady || dialogOpen}>
         <button type="button" className={styles.hudButton} onClick={toggleOptions} aria-expanded={optionsOpen} aria-controls="gallery-options">
           {optionsOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
           <span className={styles.visitToolbarLabel}>{m.gallery.mobileMenu.open}</span>
@@ -335,7 +323,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           the photo button) in Opciones, so the walk has the whole screen. */}
       {!isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
       {!isTouchDevice && hasStarted && <PresenceCounter />}
-      <div id="gallery-options" className={styles.visitMenu} hidden={!optionsOpen || !hasStarted || (isTouchDevice && !isLandscape) || dialogOpen}>
+      <div id="gallery-options" className={styles.visitMenu} hidden={!optionsOpen || !hasStarted || dialogOpen}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>
           <button type="button" className="flex min-h-11 min-w-11 items-center justify-center" onClick={() => setOptionsOpen(false)} aria-label={m.gallery.mobileMenu.close}><X size={20} aria-hidden="true" /></button>
@@ -356,19 +344,6 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <Passport artworks={artworks} theme={theme} onClose={resumeWalk} onResume={resumeArtwork} />
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
-      {isTouchDevice && !isLandscape && (
-        <section className={styles.orientationPrompt} aria-labelledby="gallery-orientation-title">
-          <div className={styles.orientationPhoneStage} aria-hidden="true">
-            <Smartphone className={styles.orientationPhone} strokeWidth={1.5} />
-          </div>
-          <div aria-live="polite">
-            <h2 id="gallery-orientation-title">{m.gallery.orientation.title}</h2>
-            <p>{m.gallery.orientation.body}</p>
-            <p className={styles.orientationHint}>{m.gallery.orientation.rotationHint}</p>
-          </div>
-          <Link href="/" className={styles.orientationExit}>{m.gallery.orientation.back}</Link>
-        </section>
-      )}
       {!isActive && !overlayOpen && !resuming && (
         <StartScreen
           artworks={artworks}

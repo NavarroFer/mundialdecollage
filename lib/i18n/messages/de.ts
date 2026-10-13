@@ -417,12 +417,6 @@ const de: Messages = {
     enter: 'AUSSTELLUNG BETRETEN',
     resume: 'Klicken zum Fortfahren',
     loading: 'Die Galerie wird vorbereitet…',
-    orientation: {
-      title: "Dreh dein Handy ins Querformat",
-      body: "Dreh dein Handy zur Seite und halte es waagerecht, um die Galerie zu betreten. Die Galerie wird im Querformat automatisch freigegeben.",
-      rotationHint: "Wenn sich der Bildschirm nicht dreht, deaktiviere die Rotationssperre und versuche es erneut.",
-      back: "Zurück zum Mundial",
-    },
     viewArtwork: 'Werk ansehen',
     artworkTechnique: 'Technik: {technique}',
     artworkOfficial: 'Offizielles Werk der Collage-WM {year}.',

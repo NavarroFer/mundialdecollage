@@ -417,12 +417,6 @@ const it: Messages = {
     enter: 'ENTRA NELLA MOSTRA',
     resume: 'Clicca per continuare',
     loading: 'Preparazione della galleria…',
-    orientation: {
-      title: "Ruota il telefono in orizzontale",
-      body: "Per entrare nella galleria, ruota il telefono e tienilo in orizzontale. La galleria diventa disponibile automaticamente.",
-      rotationHint: "Se lo schermo non ruota, disattiva il blocco della rotazione e riprova.",
-      back: "Torna al Mondiale",
-    },
     viewArtwork: 'Vedi opera',
     artworkTechnique: 'Tecnica: {technique}',
     artworkOfficial: 'Opera ufficiale del Mondiale di Collage {year}.',

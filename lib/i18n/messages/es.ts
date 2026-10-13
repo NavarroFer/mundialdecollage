@@ -421,12 +421,6 @@ const es = {
     enter: 'ENTRAR A LA EXPOSICIÓN',
     resume: 'Click para continuar',
     loading: 'Preparando la galería…',
-    orientation: {
-      title: "Girá el celular a horizontal",
-      body: "Para entrar a la galería, girá el celular y sostenelo de costado. La pantalla se habilita automáticamente al ponerlo horizontal.",
-      rotationHint: "Si no gira la pantalla, desactivá el bloqueo de rotación del celular y volvé a intentarlo.",
-      back: "Volver al Mundial",
-    },
     viewArtwork: 'Ver obra',
     artworkTechnique: 'Técnica: {technique}',
     artworkOfficial: 'Obra oficial del Mundial de Collage {year}.',
