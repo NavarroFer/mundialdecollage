@@ -183,6 +183,11 @@ const en: Messages = {
     notice:
       'This document is only available in Spanish, and the Spanish version is the binding one. If anything is unclear, write to us at {email}.',
   },
+  terms: {
+    accept: "I have read and accept the {link} and the rules of the open call (in Spanish).",
+    link: "Terms and Conditions",
+    downloadPdf: "Download PDF",
+  },
   notFound: {
     badge: 'Page not found',
     body: 'This cut-out got lost from the collage. The link may be broken or the page may have moved.',
@@ -246,6 +251,7 @@ const en: Messages = {
       upload_failed: 'Something went wrong uploading the image. Please try again.',
       save_failed: 'Something went wrong saving. Please try again.',
       too_many_artworks: "You've already uploaded the maximum number of artworks. Choose among the ones you uploaded.",
+      terms_required: "To send your artwork you need to accept the Terms and Conditions.",
     },
     startedForYou: "We've already started for you",
     legacyImageFound: "This is the artwork you sent us. There's no need to upload it again.",
@@ -296,6 +302,7 @@ const en: Messages = {
     notThisOne: "Isn't this the artwork you want to submit?",
     otherAccount: 'Signed in with a different account?',
     errors: {
+      terms_required: "To confirm you need to accept the Terms and Conditions.",
       missing_title: 'Write your artwork’s title to confirm.',
       unavailable: "We couldn't connect. Please try again in a few minutes.",
       session: 'Your session has ended. Sign in with Google again to confirm.',

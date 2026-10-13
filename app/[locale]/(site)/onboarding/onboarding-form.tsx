@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ImagePlus, Loader2, Plus, X } from 'lucide-react'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { Button } from '@/components/ui/button'
+import { TermsCheckbox } from '@/components/terms-checkbox'
 import { CountrySelect } from '@/components/ui/country-select'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { useI18n } from '@/lib/i18n/client'
@@ -206,6 +207,11 @@ export function OnboardingForm({
       return
     }
     formData.set('website', website)
+
+    if (formData.get('accept_terms') !== 'on') {
+      setClientError(errorMessages.terms_required)
+      return
+    }
 
     const images = formData.getAll('artwork_image')
     const hasFile = (image: FormDataEntryValue): image is File => image instanceof File && image.size > 0
@@ -532,6 +538,8 @@ export function OnboardingForm({
           className={inputClass}
         />
       </div>
+
+      <TermsCheckbox />
 
       <Button
         type="submit"

@@ -183,6 +183,11 @@ const pt: Messages = {
     notice:
       'Este documento está disponível apenas em espanhol, e a versão em espanhol é a que vale. Se tiver dúvidas, escreva para {email}.',
   },
+  terms: {
+    accept: "Li e aceito os {link} e as bases da convocatória (em espanhol).",
+    link: "Termos e Condições",
+    downloadPdf: "Baixar PDF",
+  },
   notFound: {
     badge: 'Página não encontrada',
     body: 'Este recorte se perdeu da colagem. Pode ser que o link esteja quebrado ou que a página tenha mudado de lugar.',
@@ -246,6 +251,7 @@ const pt: Messages = {
       upload_failed: 'Algo deu errado ao enviar a imagem. Tente de novo.',
       save_failed: 'Algo deu errado ao salvar. Tente de novo.',
       too_many_artworks: 'Você já enviou o máximo de obras. Escolha entre as que já enviou.',
+      terms_required: "Para enviar sua obra, você precisa aceitar os Termos e Condições.",
     },
     startedForYou: 'Já começamos por você',
     legacyImageFound: 'Esta é a obra que você nos enviou. Não é preciso enviá-la de novo.',
@@ -296,6 +302,7 @@ const pt: Messages = {
     notThisOne: 'Esta não é a obra que você quer apresentar?',
     otherAccount: 'Entrou com outra conta?',
     errors: {
+      terms_required: "Para confirmar, você precisa aceitar os Termos e Condições.",
       missing_title: 'Escreva o título da sua obra para confirmar.',
       unavailable: 'Não conseguimos conectar. Tente de novo em alguns minutos.',
       session: 'Sua sessão terminou. Entre de novo com o Google para confirmar.',

@@ -183,6 +183,11 @@ const id: Messages = {
     notice:
       'Dokumen ini hanya tersedia dalam bahasa Spanyol, dan versi bahasa Spanyol yang berlaku. Jika ada pertanyaan, tulis kepada kami di {email}.',
   },
+  terms: {
+    accept: "Saya sudah membaca dan menerima {link} serta ketentuan open call (dalam bahasa Spanyol).",
+    link: "Syarat dan Ketentuan",
+    downloadPdf: "Unduh PDF",
+  },
   notFound: {
     badge: 'Halaman tidak ditemukan',
     body: 'Guntingan ini hilang dari kolase. Mungkin tautannya rusak atau halamannya sudah dipindahkan.',
@@ -246,6 +251,7 @@ const id: Messages = {
       upload_failed: 'Terjadi masalah saat mengunggah gambar. Coba lagi.',
       save_failed: 'Terjadi masalah saat menyimpan. Coba lagi.',
       too_many_artworks: 'Kamu sudah mengunggah jumlah maksimum karya. Pilih dari karya yang sudah kamu unggah.',
+      terms_required: "Untuk mengirim karyamu, kamu perlu menyetujui Syarat dan Ketentuan.",
     },
     startedForYou: 'Kami sudah mulai untukmu',
     legacyImageFound: 'Ini karya yang kamu kirimkan kepada kami. Tidak perlu mengunggahnya lagi.',
@@ -296,6 +302,7 @@ const id: Messages = {
     notThisOne: 'Bukan karya ini yang ingin kamu ajukan?',
     otherAccount: 'Masuk dengan akun lain?',
     errors: {
+      terms_required: "Untuk konfirmasi, kamu perlu menyetujui Syarat dan Ketentuan.",
       missing_title: 'Tulis judul karyamu untuk mengonfirmasi.',
       unavailable: 'Kami tidak dapat terhubung. Coba lagi dalam beberapa menit.',
       session: 'Sesimu telah berakhir. Masuk lagi dengan Google untuk mengonfirmasi.',

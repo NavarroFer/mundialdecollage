@@ -183,6 +183,11 @@ const de: Messages = {
     notice:
       'Dieses Dokument gibt es nur auf Spanisch, und die spanische Fassung ist maßgeblich. Bei Fragen schreib uns an {email}.',
   },
+  terms: {
+    accept: "Ich habe die {link} und die Teilnahmeregeln gelesen und akzeptiere sie (auf Spanisch).",
+    link: "Nutzungsbedingungen",
+    downloadPdf: "PDF herunterladen",
+  },
   notFound: {
     badge: 'Seite nicht gefunden',
     body: 'Dieser Schnipsel ist aus der Collage gefallen. Vielleicht ist der Link kaputt oder die Seite wurde verschoben.',
@@ -246,6 +251,7 @@ const de: Messages = {
       upload_failed: 'Beim Hochladen des Bildes ist etwas schiefgelaufen. Versuch es noch einmal.',
       save_failed: 'Beim Speichern ist etwas schiefgelaufen. Versuch es noch einmal.',
       too_many_artworks: 'Du hast bereits die maximale Anzahl an Werken hochgeladen. Wähle aus den hochgeladenen.',
+      terms_required: "Um dein Werk einzureichen, musst du die Nutzungsbedingungen akzeptieren.",
     },
     startedForYou: 'Wir haben schon für dich angefangen',
     legacyImageFound: 'Das ist das Werk, das du uns geschickt hast. Du musst es nicht noch einmal hochladen.',
@@ -296,6 +302,7 @@ const de: Messages = {
     notThisOne: 'Ist das nicht das Werk, das du einreichen willst?',
     otherAccount: 'Mit einem anderen Konto angemeldet?',
     errors: {
+      terms_required: "Zum Bestätigen musst du die Nutzungsbedingungen akzeptieren.",
       missing_title: 'Schreib den Titel deines Werks, um zu bestätigen.',
       unavailable: 'Keine Verbindung möglich. Versuch es in ein paar Minuten noch einmal.',
       session: 'Deine Sitzung ist abgelaufen. Melde dich erneut mit Google an, um zu bestätigen.',

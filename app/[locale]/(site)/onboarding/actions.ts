@@ -13,6 +13,7 @@ import { trackServer, trackSignupSource } from '@/lib/track-server'
 import { recordReferral } from '@/lib/referral-server'
 import { site } from '@/lib/site'
 import { refreshPublicData } from '@/lib/public-data-cache'
+import { TERMS_VERSION } from '@/lib/terms-version'
 
 // Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
 // so this also doubles as XSS defense — only ever accept http(s), never
@@ -51,6 +52,22 @@ function normalizeInstagram(value: string): string | null {
 // belonging to someone else's unpublished/uncurated artwork would otherwise
 // look free here and then fail the insert below with a real
 // unique-constraint violation.
+// The checkbox in TermsCheckbox. Checked again here: the form's `required`
+// is only a convenience.
+function acceptedTerms(formData: FormData) {
+  return formData.get('accept_terms') === 'on'
+}
+
+// One row per person and version (terms_acceptances): accepting the same
+// version again is a no-op.
+async function recordTermsAcceptance(supabase: Awaited<ReturnType<typeof createClient>>, profileId: string) {
+  const { error } = await supabase
+    .from('terms_acceptances')
+    .upsert({ profile_id: profileId, terms_version: TERMS_VERSION }, { onConflict: 'profile_id,terms_version', ignoreDuplicates: true })
+  if (error) console.error('onboarding: failed to record terms acceptance', profileId, error)
+  return !error
+}
+
 async function uniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, base: string) {
   let slug = base
   for (let suffix = 2; ; suffix++) {
@@ -83,6 +100,7 @@ export async function completeOnboarding(formData: FormData) {
   if (!name || !countryCode || titles.length === 0 || titles.some((title) => !title)) {
     redirect(errorUrl('missing_fields'))
   }
+  if (!acceptedTerms(formData)) redirect(errorUrl('terms_required'))
   if (imagePaths.length !== titles.length || imagePaths.some((path) => !path)) {
     redirect(errorUrl('missing_image'))
   }
@@ -177,6 +195,7 @@ export async function completeOnboarding(formData: FormData) {
     console.error('onboarding: failed to save profile', user.id, profileError)
     redirect(errorUrl('save_failed'))
   }
+  if (!(await recordTermsAcceptance(supabase, user.id))) redirect(errorUrl('save_failed'))
 
   // One at a time: each slug is checked against the rows already inserted,
   // so two obras with the same title in one submission still get distinct
@@ -255,9 +274,11 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
     return 'missing'
   }
   if (!title) return 'missing_title'
+  if (!acceptedTerms(formData)) return 'terms_required'
   const { data: artwork, error: artworkError } = await supabase.from('artworks')
     .select('id, slug, title').eq('id', artworkId).eq('profile_id', user.id).maybeSingle()
   if (artworkError || !artwork) return 'not_found'
+  if (!(await recordTermsAcceptance(supabase, user.id))) return 'save_failed'
 
   // artworks has no UPDATE grant for artists; the select above already
   // proved this obra is theirs. A title written here is never replaced by

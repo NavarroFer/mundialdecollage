@@ -16,6 +16,11 @@ vi.mock('next/navigation', () => ({ redirect: mocks.redirect }))
 vi.mock('@/lib/track-server', () => ({ trackServer: async () => {}, trackSignupSource: async () => {} }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ from: mocks.adminFrom }) }))
 import { completeOnboarding, confirmArtistDetails } from './actions'
+import { TERMS_VERSION } from '@/lib/terms-version'
+
+// terms_acceptances: every save records the accepted Términos y Condiciones.
+const terms = { upsert: vi.fn(async () => ({ error: null })) }
+const withTerms = (impl: (table: string) => unknown) => (table: string) => table === 'terms_acceptances' ? terms : impl(table)
 
 function query(data: unknown, error: unknown = null) {
   const chain = { select: vi.fn(), eq: vi.fn(), update: vi.fn(), maybeSingle: vi.fn(async () => ({ data, error })) }
@@ -30,6 +35,7 @@ function details(country = 'AR', title = ' Raíces ') {
   form.set('name', '  Ana Collage  ')
   form.set('country_code', country)
   form.set('artwork_id', 'artwork-1')
+  form.set('accept_terms', 'on')
   return form
 }
 
@@ -59,7 +65,7 @@ describe('artist confirmation', () => {
   it('confirms repeatedly without inserting or modifying an artwork', async () => {
     const artwork = query({ id: 'artwork-1', slug: 'ana-collage', title: 'Raíces' })
     const profile = query({ id: 'artist-1' })
-    mocks.from.mockImplementation(table => table === 'artworks' ? artwork : profile)
+    mocks.from.mockImplementation(withTerms(table => table === 'artworks' ? artwork : profile))
     for (let attempt = 0; attempt < 2; attempt++) {
       await expect(confirmArtistDetails('', details())).rejects.toThrow('redirect:/onboarding/confirmado')
     }
@@ -69,6 +75,17 @@ describe('artist confirmation', () => {
     expect(mocks.adminFrom).not.toHaveBeenCalled()
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/obras/ana-collage')
   })
+  it('requires accepting the terms before saving anything', async () => {
+    const form = details()
+    form.delete('accept_terms')
+    expect(await confirmArtistDetails('', form)).toBe('terms_required')
+    expect(mocks.from).not.toHaveBeenCalled()
+  })
+  it('records the accepted terms version', async () => {
+    mocks.from.mockImplementation(withTerms(table => table === 'artworks' ? query({ id: 'artwork-1', slug: 'ana-collage', title: 'Raíces' }) : query({ id: 'artist-1' })))
+    await expect(confirmArtistDetails('', details())).rejects.toThrow('redirect:/onboarding/confirmado')
+    expect(terms.upsert).toHaveBeenCalledWith({ profile_id: 'artist-1', terms_version: TERMS_VERSION }, { onConflict: 'profile_id,terms_version', ignoreDuplicates: true })
+  })
   it('asks for the title before saving anything', async () => {
     expect(await confirmArtistDetails('', details('AR', '   '))).toBe('missing_title')
     expect(mocks.from).not.toHaveBeenCalled()
@@ -76,7 +93,7 @@ describe('artist confirmation', () => {
   it('saves the title an obra without one gets from its artist', async () => {
     const artwork = query({ id: 'artwork-1', slug: 'ana-collage', title: null })
     const adminArtwork = query(null)
-    mocks.from.mockImplementation(table => table === 'artworks' ? artwork : query({ id: 'artist-1' }))
+    mocks.from.mockImplementation(withTerms(table => table === 'artworks' ? artwork : query({ id: 'artist-1' })))
     mocks.adminFrom.mockReturnValue(adminArtwork)
     await expect(confirmArtistDetails('', details())).rejects.toThrow('redirect:/onboarding/confirmado')
     expect(mocks.adminFrom).toHaveBeenCalledWith('artworks')
@@ -84,7 +101,7 @@ describe('artist confirmation', () => {
     expect(adminArtwork.eq).toHaveBeenCalledWith('profile_id', 'artist-1')
   })
   it('keeps the artist on the confirmation form if saving fails', async () => {
-    mocks.from.mockImplementation(table => table === 'artworks' ? query({ id: 'artwork-1', title: 'Raíces' }) : query(null, { message: 'offline' }))
+    mocks.from.mockImplementation(withTerms(table => table === 'artworks' ? query({ id: 'artwork-1', title: 'Raíces' }) : query(null, { message: 'offline' })))
     expect(await confirmArtistDetails('', details())).toBe('save_failed')
     expect(mocks.redirect).not.toHaveBeenCalled()
   })
@@ -96,6 +113,7 @@ describe('sending several obras at once', () => {
     form.set('name', 'Ana Collage')
     form.set('country_code', 'AR')
     if (another) form.set('another', '1')
+    form.set('accept_terms', 'on')
     titles.forEach((title, index) => {
       form.append('artwork_title', title)
       form.append('technique', index === 0 ? 'Digital' : '')
@@ -118,9 +136,9 @@ describe('sending several obras at once', () => {
     const legacy = { update: vi.fn(), eq: vi.fn(), is: vi.fn(async () => ({ error: null })) }
     legacy.update.mockReturnValue(legacy)
     legacy.eq.mockReturnValue(legacy)
-    mocks.from.mockImplementation((table: string) =>
+    mocks.from.mockImplementation(withTerms((table: string) =>
       table === 'artworks' ? artworks : table === 'profiles' ? profiles : legacy,
-    )
+    ))
     mocks.rpc.mockResolvedValue({ data: false })
     mocks.storageFrom.mockReturnValue({
       list: vi.fn(async (_folder: string, { search }: { search: string }) => ({ data: [{ name: search }] })),
@@ -137,6 +155,22 @@ describe('sending several obras at once', () => {
       ['Raíces', true, 'Digital'],
       ['Mar', false, null],
     ])
+  })
+
+  it('refuses a submission without the terms accepted, before saving anything', async () => {
+    const inserted = tables(0)
+    const form = submission(['Raíces'])
+    form.delete('accept_terms')
+    await expect(completeOnboarding(form)).rejects.toThrow('redirect:/onboarding?error=terms_required')
+    expect(inserted).toEqual([])
+    expect(terms.upsert).not.toHaveBeenCalled()
+  })
+
+  it('records the accepted terms version with the submission', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: 'artist-1', email: 'ana@example.com' } } })
+    tables(0)
+    await expect(completeOnboarding(submission(['Raíces']))).rejects.toThrow('redirect:/onboarding/confirmado')
+    expect(terms.upsert).toHaveBeenCalledWith({ profile_id: 'artist-1', terms_version: TERMS_VERSION }, { onConflict: 'profile_id,terms_version', ignoreDuplicates: true })
   })
 
   it('refuses more obras than one account can keep', async () => {

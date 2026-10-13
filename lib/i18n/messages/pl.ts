@@ -188,6 +188,11 @@ const pl: Messages = {
     notice:
       'Ten dokument jest dostępny tylko po hiszpańsku i wiążąca jest wersja hiszpańska. W razie pytań napisz do nas: {email}.',
   },
+  terms: {
+    accept: "Akceptuję {link} i zasady konkursu (po hiszpańsku).",
+    link: "Warunki uczestnictwa",
+    downloadPdf: "Pobierz PDF",
+  },
   notFound: {
     badge: 'Nie znaleziono strony',
     body: 'Ten wycinek wypadł z kolażu. Link może być nieaktualny albo strona została przeniesiona.',
@@ -251,6 +256,7 @@ const pl: Messages = {
       upload_failed: 'Coś poszło nie tak podczas przesyłania obrazu. Spróbuj ponownie.',
       save_failed: 'Coś poszło nie tak podczas zapisywania. Spróbuj ponownie.',
       too_many_artworks: 'Wgrano już maksymalną liczbę prac. Wybierz spośród tych, które już wgrano.',
+      terms_required: "Aby wysłać pracę, trzeba zaakceptować Warunki uczestnictwa.",
     },
     startedForYou: 'Już zaczęliśmy za Ciebie',
     legacyImageFound: 'To praca, którą nam wysłałeś(-aś). Nie musisz jej ponownie przesyłać.',
@@ -301,6 +307,7 @@ const pl: Messages = {
     notThisOne: 'To nie ta praca, którą chcesz zgłosić?',
     otherAccount: 'Zalogowano innym kontem?',
     errors: {
+      terms_required: "Aby potwierdzić, trzeba zaakceptować Warunki uczestnictwa.",
       missing_title: 'Wpisz tytuł swojej pracy, aby potwierdzić.',
       unavailable: 'Nie udało się połączyć. Spróbuj ponownie za kilka minut.',
       session: 'Sesja wygasła. Zaloguj się ponownie przez Google, aby potwierdzić.',

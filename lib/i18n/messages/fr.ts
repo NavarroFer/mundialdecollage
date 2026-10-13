@@ -183,6 +183,11 @@ const fr: Messages = {
     notice:
       "Ce document n'est disponible qu'en espagnol, et seule la version espagnole fait foi. Pour toute question, écris-nous à {email}.",
   },
+  terms: {
+    accept: "J'ai lu et j'accepte les {link} et le règlement de l'appel (en espagnol).",
+    link: "Conditions générales",
+    downloadPdf: "Télécharger le PDF",
+  },
   notFound: {
     badge: 'Page introuvable',
     body: "Ce découpage s'est perdu du collage. Le lien est peut-être cassé ou la page a peut-être été déplacée.",
@@ -246,6 +251,7 @@ const fr: Messages = {
       upload_failed: "Un problème est survenu lors du téléversement de l'image. Réessaie.",
       save_failed: "Un problème est survenu lors de l'enregistrement. Réessaie.",
       too_many_artworks: "Tu as déjà envoyé le nombre maximum d'œuvres. Choisis parmi celles que tu as envoyées.",
+      terms_required: "Pour envoyer ton œuvre, tu dois accepter les Conditions générales.",
     },
     startedForYou: 'Nous avons déjà commencé pour toi',
     legacyImageFound: "Voici l'œuvre que tu nous as envoyée. Inutile de la téléverser à nouveau.",
@@ -296,6 +302,7 @@ const fr: Messages = {
     notThisOne: "Ce n'est pas l'œuvre que tu veux présenter ?",
     otherAccount: 'Connecté avec un autre compte ?',
     errors: {
+      terms_required: "Pour confirmer, tu dois accepter les Conditions générales.",
       missing_title: 'Écrivez le titre de votre œuvre pour confirmer.',
       unavailable: 'Connexion impossible. Réessaie dans quelques minutes.',
       session: 'Ta session a expiré. Reconnecte-toi avec Google pour confirmer.',

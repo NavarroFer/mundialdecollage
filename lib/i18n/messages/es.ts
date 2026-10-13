@@ -184,6 +184,11 @@ const es = {
   legal: {
     notice: '',
   },
+  terms: {
+    accept: "Leí y acepto los {link} y las bases de la convocatoria.",
+    link: "Términos y Condiciones",
+    downloadPdf: "Descargar PDF",
+  },
   notFound: {
     badge: 'Página no encontrada',
     body: 'Este recorte se perdió del collage. Puede que el enlace esté roto o que la página se haya movido.',
@@ -248,6 +253,7 @@ const es = {
       upload_failed: 'Algo falló al subir la imagen. Probá de nuevo.',
       save_failed: 'Algo falló al guardar. Probá de nuevo.',
       too_many_artworks: 'Ya cargaste el máximo de obras. Elegí entre las que ya subiste.',
+      terms_required: "Para enviar tu obra tenés que aceptar los Términos y Condiciones.",
     } as Record<string, string>,
     startedForYou: 'Ya empezamos por vos',
     legacyImageFound: 'Esta es la obra que nos enviaste. No hace falta volver a subirla.',
@@ -298,6 +304,7 @@ const es = {
     notThisOne: '¿Esta no es la obra que querés presentar?',
     otherAccount: '¿Ingresaste con otra cuenta?',
     errors: {
+      terms_required: "Para confirmar tenés que aceptar los Términos y Condiciones.",
       missing_title: 'Escribí el título de tu obra para confirmar.',
       unavailable: 'No pudimos conectar. Probá de nuevo en unos minutos.',
       session: 'Tu sesión terminó. Volvé a ingresar con Google para confirmar.',

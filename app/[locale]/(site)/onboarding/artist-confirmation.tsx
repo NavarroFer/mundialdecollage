@@ -7,6 +7,7 @@ import { CheckCircle2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CountrySelect } from '@/components/ui/country-select'
 import { SignOutButton } from '@/components/auth/sign-out-button'
+import { TermsCheckbox } from '@/components/terms-checkbox'
 import { countryCodeToName, getAllCountryCodes } from '@/lib/participants'
 import { confirmArtistDetails } from './actions'
 import { useI18n } from '@/lib/i18n/client'
@@ -80,6 +81,7 @@ export function ArtistConfirmation({ name, countryCode, email, artwork, artworkC
           <p className="break-all text-sm font-medium">{email}</p>
           <p className="mt-1 text-xs text-muted-foreground">{m.confirmation.emailUse}</p>
         </div>
+        <TermsCheckbox id="accept_terms_confirmation" />
         {error && <p role="alert" className="rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{m.confirmation.errors[error] ?? error}</p>}
         <Button type="submit" size="lg" disabled={pending} className="h-auto min-h-14 w-full whitespace-normal px-4 py-3 text-center">
           {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}

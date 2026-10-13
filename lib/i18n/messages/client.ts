@@ -15,6 +15,7 @@ const CLIENT_NAMESPACES = [
   'search',
   'countrySelect',
   'onboarding',
+  'terms',
   'confirmation',
   'entries',
   'share',
