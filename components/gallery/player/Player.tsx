@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera, useKeyboardControls } from '@react-three/drei'
 import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier'
@@ -12,6 +12,7 @@ import { useGalleryPreferences } from '../preferences/store'
 import { useNavigationStore } from '../navigation/store'
 import type { Controls } from './controls'
 import { verticalFov } from '../camera/fov'
+import { SPAWN_HEIGHT, pickSpawn, standInFront } from './spawn'
 
 const WALK_SPEED = 2.6
 const RUN_SPEED = 5.2
@@ -28,9 +29,6 @@ const JUMP_SPEED = 3.2
 // Capsule centre to its bottom is the same standing or crouched (the
 // collider shifts down as it shrinks), plus a little slack for the ground.
 const GROUND_PROBE = PLAYER_HALF_HEIGHT + PLAYER_RADIUS + 0.05
-// The camera initially looks toward -Z. Start in the middle of the entrance
-// hall, with room to walk forward into the gallery.
-const SPAWN_POSITION: [number, number, number] = [0, 0.9, -0.5]
 
 const UP = new THREE.Vector3(0, 1, 0)
 const focusWorldPosition = new THREE.Vector3()
@@ -41,6 +39,12 @@ const focusQuaternion = new THREE.Quaternion()
 
 export function Player({ active, artworks }: { active: boolean; artworks: Artwork[] }) {
   const bodyRef = useRef<RapierRigidBody>(null)
+  // Picked once per visit (spawn.ts), and kept as stable arrays so a
+  // re-render never puts the body or the camera back there.
+  const [spawn] = useState(() => {
+    const { x, z, yaw } = pickSpawn(artworks)
+    return { position: [x, SPAWN_HEIGHT, z] as [number, number, number], rotation: [0, yaw, 0] as [number, number, number] }
+  })
   const colliderRef = useRef<RapierCollider>(null)
   const crouchHeld = useRef(false)
   const jumpRequested = useRef(false)
@@ -98,10 +102,10 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
       if (artwork) {
         // Resume on the floor in front of the work, never at the camera's
         // elevated viewing position or inside its wall.
-        const distance = Math.max(artwork.width, artwork.height) * 0.62 + 0.75
-        body.setTranslation({ x: artwork.position[0] + Math.sin(artwork.rotation[1]) * distance, y: SPAWN_POSITION[1], z: artwork.position[2] + Math.cos(artwork.rotation[1]) * distance }, true)
+        const { x, z, yaw } = standInFront(artwork)
+        body.setTranslation({ x, y: SPAWN_HEIGHT, z }, true)
         body.setLinvel({ x: 0, y: 0, z: 0 }, true)
-        camera.rotation.set(0, artwork.rotation[1], 0)
+        camera.rotation.set(0, yaw, 0)
       }
     }
 
@@ -110,14 +114,9 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
     const focusedArtwork = modalOpen ? artworks.find((artwork) => artwork.id === openId) : undefined
 
     if (focusedArtwork) {
-      const rotationY = focusedArtwork.rotation[1]
-      const viewingDistance = Math.max(focusedArtwork.width, focusedArtwork.height) * 0.62 + 0.75
+      const { x, z } = standInFront(focusedArtwork)
       focusTarget.set(...focusedArtwork.position)
-      focusWorldPosition.set(
-        focusedArtwork.position[0] + Math.sin(rotationY) * viewingDistance,
-        focusedArtwork.position[1],
-        focusedArtwork.position[2] + Math.cos(rotationY) * viewingDistance,
-      )
+      focusWorldPosition.set(x, focusedArtwork.position[1], z)
       const bodyPosition = body.translation()
       focusLocalPosition.set(
         focusWorldPosition.x - bodyPosition.x,
@@ -235,16 +234,16 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
   })
 
   return (
-    <RigidBody ref={bodyRef} position={SPAWN_POSITION} type="dynamic" colliders={false} lockRotations>
+    <RigidBody ref={bodyRef} position={spawn.position} type="dynamic" colliders={false} lockRotations>
       <CapsuleCollider ref={colliderRef} args={[PLAYER_HALF_HEIGHT, PLAYER_RADIUS]} />
-      <EyeCamera />
+      <EyeCamera rotation={spawn.rotation} />
     </RigidBody>
   )
 }
 
 // Its own component so turning the phone only re-renders the camera, which
 // widens its view held upright (fov.ts) instead of showing a slit.
-function EyeCamera() {
+function EyeCamera({ rotation }: { rotation: [number, number, number] }) {
   const aspect = useThree((state) => state.size.width / state.size.height)
-  return <PerspectiveCamera makeDefault fov={verticalFov(aspect)} near={0.05} position={[0, EYE_HEIGHT_OFFSET, 0]} />
+  return <PerspectiveCamera makeDefault fov={verticalFov(aspect)} near={0.05} position={[0, EYE_HEIGHT_OFFSET, 0]} rotation={rotation} />
 }

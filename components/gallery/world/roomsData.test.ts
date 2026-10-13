@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { WALL_FRAME } from '@/lib/collage-wall'
 import { gallerySlots } from '@/data/artworks'
+import { HALL_SPAWN, standInFront } from '../player/spawn'
 import { DOOR_WIDTH, GALLERY_BOUNDS, ceilingAroundSkylights, doorways, rooms, skylightOf, walls, type Bounds } from './roomsData'
 
 const area = ([x0, z0, x1, z1]: Bounds) => (x1 - x0) * (z1 - z0)
 const [minX, minZ, maxX, maxZ] = GALLERY_BOUNDS
 // Player.tsx's capsule radius, plus a little air.
 const PLAYER_CLEARANCE = 0.4
-// Player.tsx's spawn, in the hall.
-const SPAWN = { x: 0, z: -0.5 }
+// spawn.ts's fallback start, in the hall.
+const SPAWN = { x: HALL_SPAWN.x, z: HALL_SPAWN.z }
 
 function hitsWall(x: number, z: number, margin: number) {
   return walls.some(({ position, size }) => Math.abs(x - position[0]) < size[0] / 2 + margin && Math.abs(z - position[2]) < size[2] / 2 + margin)
@@ -49,8 +50,12 @@ describe('ceilingAroundSkylights', () => {
 })
 
 describe('layout', () => {
-  it('starts the player on open floor', () => {
+  it('starts the player on open floor, in the hall or in front of any obra', () => {
     expect(standable(SPAWN.x, SPAWN.z)).toBe(true)
+    for (const slot of gallerySlots) {
+      const { x, z } = standInFront(slot)
+      expect(standable(x, z), `obra at ${slot.position}`).toBe(true)
+    }
   })
 
   it('leaves every doorway open, with wall on both sides', () => {
@@ -64,11 +69,9 @@ describe('layout', () => {
 
   it('lets the player walk from the entrance to every obra', () => {
     const reachable = reachableFromSpawn()
-    for (const { position, rotation, width, height } of gallerySlots) {
-      const distance = Math.max(width, height) * 0.62 + 0.75
-      const x = Math.round((position[0] + Math.sin(rotation[1]) * distance) * 4) / 4
-      const z = Math.round((position[2] + Math.cos(rotation[1]) * distance) * 4) / 4
-      expect(reachable(x, z), `obra at ${position}`).toBe(true)
+    for (const slot of gallerySlots) {
+      const { x, z } = standInFront(slot)
+      expect(reachable(Math.round(x * 4) / 4, Math.round(z * 4) / 4), `obra at ${slot.position}`).toBe(true)
     }
   })
 
