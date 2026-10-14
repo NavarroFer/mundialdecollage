@@ -63,10 +63,11 @@ function toDataUrl(publicPath: string) {
   return `data:image/png;base64,${data}`
 }
 
-// Redrawn at most once a minute (it reads no request data, so the CDN serves
-// it in between) and the preview still follows the call's state
-// (/admin/convocatoria): open with its deadline, or closed.
-export const revalidate = 60
+// Redrawn at most once an hour (it reads no request data, so the CDN serves
+// it in between): each redraw is a satori render per language and an ISR
+// write. The preview still follows the call's state, open with its deadline
+// or closed: /admin/convocatoria redraws it when it changes.
+export const revalidate = 3600
 
 // One per language, as the pages it previews (app/[locale]/layout.tsx).
 export function generateStaticParams() {

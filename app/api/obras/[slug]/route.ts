@@ -6,10 +6,12 @@ import { obraNeighbors, type ObraDetail } from '@/lib/obra-detail'
 
 // Everything /obras/[slug] shows, for the popup that opens an obra over the
 // list it was clicked in (components/obra-modal.tsx). Only published obras:
-// the popup opens from public listings. Built from the cached listing at most
-// once a minute per obra (as /api/obras) and served from the CDN in between,
-// so opening an obra costs no page render.
-export const revalidate = 60
+// the popup opens from public listings. Built from the cached listing and
+// served from the CDN, so opening an obra costs no page render. Rebuilt at
+// most once an hour per obra, as /api/obras: every rebuild is an ISR write,
+// and there are hundreds of obras. Changes made through the app drop it
+// right away (refreshPublicData, refreshArtworkData).
+export const revalidate = 3600
 
 export function generateStaticParams() {
   return []

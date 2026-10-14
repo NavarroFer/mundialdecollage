@@ -3,8 +3,10 @@ import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getSiteUrl } from '@/lib/site'
 import { getFinalists } from '@/lib/finalists'
 
-// Keep the route itself fresh as new public works and artists are published.
-export const revalidate = 60
+// Rebuilt at most once an hour: crawlers don't need new works within the
+// minute, and every rebuild is an ISR write (billed per 8 KB). Works
+// published through the app drop it right away (refreshPublicData).
+export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl()

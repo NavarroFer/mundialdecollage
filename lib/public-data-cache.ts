@@ -6,17 +6,21 @@ import { isAnonymousRender } from '@/lib/render-mode'
 // day's exhibition) is read on every visit to the home and the public pages.
 // Cached across requests so a traffic spike doesn't become one Supabase query
 // per visitor: writes made through the app call refreshPublicData() so they
-// show up right away, and the short revalidate covers the rest (cron syncs,
-// SQL triggers, edits in the Supabase dashboard).
+// show up right away, and the hourly revalidate covers the rest (cron syncs,
+// SQL triggers, edits in the Supabase dashboard). Not shorter: every rebuild
+// of this data, and of the routes built from it (/api/obras, the sitemap), is
+// an ISR write Vercel bills per 8 KB, and the obra listing alone weighs a few
+// hundred KB. Rebuilt every minute, it was ~30K ISR writes a day.
 const PUBLIC_DATA_TAG = 'public-data'
-const REVALIDATE_SECONDS = 60
+const REVALIDATE_SECONDS = 3600
 
 // The anonymous copies of the public pages (lib/static-pages.ts) are built
 // ahead and kept by the CDN, and a page is rebuilt as often as the most
-// short-lived data it reads: with the 60 seconds above, every obra page would
-// be rebuilt almost on every visit. They read their own entry instead, kept
-// until the app changes the data (the tag, which also drops the pages built
-// from it) or a day goes by; each page sets how often it's rebuilt itself.
+// short-lived data it reads: with the hour above, each of the hundreds of
+// obra pages would still be rebuilt every hour it gets visits. They read
+// their own entry instead, kept until the app changes the data (the tag,
+// which also drops the pages built from it) or a day goes by; each page sets
+// how often it's rebuilt itself.
 const ANONYMOUS_REVALIDATE_SECONDS = 86400
 
 export function cachedPublicData<Args extends unknown[], Result>(
