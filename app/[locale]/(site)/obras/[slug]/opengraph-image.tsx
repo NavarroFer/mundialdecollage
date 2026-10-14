@@ -7,7 +7,7 @@ import { site } from '@/lib/site'
 
 export const alt = site.name
 export const size = OG_SIZE
-export const contentType = 'image/png'
+export const contentType = 'image/jpeg'
 // The language comes from the URL, not the request, so the CDN keeps each
 // one: drawn once a day at most, and only from R2 after the first time.
 export const revalidate = 86400

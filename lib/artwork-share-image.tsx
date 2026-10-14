@@ -124,8 +124,17 @@ type LoadedArtwork = Awaited<ReturnType<typeof loadArtwork>>
 export function artworkOgImage(input: Input) {
   return cachedShareImage(['og', details(input), input.m.share.badge], input.finalist.imageUrl, async () => {
     const artwork = await loadArtwork(input.finalist.imageUrl, { width: 470, height: 500 })
-    return { image: drawOgImage(input, artwork), complete: artwork !== null }
-  })
+    // A photo drawn as PNG came out at ~800 KB: every ISR write of it was
+    // ~100 billed units (8 KB each), and WhatsApp tends to drop previews
+    // that heavy. As JPEG it's ~115 KB with the same lettering; mozjpeg's
+    // extra encoding time is spent once, then R2 keeps the result.
+    const png = drawOgImage(input, artwork)
+    const body = await sharp(Buffer.from(await png.arrayBuffer()))
+      .flatten({ background: PAPER })
+      .jpeg({ quality: 85, chromaSubsampling: '4:4:4', mozjpeg: true })
+      .toBuffer()
+    return { image: new Response(new Uint8Array(body), { headers: { 'Content-Type': 'image/jpeg' } }), complete: artwork !== null }
+  }, 'jpeg')
 }
 
 export function artworkStoryImage(input: Input) {

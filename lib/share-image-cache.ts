@@ -4,7 +4,7 @@ import { imageStore, isVersionedSource } from '@/lib/r2'
 // An obra's link preview or story image costs satori + sharp 0.1–0.3 s of CPU
 // to draw, and crawlers ask for the same one over and over (a single shared
 // obra: 70+ times an hour), with no CDN in front: the locale comes from the
-// request headers. The PNG only depends on what it draws, so R2 keeps it
+// request headers. The image only depends on what it draws, so R2 keeps it
 // under a hash of exactly that — the text, the photo's version and the
 // template itself (SHARE_IMAGE_TEMPLATE, a hash of its source made at build,
 // next.config.mjs) — and a hit just reads it back.
