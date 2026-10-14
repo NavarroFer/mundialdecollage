@@ -57,3 +57,12 @@ export function refreshArtworkData(artworks: { slug: string | null; profile_id: 
   }
   for (const tag of tags) revalidateTag(tag, { expire: 0 })
 }
+
+// The day's lineup changes at 09:00 Argentina with nothing written through
+// the app, so no tag drops the pages that show it (the home, the 3D gallery)
+// and they'd wait out their revalidate. The exhibition cron calls this once
+// it has the new lineup, so those pages can be kept for an hour instead of
+// rebuilt every few minutes for the rotation alone.
+export function refreshExhibition() {
+  revalidateTag(publicDataTag('exhibition'), { expire: 0 })
+}

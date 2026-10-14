@@ -2,9 +2,10 @@ import { renderAsAnonymous } from '@/lib/render-mode'
 import Galeria3DPage, { generateMetadata as pageMetadata } from '../../galeria-3d/page'
 
 // The anonymous copy of /galeria-3d (lib/static-pages.ts): built per language,
-// refreshed at most every 5 minutes or right away when the app changes its data
-// (lib/public-data-cache.ts).
-export const revalidate = 300
+// refreshed right away when the app changes its data or the exhibition cron
+// rotates the day's lineup (lib/public-data-cache.ts). The hour is only a
+// fallback for that rotation, as on the home: each rebuild is ISR writes.
+export const revalidate = 3600
 
 export function generateMetadata() {
   renderAsAnonymous()

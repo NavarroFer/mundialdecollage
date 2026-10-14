@@ -16,6 +16,7 @@ import { digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from 
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
 import { galleryArtworkPath } from '@/lib/gallery-return'
 import { getSiteUrl, site } from '@/lib/site'
+import { refreshExhibition } from '@/lib/public-data-cache'
 
 export const maxDuration = 300
 
@@ -46,6 +47,9 @@ export const GET = cronRoute(async ({ dryRun }) => {
 async function sendMuseumNotices(db: SupabaseClient, dryRun: boolean) {
   const { error: lineupError } = await db.rpc('ensure_exhibition_today')
   if (lineupError) throw new Error(`No se pudo armar la muestra de hoy: ${lineupError.message}`)
+  // The home and the 3D gallery are kept for an hour: show the new lineup
+  // now, before the mails below link artists to their obra in it.
+  if (!dryRun) refreshExhibition()
 
   const { data: queue, error: queueError } = await db.rpc('exhibition_mail_queue')
   if (queueError) throw new Error(`No se pudo leer a quién avisar: ${queueError.message}`)

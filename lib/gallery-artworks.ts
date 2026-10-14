@@ -67,9 +67,11 @@ const getStoredExhibition = cachedPublicData(async (_day: string): Promise<Final
 }, 'exhibition')
 
 // Today's obras, placed into the 3D gallery's wall slots and shown on the
-// home. Asked for on every request (both pages are force-dynamic), so the
-// rotation needs no job of its own. Falls back to the stateless daily
-// shuffle below (which can repeat obras) when there is no stored lineup.
+// home. Asked for on every render of both pages; their anonymous copies are
+// kept for an hour, so the exhibition cron drops them when the day changes
+// (refreshExhibition in lib/public-data-cache.ts). Falls back to the
+// stateless daily shuffle below (which can repeat obras) when there is no
+// stored lineup.
 export async function getDailyExhibition(): Promise<Finalist[]> {
   const stored = await getStoredExhibition(exhibitionDay())
   if (stored.length) return stored

@@ -21,7 +21,7 @@ vi.mock('next/cache', () => ({
     for (const [key, entry] of cache.entries) if (entry.tags.includes(tag)) cache.entries.delete(key)
   },
 }))
-import { cachedPublicData, refreshArtworkData, refreshPublicData } from './public-data-cache'
+import { cachedPublicData, refreshArtworkData, refreshExhibition, refreshPublicData } from './public-data-cache'
 import { artworkTag, artistTag } from './public-cache-tags'
 
 beforeEach(() => {
@@ -81,6 +81,18 @@ describe('public cache invalidation', () => {
     refreshPublicData()
     await Promise.all(loaders.map(load => load()))
     expect(read).toHaveBeenCalledTimes(6)
+  })
+
+  it('rotates only the day\'s lineup, leaving obras, counts and the call state cached', async () => {
+    const reads = ['exhibition', 'finalists', 'finalist-index', 'call-state', 'submissions-count'].map(key => {
+      const read = vi.fn(async () => key)
+      return { key, read, load: cachedPublicData(read, key) }
+    })
+    await Promise.all(reads.map(({ load }) => load()))
+    refreshExhibition()
+    await Promise.all(reads.map(({ load }) => load()))
+    for (const { key, read } of reads) expect(read).toHaveBeenCalledTimes(key === 'exhibition' ? 2 : 1)
+    expect(cache.invalidate).toHaveBeenCalledWith('public-data:exhibition', { expire: 0 })
   })
 
   it('bounds tags for long slugs and does not invalidate anything for an unlinked legacy row', () => {

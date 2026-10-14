@@ -10,4 +10,5 @@ vi.mock('@/lib/public-data-cache', () => ({
   cachedPublicData: <T>(fn: T) => fn,
   refreshPublicData: vi.fn(),
   refreshArtworkData: vi.fn(),
+  refreshExhibition: vi.fn(),
 }))
