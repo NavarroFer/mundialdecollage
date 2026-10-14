@@ -44,11 +44,13 @@ export async function cachedShareImage(
 
 // A legacy photo can be overwritten in place, so its version (ETag) goes into
 // the key; without one the image is drawn fresh rather than risk a stale one.
+// No `cache` option on the HEAD, as in lib/r2.ts: 'no-store' throws in the
+// ISR routes that call this.
 async function shareImageKey(drawn: unknown, photoUrl: string, format: 'png' | 'jpeg'): Promise<string | null> {
   let version: string | null = 'versioned'
   if (!isVersionedSource(photoUrl)) {
     try {
-      const head = await fetch(photoUrl, { method: 'HEAD', cache: 'no-store' })
+      const head = await fetch(photoUrl, { method: 'HEAD' })
       version = head.ok ? (head.headers.get('etag') ?? head.headers.get('last-modified')) : null
     } catch {
       version = null

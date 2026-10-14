@@ -37,4 +37,13 @@ describe('CPU cost guards', () => {
       'New server-side image rendering: cache what it draws (lib/share-image-cache.ts, R2, or ISR) so it is drawn once, then list it in IMAGE_RENDERERS with how.',
     ).toEqual([])
   })
+
+  // In October 2026 every obra share image was redrawn on every request (and
+  // its ~800 KB written to ISR again): the R2 read used cache: 'no-store',
+  // which throws inside an ISR route, and the catch fell back to drawing.
+  it('reads drawn images back without opting their ISR routes out of caching', () => {
+    for (const file of ['lib/r2.ts', 'lib/share-image-cache.ts']) {
+      expect(readFileSync(file, 'utf8'), `${file}: drop the fetch cache option`).not.toMatch(/cache:\s*'no-(store|cache)'/)
+    }
+  })
 })

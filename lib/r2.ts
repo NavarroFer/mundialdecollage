@@ -42,9 +42,13 @@ export function imageStore(): ImageStore | null {
   const bucketUrl = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}`
   const url = (key: string) => `${bucketUrl}/${key}`
 
+  // No `cache` option on these fetches: Next never caches a fetch without one
+  // at request time, while 'no-store' makes an ISR route (an obra's share
+  // image) dynamic. It threw there, the read was given up as failed and every
+  // request redrew the image instead of reading it back from here.
   return {
     async get(key) {
-      const response = await client.fetch(url(key), { cache: 'no-store' })
+      const response = await client.fetch(url(key))
       if (response.status === 404) return null
       if (!response.ok) throw new Error(`R2 get ${key}: ${response.status}`)
       return Buffer.from(await response.arrayBuffer())
@@ -61,7 +65,7 @@ export function imageStore(): ImageStore | null {
     },
     async findLatestFolder(root) {
       const query = new URLSearchParams({ 'list-type': '2', prefix: `${root}/` })
-      const response = await client.fetch(`${bucketUrl}?${query}`, { cache: 'no-store' })
+      const response = await client.fetch(`${bucketUrl}?${query}`)
       if (!response.ok) throw new Error(`R2 list ${root}: ${response.status}`)
       const xml = await response.text()
       let newest: { folder: string; modified: number } | null = null
