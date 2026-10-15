@@ -13,12 +13,11 @@ export type ViewSettings = {
   compare: boolean // the recent window next to the period
   notes: boolean // descriptions and footnotes
   limit: number | null // ranking rows before «Otros»
-  open: boolean // collapsed charts opened
 }
 export type ViewKey = keyof ViewSettings
 
-const KEYS: ViewKey[] = ['values', 'table', 'compare', 'notes', 'limit', 'open']
-export const DEFAULT_VIEW: ViewSettings = { values: false, table: false, compare: true, notes: true, limit: 10, open: false }
+const KEYS: ViewKey[] = ['values', 'table', 'compare', 'notes', 'limit']
+export const DEFAULT_VIEW: ViewSettings = { values: false, table: false, compare: true, notes: true, limit: 10 }
 const ZERO_REVISIONS = Object.fromEntries(KEYS.map((key) => [key, 0])) as Record<ViewKey, number>
 
 // How capture slides are laid out, kept for the whole page so a deck of

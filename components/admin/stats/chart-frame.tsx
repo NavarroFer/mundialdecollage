@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarRange, Camera, ChevronDown, Hash, Table2 } from 'lucide-react'
+import { CalendarRange, Camera, Hash, Table2 } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
 import { fileSlug } from '@/lib/chart-math'
 import { cn } from '@/lib/utils'
@@ -73,7 +73,6 @@ export function ChartFrame({
   controls = [],
   sortOptions,
   actions,
-  collapsible = false,
   level = 2,
   scope = 'period',
   initial,
@@ -88,7 +87,6 @@ export function ChartFrame({
   controls?: ChartControl[]
   sortOptions?: { value: string; label: string }[]
   actions?: ReactNode
-  collapsible?: boolean
   level?: 2 | 3
   // What the capture's source line says: the page's period, or the site as it is now.
   scope?: 'period' | 'current'
@@ -101,59 +99,31 @@ export function ChartFrame({
   const [sort, setSort] = useState(sortOptions?.[0]?.value ?? null)
   const [capturing, setCapturing] = useState(false)
   const titleId = useId()
-  const bodyId = useId()
   const Heading = level === 2 ? 'h2' : 'h3'
-  const open = !collapsible || settings.open
 
-  // Inside the collapsible's button only phrasing content is allowed, so the
-  // title is a span there and the heading wraps the button instead.
-  const heading = (TitleTag: 'span' | 'h2' | 'h3') => (
-    <>
-      <span className="block min-w-0 flex-1 basis-72">
-        {eyebrow && <span className="block text-xs font-bold tracking-[0.18em] text-collage-red uppercase">{eyebrow}</span>}
-        <TitleTag id={titleId} className="font-display mt-1 block text-2xl font-normal tracking-tight text-ink uppercase">{title}</TitleTag>
-        {settings.notes && description && <span className="mt-1.5 block max-w-3xl text-sm text-muted-foreground">{description}</span>}
-      </span>
-      {figure && <FigureBlock figure={figure} />}
-    </>
-  )
-
+  // A tile of the page's mosaic: a column, so when its row is taller than
+  // it the chart's slot takes the extra height and the footnote stays at
+  // the bottom edge.
   return (
-    <section aria-labelledby={titleId} className={cn('overflow-hidden rounded-3xl border-2 border-ink/10 bg-card', className)}>
-      {collapsible ? (
-        <Heading>
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls={bodyId}
-            aria-labelledby={titleId}
-            onClick={() => set('open', !open)}
-            className="flex w-full flex-wrap items-start justify-between gap-x-6 gap-y-3 p-5 text-left transition-colors hover:bg-collage-yellow/15 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-ink sm:p-6"
-          >
-            {heading('span')}
-            <span className="flex items-center gap-2 self-center rounded-full bg-ink px-3 py-2 text-xs font-bold tracking-wide text-paper uppercase">
-              <span className="hidden sm:inline">{open ? 'Cerrar' : 'Ver gráfico'}</span>
-              <ChevronDown className={cn('size-4 transition-transform duration-300 motion-reduce:transition-none', open && 'rotate-180')} aria-hidden="true" />
-            </span>
-          </button>
-        </Heading>
-      ) : (
-        <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 p-5 pb-0 sm:p-6 sm:pb-0">{heading(Heading)}</header>
-      )}
-
-      {open && (
-        <div id={bodyId} className={cn(collapsible && 'border-t-2 border-ink/10')}>
-          <div className="flex flex-wrap items-center justify-end gap-2 px-5 pt-4 sm:px-6">
-            <ChartToolbar controls={controls} settings={chartSettings} sortOptions={sortOptions} sort={sort} onSort={setSort} actions={actions}>
-              <ToolbarButton icon={Camera} onClick={() => setCapturing(true)}>Captura</ToolbarButton>
-            </ChartToolbar>
-          </div>
-          <div className="px-5 pt-4 pb-5 sm:px-6 sm:pb-6">
-            <ChartViewContext value={chartView(settings, controls, sort, 'card')}>{children}</ChartViewContext>
-          </div>
-          {settings.notes && footnote && <p className="border-t-2 border-ink/10 px-5 py-4 text-xs leading-relaxed text-muted-foreground sm:px-6">{footnote}</p>}
+    <section aria-labelledby={titleId} className={cn('flex flex-col overflow-hidden rounded-3xl border-2 border-ink/10 bg-card', className)}>
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 p-5 pb-0 sm:p-6 sm:pb-0">
+        <div className="min-w-0 flex-1 basis-52">
+          {eyebrow && <p className="text-xs font-bold tracking-[0.18em] text-collage-red uppercase">{eyebrow}</p>}
+          <Heading id={titleId} className="font-display mt-1 text-2xl font-normal tracking-tight text-ink uppercase">{title}</Heading>
+          {settings.notes && description && <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">{description}</p>}
         </div>
-      )}
+        {figure && <FigureBlock figure={figure} />}
+      </header>
+
+      <div className="flex flex-wrap items-center justify-end gap-2 px-5 pt-4 sm:px-6">
+        <ChartToolbar controls={controls} settings={chartSettings} sortOptions={sortOptions} sort={sort} onSort={setSort} actions={actions}>
+          <ToolbarButton icon={Camera} onClick={() => setCapturing(true)}>Captura</ToolbarButton>
+        </ChartToolbar>
+      </div>
+      <div className="flex flex-1 flex-col px-5 pt-4 pb-5 sm:px-6 sm:pb-6">
+        <ChartViewContext value={chartView(settings, controls, sort, 'card')}>{children}</ChartViewContext>
+      </div>
+      {settings.notes && footnote && <p className="border-t-2 border-ink/10 px-5 py-4 text-xs leading-relaxed text-muted-foreground sm:px-6">{footnote}</p>}
 
       {capturing && (
         <CaptureDialog

@@ -66,12 +66,14 @@ export function ChartError({ children = 'No pudimos cargar estos datos. Recargá
   return <p role="status" className="py-10 text-center text-sm text-collage-red">{children}</p>
 }
 
-// The headline number of a chart, top right of its frame and its slide.
+// The headline number of a chart, top right of its frame and its slide. In
+// a frame its label wraps at a narrow width, so a long one doesn't push the
+// number under the title of a half-width tile.
 export type ChartFigure = { value: string | number; label: string; details?: { label: string; series?: 'recent' }[] }
 
 export function FigureBlock({ figure, large = false }: { figure: ChartFigure; large?: boolean }) {
   return (
-    <span className="block shrink-0 text-right">
+    <span className={cn('block shrink-0 text-right', !large && 'max-w-44')}>
       <strong className={cn('font-display block leading-none tracking-tight text-ink', large ? 'text-6xl' : 'text-4xl')}>{figure.value}</strong>
       <span className="mt-1.5 block text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">{figure.label}</span>
       {figure.details?.length ? (

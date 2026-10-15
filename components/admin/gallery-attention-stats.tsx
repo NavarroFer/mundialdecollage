@@ -25,13 +25,13 @@ async function loadAttention(days: number) {
     if (page.length < 1000) return { data: rows, error: null }
   }
 }
-export async function GalleryAttentionStats({ days }: { days: number }) {
+export async function GalleryAttentionStats({ days, className }: { days: number; className?: string }) {
   if (!isSupabaseConfigured) return null
   const { data, error } = await loadAttention(days)
   const rows = data ?? []
   return (
     <ChartFrame
-      className="mt-8"
+      className={className}
       eyebrow="Galería 3D"
       title="Atención por obra"
       description={`Sesiones iniciadas en los últimos ${days} días. Miradas de al menos 2 segundos, con la pestaña visible y activa. Se detiene tras 60 segundos sin actividad. La consulta de fichas se mide por separado; atención no equivale a gusto.`}

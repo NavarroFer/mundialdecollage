@@ -130,11 +130,11 @@ export function FunnelChart({ steps, base, label, note, windows }: { steps: Char
 
 // A part of a whole that has a 100%: the share as the headline, a meter
 // whose track is a light step of the fill's own hue, and what's left as a
-// status chip.
+// status chip. In a tile stretched by its row it sits at the bottom edge.
 export function Meter({ value, total, label, remainder }: { value: number; total: number; label: string; remainder: { label: string; done: string } }) {
   const left = total - value
   return (
-    <div>
+    <div className="mt-auto">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <strong className="font-display block text-5xl leading-none tracking-tight text-ink">{formatShare(value, total)}</strong>

@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarRange, ChevronsUpDown, Hash, Table2, Text } from 'lucide-react'
+import { CalendarRange, Hash, Table2, Text } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LIMIT_OPTIONS, Segmented, ToolbarToggle } from './controls'
 import { usePageView } from './view-settings'
@@ -28,19 +28,22 @@ export function StatsControlBar({ periods, periodDays, browsers, browser }: {
         <ToolbarToggle icon={CalendarRange} pressed={settings.compare} onPressedChange={(on) => set('compare', on)}>Comparación</ToolbarToggle>
         <ToolbarToggle icon={Table2} pressed={settings.table} onPressedChange={(on) => set('table', on)}>Tablas</ToolbarToggle>
         <ToolbarToggle icon={Text} pressed={settings.notes} onPressedChange={(on) => set('notes', on)}>Notas</ToolbarToggle>
-        <ToolbarToggle icon={ChevronsUpDown} pressed={settings.open} onPressedChange={(on) => set('open', on)}>Abrir todos</ToolbarToggle>
       </div>
     </div>
   )
 }
 
-// The heading of a group of charts, in the same voice as the frames.
+// The heading of a group of charts, in the same voice as the frames. With
+// `masonry` the charts flow down two columns, each tile as tall as its own
+// chart, so a short funnel and a long ranking sit side by side without a
+// hole under the short one.
 export function StatsSection({
   id,
   eyebrow,
   title,
   description,
   tone = 'blue',
+  masonry = false,
   className,
   children,
 }: {
@@ -49,6 +52,7 @@ export function StatsSection({
   title: string
   description?: string
   tone?: 'blue' | 'red'
+  masonry?: boolean
   className?: string
   children: React.ReactNode
 }) {
@@ -60,7 +64,7 @@ export function StatsSection({
         <h2 id={id} className="font-display mt-1 text-3xl tracking-tight text-ink uppercase">{title}</h2>
         {settings.notes && description && <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>}
       </div>
-      <div className="mt-6 space-y-6">{children}</div>
+      <div className={cn('mt-6', masonry ? 'gap-6 lg:columns-2 *:mb-6 *:break-inside-avoid' : 'space-y-6')}>{children}</div>
     </section>
   )
 }

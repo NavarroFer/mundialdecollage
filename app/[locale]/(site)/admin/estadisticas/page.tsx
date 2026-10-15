@@ -151,7 +151,7 @@ function JourneySection({
   const rows = steps.map((step) => ({ label: step.label, value: month?.get(step.name) ?? 0, recent: week?.get(step.name) ?? 0 }))
   const note = baseLabel ? `% ${lowerFirst(baseLabel)}.` : undefined
   return (
-    <ChartFrame collapsible level={3} title={title} description={description} footnote={footnote} figure={figure} controls={['compare']}>
+    <ChartFrame level={3} title={title} description={description} footnote={footnote} figure={figure} controls={['compare']}>
       {!week || !month ? <ChartError>No pudimos cargar el circuito. Recargá la página para reintentar.</ChartError>
         : variant === 'funnel'
           ? <FunnelChart steps={rows} base={base} label={`${title}, ${lowerFirst(windows.period)}`} note={note} windows={windows} />
@@ -181,6 +181,8 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
   const historyUnit = grouping === 'day' ? 'día' : grouping === 'week' ? 'semana' : 'mes'
   const journey = { week: funnelWeek, month: funnelMonth, windows, recentDays: comparisonDays }
   const sum = (points: { value: number }[]) => points.reduce((total, point) => total + point.value, 0)
+  // The meters need a whole to measure against.
+  const meterStats = artworkStats && artworkStats.total > 0 ? artworkStats : null
 
   return (
     <StatsViewProvider periodLabel={windows.period}>
@@ -194,7 +196,6 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         browser={browser}
         browsers={BROWSERS.map(({ value, label }) => ({ value, label, href: statsHref({ period: periodDays, grouping, browser: value }) }))}
       />
-      <GalleryAttentionStats days={periodDays} />
       <section className="mt-6 grid gap-3 lg:grid-cols-12" aria-label="Panorama de la convocatoria">
         <div className="relative overflow-hidden rounded-3xl bg-collage-blue p-6 text-paper lg:col-span-4">
           <p className="text-xs font-bold tracking-[0.18em] text-paper/70 uppercase">Panorama general</p>
@@ -203,7 +204,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-paper/75">Cada envío cuenta: incluye obras de la planilla y registros directos desde la página.</p>
           <div className="absolute -right-9 -bottom-12 h-40 w-40 rounded-full border-[18px] border-paper/10" aria-hidden />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:col-span-8">
           <StatPill label="Artistas · Sitio" value={artistStats?.totalArtists ?? 'No disponible'} />
           <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />
           <StatPill label="Con país registrado" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
@@ -211,62 +212,75 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         </div>
       </section>
 
-      <ChartFrame
-        className="mt-8"
-        eyebrow="Obras recibidas"
-        title="Histórico de participaciones"
-        description="Incluye envíos desde Registro y participaciones directas, sin duplicarlas."
-        figure={submissionHistory ? { value: formatCount(sum(submissionHistory)), label: `obras · ${lowerFirst(windows.period)}` } : undefined}
-        controls={['values', 'table']}
-        actions={(
-          <Segmented
-            label="Agrupación del histórico de obras"
-            value={grouping}
-            options={(['day', 'week', 'month'] as const).map((option) => ({
-              value: option,
-              label: option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual',
-              href: statsHref({ period: periodDays, grouping: option, browser }),
-            }))}
-          />
+      {/* The mosaic: a wide tile and a narrower one per row, sharing the
+          row's height, then the attention ranking across the whole width
+          for its table. Each eyebrow says what the tile is about. */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-12">
+        <ChartFrame
+          className={meterStats ? 'lg:col-span-7' : 'lg:col-span-12'}
+          eyebrow="Obras recibidas"
+          title="Histórico de participaciones"
+          description="Incluye envíos desde Registro y participaciones directas, sin duplicarlas."
+          figure={submissionHistory ? { value: formatCount(sum(submissionHistory)), label: `obras · ${lowerFirst(windows.period)}` } : undefined}
+          controls={['values', 'table']}
+          actions={(
+            <Segmented
+              label="Agrupación del histórico de obras"
+              value={grouping}
+              options={(['day', 'week', 'month'] as const).map((option) => ({
+                value: option,
+                label: option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual',
+                href: statsHref({ period: periodDays, grouping: option, browser }),
+              }))}
+            />
+          )}
+        >
+          {submissionHistory
+            ? <TimeSeriesChart data={submissionHistory} unit={{ one: 'obra', other: 'obras' }} label={`Obras recibidas por ${historyUnit}`} />
+            : <ChartError>No pudimos cargar el histórico de obras. Recargá la página para reintentar.</ChartError>}
+        </ChartFrame>
+
+        {meterStats && (
+          <ChartFrame className="lg:col-span-5" scope="current" eyebrow="Datos actuales" title="Estado de publicación" description="Obras seleccionadas que ya se ven en el sitio.">
+            <Meter value={meterStats.published} total={meterStats.total} label="publicadas" remainder={{ label: 'pendientes', done: 'Todo al día' }} />
+          </ChartFrame>
         )}
-      >
-        {submissionHistory
-          ? <TimeSeriesChart data={submissionHistory} unit={{ one: 'obra', other: 'obras' }} label={`Obras recibidas por ${historyUnit}`} />
-          : <ChartError>No pudimos cargar el histórico de obras. Recargá la página para reintentar.</ChartError>}
-      </ChartFrame>
 
-      <StatsSection id="pulse-title" eyebrow="Lectura rápida" title="El pulso de la convocatoria">
-        <div className="grid items-start gap-6 lg:grid-cols-2">
-          <ChartFrame
-            title="Actividad reciente"
-            description="Visitas únicas a la galería por día. Ayuda a detectar picos después de una publicación, difusión o campaña."
-            figure={galleryHistory ? { value: formatCount(sum(galleryHistory)), label: `visitas · ${lowerFirst(windows.period)}` } : undefined}
-            controls={['values', 'table']}
-          >
-            {galleryHistory
-              ? <TimeSeriesChart data={galleryHistory} unit={{ one: 'visita', other: 'visitas' }} label="Visitas únicas a la galería por día" />
-              : <ChartError>No pudimos cargar el histórico. Recargá la página para reintentar.</ChartError>}
-          </ChartFrame>
-          <ChartFrame
-            title="Embudo principal"
-            description={`El camino principal para descubrir obras, en los últimos ${periodDays} días.`}
-            figure={funnelMonth ? { value: formatCount(funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0), label: GALLERY_HAPPY_PATH[0].label } : undefined}
-            controls={['compare']}
-          >
-            {funnelMonth
-              ? <FunnelChart
-                  label={`Embudo de la galería, ${lowerFirst(windows.period)}`}
-                  steps={GALLERY_HAPPY_PATH.map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0, recent: funnelWeek?.get(step.name) }))}
-                  base={funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0}
-                  note="% de quienes abrieron la galería."
-                  windows={windows}
-                />
-              : <ChartError>No pudimos cargar el embudo.</ChartError>}
-          </ChartFrame>
-        </div>
-      </StatsSection>
+        <ChartFrame
+          className="lg:col-span-7"
+          eyebrow="Galería 3D"
+          title="Actividad reciente"
+          description="Visitas únicas a la galería por día. Ayuda a detectar picos después de una publicación, difusión o campaña."
+          figure={galleryHistory ? { value: formatCount(sum(galleryHistory)), label: `visitas · ${lowerFirst(windows.period)}` } : undefined}
+          controls={['values', 'table']}
+        >
+          {galleryHistory
+            ? <TimeSeriesChart data={galleryHistory} unit={{ one: 'visita', other: 'visitas' }} label="Visitas únicas a la galería por día" />
+            : <ChartError>No pudimos cargar el histórico. Recargá la página para reintentar.</ChartError>}
+        </ChartFrame>
+        <ChartFrame
+          className="lg:col-span-5"
+          eyebrow="Galería 3D"
+          title="Embudo principal"
+          description={`El camino principal para descubrir obras, en los últimos ${periodDays} días.`}
+          figure={funnelMonth ? { value: formatCount(funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0), label: GALLERY_HAPPY_PATH[0].label } : undefined}
+          controls={['compare']}
+        >
+          {funnelMonth
+            ? <FunnelChart
+                label={`Embudo de la galería, ${lowerFirst(windows.period)}`}
+                steps={GALLERY_HAPPY_PATH.map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0, recent: funnelWeek?.get(step.name) }))}
+                base={funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0}
+                note="% de quienes abrieron la galería."
+                windows={windows}
+              />
+            : <ChartError>No pudimos cargar el embudo.</ChartError>}
+        </ChartFrame>
 
-      <StatsSection id="linear-journeys-title" eyebrow="Recorridos lineales" title="Embudos" description="Etapas consecutivas: cada bloque muestra el avance del mismo camino.">
+        <GalleryAttentionStats days={periodDays} className="lg:col-span-12" />
+      </div>
+
+      <StatsSection masonry id="linear-journeys-title" eyebrow="Recorridos lineales" title="Embudos" description="Etapas consecutivas: cada bloque muestra el avance del mismo camino.">
         <JourneySection
           {...journey}
           title="Circuito de la galería"
@@ -322,7 +336,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         />
       </StatsSection>
 
-      <StatsSection id="action-comparisons-title" tone="red" eyebrow="Acciones alternativas" title="Comparativas" description="No son pasos consecutivos: sirven para comparar qué acción genera más movimiento.">
+      <StatsSection masonry id="action-comparisons-title" tone="red" eyebrow="Acciones alternativas" title="Comparativas" description="No son pasos consecutivos: sirven para comparar qué acción genera más movimiento.">
         <JourneySection
           {...journey}
           title="Origen de las inscripciones"
@@ -456,9 +470,8 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         title="Artistas y obras"
         description="Sobre las obras seleccionadas, con imagen y sin archivar (publicadas y pendientes). Países cuenta artistas y técnicas cuenta obras. Las barras se escalan al grupo más grande; los porcentajes usan el total de cada gráfico y, por redondeo, la suma puede diferir de 100%."
       >
-        <div className="grid items-start gap-6 xl:grid-cols-12">
+        <div className="grid gap-6 lg:grid-cols-2">
           <ChartFrame
-            className="xl:col-span-5"
             scope="current"
             title="Artistas por país"
             description="Cada artista cuenta una vez, con el país de su perfil."
@@ -478,19 +491,14 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
                 )}
           </ChartFrame>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:col-span-7">
-            {artworkStats && artworkStats.total > 0 && (
-              <ChartFrame scope="current" title="Estado de publicación" description="Obras seleccionadas que ya se ven en el sitio.">
-                <Meter value={artworkStats.published} total={artworkStats.total} label="publicadas" remainder={{ label: 'pendientes', done: 'Todo al día' }} />
-              </ChartFrame>
-            )}
-            {artworkStats && artworkStats.total > 0 && (
+          <div className="flex flex-col gap-6">
+            {meterStats && (
               <ChartFrame scope="current" title="Datos de técnica" description="Qué tan completo está este dato.">
-                <Meter value={artworkStats.withTechnique} total={artworkStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
+                <Meter value={meterStats.withTechnique} total={meterStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
               </ChartFrame>
             )}
             <ChartFrame
-              className="md:col-span-2"
+              className="flex-1"
               scope="current"
               title="Obras por técnica"
               description="Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio."

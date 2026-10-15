@@ -24,7 +24,7 @@ export function TimeSeriesChart({ data, unit, label }: { data: Point[]; unit: Un
   if (slide && view.table) return <SeriesTable data={data} unit={unit} label={label} />
 
   const width = size.width
-  const height = slide ? size.height : CARD_HEIGHT
+  const height = size.height
   const values = data.map((point) => point.value)
   const ticks = niceTicks(Math.max(...values))
   const top = ticks.at(-1) ?? 1
@@ -54,13 +54,17 @@ export function TimeSeriesChart({ data, unit, label }: { data: Point[]; unit: Un
   const current = active === null ? null : data[active]
 
   return (
-    <div className={slide ? 'h-full' : undefined}>
-      <div ref={ref} className="relative" style={slide ? { height: '100%', minHeight: CARD_HEIGHT } : { height: CARD_HEIGHT }}>
+    // The plot takes whatever height its box gets (a slide, or a mosaic tile
+    // stretched by a taller neighbor) and never less than CARD_HEIGHT. The
+    // svg sits out of flow so its own height can't hold the box open after
+    // the neighbor shrinks.
+    <div className={slide ? 'h-full' : 'flex flex-1 flex-col'}>
+      <div ref={ref} className={slide ? 'relative h-full' : 'relative flex-1'} style={{ minHeight: CARD_HEIGHT }}>
         {width > 0 && height > 0 && (
           <svg
             width={width}
             height={height}
-            className="block overflow-visible outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute inset-0 block overflow-visible outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring"
             role="img"
             aria-label={`${label}. Usá las flechas para recorrer los valores.`}
             tabIndex={0}
