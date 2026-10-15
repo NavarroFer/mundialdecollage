@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, use, useEffect, useState } from 'react'
+import { createContext, use, useEffect, useState, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { DEFAULT_VIEW, type ViewSettings } from './view-settings'
 
@@ -69,7 +69,7 @@ export function ChartError({ children = 'No pudimos cargar estos datos. Recargá
 // The headline number of a chart, top right of its frame and its slide. In
 // a frame its label wraps at a narrow width, so a long one doesn't push the
 // number under the title of a half-width tile.
-export type ChartFigure = { value: string | number; label: string; details?: { label: string; series?: 'recent' }[] }
+export type ChartFigure = { value: string | number; label: string; details?: { label: ReactNode; series?: 'recent' }[] }
 
 export function FigureBlock({ figure, large = false }: { figure: ChartFigure; large?: boolean }) {
   return (
@@ -78,8 +78,8 @@ export function FigureBlock({ figure, large = false }: { figure: ChartFigure; la
       <span className="mt-1.5 block text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">{figure.label}</span>
       {figure.details?.length ? (
         <span className="mt-1.5 flex flex-wrap justify-end gap-x-3 gap-y-1 text-[11px] font-semibold text-muted-foreground">
-          {figure.details.map((detail) => (
-            <span key={detail.label} className="inline-flex items-center gap-1">{detail.series === 'recent' && <SeriesKey color={SERIES.recent} />}{detail.label}</span>
+          {figure.details.map((detail, index) => (
+            <span key={index} className="inline-flex items-center gap-1">{detail.series === 'recent' && <SeriesKey color={SERIES.recent} />}{detail.label}</span>
           ))}
         </span>
       ) : null}

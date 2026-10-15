@@ -44,7 +44,7 @@ export function ChartToolbar({
 }: {
   controls: ChartControl[]
   settings: Settings
-  sortOptions?: { value: string; label: string }[]
+  sortOptions?: { value: string; label: ReactNode }[]
   sort: string | null
   onSort: (sort: string) => void
   actions?: ReactNode
@@ -85,7 +85,7 @@ export function ChartFrame({
   footnote?: string
   figure?: ChartFigure
   controls?: ChartControl[]
-  sortOptions?: { value: string; label: string }[]
+  sortOptions?: { value: string; label: ReactNode }[]
   actions?: ReactNode
   level?: 2 | 3
   // What the capture's source line says: the page's period, or the site as it is now.

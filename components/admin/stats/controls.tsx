@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Loader2, type LucideIcon } from 'lucide-react'
-import type { MouseEvent } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { useStatsNavigation } from './navigation'
 
@@ -52,7 +52,8 @@ function toggleClass(pressed: boolean, tone: Tone) {
   )
 }
 
-type Option<T> = { value: T; label: string; href?: string }
+// A label can be an icon, with its name for screen readers.
+type Option<T> = { value: T; label: ReactNode; href?: string }
 
 // One choice among a few. Options with an href are links (the period and the
 // grouping are in the URL and re-render the page on the server): the one
