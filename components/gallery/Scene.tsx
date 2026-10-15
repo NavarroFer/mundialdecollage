@@ -8,6 +8,7 @@ import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import type { Artwork } from '@/data/artworks'
 import { FloatingReactions } from './artwork/FloatingReactions'
+import { EdgeLook } from './camera/EdgeLook'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
 import { InteractionManager } from './interaction/InteractionManager'
 import { PlayerTracker } from './minimap/PlayerTracker'
@@ -60,6 +61,7 @@ export function Scene({ artworks, theme, active, controlMode, paused, isTouchDev
           <Player active={active} artworks={artworks} />
         </Physics>
         {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}
+        {!isTouchDevice && controlMode === 'point' && <EdgeLook active={active} />}
         <TouchLookController active={active} />
         <PointNavigation active={active} touch={isTouchDevice} pointerLock={!isTouchDevice && controlMode === 'classic'} artworks={artworks} garden={theme === 'garden'} />
         <InteractionManager artworks={artworks} />

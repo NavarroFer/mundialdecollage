@@ -6,8 +6,8 @@ export type LearnStep = (typeof LEARN_STEPS)[number]
 
 /**
  * Clicks and keys (or taps and the joystick) always both walk; what differs
- * is how a computer looks around: dragging with a free cursor, or the mouse
- * captured with a crosshair, the videogame way.
+ * is how a computer looks around: a free cursor that turns the view towards
+ * the side it's on, or the mouse captured with a crosshair, the videogame way.
  */
 export type ControlScheme = 'keys' | 'click' | 'tap'
 

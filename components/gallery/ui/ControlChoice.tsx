@@ -1,6 +1,6 @@
 'use client'
 
-import { Crosshair, Hand } from 'lucide-react'
+import { Crosshair, MousePointer2 } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/client'
 import { useGalleryPreferences, type ControlMode } from '../preferences/store'
 import styles from '../gallery-theme.module.css'
@@ -8,15 +8,16 @@ import styles from '../gallery-theme.module.css'
 const MODES: ControlMode[] = ['point', 'classic']
 
 /**
- * How a computer looks around: dragging with a free cursor, or the mouse
- * captured the videogame way (with a crosshair to click where to go).
+ * How a computer looks around: a free cursor that turns the view towards
+ * the side it's on (or drags it), or the mouse captured the videogame way
+ * (with a crosshair to click where to go).
  * Clicks and WASD walk either way. Remembered in the browser.
  */
 export function ControlChoice() {
   const mode = useGalleryPreferences((state) => state.controlMode)
   const t = useI18n().m.gallery.controls
   const copy = {
-    point: { title: t.dragTitle, body: t.dragBody, Icon: Hand },
+    point: { title: t.dragTitle, body: t.dragBody, Icon: MousePointer2 },
     classic: { title: t.lockTitle, body: t.lockBody, Icon: Crosshair },
   }
   return (

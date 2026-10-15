@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { GALLERY_THEMES, type GalleryTheme } from '../themes'
 
 const KEY = 'mdc-gallery-preferences-v1'
-/** How a computer looks around: dragging ('point') or with the mouse captured ('classic'). Clicks and keys walk either way. */
+/** How a computer looks around: a free cursor that turns the view at the sides ('point') or with the mouse captured ('classic'). Clicks and keys walk either way. */
 export type ControlMode = 'point' | 'classic'
 export type Preferences = { controlMode: ControlMode; theme: GalleryTheme; muted: boolean; sensitivity: number; visited: string[]; lastArtwork: string | null }
 const defaults: Preferences = { controlMode: 'point', theme: 'collage', muted: false, sensitivity: 1, visited: [], lastArtwork: null }
