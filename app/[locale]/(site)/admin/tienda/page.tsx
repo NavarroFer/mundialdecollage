@@ -5,6 +5,7 @@ import { adminDescription } from '@/components/admin/admin-sections'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { formatAddress, formatMoney } from '@/lib/receipts'
 import { planForProviderPlan } from '@/lib/subscription-receipts'
+import { storePlanName } from '@/lib/store'
 import { MESSAGES } from '@/lib/i18n/messages'
 import { markShipmentSent, undoShipmentSent, updateShipmentProgress, retryShipmentNotice } from './actions'
 
@@ -59,7 +60,7 @@ type ShipmentRow = {
 
 function planName(providerPlanId: string) {
   const charge = planForProviderPlan(providerPlanId)
-  return charge ? MESSAGES.es.store.plans[charge.plan.id].name : providerPlanId
+  return charge ? storePlanName(charge.plan, MESSAGES.es.store) : providerPlanId
 }
 
 function monthStart() {

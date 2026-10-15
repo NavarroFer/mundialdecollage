@@ -160,7 +160,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 <p className="mt-6 text-3xl font-bold tracking-tight">
                   {priceLabel(plan.priceArs, plan.priceUsd)} <span className="text-base font-medium">{t.perMonth}</span>
                 </p>
-                <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.shipping}</p>
+                <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{argentina && byAddress ? `${copy.shipping} ${priceLabel(flatShippingFee(), 0)}` : copy.shipping}</p>
                 <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
                   {[`${plan.count} ${copy.cutouts}`, copy.stickers].map((content) => (
                     <li key={content} className="flex gap-2.5">
@@ -169,10 +169,21 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                     </li>
                   ))}
                 </ul>
-                <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full">
-                  <a href={`mailto:${site.email}?subject=${encodeURIComponent(copy.inquirySubject.replace('{count}', String(plan.count)))}`}>{copy.inquire}</a>
-                </Button>
-                <p className={`mt-4 text-center text-xs ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.setupNote}</p>
+                {/* Abroad there's no PayPal plan for the packs yet: they're
+                    arranged by mail. */}
+                {argentina && isMercadoPagoConfigured ? (
+                  <>
+                    <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full"><Link href={`/tienda/suscribirme?plan=${plan.id}`}>{t.mp.subscribe}</Link></Button>
+                    <p className={`mt-4 text-center text-xs ${plan.featured ? 'text-paper/70' : 'text-muted-foreground'}`}>{t.cancelAnytime}</p>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full">
+                      <a href={`mailto:${site.email}?subject=${encodeURIComponent(copy.inquirySubject.replace('{count}', String(plan.count)))}`}>{copy.inquire}</a>
+                    </Button>
+                    <p className={`mt-4 text-center text-xs ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.setupNote}</p>
+                  </>
+                )}
               </article>
               )
             })}

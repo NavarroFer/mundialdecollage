@@ -12,7 +12,7 @@ import { subscriptionExternalReference } from '@/lib/payments/references'
 import { MAGAZINE_FIELDS, parseMagazineOrder, type MagazineField } from '@/lib/magazine'
 import { upsertCustomer } from '@/lib/payments/customers'
 import { mpPlanId } from '@/lib/subscription-receipts'
-import { planById } from '@/lib/store'
+import { isCutoutPlan, planById } from '@/lib/store'
 import { getSiteUrl } from '@/lib/site'
 import { trackServer } from '@/lib/track-server'
 import { subscriptionCheckoutError } from '@/lib/subscription-checkout-error'
@@ -115,7 +115,7 @@ export async function startMpSubscription(planId: string, _previous: MpSubscript
   try {
     const preapproval = await new PreApproval(getMercadoPagoConfig()).create({
       body: {
-        reason: `Papel por correo — plan ${plan.id} (Mundial de Collage)`,
+        reason: `${isCutoutPlan(plan) ? `Recortes para collage — pack ${plan.count}` : `Papel por correo — plan ${plan.id}`} (Mundial de Collage)`,
         external_reference: subscriptionExternalReference(subscriptionId),
         payer_email: payerEmail,
         auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: billingAmount, currency_id: 'ARS' },

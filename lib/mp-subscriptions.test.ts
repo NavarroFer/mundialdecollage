@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { subscriptionStatusFor } from './mp-subscriptions'
 import { mpPlanId, planForProviderPlan } from './subscription-receipts'
+import { storePlanName } from './store'
+import { MESSAGES } from './i18n/messages'
 
 describe('subscriptionStatusFor', () => {
   it('maps Mercado Pago preapproval statuses to ours', () => {
@@ -16,5 +18,11 @@ describe('planForProviderPlan', () => {
   it('reads Mercado Pago plans in pesos', () => {
     expect(planForProviderPlan(mpPlanId('miembro'))).toMatchObject({ plan: { id: 'miembro' }, amount: 36000, currency: 'ARS' })
     expect(planForProviderPlan('mp:nope')).toBeNull()
+  })
+  it('reads cutout packs, which only Mercado Pago sells', () => {
+    const charge = planForProviderPlan(mpPlanId('recortes-100'))
+    expect(charge).toMatchObject({ plan: { id: 'recortes-100' }, amount: 27000, currency: 'ARS' })
+    expect(storePlanName(charge!.plan, MESSAGES.es.store)).toBe('Pack 100 recortes')
+    expect(storePlanName(planForProviderPlan(mpPlanId('miembro'))!.plan, MESSAGES.es.store)).toBe('Miembro')
   })
 })

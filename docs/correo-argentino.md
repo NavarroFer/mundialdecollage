@@ -33,13 +33,16 @@ posterior. No se implementó Pago en Destino ni contra reembolso.
 | `CORREO_SHIPPING_RATE_MODE` | `flat` (predeterminado) para tarifa provisoria; `api` para cotización real |
 | `CORREO_FLAT_SHIPPING_FEE` | Tarifa mensual provisoria en ARS; predeterminado `7000` |
 | `CORREO_ORIGIN_POSTAL_CODE` | `7600` — despacho desde Mar del Plata, confirmado por el titular |
-| `CORREO_PACKAGES_JSON` | Peso en gramos y medidas en cm de cada plan ya embalado |
+| `CORREO_PACKAGES_JSON` | Peso en gramos y medidas en cm de cada plan ya embalado: `inicial`, `miembro`, `socio-premium` y los packs `recortes-50`, `recortes-100`, `recortes-200` |
 
 Paquete máximo informado por el titular para las suscripciones: menos de 1 kg,
 formato entre A5 y A4, con espesor máximo de 5 cm. Se configura una cotización
 conservadora de **1000 g y 21 × 30 × 5 cm** para los tres planes. El largo A4
 (29,7 cm) se redondea hacia arriba porque la integración exige centímetros enteros.
 Verificar que el embalaje exterior respete estos límites antes de operar.
+Con `CORREO_SHIPPING_RATE_MODE=api`, un plan sin medidas no se puede cotizar y
+su checkout queda como no disponible: los packs de recortes también necesitan
+su entrada.
 
 ```json
 {

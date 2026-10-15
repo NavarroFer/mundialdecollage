@@ -3,7 +3,7 @@
 // Mercado Pago preapproval turning authorized (lib/mp-subscriptions.ts).
 import { formatAddress, formatMoney, localeFromCountry, sendReceiptOnce } from '@/lib/receipts'
 import { paypalPlanId, type PaypalPlanKey } from '@/lib/payments/paypal/plans'
-import { planById, subscriptionPlans } from '@/lib/store'
+import { planById, storePlanName, subscriptionPlans } from '@/lib/store'
 import { pickupCopy } from '@/lib/pickup-copy'
 import { MESSAGES } from '@/lib/i18n/messages'
 
@@ -42,7 +42,7 @@ export function sendSubscriptionReceipt(subscriptionId: string) {
     const address = subscription.shipping_address as Record<string, unknown>
     const locale = localeFromCountry(typeof address?.country_code === 'string' ? address.country_code : null)
     const charge = planForProviderPlan(subscription.provider_plan_id)
-    const planName = charge ? MESSAGES[locale].store.plans[charge.plan.id].name : subscription.provider_plan_id
+    const planName = charge ? storePlanName(charge.plan, MESSAGES[locale].store) : subscription.provider_plan_id
     const billed = typeof address?.billing_amount === 'number' && address.billing_amount > 0 ? address.billing_amount : charge?.amount
     const total = charge && billed ? formatMoney(billed, charge.currency, locale) : '—'
     return {

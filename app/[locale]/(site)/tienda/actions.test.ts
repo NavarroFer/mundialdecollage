@@ -117,6 +117,18 @@ describe('branch and tariff validation', () => {
     form.set('shipping_fee', '4200')
     expect(await startMpSubscription('inicial', initial, form)).toMatchObject({ invalid: ['shipping_fee'] })
   })
+  it('subscribes to a cutout pack at its own price plus shipping', async () => {
+    mocks.create.mockResolvedValue({ id: 'mp-id', init_point: 'https://checkout.example.com' })
+    await startMpSubscription('recortes-100', initial, checkoutForm())
+    expect(mocks.quote).toHaveBeenCalledWith('recortes-100', expect.objectContaining({ code: 'B0107' }))
+    expect(mocks.insert).toHaveBeenCalledWith(expect.objectContaining({ provider_plan_id: 'mp:recortes-100', shipping_address: expect.objectContaining({ billing_amount: 31200 }) }))
+    expect(mocks.create).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ reason: 'Recortes para collage — pack 100 (Mundial de Collage)', auto_recurring: expect.objectContaining({ transaction_amount: 31200 }) }) }))
+    expect(mocks.redirect).toHaveBeenCalledWith('https://checkout.example.com')
+  })
+  it('refuses a plan that is not in either catalogue', async () => {
+    expect(await startMpSubscription('recortes-999', initial, checkoutForm())).toMatchObject({ error: 'unavailable' })
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
   it('requires a new review if the shipping amount was altered or changed', async () => {
     const form = checkoutForm(); form.set('shipping_fee', '1')
     expect(await startMpSubscription('inicial', initial, form)).toMatchObject({ invalid: ['shipping_fee'] })

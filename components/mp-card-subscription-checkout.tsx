@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { startMpSubscription, type MpSubscriptionState } from '@/app/[locale]/(site)/tienda/actions'
 import { useI18n } from '@/lib/i18n/client'
-import { planById, type SubscriptionPlan } from '@/lib/store'
+import { planById, type StorePlanId } from '@/lib/store'
 
 type BrickData = { token: string; payer?: { email?: string } }
 type Controller = { unmount: () => Promise<void> }
@@ -16,7 +16,7 @@ declare global {
 }
 
 export function MpCardSubscriptionCheckout({ plan, shipping, onBack, onResult }: {
-  plan: SubscriptionPlan['id']
+  plan: StorePlanId
   shipping: FormData
   onBack: () => void
   onResult: (state: MpSubscriptionState) => void

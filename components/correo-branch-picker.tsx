@@ -6,6 +6,7 @@ import { useI18n } from '@/lib/i18n/client'
 import provinces from '@/lib/argentina-provinces.json'
 import { branchDistance, CORREO_PROVINCES, searchBranches, type CorreoBranch } from '@/lib/correo-branches'
 import { site } from '@/lib/site'
+import { planById, storePlanName } from '@/lib/store'
 import { track } from '@/lib/track'
 
 export type PickupSelection = { branch: CorreoBranch; payment: 'included' | 'monthly'; fee: number }
@@ -18,7 +19,8 @@ function ManualAddress({ plan, province }: { plan?: string; province: string }) 
   const t = m.store.pickup
   const id = useId()
   const [address, setAddress] = useState('')
-  const planName = plan && plan in m.store.plans ? m.store.plans[plan as keyof typeof m.store.plans].name : ''
+  const storePlan = plan ? planById(plan) : null
+  const planName = storePlan ? storePlanName(storePlan, m.store) : ''
   const subject = t.manualSubject.replace('{plan}', planName).trim()
   const body = [planName, province, address.trim()].filter(Boolean).join('\n')
   return (

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { startMpSubscription, type MpSubscriptionState } from '@/app/[locale]/(site)/tienda/actions'
 import { CorreoBranchPicker, AddressForBranchFields, type AddressForBranch, type PickupSelection } from '@/components/correo-branch-picker'
 import { MAGAZINE_FIELDS, type MagazineField } from '@/lib/magazine'
-import { planById, type SubscriptionPlan } from '@/lib/store'
+import { planById, storePlanName, type StorePlanId } from '@/lib/store'
 import { LOCALE_INFO } from '@/lib/i18n/locales'
 import { useI18n } from '@/lib/i18n/client'
 import { cn } from '@/lib/utils'
@@ -17,7 +17,7 @@ const initial: MpSubscriptionState = { error: null, invalid: [], values: {} }
 // `flatShippingFee`: the buyer types an address instead of picking a Correo
 // branch (we choose the nearest one), at that monthly fee, while Correo's API
 // credentials aren't set (lib/correo.ts).
-export function MpSubscriptionCheckout({ plan, flatShippingFee }: { plan: SubscriptionPlan['id']; flatShippingFee?: number }) {
+export function MpSubscriptionCheckout({ plan, flatShippingFee }: { plan: StorePlanId; flatShippingFee?: number }) {
   const { m, locale } = useI18n()
   const t = m.store.mp
   const p = m.store.pickup
@@ -100,7 +100,7 @@ export function MpSubscriptionCheckout({ plan, flatShippingFee }: { plan: Subscr
       </div>
       {step === 2 && <section aria-label={p.review} className="space-y-3 rounded-xl border p-4">
         <p className="font-semibold">{p.review}</p>
-        <p>{m.store.plans[plan].name} · {price}{m.store.perMonth}</p>
+        <p>{storePlanName(planById(plan)!, m.store)} · {price}{m.store.perMonth}</p>
         {byAddress
           ? <p className="text-sm">{p.addressMode}: {address?.address}<br />{address?.city}, {address?.province}</p>
           : <p className="text-sm">{p.mode}: {pickup?.branch.name}<br />{pickup?.branch.address} · {pickup?.branch.locality || pickup?.branch.city}</p>}
