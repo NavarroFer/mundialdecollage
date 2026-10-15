@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Artwork } from '@/data/artworks'
 import { TrackedLink } from '@/components/track'
+import { DonationForm, type DonationFormLook } from '@/components/donation-form'
 import { track } from '@/lib/track'
 import { readReferralCookie, readReferralParam } from '@/lib/referral'
 import { createClient } from '@/lib/supabase/client'
@@ -13,6 +14,14 @@ import { VisitPreferences } from './VisitPreferences'
 import { PresenceNote } from './PresenceCounter'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
+
+// The donation buttons in the gallery's materials (gallery-theme.module.css).
+const DONATION_LOOK: DonationFormLook = {
+  amount: styles.donateButton,
+  input: styles.donateInput,
+  submit: styles.donateButton,
+  muted: 'opacity-70',
+}
 
 type StartScreenProps = {
   /** Today's walls, to name the artist whose shared link brought this visitor. */
@@ -87,6 +96,11 @@ export function StartScreen({ artworks, label, loading, hint, showPresence, onEn
           </TrackedLink>
         </p>
       )}
+      {/* Before the first entry and on every pause (lib/donations.ts). */}
+      <section aria-labelledby="gallery-donate-title" className={styles.donatePanel}>
+        <p id="gallery-donate-title" className="mb-3 text-sm font-bold">{m.donate.galleryBody}</p>
+        <DonationForm origin="gallery" look={DONATION_LOOK} />
+      </section>
       {/* The way back to the rest of the Mundial — signed-in visitors who
           haven't finished signing up get asked to there (ParticipationStatus). */}
       <Link href="/" onClick={() => track('home_from_gallery')} className="mt-4 inline-block text-sm font-semibold underline opacity-80 hover:opacity-100">

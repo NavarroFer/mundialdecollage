@@ -218,6 +218,42 @@
 
 .hint { margin-top: 1rem; opacity: .7; font-size: .68rem; text-align: center; }
 
+/* Donations on the start screen (DonationForm): smaller than ENTRAR, same materials. */
+.donatePanel { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed var(--gallery-border); }
+
+.donateButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 2.75rem;
+  padding: .5rem .75rem;
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  color: var(--gallery-ink);
+  background: var(--gallery-panel-solid);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.donateButton:disabled { cursor: progress; opacity: .75; }
+
+.donateInput {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: .5rem .75rem;
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  color: inherit;
+  background: transparent;
+}
+
+.windows98 .donateButton { border: 2px solid; border-color: #fff #000 #000 #fff; }
+.windows98 .donateInput { border: 2px solid; border-color: #000 #fff #fff #000; color: #000; background: #fff; }
+.garden .donateButton { border: 0; color: #174d31; background: #ffcf45; }
+.collage .donateButton { border: 0; background: #e4b84a; }
+
 .themePicker {
   position: absolute;
   top: 50%;
