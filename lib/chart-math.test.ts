@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { barWidth, fileSlug, foldRows, highlightIndexes, niceTicks, valueLabelIndexes, xLabelIndexes } from './chart-math'
+import { barWidth, durationParts, fileSlug, foldRows, formatDuration, highlightIndexes, niceTicks, valueLabelIndexes, xLabelIndexes } from './chart-math'
 
 describe('niceTicks', () => {
   it('covers the max with round, whole steps', () => {
@@ -91,5 +91,29 @@ describe('fileSlug', () => {
     expect(fileSlug('Histórico de participaciones')).toBe('historico-de-participaciones')
     expect(fileSlug('«Avisame» de finalistas y revista')).toBe('avisame-de-finalistas-y-revista')
     expect(fileSlug('¿?')).toBe('grafico')
+  })
+})
+
+describe('durationParts', () => {
+  it('keeps a decimal only under 10 seconds', () => {
+    expect(formatDuration(7.44)).toBe('7,4 s')
+    expect(formatDuration(42.6)).toBe('43 s')
+    expect(formatDuration(0)).toBe('0 s')
+  })
+
+  it('moves to minutes and hours, dropping a zero tail', () => {
+    expect(formatDuration(59.6)).toBe('1 min')
+    expect(formatDuration(430)).toBe('7 min 10 s')
+    expect(formatDuration(3600)).toBe('1 h')
+    expect(formatDuration(3900.4)).toBe('1 h 5 min')
+  })
+
+  it('splits number and unit so the number can be drawn big', () => {
+    expect(durationParts(430)).toEqual([{ value: '7', unit: 'min' }, { value: '10', unit: 's' }])
+  })
+
+  it('reads a bad value as zero', () => {
+    expect(formatDuration(Number.NaN)).toBe('0 s')
+    expect(formatDuration(-3)).toBe('0 s')
   })
 })

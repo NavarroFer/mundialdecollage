@@ -73,6 +73,26 @@ export function barWidth(value: number, max: number, minimum = 2): number {
   return Math.min(100, Math.max((value / max) * 100, minimum))
 }
 
+// A length of time in its largest units, as number and unit pairs so the
+// number can be drawn big and the unit small: 7.4 s, 7 min 10 s, 1 h 5 min.
+// Under 10 s it keeps a decimal; past an hour the seconds stop mattering.
+export type DurationPart = { value: string; unit: string }
+
+export function durationParts(seconds: number): DurationPart[] {
+  const total = Math.max(0, Number(seconds) || 0)
+  if (total < 59.5) {
+    return [{ value: total.toLocaleString('es-AR', { maximumFractionDigits: total < 10 ? 1 : 0 }), unit: 's' }]
+  }
+  const whole = Math.round(total)
+  const [hours, minutes, rest] = [Math.floor(whole / 3600), Math.floor((whole % 3600) / 60), whole % 60]
+  const parts = hours > 0
+    ? [{ value: String(hours), unit: 'h' }, { value: String(minutes), unit: 'min' }]
+    : [{ value: String(minutes), unit: 'min' }, { value: String(rest), unit: 's' }]
+  return parts.filter((part, index) => index === 0 || part.value !== '0')
+}
+
+export const formatDuration = (seconds: number) => durationParts(seconds).map(({ value, unit }) => `${value} ${unit}`).join(' ')
+
 // A title as a file name: «Histórico de participaciones» → historico-de-participaciones.
 export function fileSlug(text: string): string {
   return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'grafico'
