@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="border-b-2 border-ink/10 bg-card">
         <div className="mx-auto max-w-6xl px-5 py-4 sm:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Link href="/admin" className="flex items-center gap-2.5">
+            <Link href="/admin/estadisticas" className="flex items-center gap-2.5">
               <Image
                 src="/logo-mark.png"
                 alt=""

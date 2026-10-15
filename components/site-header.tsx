@@ -62,7 +62,7 @@ async function AuthSlot() {
         )}
       </span>
       {isAdmin && (
-        <Link href="/admin">
+        <Link href="/admin/estadisticas">
           <Button size="sm" variant="outline" className="gap-1.5">
             <ShieldCheck className="h-4 w-4" />
             {m.header.adminPanel}
