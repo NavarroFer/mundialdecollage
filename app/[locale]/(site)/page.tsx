@@ -45,8 +45,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           />
           <BasesBanner />
           <EditionSection />
-          <ParticipantsSection />
+          {/* Before the obras: after them it sat 8–9 phone screens down,
+              past where most visitors stop scrolling. */}
           <HomeStoreSection />
+          <ParticipantsSection />
           <MapSection />
           <JurySection />
           <AboutSection />
