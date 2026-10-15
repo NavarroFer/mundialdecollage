@@ -8,6 +8,12 @@ import { ChartLegend, EmptyChart, SERIES, SeriesKey, useChartView } from './char
 // The labels of the two windows a chart can compare (period and recent).
 export type Windows = { period: string; recent: string }
 
+// Bars grow in when they appear and slide to their new length when the data
+// changes. Never on a capture slide, which has to be still when it's saved.
+function motion(slide: boolean, origin: 'left' | 'center') {
+  return slide ? undefined : cn('transition-[width,scale] duration-500 ease-out starting:scale-x-0 motion-reduce:transition-none', origin === 'left' && 'origin-left')
+}
+
 // Shared by every bar chart: one legend row, keyed only when the recent
 // window is drawn too.
 function BarLegend({ windows, compare, note }: { windows?: Windows; compare: boolean; note?: string }) {
@@ -63,8 +69,8 @@ export function BarList({
         {shown.map((row, index) => {
           const bars = (
             <div className={cn('flex flex-col gap-[2px]', !slide && 'mt-1.5')} aria-hidden="true">
-              <div className="h-3 rounded-r-[4px]" style={{ width: `${barWidth(row.value, max)}%`, background: SERIES.period }} />
-              {compare && <div className="h-1.5 rounded-r-[3px]" style={{ width: `${barWidth(row.recent ?? 0, max)}%`, background: SERIES.recent }} />}
+              <div className={cn('h-3 rounded-r-[4px]', motion(slide, 'left'))} style={{ width: `${barWidth(row.value, max)}%`, background: SERIES.period }} />
+              {compare && <div className={cn('h-1.5 rounded-r-[3px]', motion(slide, 'left'))} style={{ width: `${barWidth(row.recent ?? 0, max)}%`, background: SERIES.recent }} />}
             </div>
           )
           const values = <Values value={row.value} total={total} recent={compare ? row.recent : undefined} format={format} />
@@ -117,8 +123,8 @@ export function FunnelChart({ steps, base, label, note, windows }: { steps: Char
             <span className="min-w-0 text-sm font-semibold leading-snug text-ink">{step.label}</span>
             {!slide && <Values value={step.value} total={base} recent={compare ? step.recent : undefined} />}
             <div className={cn('flex flex-col items-center gap-[2px]', !slide && 'col-span-2')} aria-hidden="true">
-              <div className="h-6 rounded-[4px]" style={{ width: `${barWidth(step.value, max)}%`, background: SERIES.period }} />
-              {compare && <div className="h-1.5 rounded-[3px]" style={{ width: `${barWidth(step.recent ?? 0, max)}%`, background: SERIES.recent }} />}
+              <div className={cn('h-6 rounded-[4px]', motion(slide, 'center'))} style={{ width: `${barWidth(step.value, max)}%`, background: SERIES.period }} />
+              {compare && <div className={cn('h-1.5 rounded-[3px]', motion(slide, 'center'))} style={{ width: `${barWidth(step.recent ?? 0, max)}%`, background: SERIES.recent }} />}
             </div>
             {slide && <Values value={step.value} total={base} recent={compare ? step.recent : undefined} />}
           </li>
@@ -132,6 +138,7 @@ export function FunnelChart({ steps, base, label, note, windows }: { steps: Char
 // whose track is a light step of the fill's own hue, and what's left as a
 // status chip. In a tile stretched by its row it sits at the bottom edge.
 export function Meter({ value, total, label, remainder }: { value: number; total: number; label: string; remainder: { label: string; done: string } }) {
+  const { mode } = useChartView()
   const left = total - value
   return (
     <div className="mt-auto">
@@ -145,7 +152,7 @@ export function Meter({ value, total, label, remainder }: { value: number; total
         </span>
       </div>
       <div className="mt-5 h-3 overflow-hidden rounded-[4px]" style={{ background: 'color-mix(in oklab, var(--color-chart-1) 16%, var(--chart-surface, var(--color-card)))' }} role="meter" aria-valuemin={0} aria-valuemax={total} aria-valuenow={value} aria-label={label}>
-        <div className="h-full rounded-[4px]" style={{ width: `${barWidth(value, total, 0)}%`, background: SERIES.period }} />
+        <div className={cn('h-full rounded-[4px]', motion(mode === 'slide', 'left'))} style={{ width: `${barWidth(value, total, 0)}%`, background: SERIES.period }} />
       </div>
       <p className="mt-3 text-xs text-muted-foreground">{formatCount(value)} de {formatCount(total)} obras.</p>
     </div>
