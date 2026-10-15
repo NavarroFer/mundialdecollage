@@ -33,7 +33,8 @@ export type CheckoutRequest = {
   /** lib/payments/references.ts */
   reference: string
   items: CheckoutItem[]
-  payer: { email: string; name?: string | null }
+  /** None for a donation: anyone can give without leaving their details. */
+  payer?: { email: string; name?: string | null }
   /** Where the buyer comes back to, by how the payment went. */
   returnUrls: { success: string; pending: string; failure: string }
 }

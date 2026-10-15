@@ -57,6 +57,16 @@ describe('mercadoPago.createCheckout', () => {
     })
   })
 
+  it('leaves the payer to Mercado Pago when there is none (a donation)', async () => {
+    sdk.create.mockResolvedValue({ id: 'pref-2', init_point: 'https://mp/checkout' })
+    await mercadoPago.createCheckout({
+      reference: 'donacion:d1',
+      items: [{ id: 'd', title: 'Donación', quantity: 1, unitPrice: 5000, currency: 'ARS' }],
+      returnUrls: { success: 's', pending: 'p', failure: 'f' },
+    })
+    expect(sdk.create).toHaveBeenCalledWith({ body: expect.objectContaining({ payer: undefined, external_reference: 'donacion:d1' }) })
+  })
+
   it('fails when Mercado Pago gives no page to go to', async () => {
     sdk.create.mockResolvedValue({ id: 'pref-1' })
     await expect(

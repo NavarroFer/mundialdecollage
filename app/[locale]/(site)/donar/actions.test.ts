@@ -1,0 +1,64 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const mocks = vi.hoisted(() => ({ createCheckout: vi.fn(), redirect: vi.fn(), track: vi.fn(), configured: { value: true } }))
+vi.mock('next/navigation', () => ({ redirect: mocks.redirect }))
+vi.mock('@/lib/track-server', () => ({ trackServer: mocks.track }))
+vi.mock('@/lib/site', () => ({ getSiteUrl: () => 'https://mundial.test', site: { name: 'Mundial' } }))
+vi.mock('@/lib/payments/providers/mercadopago', () => ({
+  mercadoPago: {
+    get isConfigured() { return mocks.configured.value },
+    createCheckout: mocks.createCheckout,
+  },
+}))
+import { startDonation } from './actions'
+
+const initial = { error: null }
+function form(fields: Record<string, string>) {
+  const data = new FormData()
+  for (const [name, value] of Object.entries(fields)) data.set(name, value)
+  return data
+}
+
+beforeEach(() => {
+  vi.resetAllMocks()
+  mocks.configured.value = true
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+})
+
+describe('startDonation', () => {
+  it('sends the donor to Mercado Pago for the amount they tapped', async () => {
+    mocks.createCheckout.mockResolvedValue({ url: 'https://mp/checkout', id: 'pref' })
+    await startDonation(initial, form({ amount: '10000', from: 'gallery' }))
+    expect(mocks.createCheckout).toHaveBeenCalledWith({
+      reference: expect.stringMatching(/^donacion:[0-9a-f-]{36}$/),
+      items: [expect.objectContaining({ quantity: 1, unitPrice: 10000, currency: 'ARS' })],
+      returnUrls: { success: 'https://mundial.test/donar/gracias', pending: 'https://mundial.test/donar/gracias', failure: 'https://mundial.test/galeria-3d' },
+    })
+    expect(mocks.track).toHaveBeenCalledWith('donation_checkout_start_gallery', null)
+    expect(mocks.redirect).toHaveBeenCalledWith('https://mp/checkout')
+  })
+
+  it('brings a failed payment from the home back to its donation section', async () => {
+    mocks.createCheckout.mockResolvedValue({ url: 'https://mp/checkout', id: 'pref' })
+    await startDonation(initial, form({ amount: '$ 15.000' }))
+    expect(mocks.createCheckout).toHaveBeenCalledWith(expect.objectContaining({
+      items: [expect.objectContaining({ unitPrice: 15000 })],
+      returnUrls: expect.objectContaining({ failure: 'https://mundial.test/#donar' }),
+    }))
+    expect(mocks.track).toHaveBeenCalledWith('donation_checkout_start_home', null)
+  })
+
+  it('asks again for an amount out of range, without calling Mercado Pago', async () => {
+    expect(await startDonation(initial, form({ amount: '10' }))).toEqual({ error: 'invalid' })
+    expect(mocks.createCheckout).not.toHaveBeenCalled()
+  })
+
+  it('says so when Mercado Pago is off or refuses', async () => {
+    mocks.configured.value = false
+    expect(await startDonation(initial, form({ amount: '5000' }))).toEqual({ error: 'unavailable' })
+    mocks.configured.value = true
+    mocks.createCheckout.mockRejectedValue(new Error('down'))
+    expect(await startDonation(initial, form({ amount: '5000' }))).toEqual({ error: 'unavailable' })
+    expect(mocks.redirect).not.toHaveBeenCalled()
+  })
+})

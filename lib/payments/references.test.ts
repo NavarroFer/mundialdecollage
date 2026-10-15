@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  donationExternalReference,
   entryExternalReference,
   magazineExternalReference,
   parseExternalReference,
@@ -15,6 +16,8 @@ describe('external reference', () => {
     expect(parseExternalReference('entry:')).toBeNull()
     expect(parseExternalReference('revista:')).toBeNull()
     expect(parseExternalReference(subscriptionExternalReference('s1'))).toEqual({ kind: 'subscription', id: 's1' })
+    // Not a taller registration: the webhook has nothing to apply it to.
+    expect(parseExternalReference(donationExternalReference('d1'))).toEqual({ kind: 'donation', id: 'd1' })
     expect(parseExternalReference(null)).toBeNull()
   })
 })

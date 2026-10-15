@@ -45,7 +45,7 @@ export const mercadoPago: PaymentProvider = {
           unit_price: item.unitPrice,
           currency_id: item.currency,
         })),
-        payer: { email: payer.email, name: payer.name ?? undefined },
+        payer: payer ? { email: payer.email, name: payer.name ?? undefined } : undefined,
         external_reference: reference,
         back_urls: returnUrls,
         auto_return: 'approved',

@@ -231,6 +231,15 @@ export const PARTNER_EVENTS = [
   { name: 'partners_email_click', label: 'Tocaron el mail para escribirnos' },
 ] as const
 
+// Donations (lib/donations.ts): who goes to Mercado Pago to give, from the
+// home or the gallery, and who comes back to /donar/gracias (paid, or a cash
+// payment still to be made).
+export const DONATION_EVENTS = [
+  { name: 'donation_checkout_start_home', label: 'Fueron a donar desde la home' },
+  { name: 'donation_checkout_start_gallery', label: 'Fueron a donar desde la galería 3D' },
+  { name: 'donation_thanks_view', label: 'Volvieron de Mercado Pago a «Gracias por donar»' },
+] as const
+
 export type FunnelEvent =
   | (typeof FUNNEL_STEPS)[number]['name']
   | (typeof HOME_EVENTS)[number]['name']
@@ -252,12 +261,13 @@ export type FunnelEvent =
   | (typeof MAGAZINE_FUNNEL_EVENTS)[number]['name']
   | (typeof MAGAZINE_ENTRY_EVENTS)[number]['name']
   | (typeof PARTNER_EVENTS)[number]['name']
+  | (typeof DONATION_EVENTS)[number]['name']
 
 const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...ONBOARDING_FORM_EVENTS, ...FORM_RESCUE_EVENTS, ...LOGIN_EVENTS, ...SIGNUP_SOURCE_EVENTS, ...GALLERY_READY_EVENTS,
-    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS,
   ].map((step) => step.name),
 )
 

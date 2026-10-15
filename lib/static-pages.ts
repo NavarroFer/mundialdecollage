@@ -18,6 +18,7 @@ export const STATIC_PAGES = [
   '/revista',
   '/politica-de-privacidad',
   '/terminos-y-condiciones',
+  '/donar/gracias',
 ] as const
 
 const patterns = STATIC_PAGES.map(

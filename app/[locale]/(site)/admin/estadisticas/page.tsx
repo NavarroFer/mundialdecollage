@@ -13,7 +13,7 @@ import { formatCount } from '@/lib/chart-math'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -462,6 +462,14 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
             title="Partners y marcas"
             description="Personas distintas que abrieron /partners, desde dónde llegaron y cuántas tocaron el mail para escribirnos. Se mide desde el 4 de octubre de 2026."
             steps={PARTNER_EVENTS}
+            variant="comparison"
+          />
+
+          <JourneySection
+            {...journey}
+            title="Donaciones"
+            description="Personas distintas que tocaron un monto para donar, en la home o en la pantalla de inicio de la galería 3D, y las que volvieron de Mercado Pago a /donar/gracias (pagaron, o eligieron pagar en efectivo y les falta). Los montos están en Mercado Pago. Se mide desde el 15 de octubre de 2026."
+            steps={DONATION_EVENTS}
             variant="comparison"
           />
         </StatsSection>
