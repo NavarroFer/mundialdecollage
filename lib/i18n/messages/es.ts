@@ -648,9 +648,9 @@ const es = {
     // The store's cards on the home (components/home-store-section.tsx).
     home: {
       intro: 'Materiales para hacer collage, armados a mano en Mar del Plata y enviados a tu casa todos los meses.',
-      from: 'Desde', abroad: '{price} / mes desde otros países',
-      membership: { eyebrow: '01 · El club mensual', title: 'Membresía', points: ['Cuadernos, láminas y fanzines', 'Stickers y postales del Mundial', 'Tres ediciones para elegir'], cta: 'Ver las ediciones' },
-      cutouts: { eyebrow: '02 · Para crear', title: 'Recortes para collage', points: ['Packs de {counts} recortes', 'Stickers incluidos', 'Material nuevo cada mes'], cta: 'Elegir mi pack' },
+      from: 'Desde', abroad: 'Exterior: {price} / mes',
+      membership: { title: 'Membresía', summary: 'Cuadernos, láminas, fanzines y stickers.' },
+      cutouts: { title: 'Recortes para collage', summary: 'Packs de {counts} recortes, con stickers.' },
       note: 'Envíos a todo el país y al exterior. Cancelá cuando quieras.',
     },
     plans: { inicial: { name: 'Inicial', description: 'Una pequeña dosis mensual de papel, imágenes y buena energía de tijera.', contents: ['Cuaderno A6 · 20 hojas · 90 g', '2 láminas A5', '2 stickers del Mundial de Collage', '1 postal'] }, miembro: { name: 'Miembro', description: 'Una sesión completa de collage todos los meses.', contents: ['Cuaderno A6 · 40 hojas · 90 g', '1 fanzine', '2 ilustraciones A5', 'Plancha de stickers, postal y kit de collage'] }, 'socio-premium': { name: 'Socio Premium', description: 'La edición mensual completa para coleccionistas de papel.', contents: ['Cuaderno A5 · 40 hojas · 120 g', '2 fanzines originales', '2 ilustraciones A5 + 1 ilustración A4', '2 señaladores, plancha A4 de stickers y super kit de collage'] } },
