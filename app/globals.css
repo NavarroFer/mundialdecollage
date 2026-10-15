@@ -80,6 +80,13 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* A loading stripe that runs across its track (/admin/estadisticas filters). */
+  --animate-progress-sweep: progress-sweep 1.1s ease-in-out infinite;
+  @keyframes progress-sweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(300%); }
+  }
 }
 
 @layer base {

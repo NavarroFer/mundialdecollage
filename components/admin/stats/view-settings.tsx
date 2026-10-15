@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, use, useCallback, useMemo, useState, type ReactNode } from 'react'
+import { StatsNavigationProvider } from './navigation'
 
 // How the /admin/estadisticas charts are shown, set for the whole page from
 // the control bar and per chart from its own toolbar. A chart's choice holds
@@ -42,6 +43,8 @@ type PageView = {
 
 const PageViewContext = createContext<PageView | null>(null)
 
+// Everything the page's client parts share: these view settings and the
+// filter navigation (navigation.tsx).
 export function StatsViewProvider({ periodLabel, children }: { periodLabel: string; children: ReactNode }) {
   const [state, setState] = useState({ settings: DEFAULT_VIEW, revisions: ZERO_REVISIONS })
   const [capture, setCaptureState] = useState(DEFAULT_CAPTURE)
@@ -53,7 +56,11 @@ export function StatsViewProvider({ periodLabel, children }: { periodLabel: stri
   }, [])
   const setCapture = useCallback((patch: Partial<CapturePrefs>) => setCaptureState((current) => ({ ...current, ...patch })), [])
   const value = useMemo(() => ({ ...state, periodLabel, set, capture, setCapture }), [state, periodLabel, set, capture, setCapture])
-  return <PageViewContext value={value}>{children}</PageViewContext>
+  return (
+    <PageViewContext value={value}>
+      <StatsNavigationProvider>{children}</StatsNavigationProvider>
+    </PageViewContext>
+  )
 }
 
 export function usePageView() {
