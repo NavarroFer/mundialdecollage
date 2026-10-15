@@ -13,7 +13,7 @@ import { trackServer, trackSignupSource } from '@/lib/track-server'
 import { recordReferral } from '@/lib/referral-server'
 import { site } from '@/lib/site'
 import { refreshPublicData } from '@/lib/public-data-cache'
-import { TERMS_VERSION } from '@/lib/terms-version'
+import { recordTermsAcceptance } from '@/lib/terms-acceptance'
 
 // Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
 // so this also doubles as XSS defense — only ever accept http(s), never
@@ -56,16 +56,6 @@ function normalizeInstagram(value: string): string | null {
 // is only a convenience.
 function acceptedTerms(formData: FormData) {
   return formData.get('accept_terms') === 'on'
-}
-
-// One row per person and version (terms_acceptances): accepting the same
-// version again is a no-op.
-async function recordTermsAcceptance(supabase: Awaited<ReturnType<typeof createClient>>, profileId: string) {
-  const { error } = await supabase
-    .from('terms_acceptances')
-    .upsert({ profile_id: profileId, terms_version: TERMS_VERSION }, { onConflict: 'profile_id,terms_version', ignoreDuplicates: true })
-  if (error) console.error('onboarding: failed to record terms acceptance', profileId, error)
-  return !error
 }
 
 async function uniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, base: string) {

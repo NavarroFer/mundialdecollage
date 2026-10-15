@@ -208,6 +208,11 @@ const fr: Messages = {
     accept: "J'ai lu et j'accepte les {link} et le règlement de l'appel (en espagnol).",
     link: "Conditions générales",
     downloadPdf: "Télécharger le PDF",
+    promptTitle: "Nouvelles conditions générales",
+    promptBody: "Nous avons publié les conditions générales du Mundial de Collage : comment nous prenons soin de tes œuvres et de tes données, et comment fonctionnent les achats. Merci de les lire et de les accepter.",
+    promptAccept: "Accepter",
+    promptLater: "Plus tard",
+    promptFailed: "Nous n'avons pas pu enregistrer ton acceptation. Réessaie.",
   },
   notFound: {
     badge: 'Page introuvable',

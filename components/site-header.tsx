@@ -17,6 +17,7 @@ import { SectionLink } from '@/components/section-link'
 import { getCallState } from '@/lib/call-state'
 import { NotificationsSlot } from '@/components/notifications/notifications-slot'
 import { MobileTabBar } from '@/components/mobile-tab-bar'
+import { TermsPromptSlot } from '@/components/terms-prompt-slot'
 
 async function AuthSlot() {
   if (!isSupabaseConfigured) return null
@@ -143,6 +144,7 @@ export async function SiteHeader() {
           opensInNewTab: m.common.opensInNewTab,
         }}
       />
+      <TermsPromptSlot />
     </>
   )
 }

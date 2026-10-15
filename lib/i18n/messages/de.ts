@@ -208,6 +208,11 @@ const de: Messages = {
     accept: "Ich habe die {link} und die Teilnahmeregeln gelesen und akzeptiere sie (auf Spanisch).",
     link: "Nutzungsbedingungen",
     downloadPdf: "PDF herunterladen",
+    promptTitle: "Neue Nutzungsbedingungen",
+    promptBody: "Wir haben die Nutzungsbedingungen des Mundial de Collage veröffentlicht: wie wir mit deinen Werken und deinen Daten umgehen und wie Käufe funktionieren. Bitte lies und akzeptiere sie.",
+    promptAccept: "Akzeptieren",
+    promptLater: "Jetzt nicht",
+    promptFailed: "Wir konnten deine Zustimmung nicht speichern. Bitte versuch es noch einmal.",
   },
   notFound: {
     badge: 'Seite nicht gefunden',

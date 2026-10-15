@@ -209,6 +209,11 @@ const es = {
     accept: "Leí y acepto los {link} y las bases de la convocatoria.",
     link: "Términos y Condiciones",
     downloadPdf: "Descargar PDF",
+    promptTitle: "Nuevos Términos y Condiciones",
+    promptBody: "Publicamos los Términos y Condiciones del Mundial de Collage: cómo cuidamos tus obras y tus datos, y cómo funcionan las compras. Te pedimos que los leas y los aceptes.",
+    promptAccept: "Aceptar",
+    promptLater: "Ahora no",
+    promptFailed: "No pudimos guardar tu aceptación. Probá de nuevo.",
   },
   notFound: {
     badge: 'Página no encontrada',

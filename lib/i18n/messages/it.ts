@@ -208,6 +208,11 @@ const it: Messages = {
     accept: "Ho letto e accetto i {link} e il bando (in spagnolo).",
     link: "Termini e Condizioni",
     downloadPdf: "Scarica il PDF",
+    promptTitle: "Nuovi Termini e Condizioni",
+    promptBody: "Abbiamo pubblicato i Termini e Condizioni del Mundial de Collage: come ci prendiamo cura delle tue opere e dei tuoi dati, e come funzionano gli acquisti. Ti chiediamo di leggerli e accettarli.",
+    promptAccept: "Accetta",
+    promptLater: "Non ora",
+    promptFailed: "Non siamo riusciti a salvare la tua accettazione. Riprova.",
   },
   notFound: {
     badge: 'Pagina non trovata',

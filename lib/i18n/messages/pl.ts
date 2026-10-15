@@ -213,6 +213,11 @@ const pl: Messages = {
     accept: "Akceptuję {link} i zasady konkursu (po hiszpańsku).",
     link: "Warunki uczestnictwa",
     downloadPdf: "Pobierz PDF",
+    promptTitle: "Nowe warunki uczestnictwa",
+    promptBody: "Opublikowaliśmy warunki uczestnictwa Mundial de Collage: jak dbamy o Twoje prace i dane oraz jak działają zakupy. Prosimy, przeczytaj je i zaakceptuj.",
+    promptAccept: "Akceptuję",
+    promptLater: "Nie teraz",
+    promptFailed: "Nie udało się zapisać Twojej akceptacji. Spróbuj ponownie.",
   },
   notFound: {
     badge: 'Nie znaleziono strony',

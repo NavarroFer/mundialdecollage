@@ -208,6 +208,11 @@ const en: Messages = {
     accept: "I have read and accept the {link} and the rules of the open call (in Spanish).",
     link: "Terms and Conditions",
     downloadPdf: "Download PDF",
+    promptTitle: "New Terms and Conditions",
+    promptBody: "We've published the Mundial de Collage's Terms and Conditions: how we look after your artworks and your data, and how purchases work. Please read and accept them.",
+    promptAccept: "Accept",
+    promptLater: "Not now",
+    promptFailed: "We couldn't save your acceptance. Please try again.",
   },
   notFound: {
     badge: 'Page not found',

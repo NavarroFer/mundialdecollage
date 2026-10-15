@@ -208,6 +208,11 @@ const id: Messages = {
     accept: "Saya sudah membaca dan menerima {link} serta ketentuan open call (dalam bahasa Spanyol).",
     link: "Syarat dan Ketentuan",
     downloadPdf: "Unduh PDF",
+    promptTitle: "Syarat dan Ketentuan baru",
+    promptBody: "Kami telah menerbitkan Syarat dan Ketentuan Mundial de Collage: bagaimana kami menjaga karya dan datamu, serta cara kerja pembelian. Mohon baca dan setujui.",
+    promptAccept: "Setuju",
+    promptLater: "Nanti saja",
+    promptFailed: "Persetujuanmu gagal disimpan. Coba lagi.",
   },
   notFound: {
     badge: 'Halaman tidak ditemukan',
