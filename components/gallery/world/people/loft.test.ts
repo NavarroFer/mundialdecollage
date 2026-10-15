@@ -33,6 +33,31 @@ describe('loft', () => {
     expect(geometry.getIndex()!.count).toBe(4 * 6)
   })
 
+  it('measures UVs in meters: around the tube, then up it', () => {
+    const uv = loft([[0, 0.1, 0.1], [0.5, 0.1, 0.1]], { segments: 64, capTop: false, capBottom: false }).getAttribute('uv')
+    const us = Array.from({ length: uv.count }, (_, i) => uv.getX(i))
+    const vs = Array.from({ length: uv.count }, (_, i) => uv.getY(i))
+    expect(Math.max(...us)).toBeCloseTo(2 * Math.PI * 0.1, 3)
+    expect(Math.max(...vs)).toBeCloseTo(0.5, 5)
+  })
+
+  it('puts a closed tube’s seam at the back', () => {
+    const position = loft([[0, 1, 1], [1, 1, 1]], { segments: 8 }).getAttribute('position')
+    expect(position.getX(0)).toBeCloseTo(0)
+    expect(position.getZ(0)).toBeCloseTo(-1)
+  })
+
+  it('maps caps from above, at the scale of the tube', () => {
+    const geometry = loft([[0, 0.2, 0.1], [1, 0.2, 0.1]], { segments: 8 })
+    const position = geometry.getAttribute('position')
+    const uv = geometry.getAttribute('uv')
+    // The last vertex is the top cap's center; the 9 before it, its ring.
+    for (let i = position.count - 10; i < position.count; i++) {
+      expect(uv.getX(i)).toBeCloseTo(position.getX(i))
+      expect(uv.getY(i)).toBeCloseTo(position.getZ(i))
+    }
+  })
+
   it('repeats the first column of a closed tube so the seam lines up', () => {
     const position = loft([[0, 1, 1], [1, 1, 1]], { segments: 8, jitter: 0.2, pleat: 0.1 }).getAttribute('position')
     expect(position.getX(8)).toBeCloseTo(position.getX(0))

@@ -4,8 +4,9 @@ import { useRef, type ReactNode } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { GalleryTheme } from '../../themes'
+import { cloth, type Fabric } from './fabrics'
 import { loft, type LoftOptions, type Ring } from './loft'
-import { LOOKS, type ArmPose, type Build, type Look } from './looks'
+import { CLOTH, LOOKS, type ArmPose, type Build, type Look } from './looks'
 
 export const LOOK_COUNT = LOOKS.length
 
@@ -27,34 +28,33 @@ function shape(key: string, make: () => THREE.BufferGeometry) {
 }
 
 const lofted = (key: string, rings: readonly Ring[], options?: LoftOptions) => shape(key, () => loft(rings, options))
-const box = (w: number, h: number, d: number) => shape(`box ${w} ${h} ${d}`, () => new THREE.BoxGeometry(w, h, d))
 
-function stripeTexture(color: string) {
-  const canvas = document.createElement('canvas')
-  canvas.width = 64
-  canvas.height = 4
-  const context = canvas.getContext('2d')!
-  context.fillStyle = color
-  context.fillRect(0, 0, 64, 4)
-  context.fillStyle = `#${new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.7).getHexString()}`
-  for (let x = 0; x < 64; x += 16) context.fillRect(x, 0, 3, 4)
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.wrapS = THREE.RepeatWrapping
-  texture.repeat.set(3, 1)
-  return texture
+/** Stretches 0–1 UVs to meters, the scale the fabrics (and lofts) use. */
+function inMeters(geometry: THREE.BufferGeometry, u: number, v = u) {
+  const uv = geometry.getAttribute('uv')
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * u, uv.getY(i) * v)
+  return geometry
 }
 
-/** Matte and flat-shaded, so each facet catches the light on its own. */
-function paint(color: string, { double = false, stripes = false } = {}) {
-  const key = `${color} ${double} ${stripes}`
+const box = (w: number, h: number, d: number) => shape(`box ${w} ${h} ${d}`, () => {
+  const geometry = new THREE.BoxGeometry(w, h, d)
+  const uv = geometry.getAttribute('uv')
+  // Four vertices per face, in BoxGeometry's order: ±x, ±y, ±z.
+  const faces = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]]
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * faces[i >> 2][0], uv.getY(i) * faces[i >> 2][1])
+  return geometry
+})
+
+/** Flat-shaded, so each facet catches the light on its own; matte unless it's made of a shinier fabric. */
+function paint(color: string, { double = false, stripes = false, fabric }: { double?: boolean; stripes?: boolean; fabric?: Fabric } = {}) {
+  const key = `${color} ${double} ${stripes} ${fabric ?? ''}`
   let material = materials.get(key)
   if (!material) {
     materials.set(key, material = new THREE.MeshStandardMaterial({
-      color: stripes ? '#ffffff' : color,
-      map: stripes ? stripeTexture(color) : null,
-      flatShading: true,
+      color,
       roughness: 0.9,
+      ...(fabric && cloth(fabric, color, { stripes })),
+      flatShading: true,
       side: double ? THREE.DoubleSide : THREE.FrontSide,
     }))
   }
@@ -213,9 +213,12 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
   const bottomColor = look.bottom.color ?? accent
   const outerColor = look.outer ? look.outer.color ?? accent : null
   const skirted = look.bottom.kind === 'skirt' || look.bottom.kind === 'dress'
-  const legColor = skirted ? skin : bottomColor
   const sleeveColor = outerColor ?? (look.top.kind === 'camisole' ? skin : topColor)
   const sleeveStripes = Boolean(look.outer?.stripes)
+  const topFabric = CLOTH.top[look.top.kind]
+  const bottomFabric = CLOTH.bottom[look.bottom.kind]
+  const outerFabric = look.outer ? CLOTH.outer[look.outer.kind] : undefined
+  const sleeveFabric = outerFabric ?? (look.top.kind === 'camisole' ? undefined : topFabric)
   const hairMaterial = paint(look.hairColor)
   const skinMaterial = paint(skin)
 
@@ -232,7 +235,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
       ...hem,
       ...build.torso.slice(1, -1).map(([y, rx, rz, z = 0]) => [y, rx + inflate, rz + inflate, z] as Ring),
     ]
-    const material = paint(outerColor, { double: true, stripes: look.outer.stripes })
+    const material = paint(outerColor, { double: true, stripes: look.outer.stripes, fabric: outerFabric })
     const front = build.torso[3]
     return (
       <>
@@ -248,7 +251,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
           <Part key={y} geometry={box(0.018, 0.018, 0.01)} material={paint('#6a4a2c')} position={[-0.09, y, y > 1 ? 0.13 : 0.155]} rotation={[0, -0.4, 0]} />
         ))}
         {kind === 'trench' && (
-          <Part geometry={lofted('belt loop', [[1.02, 0.172, 0.13, 0.008], [1.06, 0.168, 0.126, 0.008]], { segments: 14, arc: [0.5, Math.PI * 2 - 0.5] })} material={paint(outerColor, { double: true })} />
+          <Part geometry={lofted('belt loop', [[1.02, 0.172, 0.13, 0.008], [1.06, 0.168, 0.126, 0.008]], { segments: 14, arc: [0.5, Math.PI * 2 - 0.5] })} material={paint(outerColor, { double: true, fabric: outerFabric })} />
         )}
       </>
     )
@@ -257,7 +260,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
   function arm(side: -1 | 1, index: number) {
     const pose = poses[index]
     const long = look.sleeves === 'long'
-    const sleeve = paint(sleeveColor, { stripes: sleeveStripes })
+    const sleeve = paint(sleeveColor, { stripes: sleeveStripes, fabric: sleeveFabric })
     return (
       <group key={side} ref={shoulders[index]} position={[side * build.armX, SHOULDER_Y, 0]}>
         <Part geometry={lofted('upper arm', [[-UPPER_ARM, 0.036, 0.038], [-0.2, 0.042, 0.044], [-0.05, 0.05, 0.05], [0, 0.045, 0.046], [0.028, 0.028, 0.03]])}
@@ -287,7 +290,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
   }
 
   function leg(side: -1 | 1, index: number) {
-    const material = paint(legColor)
+    const material = skirted ? skinMaterial : paint(bottomColor, { fabric: bottomFabric })
     const wide = look.bottom.kind === 'wide'
     return (
       <group key={side} ref={hips[index]} position={[side * build.hipX, HIP_Y, 0]}>
@@ -306,8 +309,8 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
 
   function shoe() {
     const { kind, color, sole } = look.shoes
-    const upper = paint(color)
-    const soleMaterial = paint(sole)
+    const upper = paint(color, { fabric: CLOTH.shoes[kind] })
+    const soleMaterial = paint(sole, { fabric: CLOTH.soles[kind] })
     // Lofted heel to toe: rotated so the loft's axis runs forward, flat along the bottom.
     const along = (rings: [number, number, number][], bottom: number): Ring[] => rings.map(([y, rx, rz]) => [y, rx, rz, -bottom - rz])
     const lying: [number, number, number] = [Math.PI / 2, 0, 0]
@@ -318,7 +321,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
           <Part geometry={box(0.085, 0.014, 0.23)} material={soleMaterial} position={[0, 0.033, 0.045]} />
           <Part geometry={box(0.06, 0.03, 0.06)} material={soleMaterial} position={[0, 0.013, -0.05]} />
           <Part geometry={box(0.09, 0.022, 0.03)} material={upper} position={[0, 0.056, 0.11]} />
-          <Part geometry={shape('ankle strap', () => new THREE.TorusGeometry(0.036, 0.007, 4, 8))} material={upper} position={[0, 0.095, -0.012]} rotation={[Math.PI / 2, 0, 0]} />
+          <Part geometry={shape('ankle strap', () => inMeters(new THREE.TorusGeometry(0.036, 0.007, 4, 8), 0.23, 0.044))} material={upper} position={[0, 0.095, -0.012]} rotation={[Math.PI / 2, 0, 0]} />
         </>
       )
     }
@@ -407,13 +410,13 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
 
   function cap(): ReactNode {
     if (!look.cap) return null
-    const material = paint(look.cap)
+    const material = paint(look.cap, { fabric: CLOTH.cap })
     return (
       <>
         <Part geometry={lofted('cap crown', [[0.035, 0.093, 0.105, -0.006], [0.08, 0.091, 0.101, -0.008], [0.118, 0.067, 0.077, -0.012], [0.142, 0.024, 0.028, -0.014]], { segments: 10, lift: (angle, ring) => (ring === 0 ? 0.012 * frontness(angle) : 0) })}
           material={material} shadow />
         {/* Half a disc: the visor curves around the forehead. */}
-        <Part geometry={shape('visor', () => new THREE.CylinderGeometry(0.09, 0.09, 0.01, 7, 1, false, -Math.PI / 2, Math.PI))} material={material}
+        <Part geometry={shape('visor', () => inMeters(new THREE.CylinderGeometry(0.09, 0.09, 0.01, 7, 1, false, -Math.PI / 2, Math.PI), 0.18))} material={material}
           position={[0, 0.05, 0.075]} rotation={[0.14, 0, 0]} scale={[0.95, 1, 1.05]} />
         <Part geometry={box(0.018, 0.01, 0.018)} material={material} position={[0, 0.146, -0.012]} />
       </>
@@ -422,7 +425,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
 
   function bag() {
     if (!look.bag) return null
-    const material = paint(look.bag, { double: true })
+    const material = paint(look.bag.color, { double: true, fabric: CLOTH.bag[look.bag.kind] })
     const side = -1
     return (
       <group position={[side * 0.25, 0, 0.02]}>
@@ -442,11 +445,11 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
       {legs}
       {skirted
         ? <Part geometry={lofted(look.bottom.kind, look.bottom.kind === 'skirt' ? SKIRT : DRESS, look.bottom.kind === 'skirt' ? { segments: 22, pleat: 0.08 } : { segments: 12 })}
-            material={paint(bottomColor)} shadow />
-        : <Part geometry={lofted(`pelvis ${look.build}`, build.pelvis, TORSO_OPTIONS)} material={paint(bottomColor)} shadow />}
+            material={paint(bottomColor, { fabric: bottomFabric })} shadow />
+        : <Part geometry={lofted(`pelvis ${look.build}`, build.pelvis, TORSO_OPTIONS)} material={paint(bottomColor, { fabric: bottomFabric })} shadow />}
       <group ref={chest}>
-        <Part geometry={lofted(`${torsoKey} lower`, lowerTorso, { ...TORSO_OPTIONS, capBottom: false })} material={paint(topColor)} shadow />
-        <Part geometry={lofted(`${torsoKey} upper`, upperTorso, { ...TORSO_OPTIONS, capBottom: false })} material={look.top.kind === 'camisole' ? skinMaterial : paint(topColor)} shadow />
+        <Part geometry={lofted(`${torsoKey} lower`, lowerTorso, { ...TORSO_OPTIONS, capBottom: false })} material={paint(topColor, { fabric: topFabric })} shadow />
+        <Part geometry={lofted(`${torsoKey} upper`, upperTorso, { ...TORSO_OPTIONS, capBottom: false })} material={look.top.kind === 'camisole' ? skinMaterial : paint(topColor, { fabric: topFabric })} shadow />
         {outerLayer()}
         {bag()}
         {arms}

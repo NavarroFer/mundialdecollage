@@ -2,6 +2,8 @@
 // color (the same one as their marker and minimap dot) fills in whichever
 // garment leaves its color out.
 
+import type { Fabric } from './fabrics'
+
 export type Build = 'm' | 'f'
 export type Hair = 'long' | 'wavy' | 'bob' | 'bun' | 'crop' | 'curly' | 'short'
 export type ArmPose = 'swing' | 'cup' | 'pocket' | 'strap'
@@ -23,7 +25,7 @@ export type Look = {
   glasses?: 'sun' | 'thick' | 'round'
   cap?: string
   beard?: string
-  bag?: string
+  bag?: { kind: 'tote' | 'shoulder'; color: string }
   /** The right hand carries a coffee; the left one rests in a pocket. */
   cup?: boolean
   pocket?: boolean
@@ -35,7 +37,7 @@ export const LOOKS: Look[] = [
     build: 'f', height: 0.97, skin: '#e2aa86', hair: 'wavy', hairColor: '#6e3526',
     top: { kind: 'camisole' }, outer: { kind: 'trench', color: '#b58e58' }, sleeves: 'long',
     bottom: { kind: 'skirt', color: '#ece3d0' }, shoes: { kind: 'sandals', color: '#efe8da', sole: '#e4dccb' },
-    glasses: 'sun', bag: '#e6dfd0',
+    glasses: 'sun', bag: { kind: 'tote', color: '#e6dfd0' },
   },
   // Cap, thick glasses, beard, open striped shirt over a tee, cuffed trousers, coffee.
   {
@@ -59,7 +61,7 @@ export const LOOKS: Look[] = [
     build: 'f', height: 0.98, skin: '#f1c6a6', hair: 'bob', hairColor: '#1d1a19',
     top: { kind: 'tee' }, sleeves: 'short',
     bottom: { kind: 'dress' }, shoes: { kind: 'boots', color: '#2b2421', sole: '#1b1715' },
-    bag: '#6b4330',
+    bag: { kind: 'shoulder', color: '#6b4330' },
   },
   {
     build: 'm', height: 1.04, skin: '#6f4532', hair: 'curly', hairColor: '#1b1512',
@@ -78,3 +80,22 @@ export const LOOKS: Look[] = [
     bottom: { kind: 'wide', color: '#3b3e46' }, shoes: { kind: 'loafers', color: '#1f1d1c', sole: '#141312' },
   },
 ]
+
+/** What each garment is made of. */
+export const CLOTH = {
+  top: { tee: 'jersey', sweater: 'knit', camisole: 'satin' },
+  outer: { trench: 'gabardine', shirt: 'poplin', jacket: 'denim', cardigan: 'knit' },
+  bottom: { trousers: 'twill', wide: 'twill', jeans: 'denim', skirt: 'crepe', dress: 'crepe' },
+  shoes: { sneakers: 'canvas', sandals: 'leather', boots: 'leather', loafers: 'leather' },
+  soles: { sneakers: 'rubber', sandals: 'rubber', boots: 'leather', loafers: 'leather' },
+  bag: { tote: 'canvas', shoulder: 'leather' },
+  cap: 'twill',
+} as const satisfies {
+  top: Record<Look['top']['kind'], Fabric>
+  outer: Record<NonNullable<Look['outer']>['kind'], Fabric>
+  bottom: Record<Look['bottom']['kind'], Fabric>
+  shoes: Record<Look['shoes']['kind'], Fabric>
+  soles: Record<Look['shoes']['kind'], Fabric>
+  bag: Record<NonNullable<Look['bag']>['kind'], Fabric>
+  cap: Fabric
+}
