@@ -1,6 +1,6 @@
 import { ArrowRight, PackageOpen, Scissors } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
-import { TrackedLink } from '@/components/track'
+import { TrackedLink, TrackVisible } from '@/components/track'
 import { getI18n } from '@/lib/i18n/server'
 
 export async function HomeStoreSection() {
@@ -18,6 +18,7 @@ export async function HomeStoreSection() {
         <FadeIn>
           <p className="text-xs font-bold tracking-[0.2em] text-collage-red uppercase">{t.badge}</p>
           <h2 id="home-store-title" className="font-display mt-3 text-3xl tracking-tight text-ink uppercase sm:text-4xl">{t.title}</h2>
+          <TrackVisible event="store_home_seen" />
           <div className="mt-7 grid gap-5 md:grid-cols-2">
             {products.map(({ href, event, icon: Icon, title, body, cta }) => (
               <TrackedLink key={href} href={href} event={event} className="group flex items-start gap-4 rounded-2xl border-2 border-ink/15 bg-card p-5 transition-colors hover:border-collage-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue sm:p-6">

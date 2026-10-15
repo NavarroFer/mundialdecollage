@@ -13,7 +13,7 @@ import { formatCount } from '@/lib/chart-math'
 import { countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 
@@ -430,6 +430,16 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
             steps={DISCOVERY_EVENTS}
             baseStep="artwork_page_view"
             baseLabel="De quienes abrieron una obra"
+            variant="comparison"
+          />
+
+          <JourneySection
+            {...journey}
+            title="La tienda en la home"
+            description="Personas distintas que llegaron a ver las tarjetas de la tienda en la home, y cuántas de ellas entraron desde ahí. Se mide desde el 15 de octubre de 2026."
+            steps={HOME_STORE_EVENTS}
+            baseStep="store_home_seen"
+            baseLabel="De quienes la vieron"
             variant="comparison"
           />
 

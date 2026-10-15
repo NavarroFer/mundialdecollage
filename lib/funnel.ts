@@ -183,10 +183,18 @@ export const STORE_FUNNEL_EVENTS = [
   { name: 'store_checkout_approved', label: 'Se autorizó la suscripción' },
 ] as const
 
-// Where the people who reach the store come from.
-export const STORE_ENTRY_EVENTS = [
+// The home's store section: how many get to see it, and how many of them
+// go in. Seen only once its cards are on screen (TrackVisible).
+export const HOME_STORE_EVENTS = [
+  { name: 'store_home_seen', label: 'Vieron la tienda en la home' },
   { name: 'store_click_home_membership', label: 'Fueron a la membresía desde la home' },
   { name: 'store_click_home_cutouts', label: 'Fueron a los recortes desde la home' },
+] as const
+
+// Where the people who reach the store come from.
+export const STORE_ENTRY_EVENTS = [
+  HOME_STORE_EVENTS[1],
+  HOME_STORE_EVENTS[2],
   { name: 'store_click_header', label: 'Fueron a la tienda desde el encabezado' },
   { name: 'store_click_tabbar', label: 'Fueron a la tienda desde la barra de abajo del celular' },
   { name: 'store_click_artwork', label: 'Fueron a la tienda desde la página de una obra' },
@@ -257,6 +265,7 @@ export type FunnelEvent =
   | (typeof DISCOVERY_EVENTS)[number]['name']
   | (typeof STORE_FUNNEL_EVENTS)[number]['name']
   | (typeof STORE_ENTRY_EVENTS)[number]['name']
+  | (typeof HOME_STORE_EVENTS)[number]['name']
   | (typeof WAITLIST_EVENTS)[number]['name']
   | (typeof MAGAZINE_FUNNEL_EVENTS)[number]['name']
   | (typeof MAGAZINE_ENTRY_EVENTS)[number]['name']
@@ -267,7 +276,7 @@ const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...ONBOARDING_FORM_EVENTS, ...FORM_RESCUE_EVENTS, ...LOGIN_EVENTS, ...SIGNUP_SOURCE_EVENTS, ...GALLERY_READY_EVENTS,
-    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS,
   ].map((step) => step.name),
 )
 
