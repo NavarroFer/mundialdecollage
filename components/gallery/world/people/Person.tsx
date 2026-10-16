@@ -1,20 +1,28 @@
 'use client'
 
-import { useRef, type ReactNode } from 'react'
+import { Suspense, useRef, type ReactNode, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { GalleryTheme } from '../../themes'
+import { AvatarBody, AvatarFallback } from './AvatarBody'
+import { avatarsEnabled, castMember } from './cast'
 import { cloth, type Fabric } from './fabrics'
 import { loft, type LoftOptions, type Ring } from './loft'
 import { CLOTH, LOOKS, type ArmPose, type Build, type Look } from './looks'
 
 export const LOOK_COUNT = LOOKS.length
 
-/** Which of the looks (outfit + build) and the accent color. */
-export type Appearance = { look: number; shirt: string }
+/**
+ * Which of the drawn looks (outfit + build) and the accent color, and the
+ * cast member (cast.ts) who replaces the drawn figure once their file loads.
+ */
+export type Appearance = { look: number; shirt: string; avatar?: string }
 
 /** What a person's driver decided this frame; Person animates the rest. */
 export type Motion = { moving: boolean; facing: number; step: number }
+
+/** The walk as the body sees it, kept up to date by Person every frame. */
+export type Gait = { moving: boolean; speed: number; distance: number; elapsed: number }
 
 // Every person shares these: geometry by shape, materials by color. Nothing is
 // disposed because the set is small and fixed.
@@ -153,33 +161,64 @@ type PersonProps = {
   move: (person: THREE.Group, delta: number) => Motion
 }
 
+/**
+ * Someone in the gallery: the driver moves them, Person turns them to face
+ * where they're going, and their body (a real one from the cast, or the
+ * drawn figure) animates the walk.
+ */
 export function Person({ appearance, theme, start, phase = 0, marker = false, move }: PersonProps) {
   const root = useRef<THREE.Group>(null)
+  const gait = useRef<Gait>({ moving: false, speed: 0, distance: 0, elapsed: phase })
+
+  useFrame((_, frameDelta) => {
+    const person = root.current
+    if (!person) return
+    const delta = Math.min(frameDelta, 0.05)
+    const { moving, facing, step } = move(person, delta)
+    // Always take the shortest turn, including across the -PI / PI boundary.
+    const turn = Math.atan2(Math.sin(facing - person.rotation.y), Math.cos(facing - person.rotation.y))
+    person.rotation.y += turn * (1 - Math.exp(-6 * delta))
+    gait.current.moving = moving
+    gait.current.speed = delta > 0 ? step / delta : 0
+    gait.current.distance += step
+    gait.current.elapsed += delta
+  })
+
+  const member = avatarsEnabled ? castMember(appearance.avatar) : undefined
+  const figure = <Figure appearance={appearance} theme={theme} gait={gait} />
+  return (
+    <group ref={root} position={[start[0], 0, start[1]]}>
+      {member
+        ? <AvatarFallback fallback={figure}><Suspense fallback={figure}><AvatarBody member={member} gait={gait} phase={phase} /></Suspense></AvatarFallback>
+        : figure}
+      {marker && (
+        <mesh position={[0, 2, 0]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.075, 0.15, 4]} />
+          <meshBasicMaterial color={appearance.shirt} toneMapped={false} />
+        </mesh>
+      )}
+    </group>
+  )
+}
+
+/** The drawn, low-poly figure: one of the looks, its limbs swung by hand. */
+function Figure({ appearance, theme, gait }: { appearance: Appearance; theme: GalleryTheme; gait: RefObject<Gait> }) {
+  const body = useRef<THREE.Group>(null)
   const chest = useRef<THREE.Group>(null)
   const head = useRef<THREE.Group>(null)
   const shoulders = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
   const elbows = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
   const hips = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
   const knees = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
-  const elapsed = useRef(phase)
-  const gait = useRef(0)
 
   const look = LOOKS[appearance.look % LOOKS.length]
   const build = BUILDS[look.build]
   const poses = armPoses(look)
 
   useFrame((_, frameDelta) => {
-    const person = root.current
-    if (!person) return
     const delta = Math.min(frameDelta, 0.05)
-    elapsed.current += delta
-    const { moving, facing, step } = move(person, delta)
-    gait.current += step * 8.5
-    const g = gait.current
-
-    // Always take the shortest turn, including across the -PI / PI boundary.
-    const turn = Math.atan2(Math.sin(facing - person.rotation.y), Math.cos(facing - person.rotation.y))
-    person.rotation.y += turn * (1 - Math.exp(-6 * delta))
+    const { moving, distance, elapsed } = gait.current
+    const g = distance * 8.5
     const stride = moving ? Math.sin(g) * 0.34 : 0
     const damp = (object: THREE.Object3D | null, axis: 'x' | 'y' | 'z', target: number, lambda = 10) => {
       if (object) object.rotation[axis] = THREE.MathUtils.damp(object.rotation[axis], target, lambda, delta)
@@ -201,10 +240,10 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
     })
     damp(chest.current, 'y', moving ? Math.sin(g) * 0.07 : 0, 6)
     if (head.current) {
-      head.current.rotation.y = THREE.MathUtils.damp(head.current.rotation.y, moving ? 0 : Math.sin(elapsed.current * 0.55) * 0.18, 4, delta)
-      head.current.rotation.z = Math.sin(elapsed.current * 0.7) * 0.025
+      head.current.rotation.y = THREE.MathUtils.damp(head.current.rotation.y, moving ? 0 : Math.sin(elapsed * 0.55) * 0.18, 4, delta)
+      head.current.rotation.z = Math.sin(elapsed * 0.7) * 0.025
     }
-    person.position.y = THREE.MathUtils.damp(person.position.y, moving ? Math.abs(Math.sin(g)) * 0.016 : 0, 10, delta)
+    if (body.current) body.current.position.y = THREE.MathUtils.damp(body.current.position.y, moving ? Math.abs(Math.sin(g)) * 0.016 : 0, 10, delta)
   })
 
   const skin = themeSkin[theme] ?? look.skin
@@ -441,7 +480,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
   const arms = ([-1, 1] as const).map((side, i) => arm(side, i))
 
   return (
-    <group ref={root} position={[start[0], 0, start[1]]} scale={look.height}>
+    <group ref={body} scale={look.height}>
       {legs}
       {skirted
         ? <Part geometry={lofted(look.bottom.kind, look.bottom.kind === 'skirt' ? SKIRT : DRESS, look.bottom.kind === 'skirt' ? { segments: 22, pleat: 0.08 } : { segments: 12 })}
@@ -462,12 +501,6 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
           {cap()}
         </group>
       </group>
-      {marker && (
-        <mesh position={[0, 2, 0]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[0.075, 0.15, 4]} />
-          <meshBasicMaterial color={accent} toneMapped={false} />
-        </mesh>
-      )}
     </group>
   )
 }

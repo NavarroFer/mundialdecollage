@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import type { GalleryTheme } from '../themes'
 import { MAX_LIVE_VISITORS } from '../presence/protocol'
 import { usePresenceStore } from '../presence/store'
+import { SCRIPTED_CAST } from './people/cast'
 import { Person, type Motion } from './people/Person'
 import { VISITORS, type VisitorDefinition } from './visitorRoutes'
 
@@ -36,7 +37,7 @@ function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: 
 
   return (
     <Person
-      appearance={{ look: definition.offset, shirt: definition.color }}
+      appearance={{ look: definition.offset, shirt: definition.color, avatar: SCRIPTED_CAST[definition.id] }}
       theme={theme}
       start={definition.route[initialIndex].position}
       phase={definition.offset * 1.7}

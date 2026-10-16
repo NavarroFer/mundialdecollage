@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import type { GalleryTheme } from '../themes'
 import { appearanceFor, MAX_LIVE_VISITORS } from '../presence/protocol'
 import { peerPoses, usePresenceStore } from '../presence/store'
+import { REMOTE_CAST } from './people/cast'
 import { LOOK_COUNT, Person, type Motion } from './people/Person'
 
 // Farther than this from the last known spot (a reload, a missed stretch of
@@ -16,7 +17,10 @@ const EASING = 6
 const WALKING_SPEED = 0.25
 
 function RemoteVisitor({ peerKey, theme }: { peerKey: string; theme: GalleryTheme }) {
-  const appearance = useMemo(() => appearanceFor(peerKey, LOOK_COUNT), [peerKey])
+  const appearance = useMemo(() => ({
+    ...appearanceFor(peerKey, LOOK_COUNT),
+    avatar: REMOTE_CAST[appearanceFor(peerKey, REMOTE_CAST.length).look].name,
+  }), [peerKey])
   const placed = useRef(false)
 
   function followPose(person: THREE.Group, delta: number): Motion {
