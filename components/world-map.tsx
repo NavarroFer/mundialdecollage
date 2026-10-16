@@ -1,16 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
-import type { Feature, GeoJsonObject, MultiPolygon, Position } from 'geojson'
 import { Expand, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { ObrasCollage } from '@/components/obras-collage'
 import type { ArtworkSummary } from '@/lib/finalists'
-import rawWorldTopology from '@/lib/data/world-countries-110m.json'
-import rawMalvinas from '@/lib/data/malvinas-50m.json'
 import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
-import { alpha2ForUnnumberedShape, isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
+import { isMalvinas, shapeCountryCode, withMalvinas, worldTopology } from '@/lib/world-shapes'
 import { countryCodeToName } from '@/lib/participants'
 import { CountryFlag } from '@/components/country-flag'
 import { useI18n } from '@/lib/i18n/client'
@@ -24,32 +21,6 @@ import { announceStampUnlocked } from '@/lib/stamps'
 // The full explorer is loaded only when a visitor explicitly opens it, so the
 // summary map remains the only map-related code needed for the initial view.
 const MapExplorer = dynamic(() => import('@/components/map-explorer').then((m) => m.MapExplorer), { ssr: false })
-
-// world-atlas ships this as a TopoJSON Topology, which react-simple-maps
-// handles at runtime (it converts to GeoJSON via topojson-client), but its
-// types only describe the GeoJSON shapes it accepts as input.
-const worldTopology = rawWorldTopology as unknown as GeoJsonObject
-
-// The 110m map draws the Malvinas as one small blob. They come instead from
-// world-atlas's 50m map (Gran Malvina, Soledad and the islets), drawn larger
-// than life around their center so both islands read at this scale.
-const MALVINAS_CENTER: Position = [-59.47, -51.79]
-const MALVINAS_ZOOM = 2.5
-const malvinas50m = rawMalvinas as unknown as Feature<MultiPolygon>
-const malvinas: Feature<MultiPolygon> = {
-  ...malvinas50m,
-  geometry: {
-    type: 'MultiPolygon',
-    coordinates: malvinas50m.geometry.coordinates.map((polygon) =>
-      polygon.map((ring) =>
-        ring.map(([lon, lat]) => [
-          MALVINAS_CENTER[0] + (lon - MALVINAS_CENTER[0]) * MALVINAS_ZOOM,
-          MALVINAS_CENTER[1] + (lat - MALVINAS_CENTER[1]) * MALVINAS_ZOOM,
-        ]),
-      ),
-    ),
-  },
-}
 
 type CountryCount = { countryCode: string; count: number }
 
@@ -233,9 +204,8 @@ export function WorldMap({
         <Geographies geography={worldTopology}>
           {({ geographies, path }) =>
             geographies.map((shape) => {
-              const geo = String(shape.id) === '238' ? { ...malvinas, rsmKey: shape.rsmKey, svgPath: path(malvinas) } : shape
-              const code =
-                isoNumericToAlpha2[String(geo.id)] ?? alpha2ForUnnumberedShape[String(geo.properties?.name)]
+              const geo = withMalvinas(shape, path)
+              const code = shapeCountryCode(geo)
               const count = code ? countsByCode.get(code) : undefined
               // Countries without published obras intentionally recede so the
               // participating countries and their relative volume stand out.
@@ -244,9 +214,6 @@ export function WorldMap({
               const isSelected = code === selectedCountryCode
               const fill = isSelected ? 'var(--collage-red)' : count ? 'var(--collage-blue)' : 'var(--muted)'
               const fillOpacity = isSelected ? 1 : opacity
-              // No white border on the Malvinas: at a few pixels it would eat
-              // the islands and close the strait between them.
-              const isMalvinas = String(geo.id) === '238'
 
               return (
                 <Geography
@@ -257,7 +224,9 @@ export function WorldMap({
                   style={{
                     fill,
                     fillOpacity,
-                    stroke: isMalvinas ? 'none' : 'var(--card)',
+                    // No white border on the Malvinas: at a few pixels it would eat
+                    // the islands and close the strait between them.
+                    stroke: isMalvinas(geo) ? 'none' : 'var(--card)',
                     strokeWidth: isSelected ? 1.75 : 0.75,
                     cursor: hasArtworks ? 'pointer' : 'default',
                   }}

@@ -6,23 +6,20 @@
 
 import { ObraLink } from '@/components/obra-modal'
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import type { GeoJsonObject } from 'geojson'
 import { Minus, Move, Plus, RotateCcw, X } from 'lucide-react'
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { CountryFlag } from '@/components/country-flag'
 import { MapPager } from '@/components/map-pager'
 import type { ArtworkSummary } from '@/lib/finalists'
-import rawWorldTopology from '@/lib/data/world-countries-110m.json'
 import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
-import { alpha2ForUnnumberedShape, isoNumericToAlpha2 } from '@/lib/iso-numeric-country-codes'
+import { shapeCountryCode, worldTopology } from '@/lib/world-shapes'
 import { countryCodeToName } from '@/lib/participants'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
 import { countryPage } from '@/lib/country-pages'
 
-const worldTopology = rawWorldTopology as unknown as GeoJsonObject
 const INITIAL_CENTER: [number, number] = [0, 15]
 const INITIAL_ZOOM = 1
 type CountryCount = { countryCode: string; count: number }
@@ -75,7 +72,7 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
           <ComposableMap projection="geoEqualEarth" projectionConfig={{ scale: 190 }} width={1100} height={720} className="h-full w-full touch-none select-none">
             <ZoomableGroup center={center} zoom={zoom} minZoom={1} maxZoom={8} onMoveEnd={({ coordinates, zoom: nextZoom }) => { if (coordinates) setCenter([coordinates[0], coordinates[1]]); if (typeof nextZoom === 'number') setZoom(nextZoom) }}>
               <Geographies geography={worldTopology}>{({ geographies }) => geographies.map((geo) => {
-                const code = isoNumericToAlpha2[String(geo.id)] ?? alpha2ForUnnumberedShape[String(geo.properties?.name)]
+                const code = shapeCountryCode(geo)
                 const count = code ? countsByCode.get(code) : undefined
                 const hasArtworks = code ? artworkCountries.has(code) : false
                 const selected = code === selectedCountryCode
