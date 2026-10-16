@@ -3,9 +3,10 @@ import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { BarList, FunnelChart, Meter, type Windows } from '@/components/admin/stats/bar-charts'
 import { ChartFrame, type ChartFigure } from '@/components/admin/stats/chart-frame'
 import { ChartError, EmptyChart } from '@/components/admin/stats/chart-kit'
-import { StatsControlBar, StatsSection } from '@/components/admin/stats/control-bar'
+import { StatsControlBar } from '@/components/admin/stats/control-bar'
 import { Segmented } from '@/components/admin/stats/controls'
 import { StatsBusyArea } from '@/components/admin/stats/navigation'
+import { StatsMasonry, StatsTabs, type StatsTab } from '@/components/admin/stats/stats-tabs'
 import { TimeSeriesChart } from '@/components/admin/stats/time-series-chart'
 import { StatsViewProvider } from '@/components/admin/stats/view-settings'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
@@ -119,6 +120,7 @@ function JourneySection({
   windows,
   recentDays,
   variant = 'funnel',
+  className,
 }: {
   week: FunnelCounts | null
   month: FunnelCounts | null
@@ -134,6 +136,7 @@ function JourneySection({
   windows: Windows
   recentDays: number
   variant?: 'funnel' | 'comparison'
+  className?: string
 }) {
   const base = baseStep ? month?.get(baseStep) ?? 0 : undefined
   const primaryStep = baseStep ?? steps[0]?.name
@@ -152,7 +155,7 @@ function JourneySection({
   const rows = steps.map((step) => ({ label: step.label, value: month?.get(step.name) ?? 0, recent: week?.get(step.name) ?? 0 }))
   const note = baseLabel ? `% ${lowerFirst(baseLabel)}.` : undefined
   return (
-    <ChartFrame level={3} title={title} description={description} footnote={footnote} figure={figure} controls={['compare']}>
+    <ChartFrame level={3} className={className} title={title} description={description} footnote={footnote} figure={figure} controls={['compare']}>
       {!week || !month ? <ChartError>No pudimos cargar el circuito. Recargá la página para reintentar.</ChartError>
         : variant === 'funnel'
           ? <FunnelChart steps={rows} base={base} label={`${title}, ${lowerFirst(windows.period)}`} note={note} windows={windows} />
@@ -185,6 +188,325 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
   // The meters need a whole to measure against.
   const meterStats = artworkStats && artworkStats.total > 0 ? artworkStats : null
 
+  // The charts by area of the Mundial, one tab at a time (StatsTabs): the
+  // summary above stays in view, and each tab answers one kind of question.
+  const tabs: StatsTab[] = [
+    {
+      id: 'convocatoria',
+      label: 'Convocatoria',
+      description: 'Cuántas obras llegan, cuántas ya se ven en el sitio y cómo les va a los artistas con el formulario de inscripción.',
+      content: (
+        <>
+          <div className="grid gap-6 lg:grid-cols-12">
+            <ChartFrame
+              className={meterStats ? 'lg:col-span-7' : 'lg:col-span-12'}
+              eyebrow="Obras recibidas"
+              title="Histórico de participaciones"
+              description="Incluye envíos desde Registro y participaciones directas, sin duplicarlas."
+              figure={submissionHistory ? { value: formatCount(sum(submissionHistory)), label: `obras · ${lowerFirst(windows.period)}` } : undefined}
+              controls={['values', 'table']}
+              actions={(
+                <Segmented
+                  label="Agrupación del histórico de obras"
+                  value={grouping}
+                  options={(['day', 'week', 'month'] as const).map((option) => ({
+                    value: option,
+                    label: option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual',
+                    href: statsHref({ period: periodDays, grouping: option, browser }),
+                  }))}
+                />
+              )}
+            >
+              {submissionHistory
+                ? <TimeSeriesChart data={submissionHistory} unit={{ one: 'obra', other: 'obras' }} label={`Obras recibidas por ${historyUnit}`} />
+                : <ChartError>No pudimos cargar el histórico de obras. Recargá la página para reintentar.</ChartError>}
+            </ChartFrame>
+            {meterStats && (
+              <ChartFrame className="lg:col-span-5" scope="current" eyebrow="Datos actuales" title="Estado de publicación" description="Obras seleccionadas que ya se ven en el sitio.">
+                <Meter value={meterStats.published} total={meterStats.total} label="publicadas" remainder={{ label: 'pendientes', done: 'Todo al día' }} />
+              </ChartFrame>
+            )}
+          </div>
+          <div className="mt-6">
+            <StatsMasonry>
+              <JourneySection
+                {...journey}
+                title="Formulario de inscripción"
+                description="El recorrido lineal dentro del formulario: desde verlo hasta tocar «Enviar». Se mide desde el 28 de septiembre de 2026."
+                steps={ONBOARDING_FORM_EVENTS}
+                baseStep="onboarding_form_view"
+                baseLabel="De quienes vieron el formulario"
+              />
+              <JourneySection
+                {...journey}
+                title="Origen de las inscripciones"
+                description="Cada inscripción terminada, según de dónde llegó su artista la primera vez que entró (Instagram, el link de un artista, Google, un mail…). Se mide desde el 12 de octubre de 2026."
+                steps={SIGNUP_SOURCE_EVENTS}
+                baseStep="signup_done"
+                baseLabel="De las inscripciones terminadas"
+                figureLabel="Inscripciones terminadas"
+                footnote="Quien entró por primera vez antes del 12 de octubre no tiene origen guardado: la diferencia con el total son esas inscripciones. Los mails solo se reconocen cuando el link lleva ?desde=mail o utm_source."
+                variant="comparison"
+              />
+              <JourneySection
+                {...journey}
+                title="Ingreso con Google"
+                description="Todos los botones «Ingresar con Google» del sitio: cuántos lo tocaron, cuántos volvieron con la sesión iniciada y cuántos ingresos fallaron. Se mide desde el 12 de octubre de 2026."
+                steps={LOGIN_EVENTS}
+                baseStep="login_google_click"
+                baseLabel="De quienes tocaron «Ingresar con Google»"
+                variant="comparison"
+              />
+              <JourneySection
+                {...journey}
+                title="Formulario: recuperaciones y errores"
+                description="Quienes volvieron al formulario y encontraron lo que habían escrito (el navegador de Instagram recarga la página al elegir la imagen) y quienes recibieron un error al enviar. «Recuperaron» se mide desde el 12 de octubre de 2026."
+                steps={FORM_RESCUE_EVENTS}
+                baseStep="onboarding_form_view"
+                baseLabel="De quienes vieron el formulario"
+                figureLabel="Vieron el formulario"
+                variant="comparison"
+              />
+            </StatsMasonry>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'galeria',
+      label: 'Galería 3D',
+      description: 'Quién entra a la galería, qué hace adentro y qué obras mira más.',
+      content: (
+        <>
+          <div className="grid gap-6 lg:grid-cols-12">
+            <ChartFrame
+              className="lg:col-span-7"
+              title="Actividad reciente"
+              description="Visitas únicas a la galería por día. Ayuda a detectar picos después de una publicación, difusión o campaña."
+              figure={galleryHistory ? { value: formatCount(sum(galleryHistory)), label: `visitas · ${lowerFirst(windows.period)}` } : undefined}
+              controls={['values', 'table']}
+            >
+              {galleryHistory
+                ? <TimeSeriesChart data={galleryHistory} unit={{ one: 'visita', other: 'visitas' }} label="Visitas únicas a la galería por día" />
+                : <ChartError>No pudimos cargar el histórico. Recargá la página para reintentar.</ChartError>}
+            </ChartFrame>
+            <JourneySection
+              {...journey}
+              className="lg:col-span-5"
+              title="Circuito de la galería"
+              description="El camino central de descubrimiento: abrir la Galería 3D, entrar a recorrerla y descubrir una obra. Cada navegador cuenta una vez, con un identificador anónimo. Se mide desde el 25 de septiembre de 2026."
+              steps={GALLERY_HAPPY_PATH}
+              baseStep="gallery_view"
+              baseLabel="De quienes abrieron la galería"
+            />
+            <GalleryAttentionStats days={periodDays} className="lg:col-span-12" />
+          </div>
+          <div className="mt-6">
+            <StatsMasonry>
+              <JourneySection
+                {...journey}
+                title="Tiempo de carga de la galería"
+                description="Cuánto tardó la Galería 3D en estar lista para caminar, desde que se abrió. Se mide desde el 12 de octubre de 2026."
+                steps={GALLERY_READY_EVENTS}
+                baseStep="gallery_view"
+                baseLabel="De quienes abrieron la galería"
+                figureLabel="Abrieron la galería"
+                footnote="La diferencia entre quienes abrieron la galería y la suma de estos rangos son quienes se fueron antes de que terminara de cargar."
+                variant="comparison"
+              />
+              <JourneySection
+                {...journey}
+                title="Collage colectivo"
+                description="Desde abrir el cuadro de la Sala 1 (E frente a él) hasta pegar una foto. «Sin vidas» cuenta a quien intentó pegar con las tres vidas usadas. Se mide desde el 2 de octubre de 2026."
+                steps={WALL_EVENTS}
+                baseStep="wall_open"
+                baseLabel="De quienes abrieron el collage"
+                variant="comparison"
+              />
+              <JourneySection
+                {...journey}
+                title="Foto souvenir de la galería"
+                description="Personas distintas que sacaron una foto en la Galería 3D (botón de la cámara o tecla F) y qué hicieron con ella. Se mide desde el 2 de octubre de 2026."
+                steps={SOUVENIR_EVENTS}
+                baseStep="souvenir_photo"
+                baseLabel="De quienes sacaron una foto"
+                variant="comparison"
+              />
+            </StatsMasonry>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'difusion',
+      label: 'Difusión',
+      description: 'Cómo se mueve el Mundial: los botones de la home, las obras compartidas y las invitaciones de los artistas.',
+      content: (
+        <StatsMasonry>
+          <JourneySection
+            {...journey}
+            title="Botones de la home"
+            description="Personas distintas que tocaron cada botón, para comparar cuál lleva más gente a mandar su obra. Mismo identificador anónimo que el circuito de la galería. Se mide desde el 26 de septiembre de 2026."
+            steps={HOME_EVENTS}
+            baseStep="home_view"
+            baseLabel="De quienes abrieron la home"
+            footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Compartir obras"
+            description="Acciones para difundir obras desde sus páginas, la home, la confirmación y la galería. Abrir WhatsApp o completar el menú de compartir no confirma una publicación. Las copias exitosas y las nuevas opciones de galería se miden desde el 6 de octubre de 2026; los clics originales, desde el 26 de septiembre."
+            steps={SHARE_EVENTS}
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Descubrimiento de obras y artistas"
+            description="Cómo las páginas públicas de obra y artista llevan a conocer más del proyecto o a empezar una participación."
+            steps={DISCOVERY_EVENTS}
+            baseStep="artwork_page_view"
+            baseLabel="De quienes abrieron una obra"
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Invitaciones de los artistas"
+            description="Los links que comparten los artistas llevan su invitación: quien llega por uno ve «te invita a participar» y, si se inscribe, cuenta para ese artista. Se mide desde el 28 de septiembre de 2026."
+            steps={REFERRAL_EVENTS}
+            baseStep="referral_open"
+            baseLabel="De quienes llegaron invitados"
+          />
+          <JourneySection
+            {...journey}
+            title="Invitación después de un like o comentario"
+            description="Quien da like o comenta una obra en la galería (muchas veces gente que llegó porque el artista la compartió) ve ahí mismo la invitación a mandar su propia obra. Se mide desde el 28 de septiembre de 2026."
+            steps={INVITE_EVENTS}
+            baseStep="artist_invite_view"
+            baseLabel="De quienes vieron la invitación"
+          />
+        </StatsMasonry>
+      ),
+    },
+    {
+      id: 'ventas',
+      label: 'Ventas',
+      description: 'Tienda, revista, donaciones y marcas: de dónde llega la gente y en qué paso se pierde la venta.',
+      content: (
+        <StatsMasonry>
+          <JourneySection
+            {...journey}
+            title="Tienda"
+            description="Desde abrir la tienda hasta que PayPal aprueba la suscripción, para ver en qué paso se pierde la venta. Se mide desde el 1 de octubre de 2026."
+            steps={STORE_FUNNEL_EVENTS}
+            baseStep="store_view"
+            baseLabel="De quienes abrieron la tienda"
+          />
+          <JourneySection
+            {...journey}
+            title="La tienda en la home"
+            description="Personas distintas que llegaron a ver las tarjetas de la tienda en la home, y cuántas de ellas entraron desde ahí. Se mide desde el 15 de octubre de 2026."
+            steps={HOME_STORE_EVENTS}
+            baseStep="store_home_seen"
+            baseLabel="De quienes la vieron"
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Cómo llegan a la tienda"
+            description="Personas distintas que fueron a la tienda desde el encabezado, una página de obra o el mail diario «Así le fue a tu obra». Se mide desde el 1 de octubre de 2026."
+            steps={STORE_ENTRY_EVENTS}
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Preventa de la revista"
+            description="Desde abrir /revista hasta pagar con Mercado Pago. Mientras la preventa no tenga precio, la página junta mails (ver «Avisame»). Se mide desde el 1 de octubre de 2026."
+            steps={MAGAZINE_FUNNEL_EVENTS}
+            baseStep="magazine_view"
+            baseLabel="De quienes abrieron la revista"
+          />
+          <JourneySection
+            {...journey}
+            title="Cómo llegan a la revista"
+            description="Personas distintas que fueron a /revista desde la tienda, después de inscribirse o desde la tarjeta «Ya estás participando» de la home. Se mide desde el 1 de octubre de 2026."
+            steps={MAGAZINE_ENTRY_EVENTS}
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="«Avisame» de finalistas y revista"
+            description="Personas que dejaron su mail para enterarse de las finalistas y la revista, según dónde lo hicieron. Quedan en Contactos con el origen «aviso_…». Se mide desde el 1 de octubre de 2026."
+            steps={WAITLIST_EVENTS}
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Donaciones"
+            description="Personas distintas que tocaron un monto para donar, en la home o en la pantalla de inicio de la galería 3D; cuántas de ellas donaron en dólares con PayPal (el resto, en pesos con Mercado Pago), y las que volvieron a /donar/gracias (pagaron, o eligieron pagar en efectivo y les falta). Los montos están en Mercado Pago y en PayPal. Se mide desde el 15 de octubre de 2026."
+            steps={DONATION_EVENTS}
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Partners y marcas"
+            description="Personas distintas que abrieron /partners, desde dónde llegaron y cuántas tocaron el mail para escribirnos. Se mide desde el 4 de octubre de 2026."
+            steps={PARTNER_EVENTS}
+            variant="comparison"
+          />
+        </StatsMasonry>
+      ),
+    },
+    {
+      id: 'artistas',
+      label: 'Artistas y obras',
+      description: 'Sobre las obras seleccionadas, con imagen y sin archivar (publicadas y pendientes). Países cuenta artistas y técnicas cuenta obras. Las barras se escalan al grupo más grande; los porcentajes usan el total de cada gráfico y, por redondeo, la suma puede diferir de 100%.',
+      content: (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ChartFrame
+            scope="current"
+            title="Artistas por país"
+            description="Cada artista cuenta una vez, con el país de su perfil."
+            figure={artistStats ? { value: formatCount(artistStats.totalArtists), label: 'artistas' } : undefined}
+            footnote={artistStats ? `Base: ${artistStats.totalArtists} artistas. ${artistStats.totalArtists - artistStats.withCountry} sin país registrado.` : undefined}
+            controls={['limit']}
+          >
+            {!artistStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
+              : artistStats.totalArtists === 0 ? <EmptyChart>Todavía no hay artistas con una obra seleccionada.</EmptyChart>
+                : (
+                  <BarList
+                    label="Distribución de artistas por país"
+                    rows={artistStats.countries.map(({ countryCode, count }) => ({ label: countryLabel(countryCode), value: count }))}
+                    total={artistStats.totalArtists}
+                    note={leadingCountry ? `${countryLabel(leadingCountry.countryCode)} reúne el ${formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.` : undefined}
+                  />
+                )}
+          </ChartFrame>
+
+          <div className="flex flex-col gap-6">
+            {meterStats && (
+              <ChartFrame scope="current" title="Datos de técnica" description="Qué tan completo está este dato.">
+                <Meter value={meterStats.withTechnique} total={meterStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
+              </ChartFrame>
+            )}
+            <ChartFrame
+              className="flex-1"
+              scope="current"
+              title="Obras por técnica"
+              description="Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio."
+              figure={artworkStats ? { value: formatCount(artworkStats.total), label: 'obras seleccionadas' } : undefined}
+              footnote={artworkStats ? `Base: ${artworkStats.total} obras. ${artworkStats.total - artworkStats.withTechnique} sin técnica registrada. Los porcentajes incluyen los datos faltantes.` : undefined}
+            >
+              {!artworkStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
+                : artworkStats.total === 0 ? <EmptyChart>Todavía no hay obras seleccionadas con imagen para analizar.</EmptyChart>
+                  : <BarList label="Distribución de obras por técnica" rows={artworkStats.techniques.map(({ label, count }) => ({ label, value: count }))} total={artworkStats.total} />}
+            </ChartFrame>
+          </div>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <StatsViewProvider periodLabel={windows.period}>
       <AdminPageHeader eyebrow="Convocatoria" title="Estadísticas" description={adminDescription('/admin/estadisticas')} />
@@ -213,325 +535,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
             <StatPill label="Con técnica registrada" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
           </div>
         </section>
-
-        {/* The mosaic: a wide tile and a narrower one per row, sharing the
-            row's height, then the attention ranking across the whole width
-            for its table. Each eyebrow says what the tile is about. */}
-        <div className="mt-6 grid gap-6 lg:grid-cols-12">
-          <ChartFrame
-            className={meterStats ? 'lg:col-span-7' : 'lg:col-span-12'}
-            eyebrow="Obras recibidas"
-            title="Histórico de participaciones"
-            description="Incluye envíos desde Registro y participaciones directas, sin duplicarlas."
-            figure={submissionHistory ? { value: formatCount(sum(submissionHistory)), label: `obras · ${lowerFirst(windows.period)}` } : undefined}
-            controls={['values', 'table']}
-            actions={(
-              <Segmented
-                label="Agrupación del histórico de obras"
-                value={grouping}
-                options={(['day', 'week', 'month'] as const).map((option) => ({
-                  value: option,
-                  label: option === 'day' ? 'Diario' : option === 'week' ? 'Semanal' : 'Mensual',
-                  href: statsHref({ period: periodDays, grouping: option, browser }),
-                }))}
-              />
-            )}
-          >
-            {submissionHistory
-              ? <TimeSeriesChart data={submissionHistory} unit={{ one: 'obra', other: 'obras' }} label={`Obras recibidas por ${historyUnit}`} />
-              : <ChartError>No pudimos cargar el histórico de obras. Recargá la página para reintentar.</ChartError>}
-          </ChartFrame>
-
-          {meterStats && (
-            <ChartFrame className="lg:col-span-5" scope="current" eyebrow="Datos actuales" title="Estado de publicación" description="Obras seleccionadas que ya se ven en el sitio.">
-              <Meter value={meterStats.published} total={meterStats.total} label="publicadas" remainder={{ label: 'pendientes', done: 'Todo al día' }} />
-            </ChartFrame>
-          )}
-
-          <ChartFrame
-            className="lg:col-span-7"
-            eyebrow="Galería 3D"
-            title="Actividad reciente"
-            description="Visitas únicas a la galería por día. Ayuda a detectar picos después de una publicación, difusión o campaña."
-            figure={galleryHistory ? { value: formatCount(sum(galleryHistory)), label: `visitas · ${lowerFirst(windows.period)}` } : undefined}
-            controls={['values', 'table']}
-          >
-            {galleryHistory
-              ? <TimeSeriesChart data={galleryHistory} unit={{ one: 'visita', other: 'visitas' }} label="Visitas únicas a la galería por día" />
-              : <ChartError>No pudimos cargar el histórico. Recargá la página para reintentar.</ChartError>}
-          </ChartFrame>
-          <ChartFrame
-            className="lg:col-span-5"
-            eyebrow="Galería 3D"
-            title="Embudo principal"
-            description={`El camino principal para descubrir obras, en los últimos ${periodDays} días.`}
-            figure={funnelMonth ? { value: formatCount(funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0), label: GALLERY_HAPPY_PATH[0].label } : undefined}
-            controls={['compare']}
-          >
-            {funnelMonth
-              ? <FunnelChart
-                  label={`Embudo de la galería, ${lowerFirst(windows.period)}`}
-                  steps={GALLERY_HAPPY_PATH.map((step) => ({ label: step.label, value: funnelMonth.get(step.name) ?? 0, recent: funnelWeek?.get(step.name) }))}
-                  base={funnelMonth.get(GALLERY_HAPPY_PATH[0].name) ?? 0}
-                  note="% de quienes abrieron la galería."
-                  windows={windows}
-                />
-              : <ChartError>No pudimos cargar el embudo.</ChartError>}
-          </ChartFrame>
-
-          <GalleryAttentionStats days={periodDays} className="lg:col-span-12" />
-        </div>
-
-        <StatsSection masonry id="linear-journeys-title" eyebrow="Recorridos lineales" title="Embudos" description="Etapas consecutivas: cada bloque muestra el avance del mismo camino.">
-          <JourneySection
-            {...journey}
-            title="Circuito de la galería"
-            description="El camino central de descubrimiento: abrir la Galería 3D, entrar a recorrerla y descubrir una obra. Cada navegador cuenta una vez, con un identificador anónimo. Se mide desde el 25 de septiembre de 2026."
-            steps={GALLERY_HAPPY_PATH}
-            baseStep="gallery_view"
-            baseLabel="De quienes abrieron la galería"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Invitación después de un like o comentario"
-            description="Quien da like o comenta una obra en la galería (muchas veces gente que llegó porque el artista la compartió) ve ahí mismo la invitación a mandar su propia obra. Se mide desde el 28 de septiembre de 2026."
-            steps={INVITE_EVENTS}
-            baseStep="artist_invite_view"
-            baseLabel="De quienes vieron la invitación"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Invitaciones de los artistas"
-            description="Los links que comparten los artistas llevan su invitación: quien llega por uno ve «te invita a participar» y, si se inscribe, cuenta para ese artista. Se mide desde el 28 de septiembre de 2026."
-            steps={REFERRAL_EVENTS}
-            baseStep="referral_open"
-            baseLabel="De quienes llegaron invitados"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Formulario de inscripción"
-            description="El recorrido lineal dentro del formulario: desde verlo hasta tocar «Enviar». Se mide desde el 28 de septiembre de 2026."
-            steps={ONBOARDING_FORM_EVENTS}
-            baseStep="onboarding_form_view"
-            baseLabel="De quienes vieron el formulario"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Tienda"
-            description="Desde abrir la tienda hasta que PayPal aprueba la suscripción, para ver en qué paso se pierde la venta. Se mide desde el 1 de octubre de 2026."
-            steps={STORE_FUNNEL_EVENTS}
-            baseStep="store_view"
-            baseLabel="De quienes abrieron la tienda"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Preventa de la revista"
-            description="Desde abrir /revista hasta pagar con Mercado Pago. Mientras la preventa no tenga precio, la página junta mails (ver «Avisame»). Se mide desde el 1 de octubre de 2026."
-            steps={MAGAZINE_FUNNEL_EVENTS}
-            baseStep="magazine_view"
-            baseLabel="De quienes abrieron la revista"
-          />
-        </StatsSection>
-
-        <StatsSection masonry id="action-comparisons-title" tone="red" eyebrow="Acciones alternativas" title="Comparativas" description="No son pasos consecutivos: sirven para comparar qué acción genera más movimiento.">
-          <JourneySection
-            {...journey}
-            title="Origen de las inscripciones"
-            description="Cada inscripción terminada, según de dónde llegó su artista la primera vez que entró (Instagram, el link de un artista, Google, un mail…). Se mide desde el 12 de octubre de 2026."
-            steps={SIGNUP_SOURCE_EVENTS}
-            baseStep="signup_done"
-            baseLabel="De las inscripciones terminadas"
-            figureLabel="Inscripciones terminadas"
-            footnote="Quien entró por primera vez antes del 12 de octubre no tiene origen guardado: la diferencia con el total son esas inscripciones. Los mails solo se reconocen cuando el link lleva ?desde=mail o utm_source."
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Ingreso con Google"
-            description="Todos los botones «Ingresar con Google» del sitio: cuántos lo tocaron, cuántos volvieron con la sesión iniciada y cuántos ingresos fallaron. Se mide desde el 12 de octubre de 2026."
-            steps={LOGIN_EVENTS}
-            baseStep="login_google_click"
-            baseLabel="De quienes tocaron «Ingresar con Google»"
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Formulario: recuperaciones y errores"
-            description="Quienes volvieron al formulario y encontraron lo que habían escrito (el navegador de Instagram recarga la página al elegir la imagen) y quienes recibieron un error al enviar. «Recuperaron» se mide desde el 12 de octubre de 2026."
-            steps={FORM_RESCUE_EVENTS}
-            baseStep="onboarding_form_view"
-            baseLabel="De quienes vieron el formulario"
-            figureLabel="Vieron el formulario"
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Tiempo de carga de la galería"
-            description="Cuánto tardó la Galería 3D en estar lista para caminar, desde que se abrió. Se mide desde el 12 de octubre de 2026."
-            steps={GALLERY_READY_EVENTS}
-            baseStep="gallery_view"
-            baseLabel="De quienes abrieron la galería"
-            figureLabel="Abrieron la galería"
-            footnote="La diferencia entre quienes abrieron la galería y la suma de estos rangos son quienes se fueron antes de que terminara de cargar."
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Botones de la home"
-            description="Personas distintas que tocaron cada botón, para comparar cuál lleva más gente a mandar su obra. Mismo identificador anónimo que el circuito de la galería. Se mide desde el 26 de septiembre de 2026."
-            steps={HOME_EVENTS}
-            baseStep="home_view"
-            baseLabel="De quienes abrieron la home"
-            footnote="«Participar» está en el encabezado de todas las páginas, así que también cuenta a quien lo tocó fuera de la home."
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Compartir obras"
-            description="Acciones para difundir obras desde sus páginas, la home, la confirmación y la galería. Abrir WhatsApp o completar el menú de compartir no confirma una publicación. Las copias exitosas y las nuevas opciones de galería se miden desde el 6 de octubre de 2026; los clics originales, desde el 26 de septiembre."
-            steps={SHARE_EVENTS}
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Collage colectivo"
-            description="Desde abrir el cuadro de la Sala 1 (E frente a él) hasta pegar una foto. «Sin vidas» cuenta a quien intentó pegar con las tres vidas usadas. Se mide desde el 2 de octubre de 2026."
-            steps={WALL_EVENTS}
-            baseStep="wall_open"
-            baseLabel="De quienes abrieron el collage"
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Foto souvenir de la galería"
-            description="Personas distintas que sacaron una foto en la Galería 3D (botón de la cámara o tecla F) y qué hicieron con ella. Se mide desde el 2 de octubre de 2026."
-            steps={SOUVENIR_EVENTS}
-            baseStep="souvenir_photo"
-            baseLabel="De quienes sacaron una foto"
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Descubrimiento de obras y artistas"
-            description="Cómo las páginas públicas de obra y artista llevan a conocer más del proyecto o a empezar una participación."
-            steps={DISCOVERY_EVENTS}
-            baseStep="artwork_page_view"
-            baseLabel="De quienes abrieron una obra"
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="La tienda en la home"
-            description="Personas distintas que llegaron a ver las tarjetas de la tienda en la home, y cuántas de ellas entraron desde ahí. Se mide desde el 15 de octubre de 2026."
-            steps={HOME_STORE_EVENTS}
-            baseStep="store_home_seen"
-            baseLabel="De quienes la vieron"
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Cómo llegan a la tienda"
-            description="Personas distintas que fueron a la tienda desde el encabezado, una página de obra o el mail diario «Así le fue a tu obra». Se mide desde el 1 de octubre de 2026."
-            steps={STORE_ENTRY_EVENTS}
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Cómo llegan a la revista"
-            description="Personas distintas que fueron a /revista desde la tienda, después de inscribirse o desde la tarjeta «Ya estás participando» de la home. Se mide desde el 1 de octubre de 2026."
-            steps={MAGAZINE_ENTRY_EVENTS}
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="«Avisame» de finalistas y revista"
-            description="Personas que dejaron su mail para enterarse de las finalistas y la revista, según dónde lo hicieron. Quedan en Contactos con el origen «aviso_…». Se mide desde el 1 de octubre de 2026."
-            steps={WAITLIST_EVENTS}
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Partners y marcas"
-            description="Personas distintas que abrieron /partners, desde dónde llegaron y cuántas tocaron el mail para escribirnos. Se mide desde el 4 de octubre de 2026."
-            steps={PARTNER_EVENTS}
-            variant="comparison"
-          />
-
-          <JourneySection
-            {...journey}
-            title="Donaciones"
-            description="Personas distintas que tocaron un monto para donar, en la home o en la pantalla de inicio de la galería 3D; cuántas de ellas donaron en dólares con PayPal (el resto, en pesos con Mercado Pago), y las que volvieron a /donar/gracias (pagaron, o eligieron pagar en efectivo y les falta). Los montos están en Mercado Pago y en PayPal. Se mide desde el 15 de octubre de 2026."
-            steps={DONATION_EVENTS}
-            variant="comparison"
-          />
-        </StatsSection>
-
-        <StatsSection
-          id="site-data-title"
-          eyebrow="Datos actuales del sitio"
-          title="Artistas y obras"
-          description="Sobre las obras seleccionadas, con imagen y sin archivar (publicadas y pendientes). Países cuenta artistas y técnicas cuenta obras. Las barras se escalan al grupo más grande; los porcentajes usan el total de cada gráfico y, por redondeo, la suma puede diferir de 100%."
-        >
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ChartFrame
-              scope="current"
-              title="Artistas por país"
-              description="Cada artista cuenta una vez, con el país de su perfil."
-              figure={artistStats ? { value: formatCount(artistStats.totalArtists), label: 'artistas' } : undefined}
-              footnote={artistStats ? `Base: ${artistStats.totalArtists} artistas. ${artistStats.totalArtists - artistStats.withCountry} sin país registrado.` : undefined}
-              controls={['limit']}
-            >
-              {!artistStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
-                : artistStats.totalArtists === 0 ? <EmptyChart>Todavía no hay artistas con una obra seleccionada.</EmptyChart>
-                  : (
-                    <BarList
-                      label="Distribución de artistas por país"
-                      rows={artistStats.countries.map(({ countryCode, count }) => ({ label: countryLabel(countryCode), value: count }))}
-                      total={artistStats.totalArtists}
-                      note={leadingCountry ? `${countryLabel(leadingCountry.countryCode)} reúne el ${formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.` : undefined}
-                    />
-                  )}
-            </ChartFrame>
-
-            <div className="flex flex-col gap-6">
-              {meterStats && (
-                <ChartFrame scope="current" title="Datos de técnica" description="Qué tan completo está este dato.">
-                  <Meter value={meterStats.withTechnique} total={meterStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
-                </ChartFrame>
-              )}
-              <ChartFrame
-                className="flex-1"
-                scope="current"
-                title="Obras por técnica"
-                description="Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio."
-                figure={artworkStats ? { value: formatCount(artworkStats.total), label: 'obras seleccionadas' } : undefined}
-                footnote={artworkStats ? `Base: ${artworkStats.total} obras. ${artworkStats.total - artworkStats.withTechnique} sin técnica registrada. Los porcentajes incluyen los datos faltantes.` : undefined}
-              >
-                {!artworkStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
-                  : artworkStats.total === 0 ? <EmptyChart>Todavía no hay obras seleccionadas con imagen para analizar.</EmptyChart>
-                    : <BarList label="Distribución de obras por técnica" rows={artworkStats.techniques.map(({ label, count }) => ({ label, value: count }))} total={artworkStats.total} />}
-              </ChartFrame>
-            </div>
-          </div>
-        </StatsSection>
+        <StatsTabs tabs={tabs} />
       </StatsBusyArea>
     </StatsViewProvider>
   )

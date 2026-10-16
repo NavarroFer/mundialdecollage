@@ -25,7 +25,8 @@ export function StatsNavigationProvider({ children }: { children: ReactNode }) {
   const navigate = useCallback((href: string) => {
     startTransition(() => {
       setTarget(href)
-      router.push(href, { scroll: false })
+      // The open tab rides in the hash (stats-tabs.tsx); a filter keeps it.
+      router.push(href + window.location.hash, { scroll: false })
     })
   }, [router, setTarget])
   const value = useMemo(() => ({ pending, target, navigate }), [pending, target, navigate])

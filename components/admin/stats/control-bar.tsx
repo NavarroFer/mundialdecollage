@@ -123,39 +123,3 @@ function FilterGroup({ title, note, children }: { title: string; note: string; c
     </div>
   )
 }
-
-// The heading of a group of charts, in the same voice as the frames. With
-// `masonry` the charts flow down two columns, each tile as tall as its own
-// chart, so a short funnel and a long ranking sit side by side without a
-// hole under the short one.
-export function StatsSection({
-  id,
-  eyebrow,
-  title,
-  description,
-  tone = 'blue',
-  masonry = false,
-  className,
-  children,
-}: {
-  id: string
-  eyebrow: string
-  title: string
-  description?: string
-  tone?: 'blue' | 'red'
-  masonry?: boolean
-  className?: string
-  children: React.ReactNode
-}) {
-  const { settings } = usePageView()
-  return (
-    <section aria-labelledby={id} className={cn('mt-14', className)}>
-      <div className={cn('border-l-4 pl-4', tone === 'blue' ? 'border-collage-blue' : 'border-collage-red')}>
-        <p className={cn('text-xs font-bold tracking-[0.18em] uppercase', tone === 'blue' ? 'text-collage-blue' : 'text-collage-red')}>{eyebrow}</p>
-        <h2 id={id} className="font-display mt-1 text-3xl tracking-tight text-ink uppercase">{title}</h2>
-        {settings.notes && description && <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>}
-      </div>
-      <div className={cn('mt-6', masonry ? 'gap-6 lg:columns-2 *:mb-6 *:break-inside-avoid' : 'space-y-6')}>{children}</div>
-    </section>
-  )
-}
