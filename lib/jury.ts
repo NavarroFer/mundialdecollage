@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { User } from '@supabase/supabase-js'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { JUROR_PROFILE_COLUMNS, type JurorProfileValues } from '@/lib/juror-profile'
 import { site } from '@/lib/site'
 
 export type JuryItem = {
@@ -22,13 +23,17 @@ export type JuryItem = {
   countryCode: string | null
 }
 
-export type Juror = { id: string; email: string; name: string | null; active: boolean }
+// profile_completed_at: when the juror confirmed their own profile on
+// /jurado (null: not yet, so the page asks for it first).
+export type Juror = { id: string; email: string; active: boolean; profile_completed_at: string | null } & JurorProfileValues
 
-/** The active juror behind this session, if any. */
+/** The active juror behind this session, if any, with their profile. */
 export async function jurorFor(db: SupabaseClient, user: User | null): Promise<Juror | null> {
   const email = user?.email?.trim().toLowerCase()
   if (!email) return null
-  const { data } = await db.from('jurors').select('id, email, name, active').eq('email', email).eq('active', true).maybeSingle()
+  const { data } = await db.from('jurors')
+    .select(`id, email, active, profile_completed_at, ${JUROR_PROFILE_COLUMNS}`)
+    .eq('email', email).eq('active', true).maybeSingle<Juror>()
   return data
 }
 

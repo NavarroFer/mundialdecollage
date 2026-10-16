@@ -9,9 +9,9 @@ import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { DISPUTED_MIN_GAP, FINALISTS, getJuryPool, rankJuryPool, type RankingMode, type ScoreRow } from '@/lib/jury'
 import { site } from '@/lib/site'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
-import { JUROR_BIOS, type JurorBioField } from '@/lib/juror-profile'
+import { JUROR_BIOS, JUROR_PROFILE_COLUMNS, type JurorBioField } from '@/lib/juror-profile'
+import { JurorProfileFields } from '@/components/juror-profile-fields'
 import { addJuror, resendJuryInvitation, setJurorActive, updateJurorProfile } from './actions'
-import { JurorProfileFields } from './juror-profile-fields'
 
 // Jury MVP: who judges, how far along each juror is, and the ranking of the
 // preselected obras by average score, with the cut at the 30 finalists.
@@ -24,7 +24,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
   const db = createAdminClient()
   const [pool, jurorsResult, scoresResult] = await Promise.all([
     getJuryPool(db),
-    db.from('jurors').select('id, email, name, country_code, job_title, bio_short, bio_medium, bio_long, active, created_at, invited_at').order('created_at'),
+    db.from('jurors').select(`id, email, active, created_at, invited_at, profile_completed_at, ${JUROR_PROFILE_COLUMNS}`).order('created_at'),
     db.from('jury_scores').select('juror_id, item_key, score, comment'),
   ])
   const jurors = jurorsResult.data ?? []
@@ -40,7 +40,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
   const progress = (jurorId: string) => scores.filter((s) => s.juror_id === jurorId && poolKeys.has(s.item_key)).length
   const complete = active.filter((j) => pool.length > 0 && progress(j.id) >= pool.length).length
   const deadline = formatJuryDeadline(site.jury.deadlineISO)
-  const invitedOn = (iso: string) =>
+  const dayOf = (iso: string) =>
     new Date(iso).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: 'numeric', month: 'long' })
 
   return (
@@ -76,7 +76,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
       <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.4fr]" aria-labelledby="jurors-title">
         <div className="rounded-2xl border-2 border-ink/10 bg-card p-5">
           <h2 id="jurors-title" className="font-display text-xl tracking-tight text-ink uppercase">Sumar un jurado</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Con el mail de la cuenta de Google con la que va a entrar, su país y su cargo. Le llega una invitación con el link a /jurado.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Con el mail de la cuenta de Google con la que va a entrar, su país y su cargo. Le llega una invitación con el link a /jurado, donde lo primero que hace es revisar y completar su ficha.</p>
           <form action={addJuror} className="mt-4 space-y-3">
             <input name="email" type="email" required placeholder="email@gmail.com" aria-label="Email" className="w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
             <JurorProfileFields idPrefix="new-juror" />
@@ -105,7 +105,10 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
                       )}
                       {j.bio_short && <p className="mt-1 line-clamp-2 max-w-md text-xs text-muted-foreground">{j.bio_short}</p>}
                       <p className="text-muted-foreground">{j.email}</p>
-                      <p className="text-xs text-muted-foreground">{j.invited_at ? `Invitado el ${invitedOn(j.invited_at)}` : 'Sin invitar'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {j.invited_at ? `Invitado el ${dayOf(j.invited_at)}` : 'Sin invitar'}
+                        {' · '}{j.profile_completed_at ? `Completó su ficha el ${dayOf(j.profile_completed_at)}` : 'Todavía no completó su ficha'}
+                      </p>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-ink">{progress(j.id)} / {pool.length}</td>
                     <td className="space-y-2 px-4 py-3 text-right">

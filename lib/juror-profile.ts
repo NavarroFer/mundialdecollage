@@ -1,10 +1,11 @@
 import { COUNTRY_CODES } from '@/lib/country-codes'
 
-// What /admin/jurado records about a juror besides the email they sign in
-// with: name, country, position and the bio in up to three lengths (a line
-// or two, a paragraph, the full one), so each place that presents the jury
-// can take the one that fits. Country and position are asked for on every
-// juror; the bios are optional.
+// What a juror's profile holds besides the email they sign in with: name,
+// country, position and the bio in up to three lengths (a line or two, a
+// paragraph, the full one), so each place that presents the jury can take
+// the one that fits. The admin fills it when adding the juror
+// (/admin/jurado) and the juror completes it on their first visit to
+// /jurado. Country and position are always asked for; the bios are optional.
 
 // The same limits the jurors table checks (20261016120000_juror_profile.sql).
 export const JUROR_PROFILE_LIMITS = {
@@ -23,14 +24,14 @@ export const JUROR_BIOS = [
 
 export type JurorBioField = (typeof JUROR_BIOS)[number]['field']
 
-export type JurorProfile = {
-  name: string | null
-  country_code: string
-  job_title: string
-  bio_short: string | null
-  bio_medium: string | null
-  bio_long: string | null
-}
+/** The columns the profile forms read, for a jurors select. */
+export const JUROR_PROFILE_COLUMNS = 'name, country_code, job_title, bio_short, bio_medium, bio_long'
+
+/** A stored profile, as it comes from the table: any field may be empty. */
+export type JurorProfileValues = { name: string | null; country_code: string | null; job_title: string | null } & Record<JurorBioField, string | null>
+
+/** A profile that passed parseJurorProfile. */
+export type JurorProfile = { name: string | null; country_code: string; job_title: string } & Record<JurorBioField, string | null>
 
 const countryCodes = new Set<string>(COUNTRY_CODES)
 
@@ -41,15 +42,21 @@ function text(form: FormData, field: keyof typeof JUROR_PROFILE_LIMITS) {
   return value.slice(0, JUROR_PROFILE_LIMITS[field]).trim() || null
 }
 
-/** Reads the profile fields of the add and edit forms; an error names what's missing. */
-export function parseJurorProfile(form: FormData): { profile: JurorProfile } | { error: string } {
+/**
+ * Reads the profile fields of the admin's and the juror's forms; an error
+ * names what's missing. The name is optional for the admin and required
+ * from the juror, who's the one who knows how it should read.
+ */
+export function parseJurorProfile(form: FormData, { nameRequired = false } = {}): { profile: JurorProfile } | { error: string } {
+  const name = text(form, 'name')
+  if (nameRequired && !name) return { error: 'Falta el nombre.' }
   const country = String(form.get('country_code') ?? '').trim().toUpperCase()
-  if (!countryCodes.has(country)) return { error: 'Elegí el país del jurado.' }
+  if (!countryCodes.has(country)) return { error: 'Elegí un país.' }
   const jobTitle = text(form, 'job_title')
-  if (!jobTitle) return { error: 'Falta el cargo del jurado.' }
+  if (!jobTitle) return { error: 'Falta el cargo.' }
   return {
     profile: {
-      name: text(form, 'name'),
+      name,
       country_code: country,
       job_title: jobTitle,
       bio_short: text(form, 'bio_short'),

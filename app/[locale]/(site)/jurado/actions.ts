@@ -1,8 +1,10 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ITEM_KEY_PATTERN, jurorFor } from '@/lib/jury'
+import { parseJurorProfile } from '@/lib/juror-profile'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
 import { site } from '@/lib/site'
 
@@ -35,4 +37,25 @@ export async function saveScore(itemKey: string, _previous: ScoreState, formData
     return { saved: false, error: 'No se pudo guardar. Probá de nuevo.' }
   }
   return { saved: true, error: null }
+}
+
+// The juror's own profile (the form /jurado opens on until it's confirmed).
+// Like saveScore, the juror is whoever is signed in. The first save marks the
+// profile as confirmed and goes on to the obras.
+export async function saveMyJurorProfile(formData: FormData) {
+  const back = (message: string) => redirect(`/jurado?vista=ficha&error=${encodeURIComponent(message)}`)
+  const parsed = parseJurorProfile(formData, { nameRequired: true })
+  if ('error' in parsed) return back(parsed.error)
+  const { data: { user } } = await (await createClient()).auth.getUser()
+  const db = createAdminClient()
+  const juror = await jurorFor(db, user)
+  if (!juror) return back('Tu cuenta no está habilitada como jurado.')
+  const { error } = await db.from('jurors')
+    .update({ ...parsed.profile, profile_completed_at: juror.profile_completed_at ?? new Date().toISOString() })
+    .eq('id', juror.id)
+  if (error) {
+    console.error('saveMyJurorProfile failed', juror.id, error)
+    return back('No se pudo guardar. Probá de nuevo.')
+  }
+  redirect('/jurado')
 }

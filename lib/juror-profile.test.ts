@@ -16,9 +16,16 @@ describe('parseJurorProfile', () => {
   })
 
   it('asks for a real country and a position', () => {
-    expect(parseJurorProfile(form({ job_title: 'Curadora' }))).toEqual({ error: 'Elegí el país del jurado.' })
-    expect(parseJurorProfile(form({ country_code: 'ZZ', job_title: 'Curadora' }))).toEqual({ error: 'Elegí el país del jurado.' })
-    expect(parseJurorProfile(form({ country_code: 'AR', job_title: '   ' }))).toEqual({ error: 'Falta el cargo del jurado.' })
+    expect(parseJurorProfile(form({ job_title: 'Curadora' }))).toEqual({ error: 'Elegí un país.' })
+    expect(parseJurorProfile(form({ country_code: 'ZZ', job_title: 'Curadora' }))).toEqual({ error: 'Elegí un país.' })
+    expect(parseJurorProfile(form({ country_code: 'AR', job_title: '   ' }))).toEqual({ error: 'Falta el cargo.' })
+  })
+
+  it('asks for the name only when required (the juror\'s own form)', () => {
+    const fields = { country_code: 'AR', job_title: 'Curadora' }
+    expect(parseJurorProfile(form(fields))).toMatchObject({ profile: { name: null } })
+    expect(parseJurorProfile(form({ ...fields, name: ' ' }), { nameRequired: true })).toEqual({ error: 'Falta el nombre.' })
+    expect(parseJurorProfile(form({ ...fields, name: 'Ana' }), { nameRequired: true })).toMatchObject({ profile: { name: 'Ana' } })
   })
 
   it('counts a textarea line break as one character and cuts at the limit', () => {

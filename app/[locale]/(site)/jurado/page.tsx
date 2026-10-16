@@ -3,12 +3,15 @@ import Link from 'next/link'
 import { Gavel } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
+import { JurorProfileFields } from '@/components/juror-profile-fields'
+import { SubmitButton } from '@/components/admin/submit-button'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getJuryPool, isAdminUser, jurorFor, jurorOrder } from '@/lib/jury'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
 import { site } from '@/lib/site'
+import { saveMyJurorProfile } from './actions'
 import { ScoreCard } from './score-card'
 import { FocusView } from './focus-view'
 
@@ -16,10 +19,12 @@ export const metadata: Metadata = { title: 'Jurado', robots: { index: false } }
 
 // The jury's own page: sign in with Google, and if that email is an active
 // juror (added from /admin/jurado), score every preselected obra, blind.
-// One obra at a time by default; ?vista=lista shows them all as a list, where
-// ?pendientes=1 shows only the ones not scored yet.
-export default async function JuradoPage({ searchParams }: { searchParams: Promise<{ pendientes?: string; vista?: string }> }) {
-  const { pendientes, vista } = await searchParams
+// The first visit opens on the juror's profile (name, country, position,
+// bios), prefilled with what the admin entered; ?vista=ficha brings it back
+// later. One obra at a time by default; ?vista=lista shows them all as a
+// list, where ?pendientes=1 shows only the ones not scored yet.
+export default async function JuradoPage({ searchParams }: { searchParams: Promise<{ pendientes?: string; vista?: string; error?: string }> }) {
+  const { pendientes, vista, error } = await searchParams
   const listView = vista === 'lista'
   const onlyPending = listView && pendientes === '1'
   const user = isSupabaseConfigured ? await getCurrentUser() : null
@@ -49,6 +54,28 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
     )
   }
 
+  if (vista === 'ficha' || !juror.profile_completed_at) {
+    const firstTime = !juror.profile_completed_at
+    return (
+      <Shell title="Tu ficha de jurado">
+        {error && <p role="alert" className="mb-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{error}</p>}
+        <p className="text-muted-foreground">
+          {firstTime
+            ? <>Hola{juror.name ? `, ${juror.name}` : ''}, gracias por sumarte al jurado del Mundial de Collage. Antes de ver las obras, contanos quién sos: con estos datos te presentamos como parte del jurado.{juror.country_code || juror.job_title ? ' Revisá lo que ya cargamos y completá el resto.' : ''}</>
+            : 'Podés cambiar tus datos cuando quieras.'}{' '}
+          Las bios son opcionales y van de una línea a la versión completa: usamos la que entre en cada lugar.
+        </p>
+        <form action={saveMyJurorProfile} className="mt-6 space-y-4 rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+          <JurorProfileFields idPrefix="mi-ficha" values={juror} nameRequired showAllBios />
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <SubmitButton pendingLabel="Guardando…">{firstTime ? 'Guardar y ver las obras' : 'Guardar'}</SubmitButton>
+            {!firstTime && <Link href="/jurado" className="text-sm font-semibold text-muted-foreground underline hover:text-ink">Volver sin cambios</Link>}
+          </div>
+        </form>
+      </Shell>
+    )
+  }
+
   const [pool, { data: scores }] = await Promise.all([
     getJuryPool(db),
     db.from('jury_scores').select('item_key, score, comment').eq('juror_id', juror.id),
@@ -59,6 +86,8 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
   // same for everyone (lib/jury.ts).
   const ordered = jurorOrder(pool, juror.id)
   const items = ordered.map((item) => ({ item, index: item.number })).filter(({ item }) => !onlyPending || !mine.has(item.key))
+
+  const profileLink = <Link href="/jurado?vista=ficha" className="font-semibold whitespace-nowrap text-collage-blue underline">Editar tu ficha</Link>
 
   // Shown in both views: how long is left, or that voting closed.
   const deadlineBanner = deadline && (
@@ -72,7 +101,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
       <Shell>
         {deadlineBanner}
         <p className="text-muted-foreground">
-          Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10: se guarda al tocar el número y pasás a la siguiente. Las obras se muestran sin el nombre ni el país de quien las hizo.
+          Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10: se guarda al tocar el número y pasás a la siguiente. Las obras se muestran sin el nombre ni el país de quien las hizo. {profileLink}
         </p>
         <FocusView
           // Picked field by field: artist and country must never reach the browser.
@@ -89,7 +118,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
     <Shell>
       {deadlineBanner}
       <p className="text-muted-foreground">
-        Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10; se guarda al tocar el número. Las obras se muestran sin el nombre ni el país de quien las hizo.
+        Hola{juror.name ? `, ${juror.name}` : ''}. Puntuá cada obra del 1 al 10; se guarda al tocar el número. Las obras se muestran sin el nombre ni el país de quien las hizo. {profileLink}
       </p>
       <div className="sticky top-0 z-10 -mx-5 mt-6 flex flex-wrap items-center justify-between gap-3 border-y-2 border-ink/10 bg-background/95 px-5 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border-2">
         <div className="min-w-48 flex-1">
@@ -136,14 +165,14 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
   )
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, title = 'Evaluación de obras' }: { children: React.ReactNode; title?: string }) {
   return (
     <>
       <SiteHeader />
       <main className="bg-grain min-h-screen py-12 sm:py-16">
         <div className="mx-auto max-w-3xl px-5 sm:px-8">
           <p className="flex items-center gap-2 text-xs font-bold tracking-[0.2em] text-collage-red uppercase"><Gavel className="size-4" aria-hidden />Jurado</p>
-          <h1 className="font-display mt-2 text-4xl tracking-tight text-ink uppercase">Evaluación de obras</h1>
+          <h1 className="font-display mt-2 text-4xl tracking-tight text-ink uppercase">{title}</h1>
           <div className="mt-4">{children}</div>
         </div>
       </main>
