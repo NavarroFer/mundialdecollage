@@ -478,7 +478,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           <JourneySection
             {...journey}
             title="Donaciones"
-            description="Personas distintas que tocaron un monto para donar, en la home o en la pantalla de inicio de la galería 3D, y las que volvieron de Mercado Pago a /donar/gracias (pagaron, o eligieron pagar en efectivo y les falta). Los montos están en Mercado Pago. Se mide desde el 15 de octubre de 2026."
+            description="Personas distintas que tocaron un monto para donar, en la home o en la pantalla de inicio de la galería 3D; cuántas de ellas donaron en dólares con PayPal (el resto, en pesos con Mercado Pago), y las que volvieron a /donar/gracias (pagaron, o eligieron pagar en efectivo y les falta). Los montos están en Mercado Pago y en PayPal. Se mide desde el 15 de octubre de 2026."
             steps={DONATION_EVENTS}
             variant="comparison"
           />

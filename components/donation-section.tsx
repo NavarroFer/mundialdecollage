@@ -3,7 +3,8 @@ import { FadeIn } from '@/components/fade-in'
 import { getI18n } from '@/lib/i18n/server'
 
 // «Doná para que siga ocurriendo» on the home (lib/donations.ts). Static like
-// the rest of the page: Mercado Pago is only asked when someone taps an amount.
+// the rest of the page: Mercado Pago or PayPal is only asked when someone
+// taps an amount.
 // #donar is where a payment that didn't go through comes back to.
 export async function DonationSection() {
   const { m } = await getI18n()

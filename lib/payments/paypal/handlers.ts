@@ -1,4 +1,5 @@
 import { recordCustomerPaymentError } from '@/lib/customer-payment-errors'
+import { parseExternalReference } from '@/lib/payments/references'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendSubscriptionReceipt } from '@/lib/subscription-receipts'
 
@@ -72,6 +73,8 @@ export async function handlePaypalEvent(event: PaypalEvent) {
 }
 
 export async function recordOneTimeCapture(capture: Record<string, unknown>, providerOrderId?: string) {
+  // A donation (lib/donations.ts) is no order of ours: PayPal's records are its ledger.
+  if (parseExternalReference(text(capture.custom_id))?.kind === 'donation') return
   const paymentId = text(capture.id)
   let orderId = text(capture.custom_id)
   const amount = capture.amount as Record<string, unknown> | undefined

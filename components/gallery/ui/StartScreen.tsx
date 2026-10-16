@@ -21,6 +21,7 @@ const DONATION_LOOK: DonationFormLook = {
   input: styles.donateInput,
   submit: styles.donateButton,
   muted: 'opacity-70',
+  link: 'font-bold underline underline-offset-2 disabled:opacity-60',
 }
 
 type StartScreenProps = {

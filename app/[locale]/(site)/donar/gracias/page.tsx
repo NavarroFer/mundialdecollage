@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: m.donationThanks.metaTitle, robots: { index: false } }
 }
 
-// Where Mercado Pago sends a donor back (app/[locale]/(site)/donar/actions.ts):
-// paid, or a cash payment still to be made. Nothing here is the donor's, so
+// Where Mercado Pago or PayPal sends a donor back (app/[locale]/(site)/donar/
+// actions.ts): paid, or a cash payment still to be made. Nothing here is the donor's, so
 // it's the same page for everyone and the CDN serves it.
 export default async function DonationThanksPage() {
   const { m } = await getI18n()

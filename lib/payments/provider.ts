@@ -4,11 +4,11 @@
 // paid for never depends on which provider took the money — that's
 // lib/payments/purchases.ts.
 //
-// Mercado Pago (lib/payments/providers/mercadopago.ts) is the only one taking
-// one-time payments today. PayPal for the extra obras (ROADMAP 4b) would be a
-// second implementation, with its Orders API's redirect flow. The store's
-// PayPal buttons and subscriptions are a different flow and stay in
-// lib/payments/paypal.
+// Mercado Pago (lib/payments/providers/mercadopago.ts) takes the one-time
+// payments in pesos; PayPal (lib/payments/providers/paypal.ts), with its
+// Orders API's redirect flow, takes donations in dollars today and could
+// take the extra obras from abroad (ROADMAP 4b). The store's PayPal buttons
+// and subscriptions are a different flow and stay in lib/payments/paypal.
 
 export type ProviderId = 'mercadopago' | 'paypal'
 

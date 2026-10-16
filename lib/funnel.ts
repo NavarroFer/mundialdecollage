@@ -239,13 +239,15 @@ export const PARTNER_EVENTS = [
   { name: 'partners_email_click', label: 'Tocaron el mail para escribirnos' },
 ] as const
 
-// Donations (lib/donations.ts): who goes to Mercado Pago to give, from the
-// home or the gallery, and who comes back to /donar/gracias (paid, or a cash
-// payment still to be made).
+// Donations (lib/donations.ts): who goes to give, from the home or the
+// gallery, how many of them in dollars through PayPal (the rest, in pesos
+// through Mercado Pago), and who comes back to /donar/gracias (paid, or a
+// cash payment still to be made).
 export const DONATION_EVENTS = [
   { name: 'donation_checkout_start_home', label: 'Fueron a donar desde la home' },
   { name: 'donation_checkout_start_gallery', label: 'Fueron a donar desde la galería 3D' },
-  { name: 'donation_thanks_view', label: 'Volvieron de Mercado Pago a «Gracias por donar»' },
+  { name: 'donation_checkout_start_paypal', label: 'De esos, en dólares con PayPal' },
+  { name: 'donation_thanks_view', label: 'Volvieron a «Gracias por donar»' },
 ] as const
 
 export type FunnelEvent =
