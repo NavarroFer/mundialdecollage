@@ -10,6 +10,7 @@ import { readReferralCookie, readReferralParam } from '@/lib/referral'
 import { createClient } from '@/lib/supabase/client'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import styles from '../gallery-theme.module.css'
+import { AvatarPicker } from './AvatarPicker'
 import { VisitPreferences } from './VisitPreferences'
 import { PresenceNote } from './PresenceCounter'
 import { useI18n } from '@/lib/i18n/client'
@@ -77,6 +78,7 @@ export function StartScreen({ artworks, label, loading, hint, showPresence, onEn
         <p className="mb-2 text-xs font-bold tracking-[0.18em] opacity-60">{m.gallery.startEyebrow}</p>
         <h1 id="gallery-start-title" className={styles.title}>{m.gallery.startTitle}</h1>
       <p className="mt-3 mb-5 text-base">{m.gallery.tutorial.welcome}</p>
+      <AvatarPicker />
       <button
         type="button"
         onClick={onEnter}

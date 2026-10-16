@@ -73,6 +73,8 @@ export type Pose = {
   z: number
   /** Look direction in radians, 0 = facing -Z (same as the minimap). */
   h: number
+  /** The cast member (world/people/cast.ts) they chose to be seen as, if any. */
+  avatar?: string
 }
 
 export type SentPose = { x: number; z: number; h: number; t: number }
@@ -91,13 +93,16 @@ export function shouldSendPose(last: SentPose | null, next: SentPose): boolean {
 
 const round = (value: number, digits: number) => Number(value.toFixed(digits))
 
-export function poseMessage({ key, seq, x, z, h }: Pose) {
-  return { k: key, s: seq, x: round(x, 2), z: round(z, 2), h: round(h, 3) }
+// Rides on every position, so it costs no extra message; the receiver checks it against the cast.
+const AVATAR_NAME = /^\w{1,40}$/
+
+export function poseMessage({ key, seq, x, z, h, avatar }: Pose) {
+  return { k: key, s: seq, x: round(x, 2), z: round(z, 2), h: round(h, 3), ...(avatar && { a: avatar }) }
 }
 
 export function parsePose(payload: unknown): Pose | null {
   if (typeof payload !== 'object' || payload === null) return null
-  const { k, s, x, z, h } = payload as Record<string, unknown>
+  const { k, s, x, z, h, a } = payload as Record<string, unknown>
   if (typeof k !== 'string' || k.length === 0 || k.length > 64) return null
   if (typeof s !== 'number' || !Number.isSafeInteger(s) || s < 0) return null
   if (![x, z, h].every((value) => typeof value === 'number' && Number.isFinite(value))) return null
@@ -108,6 +113,7 @@ export function parsePose(payload: unknown): Pose | null {
     x: Math.min(maxX, Math.max(minX, x as number)),
     z: Math.min(maxZ, Math.max(minZ, z as number)),
     h: h as number,
+    ...(typeof a === 'string' && AVATAR_NAME.test(a) && { avatar: a }),
   }
 }
 

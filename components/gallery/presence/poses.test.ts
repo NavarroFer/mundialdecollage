@@ -26,6 +26,11 @@ describe('parsePose', () => {
   it('round-trips what poseMessage sends', () => {
     expect(parsePose(poseMessage({ key: 'k', seq: 3, x: 1.234, z: -2.345, h: 0.5 }))).toEqual({ key: 'k', seq: 3, x: 1.23, z: -2.35, h: 0.5 })
   })
+  it('carries the avatar a visitor chose, and drops anything that isn\'t a name', () => {
+    expect(parsePose(poseMessage({ key: 'k', seq: 0, x: 0, z: 0, h: 0, avatar: 'Female_Adult_11' }))).toMatchObject({ avatar: 'Female_Adult_11' })
+    expect(parsePose({ k: 'k', s: 0, x: 0, z: 0, h: 0, a: '../evil.glb' })).not.toHaveProperty('avatar')
+    expect(parsePose({ k: 'k', s: 0, x: 0, z: 0, h: 0, a: 42 })).not.toHaveProperty('avatar')
+  })
   it('keeps positions inside the gallery', () => {
     expect(parsePose({ k: 'k', s: 0, x: 999, z: -999, h: 0 })).toMatchObject({ x: 18, z: -5 })
   })

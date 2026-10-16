@@ -470,6 +470,7 @@ const fr: Messages = {
     reactions: ["J'adore", 'Bravo', 'Feu', 'Brillant'],
     access: {"title": "Entrez dans la galerie", "body": "Créez un compte ou connectez-vous avec Google pour visiter l’exposition. Aucun envoi d’œuvre n’est nécessaire.", "error": "La connexion a échoué. Réessayez.", "measurement": "Nous mesurons le temps d’observation et les fiches consultées, liés à votre compte, pour comprendre vos intérêts et améliorer la galerie.", "privacy": "Confidentialité"},
     preferences: {"sensitivity": "Sensibilité de la caméra", "slow": "Douce", "normal": "Normale", "fast": "Rapide", "visited": "Œuvres ouvertes", "resume": "Reprendre à la dernière œuvre", "reset": "Effacer mon parcours", "local": "Enregistré dans ce navigateur."},
+    avatar: {"title": "Ton avatar", "hint": "C’est ainsi que les autres visiteurs te verront.", "random": "Au hasard", "person": "Personne"},
     controls: {
       toolbar: 'Outils de la visite',
       choose: 'Comment regarder autour',

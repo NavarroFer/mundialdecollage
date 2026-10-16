@@ -38,5 +38,7 @@ const ASSETS = process.env.NEXT_PUBLIC_GALLERY_ASSETS_URL?.replace(/\/+$/, '')
 
 export const avatarsEnabled = Boolean(ASSETS)
 export const avatarUrl = (name: string) => `${ASSETS}/avatars/${AVATARS_VERSION}/${name}.glb`
+/** A 150×190 portrait for the avatar picker. */
+export const portraitUrl = (name: string) => `${ASSETS}/avatars/${AVATARS_VERSION}/thumbs/${name}.webp`
 /** Walk and idle, shared by everyone of that sex (the skeletons match bone for bone). */
 export const animationsUrl = (sex: CastMember['sex']) => `${ASSETS}/avatars/${AVATARS_VERSION}/animations-${sex}.glb`

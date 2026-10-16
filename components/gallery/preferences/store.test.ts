@@ -14,6 +14,11 @@ describe('gallery preferences', () => {
     expect(parsePreferences('{"controlMode":"classic"}').controlMode).toBe('classic')
     expect(parsePreferences('{"controlMode":"teleport"}').controlMode).toBe('point')
   })
+  it('remembers the avatar chosen, unless it left the cast', () => {
+    expect(parsePreferences(null).avatar).toBeNull()
+    expect(parsePreferences('{"avatar":"Female_Adult_11"}').avatar).toBe('Female_Adult_11')
+    expect(parsePreferences('{"avatar":"Female_Child_01"}').avatar).toBeNull()
+  })
   it('bounds history and rejects non-string artwork IDs', () => {
     const visited = Array.from({ length: 510 }, (_, i) => `art-${i}`)
     const state = parsePreferences(JSON.stringify({ visited: [...visited, 42, null, 'art-509'], muted: true, theme: 'garden', sensitivity: 0.5 }))

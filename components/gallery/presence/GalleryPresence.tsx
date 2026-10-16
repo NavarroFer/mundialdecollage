@@ -6,6 +6,7 @@ import type { Artwork } from '@/data/artworks'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { useInteractionStore } from '../interaction/store'
 import { usePlayerTrackerStore } from '../minimap/store'
+import { useGalleryPreferences } from '../preferences/store'
 import {
   MAX_LIVE_VISITORS, parsePose, parseReaction, poseMessage, shouldSendPose, summarizePresence,
   type ReactionEmoji, type SentPose,
@@ -64,7 +65,8 @@ function sendPose(connection: Connection) {
   const next = { x, z, h: heading, t: Date.now() }
   if (!shouldSendPose(connection.lastPose, next)) return
   connection.lastPose = next
-  const payload = poseMessage({ key: connection.key, seq: connection.seq++, x, z, h: heading })
+  const avatar = useGalleryPreferences.getState().avatar ?? undefined
+  const payload = poseMessage({ key: connection.key, seq: connection.seq++, x, z, h: heading, avatar })
   void connection.channel.send({ type: 'broadcast', event: 'pose', payload })
 }
 
