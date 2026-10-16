@@ -1,9 +1,10 @@
 import { GalleryAttentionStats } from '@/components/admin/gallery-attention-stats'
-import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import { BarList, FunnelChart, Meter, type Windows } from '@/components/admin/stats/bar-charts'
 import { ChartFrame, type ChartFigure } from '@/components/admin/stats/chart-frame'
 import { ChartError, EmptyChart } from '@/components/admin/stats/chart-kit'
 import { CountryMap } from '@/components/admin/stats/country-map'
+import { KpiCard, KpiStrip } from '@/components/admin/stats/kpi-card'
 import { StatsControlBar } from '@/components/admin/stats/control-bar'
 import { Segmented } from '@/components/admin/stats/controls'
 import { StatsBusyArea } from '@/components/admin/stats/navigation'
@@ -469,6 +470,14 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
       description: 'Sobre las obras seleccionadas, con imagen y sin archivar (publicadas y pendientes). Países cuenta artistas y técnicas cuenta obras. Las barras se escalan al grupo más grande; los porcentajes usan el total de cada gráfico y, por redondeo, la suma puede diferir de 100%.',
       content: (
         <>
+          {artistStats && artworkStats && (
+            <KpiStrip label="Artistas y obras en números">
+              <KpiCard highlight label="Artistas" value={formatCount(artistStats.totalArtists)} context="Con al menos una obra seleccionada" />
+              <KpiCard label="Países" value={formatCount(mappedCountries.length)} context={`${formatShare(artistStats.withCountry, artistStats.totalArtists)} de los artistas con país registrado`} />
+              <KpiCard label="Obras seleccionadas" value={formatCount(artworkStats.total)} context="Con imagen y sin archivar" />
+              <KpiCard label="Técnicas" value={formatCount(artworkStats.techniques.length)} context={`${formatShare(artworkStats.withTechnique, artworkStats.total)} de las obras con técnica registrada`} />
+            </KpiStrip>
+          )}
           <div className="mt-6">
             <ChartFrame
               scope="current"
@@ -543,21 +552,37 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
         browsers={BROWSERS.map(({ value, label }) => ({ value, label, href: statsHref({ period: periodDays, grouping, browser: value }) }))}
       />
       <StatsBusyArea>
-        <section className="mt-6 grid gap-3 lg:grid-cols-12" aria-label="Panorama de la convocatoria">
-          <div className="relative overflow-hidden rounded-3xl bg-collage-blue p-6 text-paper lg:col-span-4">
-            <p className="text-xs font-bold tracking-[0.18em] text-paper/70 uppercase">Panorama general</p>
-            <p className="font-display mt-3 text-6xl leading-none tracking-tight">{receivedCount}</p>
-            <p className="mt-2 text-sm font-semibold uppercase">Obras recibidas</p>
-            <p className="mt-5 max-w-xs text-sm leading-relaxed text-paper/75">Cada envío cuenta: incluye obras de la planilla y registros directos desde la página.</p>
-            <div className="absolute -right-9 -bottom-12 h-40 w-40 rounded-full border-[18px] border-paper/10" aria-hidden />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:col-span-8">
-            <StatPill label="Artistas · Sitio" value={artistStats?.totalArtists ?? 'No disponible'} />
-            <StatPill label="Obras seleccionadas · Sitio" value={artworkStats?.total ?? 'No disponible'} />
-            <StatPill label="Con país registrado" value={artistStats ? formatShare(artistStats.withCountry, artistStats.totalArtists) : 'No disponible'} />
-            <StatPill label="Con técnica registrada" value={artworkStats ? formatShare(artworkStats.withTechnique, artworkStats.total) : 'No disponible'} />
-          </div>
-        </section>
+        <div className="mt-6">
+          <KpiStrip label="Panorama del Mundial">
+            <KpiCard
+              highlight
+              label="Obras recibidas"
+              value={formatCount(receivedCount)}
+              context="Desde el inicio de la convocatoria"
+              recent={submissionHistory ? `+${formatCount(sum(submissionHistory))} · ${lowerFirst(windows.period)}` : undefined}
+              series={submissionHistory?.map((point) => point.value)}
+            />
+            <KpiCard
+              label="Visitas a la galería"
+              value={galleryHistory ? formatCount(sum(galleryHistory)) : 'Sin datos'}
+              context={windows.period}
+              recent={galleryHistory ? `${formatCount(sum(galleryHistory.slice(-comparisonDays)))} · ${lowerFirst(windows.recent)}` : undefined}
+              series={galleryHistory?.map((point) => point.value)}
+            />
+            <KpiCard
+              label="Inscripciones terminadas"
+              value={funnelMonth ? formatCount(funnelMonth.get('signup_done') ?? 0) : 'Sin datos'}
+              context={windows.period}
+              recent={funnelWeek ? `${formatCount(funnelWeek.get('signup_done') ?? 0)} · ${lowerFirst(windows.recent)}` : undefined}
+            />
+            <KpiCard
+              label="Suscripciones a la tienda"
+              value={funnelMonth ? formatCount(funnelMonth.get('store_checkout_approved') ?? 0) : 'Sin datos'}
+              context={windows.period}
+              recent={funnelWeek ? `${formatCount(funnelWeek.get('store_checkout_approved') ?? 0)} · ${lowerFirst(windows.recent)}` : undefined}
+            />
+          </KpiStrip>
+        </div>
         <StatsTabs tabs={tabs} />
       </StatsBusyArea>
     </StatsViewProvider>
