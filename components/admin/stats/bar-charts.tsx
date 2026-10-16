@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { formatShare } from '@/lib/artwork-stats'
 import { cn } from '@/lib/utils'
 import { barWidth, foldRows, formatCount, type ChartRow } from '@/lib/chart-math'
@@ -34,7 +35,8 @@ function Values({ value, total, recent }: { value: number; total?: number; recen
 // A ranking: label and numbers on top, the bar below, growing from the left
 // and scaled to the longest one in the list. With «Comparación» a thinner bar
 // in the recent window's color sits right under it, on the same scale.
-// Rows past the frame's limit fold into «Otros».
+// Rows past the frame's limit fold into «Otros». A row's `icon` (a flag)
+// goes before its label.
 export function BarList({
   rows,
   total,
@@ -42,7 +44,7 @@ export function BarList({
   note,
   windows,
 }: {
-  rows: ChartRow[]
+  rows: (ChartRow & { icon?: ReactNode })[]
   total?: number
   label: string
   note?: string
@@ -73,14 +75,14 @@ export function BarList({
             <li key={`${index}-${row.label}`} className={slide ? 'grid grid-cols-[minmax(0,26rem)_minmax(0,1fr)_auto] items-center gap-x-5' : undefined}>
               {slide ? (
                 <>
-                  <span className={cn('font-medium leading-snug text-ink', dense ? 'text-[13px]' : 'text-sm')}>{row.label}</span>
+                  <span className={cn('flex items-center gap-2 font-medium leading-snug text-ink', dense ? 'text-[13px]' : 'text-sm')}>{'icon' in row && row.icon}{row.label}</span>
                   {bars}
                   {values}
                 </>
               ) : (
                 <>
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 text-sm font-medium leading-snug text-ink">{row.label}</span>
+                    <span className="flex min-w-0 items-center gap-2 text-sm font-medium leading-snug text-ink">{'icon' in row && row.icon}{row.label}</span>
                     {values}
                   </div>
                   {bars}

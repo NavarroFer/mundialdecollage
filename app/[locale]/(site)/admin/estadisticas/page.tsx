@@ -3,6 +3,7 @@ import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { BarList, FunnelChart, Meter, type Windows } from '@/components/admin/stats/bar-charts'
 import { ChartFrame, type ChartFigure } from '@/components/admin/stats/chart-frame'
 import { ChartError, EmptyChart } from '@/components/admin/stats/chart-kit'
+import { CountryMap } from '@/components/admin/stats/country-map'
 import { StatsControlBar } from '@/components/admin/stats/control-bar'
 import { Segmented } from '@/components/admin/stats/controls'
 import { StatsBusyArea } from '@/components/admin/stats/navigation'
@@ -12,6 +13,8 @@ import { StatsViewProvider } from '@/components/admin/stats/view-settings'
 import { buildArtistCountryStats, buildArtworkStats, formatShare, type StatsArtwork } from '@/lib/artwork-stats'
 import { formatCount } from '@/lib/chart-math'
 import { countryCodeToName } from '@/lib/participants'
+import { flagSvgsFor } from '@/lib/flag-svg'
+import { CountryFlag } from '@/components/country-flag'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
@@ -181,6 +184,9 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
+  // Countries on the map and their flags (server-side: the flag set stays out of the browser).
+  const mappedCountries = (artistStats?.countries ?? []).flatMap(({ countryCode, count }) => (countryCode ? [{ countryCode, count }] : []))
+  const flags = flagSvgsFor(mappedCountries.map(({ countryCode }) => countryCode))
   const countryLabel = (code: string | null) => (code ? countryCodeToName(code) : 'Sin país registrado')
   const historyUnit = grouping === 'day' ? 'día' : grouping === 'week' ? 'semana' : 'mes'
   const journey = { week: funnelWeek, month: funnelMonth, windows, recentDays: comparisonDays }
@@ -462,47 +468,64 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
       label: 'Artistas y obras',
       description: 'Sobre las obras seleccionadas, con imagen y sin archivar (publicadas y pendientes). Países cuenta artistas y técnicas cuenta obras. Las barras se escalan al grupo más grande; los porcentajes usan el total de cada gráfico y, por redondeo, la suma puede diferir de 100%.',
       content: (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ChartFrame
-            scope="current"
-            title="Artistas por país"
-            description="Cada artista cuenta una vez, con el país de su perfil."
-            figure={artistStats ? { value: formatCount(artistStats.totalArtists), label: 'artistas' } : undefined}
-            footnote={artistStats ? `Base: ${artistStats.totalArtists} artistas. ${artistStats.totalArtists - artistStats.withCountry} sin país registrado.` : undefined}
-            controls={['limit']}
-          >
-            {!artistStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
-              : artistStats.totalArtists === 0 ? <EmptyChart>Todavía no hay artistas con una obra seleccionada.</EmptyChart>
-                : (
-                  <BarList
-                    label="Distribución de artistas por país"
-                    rows={artistStats.countries.map(({ countryCode, count }) => ({ label: countryLabel(countryCode), value: count }))}
-                    total={artistStats.totalArtists}
-                    note={leadingCountry ? `${countryLabel(leadingCountry.countryCode)} reúne el ${formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.` : undefined}
-                  />
-                )}
-          </ChartFrame>
-
-          <div className="flex flex-col gap-6">
-            {meterStats && (
-              <ChartFrame scope="current" title="Datos de técnica" description="Qué tan completo está este dato.">
-                <Meter value={meterStats.withTechnique} total={meterStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
-              </ChartFrame>
-            )}
+        <>
+          <div className="mt-6">
             <ChartFrame
-              className="flex-1"
               scope="current"
-              title="Obras por técnica"
-              description="Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio."
-              figure={artworkStats ? { value: formatCount(artworkStats.total), label: 'obras seleccionadas' } : undefined}
-              footnote={artworkStats ? `Base: ${artworkStats.total} obras. ${artworkStats.total - artworkStats.withTechnique} sin técnica registrada. Los porcentajes incluyen los datos faltantes.` : undefined}
+              title="Mapa de artistas"
+              description="Cuanto más artistas tiene un país, más intenso su azul. Pasá el mouse por un país para ver cuántos son."
+              figure={artistStats ? { value: formatCount(mappedCountries.length), label: 'países' } : undefined}
             >
-              {!artworkStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
-                : artworkStats.total === 0 ? <EmptyChart>Todavía no hay obras seleccionadas con imagen para analizar.</EmptyChart>
-                  : <BarList label="Distribución de obras por técnica" rows={artworkStats.techniques.map(({ label, count }) => ({ label, value: count }))} total={artworkStats.total} />}
+              {!artistStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
+                : mappedCountries.length === 0 ? <EmptyChart>Todavía no hay artistas con país registrado.</EmptyChart>
+                  : <CountryMap rows={mappedCountries} total={artistStats.totalArtists} unit={{ one: 'artista', other: 'artistas' }} label={`Mapa de artistas por país: ${mappedCountries.length} países`} />}
             </ChartFrame>
           </div>
-        </div>
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <ChartFrame
+              scope="current"
+              title="Artistas por país"
+              description="Cada artista cuenta una vez, con el país de su perfil."
+              figure={artistStats ? { value: formatCount(artistStats.totalArtists), label: 'artistas' } : undefined}
+              footnote={artistStats ? `Base: ${artistStats.totalArtists} artistas. ${artistStats.totalArtists - artistStats.withCountry} sin país registrado.` : undefined}
+              controls={['limit']}
+            >
+              {!artistStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
+                : artistStats.totalArtists === 0 ? <EmptyChart>Todavía no hay artistas con una obra seleccionada.</EmptyChart>
+                  : (
+                    <BarList
+                      label="Distribución de artistas por país"
+                      rows={artistStats.countries.map(({ countryCode, count }) => ({
+                        label: countryLabel(countryCode),
+                        value: count,
+                        icon: countryCode ? <CountryFlag countryCode={countryCode} svg={flags[countryCode]} /> : undefined,
+                      }))}
+                      total={artistStats.totalArtists}
+                      note={leadingCountry ? `${countryLabel(leadingCountry.countryCode)} reúne el ${formatShare(leadingCountry.count, artistStats.totalArtists)} de los artistas.` : undefined}
+                    />
+                  )}
+            </ChartFrame>
+            <div className="flex flex-col gap-6">
+              <ChartFrame
+                className="flex-1"
+                scope="current"
+                title="Obras por técnica"
+                description="Incluye obras publicadas y pendientes; no incluye precargas sin una obra vinculada en el sitio."
+                figure={artworkStats ? { value: formatCount(artworkStats.total), label: 'obras seleccionadas' } : undefined}
+                footnote={artworkStats ? `Base: ${artworkStats.total} obras. ${artworkStats.total - artworkStats.withTechnique} sin técnica registrada. Los porcentajes incluyen los datos faltantes.` : undefined}
+              >
+                {!artworkStats ? <ChartError>No pudimos cargar las estadísticas actuales. Recargá la página para reintentar.</ChartError>
+                  : artworkStats.total === 0 ? <EmptyChart>Todavía no hay obras seleccionadas con imagen para analizar.</EmptyChart>
+                    : <BarList label="Distribución de obras por técnica" rows={artworkStats.techniques.map(({ label, count }) => ({ label, value: count }))} total={artworkStats.total} />}
+              </ChartFrame>
+              {meterStats && (
+                <ChartFrame scope="current" title="Datos de técnica" description="Qué tan completo está este dato.">
+                  <Meter value={meterStats.withTechnique} total={meterStats.total} label="con técnica registrada" remainder={{ label: 'sin técnica', done: 'Todo completo' }} />
+                </ChartFrame>
+              )}
+            </div>
+          </div>
+        </>
       ),
     },
   ]

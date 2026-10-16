@@ -54,7 +54,7 @@ export function highlightIndexes(values: number[]): number[] {
 // The first `limit` rows as given, the rest summed into one «Otros» row so
 // totals and shares don't change. Folding a single row is pointless, so a
 // list one row over the limit is kept whole.
-export function foldRows(rows: ChartRow[], limit: number | null, othersLabel = 'Otros'): { rows: ChartRow[]; folded: number } {
+export function foldRows<Row extends ChartRow>(rows: Row[], limit: number | null, othersLabel = 'Otros'): { rows: (Row | ChartRow)[]; folded: number } {
   if (limit === null || rows.length <= limit + 1) return { rows, folded: 0 }
   const rest = rows.slice(limit)
   const hasRecent = rest.some((row) => row.recent !== undefined)
