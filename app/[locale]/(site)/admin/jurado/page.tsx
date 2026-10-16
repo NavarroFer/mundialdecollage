@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { Fragment } from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { adminDescription } from '@/components/admin/admin-sections'
@@ -8,7 +9,9 @@ import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { DISPUTED_MIN_GAP, FINALISTS, getJuryPool, rankJuryPool, type RankingMode, type ScoreRow } from '@/lib/jury'
 import { site } from '@/lib/site'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
-import { addJuror, resendJuryInvitation, setJurorActive } from './actions'
+import { JUROR_BIOS, type JurorBioField } from '@/lib/juror-profile'
+import { addJuror, resendJuryInvitation, setJurorActive, updateJurorProfile } from './actions'
+import { JurorProfileFields } from './juror-profile-fields'
 
 // Jury MVP: who judges, how far along each juror is, and the ranking of the
 // preselected obras by average score, with the cut at the 30 finalists.
@@ -21,7 +24,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
   const db = createAdminClient()
   const [pool, jurorsResult, scoresResult] = await Promise.all([
     getJuryPool(db),
-    db.from('jurors').select('id, email, name, active, created_at, invited_at').order('created_at'),
+    db.from('jurors').select('id, email, name, country_code, job_title, bio_short, bio_medium, bio_long, active, created_at, invited_at').order('created_at'),
     db.from('jury_scores').select('juror_id, item_key, score, comment'),
   ])
   const jurors = jurorsResult.data ?? []
@@ -73,10 +76,10 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
       <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.4fr]" aria-labelledby="jurors-title">
         <div className="rounded-2xl border-2 border-ink/10 bg-card p-5">
           <h2 id="jurors-title" className="font-display text-xl tracking-tight text-ink uppercase">Sumar un jurado</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Con el mail de la cuenta de Google con la que va a entrar. Le llega una invitación con el link a /jurado.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Con el mail de la cuenta de Google con la que va a entrar, su país y su cargo. Le llega una invitación con el link a /jurado.</p>
           <form action={addJuror} className="mt-4 space-y-3">
-            <input name="email" type="email" required placeholder="email@gmail.com" className="w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
-            <input name="name" placeholder="Nombre (opcional)" maxLength={120} className="w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
+            <input name="email" type="email" required placeholder="email@gmail.com" aria-label="Email" className="w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm" />
+            <JurorProfileFields idPrefix="new-juror" />
             <SubmitButton size="sm">Agregar</SubmitButton>
           </form>
         </div>
@@ -88,23 +91,50 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
             <tbody>
               {jurors.length === 0 && <tr><td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">Todavía no hay jurados.</td></tr>}
               {jurors.map((j) => (
-                <tr key={j.id} className={`border-t border-ink/10 ${j.active ? '' : 'opacity-50'}`}>
-                  <td className="px-4 py-3"><p className="font-medium text-ink">{j.name ?? '—'}</p><p className="text-muted-foreground">{j.email}</p><p className="text-xs text-muted-foreground">{j.invited_at ? `Invitado el ${invitedOn(j.invited_at)}` : 'Sin invitar'}</p></td>
-                  <td className="px-4 py-3 whitespace-nowrap text-ink">{progress(j.id)} / {pool.length}</td>
-                  <td className="space-y-2 px-4 py-3 text-right">
-                    {j.active && (
-                      <form action={resendJuryInvitation}>
+                <Fragment key={j.id}>
+                  <tr className={`border-t border-ink/10 ${j.active ? '' : 'opacity-50'}`}>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-ink">{j.name ?? '—'}</p>
+                      {j.job_title || j.country_code ? (
+                        <p className="text-ink">
+                          {j.job_title}{j.job_title && j.country_code ? ' · ' : ''}
+                          {j.country_code && <><span aria-hidden>{countryCodeToFlag(j.country_code)} </span>{countryCodeToName(j.country_code)}</>}
+                        </p>
+                      ) : (
+                        <p><span className="rounded-full bg-collage-yellow px-2 py-0.5 text-[0.65rem] font-bold text-ink">Falta país y cargo</span></p>
+                      )}
+                      {j.bio_short && <p className="mt-1 line-clamp-2 max-w-md text-xs text-muted-foreground">{j.bio_short}</p>}
+                      <p className="text-muted-foreground">{j.email}</p>
+                      <p className="text-xs text-muted-foreground">{j.invited_at ? `Invitado el ${invitedOn(j.invited_at)}` : 'Sin invitar'}</p>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-ink">{progress(j.id)} / {pool.length}</td>
+                    <td className="space-y-2 px-4 py-3 text-right">
+                      {j.active && (
+                        <form action={resendJuryInvitation}>
+                          <input type="hidden" name="id" value={j.id} />
+                          <SubmitButton size="sm" variant="outline" pendingLabel="Enviando…">{j.invited_at ? 'Reenviar invitación' : 'Mandar invitación'}</SubmitButton>
+                        </form>
+                      )}
+                      <form action={setJurorActive}>
                         <input type="hidden" name="id" value={j.id} />
-                        <SubmitButton size="sm" variant="outline" pendingLabel="Enviando…">{j.invited_at ? 'Reenviar invitación' : 'Mandar invitación'}</SubmitButton>
+                        <input type="hidden" name="active" value={j.active ? '0' : '1'} />
+                        <SubmitButton size="sm" variant="outline">{j.active ? 'Desactivar' : 'Reactivar'}</SubmitButton>
                       </form>
-                    )}
-                    <form action={setJurorActive}>
-                      <input type="hidden" name="id" value={j.id} />
-                      <input type="hidden" name="active" value={j.active ? '0' : '1'} />
-                      <SubmitButton size="sm" variant="outline">{j.active ? 'Desactivar' : 'Reactivar'}</SubmitButton>
-                    </form>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                  <tr className={j.active ? '' : 'opacity-50'}>
+                    <td colSpan={3} className="px-4 pb-3">
+                      <details>
+                        <summary className="cursor-pointer text-xs font-semibold text-collage-blue">Editar ficha{bioVersions(j) ? ` · bio ${bioVersions(j)}` : ''}</summary>
+                        <form action={updateJurorProfile} className="mt-3 max-w-xl space-y-3">
+                          <input type="hidden" name="id" value={j.id} />
+                          <JurorProfileFields idPrefix={`juror-${j.id}`} values={j} />
+                          <SubmitButton size="sm" pendingLabel="Guardando…">Guardar ficha</SubmitButton>
+                        </form>
+                      </details>
+                    </td>
+                  </tr>
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -205,6 +235,11 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
       </section>
     </div>
   )
+}
+
+// Which bio lengths a juror has, for the «Editar ficha» summary («corta, media»).
+function bioVersions(juror: Record<JurorBioField, string | null>) {
+  return JUROR_BIOS.filter((bio) => juror[bio.field]).map((bio) => bio.label.replace('Bio ', '')).join(', ')
 }
 
 // Ranking links keep the other control's choice; defaults stay out of the URL.
