@@ -1,11 +1,12 @@
 import { COUNTRY_CODES } from '@/lib/country-codes'
 
 // What a juror's profile holds besides the email they sign in with: name,
-// country, position and the bio in up to three lengths (a line or two, a
-// paragraph, the full one), so each place that presents the jury can take
-// the one that fits. The admin fills it when adding the juror
+// country, position, a photo and the bio in up to three lengths (a line or
+// two, a paragraph, the full one), so each place that presents the jury can
+// take the one that fits. The admin fills it when adding the juror
 // (/admin/jurado) and the juror completes it on their first visit to
-// /jurado. Country and position are always asked for; the bios are optional.
+// /jurado. Country and position are always asked for; the photo and
+// the bios are optional.
 
 // The same limits the jurors table checks (20261016120000_juror_profile.sql).
 export const JUROR_PROFILE_LIMITS = {
@@ -25,10 +26,15 @@ export const JUROR_BIOS = [
 export type JurorBioField = (typeof JUROR_BIOS)[number]['field']
 
 /** The columns the profile forms read, for a jurors select. */
-export const JUROR_PROFILE_COLUMNS = 'name, country_code, job_title, bio_short, bio_medium, bio_long'
+export const JUROR_PROFILE_COLUMNS = 'name, country_code, job_title, photo_path, bio_short, bio_medium, bio_long'
 
 /** A stored profile, as it comes from the table: any field may be empty. */
-export type JurorProfileValues = { name: string | null; country_code: string | null; job_title: string | null } & Record<JurorBioField, string | null>
+export type JurorProfileValues = {
+  name: string | null
+  country_code: string | null
+  job_title: string | null
+  photo_path: string | null
+} & Record<JurorBioField, string | null>
 
 /** A profile that passed parseJurorProfile. */
 export type JurorProfile = { name: string | null; country_code: string; job_title: string } & Record<JurorBioField, string | null>
@@ -64,4 +70,38 @@ export function parseJurorProfile(form: FormData, { nameRequired = false } = {})
       bio_long: text(form, 'bio_long'),
     },
   }
+}
+
+// The photo lives in a public bucket (20261016140000_juror_photo.sql), one
+// file per upload named after its time: a new photo is a new URL, which
+// /api/img caches for good (isVersionedSource in lib/r2.ts). The browser
+// shrinks it first; a portrait is never shown bigger than this.
+export const JUROR_PHOTO_BUCKET = 'jurors'
+export const JUROR_PHOTO_MAX_BYTES = 5 * 1024 * 1024
+export const JUROR_PHOTO_MAX_DIMENSION = 1200
+const PHOTO_EXTENSIONS: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+export const JUROR_PHOTO_TYPES = Object.keys(PHOTO_EXTENSIONS)
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+const PHOTO_PATH = /^([0-9a-f-]{36})\/\d{13}\.(jpg|png|webp)$/
+
+/** Where a new photo of this juror goes; null for a type the bucket doesn't take. */
+export function jurorPhotoPath(jurorId: string, type: string, now = Date.now()): string | null {
+  const extension = PHOTO_EXTENSIONS[type]
+  return extension && UUID.test(jurorId) ? `${jurorId}/${now}.${extension}` : null
+}
+
+/**
+ * The photo field of a profile form (JurorPhotoField): no field leaves the
+ * photo as it is, an empty one removes it, and a path must be this juror's.
+ */
+export function parseJurorPhoto(form: FormData, jurorId: string): { photo_path?: string | null } | { error: string } {
+  if (!form.has('photo_path')) return {}
+  const path = String(form.get('photo_path')).trim()
+  if (!path) return { photo_path: null }
+  return PHOTO_PATH.exec(path)?.[1] === jurorId ? { photo_path: path } : { error: 'La foto no es válida: subila de nuevo.' }
+}
+
+export function jurorPhotoUrl(path: string) {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${JUROR_PHOTO_BUCKET}/${path}`
 }

@@ -11,7 +11,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getJuryPool, isAdminUser, jurorFor, jurorOrder } from '@/lib/jury'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
 import { site } from '@/lib/site'
-import { saveMyJurorProfile } from './actions'
+import { prepareMyJurorPhotoUpload, saveMyJurorProfile } from './actions'
 import { ScoreCard } from './score-card'
 import { FocusView } from './focus-view'
 
@@ -66,7 +66,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
           Las bios son opcionales y van de una línea a la versión completa: usamos la que entre en cada lugar.
         </p>
         <form action={saveMyJurorProfile} className="mt-6 space-y-4 rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
-          <JurorProfileFields idPrefix="mi-ficha" values={juror} nameRequired showAllBios />
+          <JurorProfileFields idPrefix="mi-ficha" values={juror} prepareUpload={prepareMyJurorPhotoUpload} nameRequired showAllBios />
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <SubmitButton pendingLabel="Guardando…">{firstTime ? 'Guardar y ver las obras' : 'Guardar'}</SubmitButton>
             {!firstTime && <Link href="/jurado" className="text-sm font-semibold text-muted-foreground underline hover:text-ink">Volver sin cambios</Link>}

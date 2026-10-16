@@ -5,8 +5,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isValidEmail } from '@/lib/resend'
-import { isAdminUser } from '@/lib/jury'
-import { parseJurorProfile } from '@/lib/juror-profile'
+import { isAdminUser, prepareJurorPhotoUpload, removeReplacedJurorPhoto } from '@/lib/jury'
+import { parseJurorPhoto, parseJurorProfile } from '@/lib/juror-profile'
 import { sendJuryInvitation } from '@/lib/jury-mail'
 
 // Jurors are managed only from here; a Server Action is reachable on its own,
@@ -58,10 +58,20 @@ export async function updateJurorProfile(formData: FormData) {
   if (!id) return
   const parsed = parseJurorProfile(formData)
   if ('error' in parsed) return back(parsed.error)
+  const photo = parseJurorPhoto(formData, id)
+  if ('error' in photo) return back(photo.error)
   const db = await adminDb()
-  const { error } = await db.from('jurors').update(parsed.profile).eq('id', id)
-  if (error) back(error.message)
+  const { data: previous } = await db.from('jurors').select('photo_path').eq('id', id).maybeSingle()
+  const { error } = await db.from('jurors').update({ ...parsed.profile, ...photo }).eq('id', id)
+  if (error) return back(error.message)
+  await removeReplacedJurorPhoto(db, previous?.photo_path ?? null, photo.photo_path)
   revalidatePath('/admin/jurado')
+}
+
+// The signed upload for a photo from a juror's «Editar ficha» form.
+export async function prepareJurorPhotoUploadFor(jurorId: string, type: string) {
+  const db = await adminDb()
+  return prepareJurorPhotoUpload(db, jurorId, String(type))
 }
 
 // Deactivated, not deleted: their scores stay on record but stop counting.

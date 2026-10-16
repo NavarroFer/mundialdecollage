@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { JUROR_PROFILE_LIMITS, parseJurorProfile } from './juror-profile'
+import { JUROR_PROFILE_LIMITS, jurorPhotoPath, parseJurorPhoto, parseJurorProfile } from './juror-profile'
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData()
@@ -43,5 +43,25 @@ describe('JUROR_PROFILE_LIMITS', () => {
     // The table doesn't check the name; only the form caps it.
     const columns = Object.fromEntries(Object.entries(JUROR_PROFILE_LIMITS).filter(([field]) => field !== 'name'))
     expect(checked).toEqual(columns)
+  })
+})
+
+describe('juror photo', () => {
+  const juror = '0b9c5d1e-1111-4222-8333-444455556666'
+  const other = '9f9c5d1e-1111-4222-8333-444455556666'
+
+  it('names each upload after its time, inside the juror\'s folder', () => {
+    expect(jurorPhotoPath(juror, 'image/jpeg', 1760000000000)).toBe(`${juror}/1760000000000.jpg`)
+    expect(jurorPhotoPath(juror, 'image/webp', 1760000000000)).toBe(`${juror}/1760000000000.webp`)
+    expect(jurorPhotoPath(juror, 'image/gif')).toBeNull()
+    expect(jurorPhotoPath('../x', 'image/jpeg')).toBeNull()
+  })
+
+  it('keeps, removes or replaces the photo, only with this juror\'s own path', () => {
+    expect(parseJurorPhoto(form({}), juror)).toEqual({})
+    expect(parseJurorPhoto(form({ photo_path: '' }), juror)).toEqual({ photo_path: null })
+    expect(parseJurorPhoto(form({ photo_path: `${juror}/1760000000000.jpg` }), juror)).toEqual({ photo_path: `${juror}/1760000000000.jpg` })
+    expect(parseJurorPhoto(form({ photo_path: `${other}/1760000000000.jpg` }), juror)).toHaveProperty('error')
+    expect(parseJurorPhoto(form({ photo_path: `${juror}/../x.jpg` }), juror)).toHaveProperty('error')
   })
 })

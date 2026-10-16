@@ -1,5 +1,6 @@
 import { countryCodeToFlag, countryCodeToName, getAllCountryCodes } from '@/lib/participants'
 import { JUROR_BIOS, JUROR_PROFILE_LIMITS, type JurorProfileValues } from '@/lib/juror-profile'
+import { JurorPhotoField, type PrepareJurorPhotoUpload } from '@/components/juror-photo-field'
 
 const inputClass = 'mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm'
 const labelClass = 'text-sm font-semibold text-ink'
@@ -19,15 +20,18 @@ function getCountryOptions() {
 // admin's add and edit forms and the juror's own on /jurado. A native
 // <select> rather than CountrySelect: the browser's `required` check then
 // catches a missing country before the form leaves, so the bios typed so far
-// aren't lost to the error redirect.
+// aren't lost to the error redirect. The photo needs the juror to exist, so
+// it shows only with prepareUpload (not in the admin's add form).
 export function JurorProfileFields({
   idPrefix,
   values,
+  prepareUpload,
   nameRequired = false,
   showAllBios = false,
 }: {
   idPrefix: string
   values?: JurorProfileValues
+  prepareUpload?: PrepareJurorPhotoUpload
   nameRequired?: boolean
   // Medium and long bios open from the start, instead of behind «Más versiones».
   showAllBios?: boolean
@@ -36,6 +40,7 @@ export function JurorProfileFields({
   const id = (field: string) => `${idPrefix}-${field}`
   return (
     <>
+      {prepareUpload && <JurorPhotoField id={id('photo')} initialPath={values?.photo_path ?? null} prepareUpload={prepareUpload} />}
       <div>
         <label htmlFor={id('name')} className={labelClass}>Nombre {!nameRequired && <span className={hintClass}>(opcional)</span>}</label>
         <input id={id('name')} name="name" required={nameRequired} defaultValue={values?.name ?? ''} maxLength={JUROR_PROFILE_LIMITS.name} autoComplete="name" className={inputClass} />

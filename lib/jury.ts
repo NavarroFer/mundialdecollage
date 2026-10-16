@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { User } from '@supabase/supabase-js'
 import { ADMIN_EMAILS } from '@/lib/admin'
-import { JUROR_PROFILE_COLUMNS, type JurorProfileValues } from '@/lib/juror-profile'
+import { JUROR_PHOTO_BUCKET, JUROR_PROFILE_COLUMNS, jurorPhotoPath, type JurorProfileValues } from '@/lib/juror-profile'
 import { site } from '@/lib/site'
 
 export type JuryItem = {
@@ -38,6 +38,29 @@ export async function jurorFor(db: SupabaseClient, user: User | null): Promise<J
 }
 
 export const isAdminUser = (user: User | null) => ADMIN_EMAILS.includes(user?.email ?? '')
+
+/**
+ * A signed URL to upload this juror's new photo straight from the browser
+ * to Storage, for the one path chosen here; the caller has already checked
+ * who's asking. The profile form then saves the path (parseJurorPhoto).
+ */
+export async function prepareJurorPhotoUpload(db: SupabaseClient, jurorId: string, type: string): Promise<{ path: string; token: string } | { error: string }> {
+  const path = jurorPhotoPath(jurorId, type)
+  if (!path) return { error: 'Tiene que ser una foto JPG, PNG o WEBP.' }
+  const { data, error } = await db.storage.from(JUROR_PHOTO_BUCKET).createSignedUploadUrl(path)
+  if (error || !data) {
+    console.error('juror photo: no signed upload url', jurorId, error)
+    return { error: 'No se pudo preparar la subida. Probá de nuevo.' }
+  }
+  return { path, token: data.token }
+}
+
+/** After a profile save: deletes the photo it replaced or removed. Best-effort. */
+export async function removeReplacedJurorPhoto(db: SupabaseClient, previous: string | null, next: string | null | undefined) {
+  if (next === undefined || !previous || previous === next) return
+  const { error } = await db.storage.from(JUROR_PHOTO_BUCKET).remove([previous])
+  if (error) console.error('juror photo: old one not deleted', previous, error)
+}
 
 export async function getJuryPool(db: SupabaseClient): Promise<JuryItem[]> {
   const [artworks, legacy] = await Promise.all([

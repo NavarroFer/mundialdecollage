@@ -3,8 +3,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ITEM_KEY_PATTERN, jurorFor } from '@/lib/jury'
-import { parseJurorProfile } from '@/lib/juror-profile'
+import { ITEM_KEY_PATTERN, jurorFor, prepareJurorPhotoUpload, removeReplacedJurorPhoto } from '@/lib/jury'
+import { parseJurorPhoto, parseJurorProfile } from '@/lib/juror-profile'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
 import { site } from '@/lib/site'
 
@@ -50,12 +50,24 @@ export async function saveMyJurorProfile(formData: FormData) {
   const db = createAdminClient()
   const juror = await jurorFor(db, user)
   if (!juror) return back('Tu cuenta no está habilitada como jurado.')
+  const photo = parseJurorPhoto(formData, juror.id)
+  if ('error' in photo) return back(photo.error)
   const { error } = await db.from('jurors')
-    .update({ ...parsed.profile, profile_completed_at: juror.profile_completed_at ?? new Date().toISOString() })
+    .update({ ...parsed.profile, ...photo, profile_completed_at: juror.profile_completed_at ?? new Date().toISOString() })
     .eq('id', juror.id)
   if (error) {
     console.error('saveMyJurorProfile failed', juror.id, error)
     return back('No se pudo guardar. Probá de nuevo.')
   }
+  await removeReplacedJurorPhoto(db, juror.photo_path, photo.photo_path)
   redirect('/jurado')
+}
+
+// The signed upload for the photo of the juror's own profile form.
+export async function prepareMyJurorPhotoUpload(type: string) {
+  const { data: { user } } = await (await createClient()).auth.getUser()
+  const db = createAdminClient()
+  const juror = await jurorFor(db, user)
+  if (!juror) return { error: 'Tu cuenta no está habilitada como jurado.' }
+  return prepareJurorPhotoUpload(db, juror.id, String(type))
 }

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Fragment } from 'react'
+import { UserRound } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { adminDescription } from '@/components/admin/admin-sections'
@@ -9,9 +10,9 @@ import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { DISPUTED_MIN_GAP, FINALISTS, getJuryPool, rankJuryPool, type RankingMode, type ScoreRow } from '@/lib/jury'
 import { site } from '@/lib/site'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
-import { JUROR_BIOS, JUROR_PROFILE_COLUMNS, type JurorBioField } from '@/lib/juror-profile'
+import { JUROR_BIOS, JUROR_PROFILE_COLUMNS, jurorPhotoUrl, type JurorBioField } from '@/lib/juror-profile'
 import { JurorProfileFields } from '@/components/juror-profile-fields'
-import { addJuror, resendJuryInvitation, setJurorActive, updateJurorProfile } from './actions'
+import { addJuror, prepareJurorPhotoUploadFor, resendJuryInvitation, setJurorActive, updateJurorProfile } from './actions'
 
 // Jury MVP: who judges, how far along each juror is, and the ranking of the
 // preselected obras by average score, with the cut at the 30 finalists.
@@ -94,7 +95,14 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
                 <Fragment key={j.id}>
                   <tr className={`border-t border-ink/10 ${j.active ? '' : 'opacity-50'}`}>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-ink">{j.name ?? '—'}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="relative size-10 shrink-0 overflow-hidden rounded-full border-2 border-ink/10 bg-muted">
+                          {j.photo_path
+                            ? <Image src={jurorPhotoUrl(j.photo_path)} alt="" fill sizes="40px" className="object-cover" />
+                            : <UserRound className="absolute inset-0 m-auto size-5 text-muted-foreground" aria-hidden />}
+                        </div>
+                        <p className="font-medium text-ink">{j.name ?? '—'}</p>
+                      </div>
                       {j.job_title || j.country_code ? (
                         <p className="text-ink">
                           {j.job_title}{j.job_title && j.country_code ? ' · ' : ''}
@@ -131,7 +139,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
                         <summary className="cursor-pointer text-xs font-semibold text-collage-blue">Editar ficha{bioVersions(j) ? ` · bio ${bioVersions(j)}` : ''}</summary>
                         <form action={updateJurorProfile} className="mt-3 max-w-xl space-y-3">
                           <input type="hidden" name="id" value={j.id} />
-                          <JurorProfileFields idPrefix={`juror-${j.id}`} values={j} />
+                          <JurorProfileFields idPrefix={`juror-${j.id}`} values={j} prepareUpload={prepareJurorPhotoUploadFor.bind(null, j.id)} />
                           <SubmitButton size="sm" pendingLabel="Guardando…">Guardar ficha</SubmitButton>
                         </form>
                       </details>
