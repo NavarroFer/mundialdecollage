@@ -86,7 +86,7 @@ export const adminSections: {
         label: 'Estadísticas',
         icon: BarChart3,
         description:
-          'Cuántas obras llegaron, desde qué países y con qué técnicas.',
+          'Cuántas obras llegaron, desde qué países y con qué técnicas, y lo que entró en pagos y donaciones.',
       },
       {
         href: '/admin/convocatoria',

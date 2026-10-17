@@ -21,6 +21,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
+import { loadIncome } from '@/lib/income'
+import { IncomeSection } from './income-section'
 
 async function getArtworkStats() {
   if (!isSupabaseConfigured) return null
@@ -41,6 +43,13 @@ async function getArtworkStats() {
     if (rows.length < 1000) break
   }
   return { artworks: buildArtworkStats(artworks), artists: buildArtistCountryStats(artworks) }
+}
+
+// Donations, extra obras, the store and the magazine (lib/income.ts), and
+// where the period starts for what came in lately.
+async function getIncome(days: number) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  return { income: isSupabaseConfigured ? await loadIncome(await createClient()) : null, since }
 }
 
 type FunnelCounts = Map<string, number>
@@ -181,7 +190,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
   const grouping: HistoryGrouping = requestedGrouping === 'week' || requestedGrouping === 'month' ? requestedGrouping : 'day'
   const comparisonDays = periodDays === 7 ? 1 : 7
   const windows: Windows = { period: `Últimos ${periodDays} días`, recent: comparisonDays === 1 ? 'Último día' : `Últimos ${comparisonDays} días` }
-  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays, browser), getFunnel(periodDays, browser), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping)])
+  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory, income] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays, browser), getFunnel(periodDays, browser), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping), getIncome(periodDays)])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
@@ -450,7 +459,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           <JourneySection
             {...journey}
             title="Donaciones"
-            description="Personas distintas que tocaron un monto para donar, en la home o en la pantalla de inicio de la galería 3D; cuántas de ellas donaron en dólares con PayPal (el resto, en pesos con Mercado Pago), y las que volvieron a /donar/gracias (pagaron, o eligieron pagar en efectivo y les falta). Los montos están en Mercado Pago y en PayPal. Se mide desde el 15 de octubre de 2026."
+            description="Personas distintas que tocaron un monto para donar, en la home o en la pantalla de inicio de la galería 3D; cuántas de ellas donaron en dólares con PayPal (el resto, en pesos con Mercado Pago), y las que volvieron a /donar/gracias (pagaron, o eligieron pagar en efectivo y les falta). Los montos y cada donación están en la pestaña Pagos. Se mide desde el 15 de octubre de 2026."
             steps={DONATION_EVENTS}
             variant="comparison"
           />
@@ -463,6 +472,12 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           />
         </StatsMasonry>
       ),
+    },
+    {
+      id: 'pagos',
+      label: 'Pagos',
+      description: 'Lo que entró: donaciones, obras extra, la tienda y la revista. Pesos y dólares se suman por separado.',
+      content: <IncomeSection income={income.income} since={income.since} period={lowerFirst(windows.period)} />,
     },
     {
       id: 'artistas',
@@ -543,7 +558,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
     <StatsViewProvider periodLabel={windows.period}>
       <AdminPageHeader eyebrow="Convocatoria" title="Estadísticas" description={adminDescription('/admin/estadisticas')} />
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        De dónde vienen los artistas, qué técnicas eligen, cómo avanza la publicación y cómo se mueve la gente por la galería.
+        De dónde vienen los artistas, qué técnicas eligen, cómo avanza la publicación, cómo se mueve la gente por la galería y lo que entró en pagos y donaciones.
       </p>
       <StatsControlBar
         periodDays={periodDays}
