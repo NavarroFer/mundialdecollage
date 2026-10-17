@@ -2,9 +2,10 @@
 
 import { startTransition, useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
-import { ImagePlus, Loader2, Plus, X } from 'lucide-react'
+import { ImagePlus, ImageUp, Loader2, Plus, X } from 'lucide-react'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { Button } from '@/components/ui/button'
+import { CallChip, type CallChipStatus } from '@/components/ui/call-chip'
 import { TermsCheckbox } from '@/components/terms-checkbox'
 import { CountrySelect } from '@/components/ui/country-select'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
@@ -27,6 +28,14 @@ type Slot = {
 }
 
 const emptySlot = (key: number): Slot => ({ key, pickedFileName: null, preview: null, problem: null })
+
+// An obra's photo on its way to Storage, shown as a chip (components/ui/call-chip.tsx).
+type UploadChip = { index: number; name: string; file: string; status: CallChipStatus; expectedMs: number }
+
+// How long a photo should take to go up, for its chip's fill: about a
+// second to shrink it, then ~250 KB/s on mobile data. A photo over 2MB goes
+// up shrunk (lib/downscale-image.ts), so a bigger one counts as 2.5MB.
+const expectedUploadMs = (bytes: number) => 1000 + (Math.min(bytes, 2.5 * 1024 * 1024) / (250 * 1024)) * 1000
 
 const inputClass =
   'mt-1.5 w-full rounded-lg border-2 border-ink/15 bg-background px-4 py-2.5 text-sm outline-none focus:border-collage-blue'
@@ -85,9 +94,15 @@ export function OnboardingForm({
     await action(formData)
     return null
   }, null)
-  // Which image is going up, for the button's "1 de 2" — null when idle.
-  const [upload, setUpload] = useState<{ current: number; total: number } | null>(null)
-  const uploading = upload !== null
+  // The photos of the last «Enviar», one chip each — null before the first.
+  const [uploads, setUploads] = useState<UploadChip[] | null>(null)
+  // Only a chip going up: after a failure the ones behind it stay waiting, and «Enviar» has to work again.
+  const uploading = uploads?.some((chip) => chip.status === 'running') ?? false
+  const uploadFailed = uploads?.some((chip) => chip.status === 'error') ?? false
+  // Which one is going up, for the "1 de 2".
+  const upload = uploading && uploads
+    ? { current: uploads.findIndex((chip) => chip.status === 'running') + 1, total: uploads.length }
+    : null
   const [clientError, setClientError] = useState<string | null>(null)
   // One entry per obra in the form. The first one can fall back to the
   // prefilled image; the rest always need a file.
@@ -101,6 +116,8 @@ export function OnboardingForm({
   const hasImagePrefill = Boolean(prefillImageUrl && prefillImagePath)
   const { locale, m } = useI18n()
   const errorMessages = m.onboarding.errors
+  const secondsFormat = useMemo(() => new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), [locale])
+  const formatElapsed = useCallback((ms: number) => `${secondsFormat.format(ms / 1000)} s`, [secondsFormat])
   const alertRef = useRef<HTMLParagraphElement>(null)
   // Files already in Storage from an earlier try of this same form. When
   // the server action sends the form back with ?error=, the inputs keep
@@ -172,6 +189,8 @@ export function OnboardingForm({
       imageTracked.current = true
       track('onboarding_image_selected')
     }
+    // A failed upload's chip was about the photo that was there before.
+    setUploads(null)
     setSlots((previous) =>
       previous.map((other) => {
         if (other.key !== slotKey) return other
@@ -238,21 +257,30 @@ export function OnboardingForm({
     // actually submit, and the raw 413 that comes back crashes the page
     // instead of showing a clean error.
     const supabase = createClient()
-    const total = images.filter(hasFile).length
-    let current = 0
+    // One chip per new photo; one already in Storage from an earlier try starts done.
+    setUploads(images.flatMap((image, index) => hasFile(image)
+      ? [{
+          index,
+          name: fmt(m.entries.artworkNumber, { number: index + 1 }),
+          file: image.name,
+          status: uploadedPaths.current.has(image) ? 'done' as const : 'idle' as const,
+          expectedMs: expectedUploadMs(image.size),
+        }]
+      : []))
+    const mark = (index: number, status: CallChipStatus) =>
+      setUploads((previous) => previous?.map((chip) => (chip.index === index ? { ...chip, status } : chip)) ?? null)
     const paths: string[] = []
     for (const [index, image] of images.entries()) {
       if (!hasFile(image)) {
         paths.push(prefillImagePath!)
         continue
       }
-      current += 1
       const alreadyUploaded = uploadedPaths.current.get(image)
       if (alreadyUploaded) {
         paths.push(alreadyUploaded)
         continue
       }
-      setUpload({ current, total })
+      mark(index, 'running')
       const upload = await downscaleImage(image)
       const extension = upload.name.split('.').pop()?.toLowerCase() || 'jpg'
       const path = `${userId}/${Date.now()}-${index}.${extension}`
@@ -260,14 +288,14 @@ export function OnboardingForm({
         .from('artworks')
         .upload(path, upload, { contentType: upload.type })
       if (uploadError) {
-        setUpload(null)
+        mark(index, 'error')
         setClientError(errorMessages.upload_failed)
         return
       }
       uploadedPaths.current.set(image, path)
+      mark(index, 'done')
       paths.push(path)
     }
-    setUpload(null)
 
     formData.delete('artwork_image')
     for (const path of paths) formData.append('artwork_image_path', path)
@@ -563,39 +591,49 @@ export function OnboardingForm({
               ? m.onboarding.confirmParticipation
               : m.onboarding.submit}
       </Button>
-      {(uploading || pending) && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="rounded-xl border-2 border-collage-blue/20 bg-collage-blue/5 p-4"
-        >
-          <div className="flex items-center gap-3">
-            <Loader2 className="size-5 shrink-0 animate-spin text-collage-blue" aria-hidden="true" />
+      {(uploading || pending || uploadFailed) && (
+        <div className={`rounded-xl border-2 p-4 ${uploadFailed ? 'border-collage-red/20 bg-collage-red/5' : 'border-collage-blue/20 bg-collage-blue/5'}`}>
+          {/* The line below says how it's going; each chip says it again only to whoever reaches it. */}
+          {uploads && uploads.length > 0 && (
+            <ul className="mb-3 flex flex-col items-start gap-2">
+              {uploads.map((chip) => (
+                <li key={chip.index} className="max-w-full">
+                  <CallChip
+                    icon={<ImageUp size={15} strokeWidth={1.8} />}
+                    name={chip.name}
+                    argument={chip.file}
+                    status={chip.status}
+                    expectedMs={chip.expectedMs}
+                    color="var(--ink)"
+                    surfaceColor="var(--paper)"
+                    progressColor="var(--collage-blue)"
+                    progressOpacity={0.14}
+                    doneColor="var(--collage-blue)"
+                    errorColor="var(--collage-red)"
+                    formatTime={formatElapsed}
+                    labels={m.onboarding.uploadChip}
+                    live={false}
+                    // Photos already up are skipped (uploadedPaths): only this one goes again.
+                    onRetry={() => formRef.current?.requestSubmit()}
+                    className="border border-ink/10"
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          <div role="status" aria-live="polite" className="flex items-center gap-3">
+            {!uploadFailed && <Loader2 className="size-5 shrink-0 animate-spin text-collage-blue" aria-hidden="true" />}
             <p className="font-semibold text-ink">
-              {upload
-                ? upload.total > 1
-                  ? fmt(m.onboarding.uploadingProgress, { current: upload.current, total: upload.total })
-                  : m.onboarding.uploading
-                : m.common.confirming}
+              {uploadFailed
+                ? m.onboarding.uploadRetryHint
+                : upload
+                  ? upload.total > 1
+                    ? fmt(m.onboarding.uploadingProgress, { current: upload.current, total: upload.total })
+                    : m.onboarding.uploading
+                  : m.common.confirming}
             </p>
           </div>
-          {upload && (
-            <>
-              <div
-                className="mt-3 h-2 overflow-hidden rounded-full bg-collage-blue/15"
-                role="progressbar"
-                aria-valuemin={1}
-                aria-valuemax={upload.total}
-                aria-valuenow={upload.current}
-              >
-                <div
-                  className="h-full rounded-full bg-collage-blue transition-[width]"
-                  style={{ width: `${(upload.current / upload.total) * 100}%` }}
-                />
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground">{m.onboarding.uploadNote}</p>
-            </>
-          )}
+          {upload && <p className="mt-2 text-sm text-muted-foreground">{m.onboarding.uploadNote}</p>}
         </div>
       )}
     </form>

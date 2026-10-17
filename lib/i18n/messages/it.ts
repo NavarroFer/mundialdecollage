@@ -316,6 +316,8 @@ const it: Messages = {
     uploading: 'Caricamento immagine…',
     uploadingProgress: 'Caricamento immagine {current} di {total}…',
     uploadNote: 'Con i dati mobili può volerci un po’. Non chiudere questa pagina.',
+    uploadChip: { idle: 'in attesa', running: 'caricamento', done: 'caricata', error: 'caricamento non riuscito', retry: 'Carica di nuovo' },
+    uploadRetryHint: 'Tocca l’opera in rosso per caricarla di nuovo.',
     confirmParticipation: 'Conferma la mia partecipazione',
     submit: 'Invia la mia opera',
   },

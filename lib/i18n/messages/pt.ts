@@ -316,6 +316,8 @@ const pt: Messages = {
     uploading: 'Enviando imagem…',
     uploadingProgress: 'Enviando imagem {current} de {total}…',
     uploadNote: 'Com dados móveis pode demorar um pouco. Não feche esta página.',
+    uploadChip: { idle: 'na fila', running: 'enviando', done: 'enviada', error: 'não foi possível enviar', retry: 'Enviar de novo' },
+    uploadRetryHint: 'Toque na obra em vermelho para enviá-la de novo.',
     confirmParticipation: 'Confirmar minha participação',
     submit: 'Enviar minha obra',
   },

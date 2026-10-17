@@ -316,6 +316,8 @@ const fr: Messages = {
     uploading: "Téléversement de l'image…",
     uploadingProgress: "Téléversement de l'image {current} sur {total}…",
     uploadNote: 'Avec les données mobiles, ça peut prendre un moment. Ne ferme pas cette page.',
+    uploadChip: { idle: 'en attente', running: 'envoi en cours', done: 'envoyée', error: 'échec de l’envoi', retry: 'Renvoyer' },
+    uploadRetryHint: 'Touche l’œuvre en rouge pour la renvoyer.',
     confirmParticipation: 'Confirmer ma participation',
     submit: 'Envoyer mon œuvre',
   },

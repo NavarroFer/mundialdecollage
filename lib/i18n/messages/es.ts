@@ -318,6 +318,10 @@ const es = {
     uploading: 'Subiendo imagen…',
     uploadingProgress: 'Subiendo imagen {current} de {total}…',
     uploadNote: 'Con datos móviles puede tardar un poco. No cierres esta página.',
+    // Each obra's chip while it goes up (components/ui/call-chip.tsx): what
+    // screen readers hear for each status, and its retry.
+    uploadChip: { idle: 'en espera', running: 'subiendo', done: 'subida', error: 'no se pudo subir', retry: 'Volver a subir' },
+    uploadRetryHint: 'Tocá la obra en rojo para volver a subirla.',
     confirmParticipation: 'Confirmar mi participación',
     submit: 'Enviar mi obra',
   },

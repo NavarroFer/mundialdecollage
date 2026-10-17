@@ -321,6 +321,8 @@ const pl: Messages = {
     uploading: 'Przesyłanie obrazu…',
     uploadingProgress: 'Przesyłanie obrazu {current} z {total}…',
     uploadNote: 'Przez dane komórkowe może to chwilę potrwać. Nie zamykaj tej strony.',
+    uploadChip: { idle: 'czeka', running: 'wysyłanie', done: 'wysłano', error: 'nie udało się wysłać', retry: 'Wyślij ponownie' },
+    uploadRetryHint: 'Dotknij pracy zaznaczonej na czerwono, aby wysłać ją ponownie.',
     confirmParticipation: 'Potwierdź mój udział',
     submit: 'Wyślij moją pracę',
   },

@@ -316,6 +316,8 @@ const en: Messages = {
     uploading: 'Uploading image…',
     uploadingProgress: 'Uploading image {current} of {total}…',
     uploadNote: "On mobile data this can take a moment. Don't close this page.",
+    uploadChip: { idle: 'waiting', running: 'uploading', done: 'uploaded', error: 'couldn’t upload', retry: 'Upload again' },
+    uploadRetryHint: 'Tap the artwork in red to upload it again.',
     confirmParticipation: 'Confirm my participation',
     submit: 'Send my artwork',
   },

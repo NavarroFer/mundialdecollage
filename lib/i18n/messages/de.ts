@@ -316,6 +316,8 @@ const de: Messages = {
     uploading: 'Bild wird hochgeladen…',
     uploadingProgress: 'Bild {current} von {total} wird hochgeladen…',
     uploadNote: 'Mit mobilen Daten kann das etwas dauern. Schließ diese Seite nicht.',
+    uploadChip: { idle: 'wartet', running: 'wird hochgeladen', done: 'hochgeladen', error: 'Hochladen fehlgeschlagen', retry: 'Erneut hochladen' },
+    uploadRetryHint: 'Tipp auf das rote Werk, um es erneut hochzuladen.',
     confirmParticipation: 'Teilnahme bestätigen',
     submit: 'Werk einreichen',
   },

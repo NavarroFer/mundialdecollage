@@ -316,6 +316,8 @@ const id: Messages = {
     uploading: 'Mengunggah gambar…',
     uploadingProgress: 'Mengunggah gambar {current} dari {total}…',
     uploadNote: 'Dengan data seluler ini bisa agak lama. Jangan tutup halaman ini.',
+    uploadChip: { idle: 'menunggu', running: 'mengunggah', done: 'terunggah', error: 'gagal mengunggah', retry: 'Unggah lagi' },
+    uploadRetryHint: 'Ketuk karya yang merah untuk mengunggahnya lagi.',
     confirmParticipation: 'Konfirmasi keikutsertaanku',
     submit: 'Kirim karyaku',
   },
