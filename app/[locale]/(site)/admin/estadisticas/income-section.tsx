@@ -3,7 +3,7 @@ import { ChartError } from '@/components/admin/stats/chart-kit'
 import { KpiCard, KpiStrip } from '@/components/admin/stats/kpi-card'
 import { formatCount } from '@/lib/chart-math'
 import { formatAmount, formatTotals, summarizeIncome, type DonationRow, type Income, type IncomeSummary } from '@/lib/income'
-import { RecoverDonations } from './recover-donations'
+import { RecoverPayments } from './recover-payments'
 
 // The «Pagos» tab of /admin/estadisticas: what came in by what it paid for,
 // and every donation, since a donation has no admin page of its own.
@@ -44,6 +44,13 @@ export function IncomeSection({ income, since, period }: {
 
   return (
     <>
+      {/* Its notifications can fail to arrive: this brings what they left out. */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-2xl border-2 border-dashed border-ink/15 px-5 py-4">
+        <p className="max-w-2xl flex-1 basis-72 text-sm text-muted-foreground">
+          ¿Falta un pago? Si Mercado Pago no avisó alguno, esto lo trae: donaciones, suscripciones de la tienda con sus cobros y envíos, obras extra y revista. Repetirlo no duplica nada.
+        </p>
+        <RecoverPayments />
+      </div>
       <KpiStrip label="Pagos en números">
         <KpiCard highlight label="Donaciones" value={formatCount(donations.count)} context={`${formatTotals(donations.totals)} desde el inicio`} recent={recent(donations)} />
         <KpiCard label="Obras extra" value={formatCount(entries.count)} context={`${formatTotals(entries.totals)} desde el inicio`} recent={recent(entries)} />
@@ -70,7 +77,6 @@ export function IncomeSection({ income, since, period }: {
               Cada donación, la más reciente primero. Las que no se acreditaron (una tarjeta rechazada, un pago en efectivo todavía sin hacer) quedan con su estado.
             </p>
           </div>
-          <RecoverDonations />
         </header>
         <div className="overflow-x-auto border-t-2 border-ink/10">
           <table className="w-full text-sm">
@@ -87,7 +93,7 @@ export function IncomeSection({ income, since, period }: {
               {income.donations.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground sm:px-6">
-                    Todavía no hay donaciones registradas. Si alguien donó en pesos antes de que se anotaran solas, tocá «Buscar en Mercado Pago».
+                    Todavía no hay donaciones registradas. Si alguien donó en pesos y no aparece, tocá «Buscar en Mercado Pago», arriba.
                   </td>
                 </tr>
               )}
@@ -112,7 +118,7 @@ export function IncomeSection({ income, since, period }: {
           </table>
         </div>
         <p className="border-t-2 border-ink/10 px-5 py-4 text-xs leading-relaxed text-muted-foreground sm:px-6">
-          Cada donación se anota sola cuando Mercado Pago o PayPal avisan el pago. PayPal no dice quién donó: está en su panel. «Buscar en Mercado Pago» trae las donaciones en pesos cuyo aviso no llegó; repetirlo no duplica nada.
+          Cada donación se anota sola cuando Mercado Pago o PayPal avisan el pago. PayPal no dice quién donó: está en su panel. Las donaciones en pesos cuyo aviso no llegó las trae «Buscar en Mercado Pago», arriba.
         </p>
       </section>
     </>

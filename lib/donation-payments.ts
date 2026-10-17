@@ -1,16 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { ProviderPayment } from '@/lib/payments/provider'
 import type { Purchase, PurchaseStatus } from '@/lib/payments/purchases'
-import { searchMercadoPagoPayments } from '@/lib/payments/providers/mercadopago'
-import { parseExternalReference } from '@/lib/payments/references'
 
 // A donation (lib/donations.ts) as the payments see it. Nothing is stored
 // when the checkout opens: the first payment the provider reports for it
 // creates its row in `donations`, and later ones update it. There's no price
 // to check a payment against, so whatever was given is the donation.
-
-// When the donation buttons went live: no donation can be older.
-export const DONATIONS_START = '2026-10-15T00:00:00.000-03:00'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -71,21 +66,4 @@ export const donationPurchase: Purchase = {
     }
     return status
   },
-}
-
-/**
- * Records the peso donations Mercado Pago took since `since` whose
- * notification left nothing behind (the ones made before `donations`
- * existed, or a notification that was lost). Safe to repeat. Returns how
- * many donation payments it found.
- */
-export async function recoverMercadoPagoDonations(since = DONATIONS_START): Promise<number> {
-  let found = 0
-  for (const payment of await searchMercadoPagoPayments(since)) {
-    const reference = parseExternalReference(payment.reference)
-    if (reference?.kind !== 'donation') continue
-    found++
-    await donationPurchase.applyPayment(reference.id, payment)
-  }
-  return found
 }

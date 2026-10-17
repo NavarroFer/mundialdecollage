@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Income } from '@/lib/income'
 
 vi.stubGlobal('React', React)
-vi.mock('./actions', () => ({ recoverDonations: vi.fn() }))
+vi.mock('./actions', () => ({ recoverPayments: vi.fn() }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
 import { IncomeSection } from './income-section'
 

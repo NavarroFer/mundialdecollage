@@ -5,7 +5,6 @@ const db = vi.hoisted(() => ({
   previous: null as Record<string, unknown> | null,
   upsert: vi.fn(),
 }))
-const search = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
     from: () => ({
@@ -14,9 +13,8 @@ vi.mock('@/lib/supabase/admin', () => ({
     }),
   }),
 }))
-vi.mock('@/lib/payments/providers/mercadopago', () => ({ searchMercadoPagoPayments: search }))
 
-import { donationPurchase, donationStatus, recoverMercadoPagoDonations } from './donation-payments'
+import { donationPurchase, donationStatus } from './donation-payments'
 
 const ID = '7d2c0a4e-0000-4000-8000-000000000000'
 const payment = (overrides: Partial<ProviderPayment> = {}): ProviderPayment => ({
@@ -34,7 +32,6 @@ const payment = (overrides: Partial<ProviderPayment> = {}): ProviderPayment => (
 beforeEach(() => {
   db.previous = null
   db.upsert.mockReset().mockResolvedValue({ error: null })
-  search.mockReset()
   vi.spyOn(console, 'warn').mockImplementation(() => {})
   vi.spyOn(console, 'error').mockImplementation(() => {})
 })
@@ -96,15 +93,5 @@ describe('donationPurchase.applyPayment', () => {
     expect(await donationPurchase.applyPayment('not-a-uuid', payment())).toBeNull()
     db.upsert.mockResolvedValue({ error: { message: 'down' } })
     expect(await donationPurchase.applyPayment(ID, payment())).toBeNull()
-  })
-})
-
-describe('recoverMercadoPagoDonations', () => {
-  it('records only the donations among what Mercado Pago took', async () => {
-    search.mockResolvedValue([payment(), payment({ id: '222', reference: 'entry:p1' }), payment({ id: '333', reference: null })])
-    expect(await recoverMercadoPagoDonations()).toBe(1)
-    expect(search).toHaveBeenCalledWith('2026-10-15T00:00:00.000-03:00')
-    expect(db.upsert).toHaveBeenCalledTimes(1)
-    expect(db.upsert).toHaveBeenCalledWith(expect.objectContaining({ id: ID, provider_payment_id: '111' }), { onConflict: 'id' })
   })
 })

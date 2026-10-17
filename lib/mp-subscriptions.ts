@@ -3,7 +3,7 @@
 // the preapproval's status changes and of each monthly charge
 // ("authorized payment"); both are re-fetched from its API, never trusted
 // from the notification body.
-import { PreApproval } from 'mercadopago'
+import { Invoice, PreApproval } from 'mercadopago'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { parseExternalReference } from '@/lib/payments/references'
@@ -99,4 +99,40 @@ export async function recordAuthorizedPayment(authorizedPaymentId: string) {
     console.error('mp subscription: failed to record charge', authorizedPaymentId, subscriptionCheckoutError('record_payment', err))
     await recordCustomerPaymentError({ providerSubscriptionId, stage: 'record_payment', error: err })
   }
+}
+
+// Mercado Pago's searches hand out a page at a time; past this many it stops.
+const SEARCH_PAGE = 100
+const SEARCH_PAGES = 10
+
+/**
+ * Brings every store subscription Mercado Pago has, and its approved monthly
+ * charges, up to date, as their notifications would have: for the ones that
+ * never arrived or were turned away. The account also takes other
+ * businesses' subscriptions; only the store's ("suscripcion:" reference)
+ * are touched. Safe to repeat: the welcome mail goes once and each charge
+ * (with its shipment) is recorded once. Returns how many it found.
+ */
+export async function recoverMercadoPagoSubscriptions(): Promise<{ subscriptions: number; charges: number }> {
+  const found = { subscriptions: 0, charges: 0 }
+  if (!isMercadoPagoConfigured) return found
+  const config = getMercadoPagoConfig()
+  for (let page = 0; page < SEARCH_PAGES; page++) {
+    const { results = [] } = await new PreApproval(config).search({ options: { limit: SEARCH_PAGE, offset: page * SEARCH_PAGE } })
+    for (const preapproval of results) {
+      // The SDK types it as a number; it's the string we set.
+      const reference = parseExternalReference(preapproval.external_reference == null ? null : String(preapproval.external_reference))
+      if (!preapproval.id || reference?.kind !== 'subscription') continue
+      found.subscriptions++
+      await syncPreapprovalById(preapproval.id)
+      const { results: charges = [] } = await new Invoice(config).search({ options: { preapproval_id: preapproval.id, limit: SEARCH_PAGE } })
+      for (const charge of charges) {
+        if (charge.id == null || charge.payment?.status !== 'approved') continue
+        found.charges++
+        await recordAuthorizedPayment(String(charge.id))
+      }
+    }
+    if (results.length < SEARCH_PAGE) break
+  }
+  return found
 }
