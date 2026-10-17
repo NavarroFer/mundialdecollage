@@ -28,6 +28,7 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
   const { locale, m } = useI18n()
   const initialCoordinates = initialCountryCode ? COUNTRY_MARKER_COORDINATES[initialCountryCode] : undefined
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(initialCountryCode)
+  const [hoveredCountryCode, setHoveredCountryCode] = useState<string | null>(null)
   // Opens on the page the home's map was showing (see lib/country-pages.ts).
   const [page, setPage] = useState(initialPage)
   const asideRef = useRef<HTMLElement>(null)
@@ -50,6 +51,10 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
   function countryInteraction(code: string | undefined) {
     const hasArtworks = code ? artworkCountries.has(code) : false
     return {
+      onPointerEnter: () => setHoveredCountryCode(code ?? null),
+      onPointerLeave: () => setHoveredCountryCode(null),
+      onFocus: () => setHoveredCountryCode(code ?? null),
+      onBlur: () => setHoveredCountryCode(null),
       onClick: () => code && selectCountry(code),
       onKeyDown: (event: KeyboardEvent) => { if (code && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); selectCountry(code) } },
       tabIndex: hasArtworks ? 0 : -1,
@@ -81,6 +86,12 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
               {markerCodes.map((code) => { const selected = code === selectedCountryCode; const count = countsByCode.get(code); return <Marker key={code} coordinates={COUNTRY_MARKER_COORDINATES[code]} {...countryInteraction(code)} className="outline-none" style={{ cursor: artworkCountries.has(code) ? 'pointer' : 'grab' }}><circle r={18} fill="transparent" /><circle r={selected ? 7 : 5.5} fill={selected ? 'var(--collage-red)' : 'var(--collage-blue)'} fillOpacity={selected ? 1 : count ? 0.65 + 0.35 * (count / maxCount) : 0.65} stroke="var(--paper)" strokeWidth={1.75} /></Marker> })}
             </ZoomableGroup>
           </ComposableMap>
+          {hoveredCountryCode && (
+            <div role="tooltip" className="pointer-events-none absolute top-4 left-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-lg border-2 border-ink bg-card px-3 py-2 text-sm font-medium text-ink shadow-md sm:top-6 sm:left-6">
+              <span className="shrink-0 text-xl"><CountryFlag countryCode={hoveredCountryCode} svg={flags[hoveredCountryCode]} /></span>
+              <span>{countryName(hoveredCountryCode)} · {plural(locale, countsByCode.get(hoveredCountryCode) ?? artworks.filter((artwork) => artwork.countryCode.toUpperCase() === hoveredCountryCode).length, m.map.artworks)}</span>
+            </div>
+          )}
           <div className="absolute bottom-4 left-4 flex flex-col gap-2 sm:bottom-6 sm:left-6">
             <button type="button" onClick={() => setZoom((value) => Math.min(8, value + 0.8))} className="map-explorer-control" aria-label={m.map.zoomIn}><Plus className="size-5" aria-hidden /></button>
             <button type="button" onClick={() => setZoom((value) => Math.max(1, value - 0.8))} className="map-explorer-control" aria-label={m.map.zoomOut}><Minus className="size-5" aria-hidden /></button>

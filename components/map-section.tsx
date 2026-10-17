@@ -46,15 +46,20 @@ export async function MapSection() {
 
       {breakdown.length > 0 && (
         <FadeIn delay={200}>
-          <div className="relative mx-auto mt-12 max-w-4xl px-5 sm:px-8">
-            <WorldMap
-              breakdown={breakdown}
-              flags={flagSvgsFor(breakdown.map(({ countryCode }) => countryCode))}
-            />
-            <p className="mt-4 text-center text-sm text-muted-foreground">
+          <div className="relative mx-auto mt-12 w-full max-w-[1600px] px-3 sm:px-6 lg:px-8">
+            <div className="relative border-2 border-ink/25 bg-paper p-2 shadow-[4px_4px_0_var(--color-ink)] sm:p-5 sm:shadow-[8px_8px_0_var(--color-ink)]">
+              <span aria-hidden className="pointer-events-none absolute -top-3 left-6 h-6 w-16 -rotate-6 bg-collage-yellow/80 sm:left-12 sm:w-24" />
+              <WorldMap
+                breakdown={breakdown}
+                flags={flagSvgsFor(breakdown.map(({ countryCode }) => countryCode))}
+              />
+            </div>
+          </div>
+          <div className="relative mx-auto mt-8 max-w-4xl px-5 text-center sm:px-8">
+            <p className="text-sm text-muted-foreground">
               {m.map.legend}
             </p>
-            <p className="mt-1 text-center text-xs font-semibold text-muted-foreground">
+            <p className="mt-1 text-xs font-semibold text-muted-foreground">
               {formatNumber(locale, artworks.length)} / {formatNumber(locale, submissionsCount)} obras recibidas ubicadas por país
             </p>
           </div>

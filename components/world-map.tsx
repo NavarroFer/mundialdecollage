@@ -160,11 +160,12 @@ export function WorldMap({
   // Shapes and dots behave identically: hover tooltip, click/Enter to open the
   // country's obras, focusable only when there's something to open.
   function countryInteraction(code: string | undefined) {
-    const count = code ? countsByCode.get(code) : undefined
+    const count = code ? countsByCode.get(code) ?? artworks.filter((artwork) => artwork.countryCode.toUpperCase() === code).length : 0
     const hasArtworks = code ? artworkCountries.has(code) : false
     return {
-      onMouseMove: (evt: ReactMouseEvent) => code && count && showTooltip(evt, code, count),
-      onMouseLeave: () => setTooltip(null),
+      onPointerEnter: (evt: ReactMouseEvent) => code && showTooltip(evt, code, count),
+      onPointerMove: (evt: ReactMouseEvent) => code && showTooltip(evt, code, count),
+      onPointerLeave: () => setTooltip(null),
       onClick: () => code && selectCountry(code),
       onKeyDown: (evt: KeyboardEvent) => code && handleCountryKeyDown(evt, code),
       tabIndex: hasArtworks ? 0 : -1,
