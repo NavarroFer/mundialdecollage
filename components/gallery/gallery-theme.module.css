@@ -52,67 +52,6 @@
   --gallery-shadow: 8px 10px 0 rgba(51, 39, 31, 0.22);
 }
 
-/* Over the home's paper and scraps (GalleryCover), whatever the theme. */
-.startScreen {
-  color: var(--gallery-text);
-}
-
-.collage .startPanel { transform: rotate(-.35deg); border-style: dashed; }
-
-.startPanel {
-  position: relative;
-  width: min(92vw, 52rem);
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  background: var(--gallery-panel);
-  box-shadow: var(--gallery-shadow);
-  backdrop-filter: blur(12px);
-}
-
-.windows98 .startPanel {
-  border: 2px solid;
-  border-color: #fff #000 #000 #fff;
-  backdrop-filter: none;
-}
-
-.windowsTitlebar {
-  display: none;
-}
-
-.windows98 .windowsTitlebar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: calc(clamp(1.25rem, 4vw, 2.5rem) * -1) calc(clamp(1.25rem, 4vw, 2.5rem) * -1) 1.5rem;
-  padding: .3rem .4rem;
-  color: #fff;
-  background: #000080;
-  font-weight: 700;
-  font-size: .85rem;
-}
-
-.title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 6vw, 4.4rem);
-  line-height: .95;
-  letter-spacing: .02em;
-}
-
-.windows98 .title {
-  font-family: "MS Sans Serif", Tahoma, sans-serif;
-  font-size: clamp(1.5rem, 5vw, 2.5rem);
-  line-height: 1.1;
-}
-
-.garden .title {
-  color: #fff8d8;
-  text-shadow: 3px 3px 0 #2d7b4a;
-}
-
-.collage .title { color: #fff8e9; transform: rotate(.4deg); }
-
 .themeGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -162,72 +101,6 @@
 
 .themeName { display: block; font-weight: 800; font-size: .9rem; }
 .themeDescription { display: block; margin-top: .35rem; opacity: .72; font-size: .7rem; line-height: 1.25; }
-
-.enterButton {
-  display: block;
-  margin: 1.5rem auto 0;
-  padding: .9rem 1.75rem;
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  color: var(--gallery-ink);
-  background: var(--gallery-panel-solid);
-  box-shadow: var(--gallery-shadow);
-  font-weight: 800;
-  letter-spacing: .05em;
-}
-
-.windows98 .enterButton {
-  border: 2px solid;
-  border-color: #fff #000 #000 #fff;
-  box-shadow: 1px 1px 0 #000;
-}
-
-.garden .enterButton {
-  border: 0;
-  color: #174d31;
-  background: #ffcf45;
-  box-shadow: 5px 6px 0 rgba(23, 77, 49, .28);
-}
-
-.collage .enterButton { transform: rotate(-1deg); border: 0; background: #e4b84a; }
-
-.hint { margin-top: 1rem; opacity: .7; font-size: .68rem; text-align: center; }
-
-/* Donations on the start screen (DonationForm): smaller than ENTRAR, same materials. */
-.donatePanel { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed var(--gallery-border); }
-
-.donateButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: .4rem;
-  min-height: 2.75rem;
-  padding: .5rem .75rem;
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  color: var(--gallery-ink);
-  background: var(--gallery-panel-solid);
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.donateButton:disabled { cursor: progress; opacity: .75; }
-
-.donateInput {
-  width: 100%;
-  min-width: 0;
-  min-height: 2.75rem;
-  padding: .5rem .75rem;
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  color: inherit;
-  background: transparent;
-}
-
-.windows98 .donateButton { border: 2px solid; border-color: #fff #000 #000 #fff; }
-.windows98 .donateInput { border: 2px solid; border-color: #000 #fff #fff #000; color: #000; background: #fff; }
-.garden .donateButton { border: 0; color: #174d31; background: #ffcf45; }
-.collage .donateButton { border: 0; background: #e4b84a; }
 
 .themePicker {
   position: absolute;
@@ -419,7 +292,7 @@
 .presenceNote {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: .5rem;
   margin-top: .85rem;
   font-size: .75rem;
@@ -464,8 +337,6 @@
 .modal :global(button) { border-radius: var(--gallery-radius); }
 
 @media (max-width: 640px) {
-  .startPanel { padding: 1rem; }
-  .windows98 .windowsTitlebar { margin: -1rem -1rem 1rem; }
   .themeGrid { grid-template-columns: 1fr; gap: .45rem; margin-top: 1rem; }
   .themeOption { min-height: auto; }
   .themeDescription { display: none; }
