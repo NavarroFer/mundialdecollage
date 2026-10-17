@@ -19,6 +19,7 @@ import { Minimap } from './ui/Minimap'
 import { PresenceCounter } from './ui/PresenceCounter'
 import { Souvenir } from './ui/Souvenir'
 import { StartScreen } from './ui/StartScreen'
+import { GalleryCover, useCover } from './ui/GalleryCover'
 import { VisitPreferences } from './ui/VisitPreferences'
 import { useGalleryPreferences } from './preferences/store'
 import { replayTutorial } from './tutorial/store'
@@ -113,6 +114,10 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // collage or the souvenir keep it going:
   // the camera glides to the obra and the walls show around the dialog.
   const paused = !loading && !isActive && !openId && !souvenirOpen && !wallOpen && !resuming
+  // The start and pause screens, over the home's paper and scraps
+  // (GalleryCover), which alone stays while the scene loads.
+  const menuOpen = !isActive && !overlayOpen && !resuming
+  const cover = useCover(menuOpen)
 
   useEffect(() => {
     if (isTouchDevice || !shell) return
@@ -363,11 +368,11 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <Passport artworks={artworks} theme={theme} onClose={resumeWalk} onResume={resumeArtwork} />
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
-      {!isActive && !overlayOpen && !resuming && (
+      {cover.mounted && <GalleryCover loading={loading} translucent={hasStarted && !loading} leaving={cover.leaving} fadeIn={hasStarted} onExited={cover.exited} />}
+      {menuOpen && !loading && (
         <StartScreen
           artworks={artworks}
-          label={loading ? m.gallery.loading : hasStarted ? m.gallery.resume : m.gallery.enter}
-          loading={loading}
+          label={hasStarted ? m.gallery.resume : m.gallery.enter}
           showPresence={!hasStarted}
           hint={isTouchDevice ? m.gallery.controls.hintTap : controlMode === 'point' ? m.gallery.controls.hintClick : m.gallery.controls.hintLock}
           onEnter={() => handleEnter()}
