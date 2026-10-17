@@ -3,11 +3,20 @@
 import Image from 'next/image'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { BrandPapers, measurePapers } from '@/components/brand-papers'
+import { PaperShards, type PaperShardsHandle } from '@/components/paper-shards'
 import { useI18n } from '@/lib/i18n/client'
 import { markSplashSeen, splashSeen } from '@/lib/splash'
 
-// The papers clear the frame first, then the logo dissolves into the page.
-const INTRO_MS = 1250
+// Torn scraps stream in around the logo and, without stopping, gather into
+// the three big papers, which ease out of the frame as they form; the logo
+// dissolves into the page as they go.
+const GATHER_MS = 500
+// From the moment the papers are whole: they're still on their way out, so
+// the cover waits a little before going too.
+const COVER_AFTER_FORMED_MS = 250
+// In case the scraps never gather (no canvas): the page doesn't stay covered.
+const LATEST_MS = 4000
 const EXIT_MS = 350
 // The page's count-ups (lib/splash.ts) start this long before the cover is
 // fully gone, so they're already moving as the page comes into view.
@@ -28,6 +37,8 @@ export function SplashScreen() {
   const covering = mounted && !seen
   const dismissedRef = useRef(false)
   const coverRef = useRef<HTMLDivElement>(null)
+  const scrapsRef = useRef<PaperShardsHandle>(null)
+  const papersRef = useRef<HTMLDivElement>(null)
   const { m } = useI18n()
 
   // Set on the DOM node directly: once `visible` flips, AnimatePresence keeps
@@ -39,6 +50,7 @@ export function SplashScreen() {
   const dismiss = useCallback(() => {
     if (dismissedRef.current) return
     dismissedRef.current = true
+    scrapsRef.current?.leave()
     markLeaving()
     setVisible(false)
   }, [markLeaving])
@@ -46,16 +58,28 @@ export function SplashScreen() {
   useEffect(() => {
     if (!visible || seen) return
 
-    const timer = window.setTimeout(dismiss, INTRO_MS)
-    const headStart = window.setTimeout(markLeaving, INTRO_MS + EXIT_MS - HEAD_START_MS)
+    let cancelled = false
+    const timers: number[] = []
+    const later = (callback: () => void, ms: number) => {
+      timers.push(window.setTimeout(callback, ms))
+    }
+    later(() => {
+      const gathering = scrapsRef.current?.gather(measurePapers(papersRef.current))
+      void gathering?.formed.then(() => {
+        if (cancelled) return
+        later(markLeaving, Math.max(0, COVER_AFTER_FORMED_MS + EXIT_MS - HEAD_START_MS))
+        later(dismiss, COVER_AFTER_FORMED_MS)
+      })
+    }, GATHER_MS)
+    later(dismiss, LATEST_MS)
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') dismiss()
     }
     window.addEventListener('keydown', onKeyDown)
 
     return () => {
-      window.clearTimeout(timer)
-      window.clearTimeout(headStart)
+      cancelled = true
+      timers.forEach((timer) => window.clearTimeout(timer))
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [dismiss, markLeaving, visible, seen])
@@ -89,34 +113,8 @@ export function SplashScreen() {
           exit={{ opacity: 0, scale: 1.015 }}
           transition={{ duration: EXIT_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
         >
-          <motion.div
-            className="absolute -top-[18vh] -left-[18vw] h-[66vh] w-[58vw] bg-collage-blue sm:-left-[8vw] sm:w-[42vw]"
-            style={{
-              clipPath:
-                'polygon(3% 6%, 94% 0, 100% 22%, 93% 52%, 100% 91%, 68% 100%, 38% 92%, 0 100%)',
-            }}
-            initial={{ x: 0, rotate: -5 }}
-            animate={{ x: '-115%', y: '-18%', rotate: -13 }}
-            transition={{ duration: 0.62, delay: 0.35, ease: [0.7, 0, 0.84, 0] }}
-          />
-
-          <motion.div
-            className="absolute -right-[17vw] -bottom-[20vh] h-[67vh] w-[58vw] bg-collage-red sm:-right-[8vw] sm:w-[42vw]"
-            style={{
-              clipPath:
-                'polygon(10% 4%, 62% 0, 96% 15%, 90% 44%, 100% 72%, 80% 100%, 38% 94%, 0 100%, 6% 55%, 0 24%)',
-            }}
-            initial={{ x: 0, rotate: 5 }}
-            animate={{ x: '115%', y: '18%', rotate: 13 }}
-            transition={{ duration: 0.62, delay: 0.38, ease: [0.7, 0, 0.84, 0] }}
-          />
-
-          <motion.div
-            className="torn-strip absolute inset-x-[-8%] top-[52%] h-14 -rotate-3 bg-collage-yellow sm:h-20"
-            initial={{ x: 0, opacity: 1 }}
-            animate={{ x: '115%', opacity: 0 }}
-            transition={{ duration: 0.56, delay: 0.43, ease: [0.7, 0, 0.84, 0] }}
-          />
+          <BrandPapers ref={papersRef} />
+          <PaperShards ref={scrapsRef} speed={1.6} className="absolute inset-0" />
 
           {/* The first visit's largest image, so fetched ahead of the rest —
               but lazy rather than preloaded: for a returning visitor the
