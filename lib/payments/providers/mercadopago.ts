@@ -15,6 +15,7 @@ type MercadoPagoPayment = {
   currency_id?: string
   external_reference?: string
   date_approved?: string
+  money_release_date?: string | null
   payer?: { email?: string; first_name?: string; last_name?: string }
 }
 
@@ -37,6 +38,7 @@ export function fromMercadoPagoPayment(payment: MercadoPagoPayment): ProviderPay
     currency: payment.currency_id ?? '',
     reference: payment.external_reference ?? null,
     paidAt: payment.date_approved ?? undefined,
+    availableAt: payment.money_release_date ?? undefined,
     payer: payment.payer?.email || name ? { email: payment.payer?.email || null, name: name || null } : undefined,
   }
 }

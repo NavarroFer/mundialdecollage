@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ChartError } from '@/components/admin/stats/chart-kit'
 import { KpiCard, KpiStrip } from '@/components/admin/stats/kpi-card'
 import { formatCount } from '@/lib/chart-math'
-import { formatAmount, formatTotals, summarizeIncome, type DonationRow, type Income, type IncomeSummary } from '@/lib/income'
+import { formatAmount, formatTotals, isOnItsWay, summarizeIncome, type DonationRow, type Income, type IncomeSummary } from '@/lib/income'
 import { RecoverPayments } from './recover-payments'
 
 // The «Pagos» tab of /admin/estadisticas: what came in by what it paid for,
@@ -15,6 +15,9 @@ const DONATION_STATUS: Record<DonationRow['status'], { label: string; className:
   refunded: { label: 'Devuelta', className: 'bg-collage-red/15 text-collage-red' },
 }
 
+// Approved, with the money still held by Mercado Pago until its release date.
+const ON_ITS_WAY = { label: 'Por acreditar', className: 'bg-collage-yellow/25 text-ink' }
+
 const PROVIDER: Record<string, string> = { mercadopago: 'Mercado Pago', paypal: 'PayPal' }
 
 const dateFormatter = new Intl.DateTimeFormat('es-AR', {
@@ -25,6 +28,8 @@ const dateFormatter = new Intl.DateTimeFormat('es-AR', {
   minute: '2-digit',
   timeZone: 'America/Argentina/Buenos_Aires',
 })
+
+const dayFormatter = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })
 
 const plural = (count: number, one: string, other: string) => `${formatCount(count)} ${count === 1 ? one : other}`
 
@@ -41,6 +46,9 @@ export function IncomeSection({ income, since, period }: {
   const store = summarizeIncome(income.paid.store, since)
   const magazine = summarizeIncome(income.paid.magazine, since)
   const recent = (summary: IncomeSummary) => `+${formatCount(summary.recentCount)} · ${period}`
+  const onItsWay = income.donations.filter((donation) => isOnItsWay(donation, income.loadedAt))
+  const held = summarizeIncome(onItsWay.map(({ amount, currency, paid_at }) => ({ amount, currency, paidAt: paid_at })), since)
+  const donationsContext = `${formatTotals(donations.totals)} desde el inicio${onItsWay.length ? ` · ${formatTotals(held.totals)} por acreditar` : ''}`
 
   return (
     <>
@@ -52,7 +60,7 @@ export function IncomeSection({ income, since, period }: {
         <RecoverPayments />
       </div>
       <KpiStrip label="Pagos en números">
-        <KpiCard highlight label="Donaciones" value={formatCount(donations.count)} context={`${formatTotals(donations.totals)} desde el inicio`} recent={recent(donations)} />
+        <KpiCard highlight label="Donaciones" value={formatCount(donations.count)} context={donationsContext} recent={recent(donations)} />
         <KpiCard label="Obras extra" value={formatCount(entries.count)} context={`${formatTotals(entries.totals)} desde el inicio`} recent={recent(entries)} />
         <KpiCard
           label="Cobros de la tienda"
@@ -74,7 +82,7 @@ export function IncomeSection({ income, since, period }: {
           <div className="min-w-0 flex-1 basis-64">
             <h2 id="donations-title" className="font-display text-2xl font-normal tracking-tight text-ink uppercase">Donaciones</h2>
             <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-              Cada donación, la más reciente primero. Las que no se acreditaron (una tarjeta rechazada, un pago en efectivo todavía sin hacer) quedan con su estado.
+              Cada donación, la más reciente primero. «Por acreditar»: aprobada, con la plata todavía retenida por Mercado Pago hasta la fecha que dice. Las que no se cobraron (una tarjeta rechazada, un pago en efectivo todavía sin hacer) quedan con su estado.
             </p>
           </div>
         </header>
@@ -98,7 +106,8 @@ export function IncomeSection({ income, since, period }: {
                 </tr>
               )}
               {income.donations.map((donation) => {
-                const status = DONATION_STATUS[donation.status] ?? { label: donation.status, className: 'bg-muted text-muted-foreground' }
+                const held = isOnItsWay(donation, income.loadedAt)
+                const status = held ? ON_ITS_WAY : DONATION_STATUS[donation.status] ?? { label: donation.status, className: 'bg-muted text-muted-foreground' }
                 return (
                   <tr key={donation.id} className="border-t border-ink/10">
                     <td className="px-5 py-3 whitespace-nowrap text-muted-foreground sm:px-6">{dateFormatter.format(new Date(donation.paid_at ?? donation.created_at))}</td>
@@ -106,6 +115,9 @@ export function IncomeSection({ income, since, period }: {
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">{PROVIDER[donation.provider] ?? donation.provider}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.className}`}>{status.label}</span>
+                      {held && donation.available_at && (
+                        <span className="ml-2 text-xs text-muted-foreground">se acredita el {dayFormatter.format(new Date(donation.available_at))}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {donation.payer_name && <p className="text-ink">{donation.payer_name}</p>}

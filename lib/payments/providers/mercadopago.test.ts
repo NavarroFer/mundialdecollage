@@ -42,6 +42,11 @@ describe('fromMercadoPagoPayment', () => {
     expect(payment.payer).toEqual({ email: 'ana@example.com', name: 'Ana Paz' })
     expect(fromMercadoPagoPayment({ id: 1, payer: { email: '' } }).payer).toBeUndefined()
   })
+
+  it('says until when Mercado Pago holds the money («por acreditar»)', () => {
+    expect(fromMercadoPagoPayment({ id: 1, status: 'approved', money_release_date: '2026-10-30T12:00:00.000-04:00' }).availableAt).toBe('2026-10-30T12:00:00.000-04:00')
+    expect(fromMercadoPagoPayment({ id: 1, money_release_date: null }).availableAt).toBeUndefined()
+  })
 })
 
 describe('searchMercadoPagoPayments', () => {

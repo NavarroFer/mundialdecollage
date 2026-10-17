@@ -22,6 +22,12 @@ export function donationStatus(previous: PurchaseStatus | null, payment: Pick<Pr
   return 'pending'
 }
 
+// The database and Mercado Pago write the same moment differently.
+function sameInstant(stored: string | null | undefined, reported: string | undefined) {
+  if (!stored || !reported) return !stored && !reported
+  return new Date(stored).getTime() === new Date(reported).getTime()
+}
+
 export const donationPurchase: Purchase = {
   async applyPayment(id, payment) {
     if (!UUID.test(id)) {
@@ -31,7 +37,7 @@ export const donationPurchase: Purchase = {
     const admin = createAdminClient()
     const { data: previous, error: readError } = await admin
       .from('donations')
-      .select('status, provider_payment_id')
+      .select('status, provider_payment_id, available_at')
       .eq('id', id)
       .maybeSingle()
     if (readError) {
@@ -40,9 +46,12 @@ export const donationPurchase: Purchase = {
     }
 
     const status = donationStatus(previous?.status ?? null, payment)
-    // Nothing new: the same payment again, or a stray one for a donation already settled.
-    if (previous && previous.status === status && (previous.provider_payment_id === payment.id || status === 'paid' || status === 'refunded')) {
-      return status
+    if (previous && previous.status === status) {
+      const same = previous.provider_payment_id === payment.id
+      // A stray payment for a donation already settled.
+      if (!same && (status === 'paid' || status === 'refunded')) return status
+      // The same payment again, with nothing new to say.
+      if (same && sameInstant(previous.available_at, payment.availableAt)) return status
     }
 
     const row: Record<string, unknown> = {
@@ -55,6 +64,7 @@ export const donationPurchase: Purchase = {
     }
     // PayPal's capture doesn't say who paid: what an earlier payment said stays.
     if (payment.payer) Object.assign(row, { payer_email: payment.payer.email, payer_name: payment.payer.name })
+    if (payment.availableAt) row.available_at = payment.availableAt
     const when = payment.paidAt ?? new Date().toISOString()
     if (status === 'paid') row.paid_at = when
     if (!previous) row.created_at = when

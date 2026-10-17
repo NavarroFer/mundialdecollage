@@ -27,6 +27,11 @@ export type ProviderPayment = {
   reference: string | null
   /** When the money came in, when the provider says. */
   paidAt?: string
+  /**
+   * When the money is free to use, if the provider holds it for a while
+   * first: Mercado Pago's release date, «por acreditar» until then.
+   */
+  availableAt?: string
   /** Who paid, as far as the provider tells (a donation has no row of ours that knows). */
   payer?: { email: string | null; name: string | null }
 }

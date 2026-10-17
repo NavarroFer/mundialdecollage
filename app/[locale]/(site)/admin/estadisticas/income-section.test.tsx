@@ -20,6 +20,7 @@ const donation = (overrides: Partial<Income['donations'][number]>): Income['dona
   payer_name: null,
   created_at: '2026-10-16T15:00:00Z',
   paid_at: '2026-10-16T15:00:00Z',
+  available_at: null,
   ...overrides,
 })
 
@@ -32,6 +33,7 @@ const income = (donations: Income['donations']): Income => ({
     magazine: [],
   },
   activeSubscriptions: 1,
+  loadedAt: new Date('2026-10-17T20:00:00Z').getTime(),
 })
 
 const text = (html: string) => html.replace(/\s/g, ' ')
@@ -54,6 +56,21 @@ describe('IncomeSection', () => {
     expect(html).toContain('Rechazada')
     expect(html).toContain('1 suscripción activa')
     expect(html).toContain('Buscar en Mercado Pago')
+  })
+
+  it('tells the donations whose money Mercado Pago still holds, and until when', () => {
+    const html = text(renderToStaticMarkup(<IncomeSection
+      income={income([
+        donation({ available_at: '2026-10-30T15:00:00Z' }),
+        donation({ id: 'd2', amount: 5000, available_at: '2026-10-16T15:00:00Z' }),
+      ])}
+      since={since}
+      period="últimos 30 días"
+    />))
+    expect(html).toContain('$ 15.000 desde el inicio · $ 10.000 por acreditar')
+    expect(html).toContain('Por acreditar')
+    expect(html).toContain('se acredita el 30/10')
+    expect(html).toContain('Acreditada')
   })
 
   it('says how to bring older donations when there are none yet', () => {

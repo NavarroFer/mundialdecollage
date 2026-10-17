@@ -56,6 +56,13 @@ export type DonationRow = {
   payer_name: string | null
   created_at: string
   paid_at: string | null
+  /** When Mercado Pago frees the money; «por acreditar» until then. */
+  available_at: string | null
+}
+
+/** Paid, but Mercado Pago still holds the money («dinero por acreditar»). */
+export function isOnItsWay(donation: Pick<DonationRow, 'status' | 'available_at'>, now: number) {
+  return donation.status === 'paid' && donation.available_at !== null && new Date(donation.available_at).getTime() > now
 }
 
 export type Income = {
@@ -64,6 +71,8 @@ export type Income = {
   /** What was paid, by what it paid for. */
   paid: Record<'donations' | 'entries' | 'store' | 'magazine', IncomePayment[]>
   activeSubscriptions: number
+  /** When it was read, to tell which money is still on its way. */
+  loadedAt: number
 }
 
 type PaidRow = { amount: number | string; currency: string; paid_at: string | null }
@@ -76,7 +85,7 @@ const payments = (rows: PaidRow[]): IncomePayment[] => rows.map(({ amount, curre
 export async function loadIncome(supabase: SupabaseClient): Promise<Income | null> {
   const [donations, entries, store, subscriptions, magazine] = await Promise.all([
     supabase.from('donations')
-      .select('id, provider, status, amount, currency, payer_email, payer_name, created_at, paid_at')
+      .select('id, provider, status, amount, currency, payer_email, payer_name, created_at, paid_at, available_at')
       .order('created_at', { ascending: false }),
     supabase.from('entry_purchases').select('amount, currency, paid_at').eq('status', 'paid'),
     // The store's monthly charges and its one-time orders.
@@ -99,5 +108,6 @@ export async function loadIncome(supabase: SupabaseClient): Promise<Income | nul
       magazine: payments(magazine.data ?? []),
     },
     activeSubscriptions: subscriptions.count ?? 0,
+    loadedAt: Date.now(),
   }
 }

@@ -95,3 +95,24 @@ describe('donationPurchase.applyPayment', () => {
     expect(await donationPurchase.applyPayment(ID, payment())).toBeNull()
   })
 })
+
+describe('when Mercado Pago frees the money', () => {
+  const held = { availableAt: '2026-10-30T12:00:00.000-04:00' }
+
+  it('records it with the donation', async () => {
+    await donationPurchase.applyPayment(ID, payment(held))
+    expect(db.upsert).toHaveBeenCalledWith(expect.objectContaining({ available_at: '2026-10-30T12:00:00.000-04:00' }), { onConflict: 'id' })
+  })
+
+  it('records it for a donation already paid without it', async () => {
+    db.previous = { status: 'paid', provider_payment_id: '111', available_at: null }
+    await donationPurchase.applyPayment(ID, payment(held))
+    expect(db.upsert).toHaveBeenCalledWith(expect.objectContaining({ available_at: '2026-10-30T12:00:00.000-04:00' }), { onConflict: 'id' })
+  })
+
+  it('writes nothing when it is the same moment, however it is written', async () => {
+    db.previous = { status: 'paid', provider_payment_id: '111', available_at: '2026-10-30T16:00:00+00:00' }
+    await donationPurchase.applyPayment(ID, payment(held))
+    expect(db.upsert).not.toHaveBeenCalled()
+  })
+})
