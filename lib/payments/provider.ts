@@ -25,6 +25,10 @@ export type ProviderPayment = {
   currency: string
   /** What it paid for (lib/payments/references.ts). */
   reference: string | null
+  /** When the money came in, when the provider says. */
+  paidAt?: string
+  /** Who paid, as far as the provider tells (a donation has no row of ours that knows). */
+  payer?: { email: string | null; name: string | null }
 }
 
 export type CheckoutItem = { id: string; title: string; quantity: number; unitPrice: number; currency: 'ARS' | 'USD' }

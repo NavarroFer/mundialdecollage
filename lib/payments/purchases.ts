@@ -2,7 +2,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import type { ProviderPayment } from '@/lib/payments/provider'
 
 // What is being paid for, as a strategy per kind of purchase (obras extra,
-// the magazine, the taller): how a payment the provider reported changes it.
+// the magazine, the taller, a donation): how a payment the provider reported
+// changes it.
 // Which one applies is decided by the payment's reference
 // (lib/payments/apply.ts); none of them depends on the provider.
 

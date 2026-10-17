@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PaymentProvider, ProviderPayment } from './provider'
 
 const strategies = vi.hoisted(() => ({
+  donation: { applyPayment: vi.fn(async () => 'paid' as const) },
   entry: { applyPayment: vi.fn(async () => 'paid' as const) },
   magazine: { applyPayment: vi.fn(async () => 'paid' as const) },
   workshop: { applyPayment: vi.fn(async () => 'paid' as const) },
 }))
+vi.mock('@/lib/donation-payments', () => ({ donationPurchase: strategies.donation }))
 vi.mock('@/lib/entry-payments', () => ({ entryPurchase: strategies.entry }))
 vi.mock('@/lib/magazine-payments', () => ({ magazinePurchase: strategies.magazine }))
 vi.mock('@/lib/workshop-payments', () => ({ workshopPurchase: strategies.workshop }))
@@ -25,7 +27,9 @@ describe('applyPayment', () => {
     await applyPayment(payment('entry:p1'))
     await applyPayment(payment('revista:o1'))
     await applyPayment(payment('r1'))
+    await applyPayment(payment('donacion:d1'))
     expect(strategies.entry.applyPayment).toHaveBeenCalledWith('p1', expect.objectContaining({ id: '1' }))
+    expect(strategies.donation.applyPayment).toHaveBeenCalledWith('d1', expect.anything())
     expect(strategies.magazine.applyPayment).toHaveBeenCalledWith('o1', expect.anything())
     expect(strategies.workshop.applyPayment).toHaveBeenCalledWith('r1', expect.anything())
   })

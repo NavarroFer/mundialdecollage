@@ -1,3 +1,4 @@
+import { donationPurchase } from '@/lib/donation-payments'
 import { entryPurchase } from '@/lib/entry-payments'
 import { magazinePurchase } from '@/lib/magazine-payments'
 import { workshopPurchase } from '@/lib/workshop-payments'
@@ -9,6 +10,7 @@ import { parseExternalReference, type ReferenceKind } from '@/lib/payments/refer
 // subscription's monthly charge isn't here: it's recorded from its
 // authorized payment (lib/mp-subscriptions.ts).
 const PURCHASES = {
+  donation: donationPurchase,
   entry: entryPurchase,
   magazine: magazinePurchase,
   workshop: workshopPurchase,

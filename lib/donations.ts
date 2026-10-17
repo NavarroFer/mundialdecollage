@@ -1,9 +1,9 @@
 // Donations: the Mundial is self-funded, and anyone can give to it from the
 // home or the gallery's start screen (app/[locale]/(site)/donar/actions.ts):
 // in pesos through Mercado Pago from Argentina, in dollars through PayPal
-// from anywhere else. Nothing is stored here: each provider's own records
-// are the ledger, and the "donacion:" reference only keeps their webhooks
-// from mistaking a donation for something sold here.
+// from anywhere else. Nothing is stored when the checkout opens: the
+// "donacion:" reference tells the webhooks it's a donation, and the payment
+// they report is recorded then (lib/donation-payments.ts).
 
 export const DONATION_CURRENCIES = ['ARS', 'USD'] as const
 

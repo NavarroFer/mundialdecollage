@@ -1,21 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const sdk = vi.hoisted(() => ({ create: vi.fn(), get: vi.fn() }))
+const sdk = vi.hoisted(() => ({ create: vi.fn(), get: vi.fn(), search: vi.fn() }))
 vi.mock('mercadopago', () => ({
   Preference: class {
     create = sdk.create
   },
   Payment: class {
     get = sdk.get
+    search = sdk.search
   },
 }))
 vi.mock('@/lib/mercadopago', () => ({ isMercadoPagoConfigured: true, getMercadoPagoConfig: () => ({}) }))
 
-import { fromMercadoPagoPayment, mercadoPago } from './mercadopago'
+import { fromMercadoPagoPayment, mercadoPago, searchMercadoPagoPayments } from './mercadopago'
 
 beforeEach(() => {
   sdk.create.mockReset()
   sdk.get.mockReset()
+  sdk.search.mockReset()
 })
 
 describe('fromMercadoPagoPayment', () => {
@@ -32,6 +34,25 @@ describe('fromMercadoPagoPayment', () => {
 
   it('fills in what Mercado Pago leaves out', () => {
     expect(fromMercadoPagoPayment({ id: 42 })).toEqual({ provider: 'mercadopago', id: '42', status: 'pending', amount: 0, currency: '', reference: null })
+  })
+
+  it('says when it was paid and who paid, as far as Mercado Pago tells', () => {
+    const payment = fromMercadoPagoPayment({ id: 1, date_approved: '2026-10-16T12:00:00.000-04:00', payer: { email: 'ana@example.com', first_name: 'Ana', last_name: 'Paz' } })
+    expect(payment.paidAt).toBe('2026-10-16T12:00:00.000-04:00')
+    expect(payment.payer).toEqual({ email: 'ana@example.com', name: 'Ana Paz' })
+    expect(fromMercadoPagoPayment({ id: 1, payer: { email: '' } }).payer).toBeUndefined()
+  })
+})
+
+describe('searchMercadoPagoPayments', () => {
+  it('reads every page of payments since the date', async () => {
+    const page = (size: number, from: number) => ({ results: Array.from({ length: size }, (_, i) => ({ id: String(from + i), status: 'approved' })) })
+    sdk.search.mockResolvedValueOnce(page(100, 0)).mockResolvedValueOnce(page(3, 100))
+    const payments = await searchMercadoPagoPayments('2026-10-15T00:00:00.000-03:00')
+    expect(payments).toHaveLength(103)
+    expect(payments[0]).toMatchObject({ provider: 'mercadopago', id: '0', status: 'approved' })
+    expect(sdk.search).toHaveBeenCalledTimes(2)
+    expect(sdk.search).toHaveBeenLastCalledWith({ options: expect.objectContaining({ range: 'date_created', begin_date: '2026-10-15T00:00:00.000-03:00', offset: 100 }) })
   })
 })
 

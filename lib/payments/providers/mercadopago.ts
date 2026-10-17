@@ -7,7 +7,16 @@ import type { PaymentProvider, ProviderPayment } from '@/lib/payments/provider'
 // preferences to pay, and its Payment API to read what happened. Its
 // notifications arrive at app/api/mercadopago/webhook.
 
-type MercadoPagoPayment = Awaited<ReturnType<Payment['get']>>
+// What we read of a payment, the same in Payment.get and in a search result.
+type MercadoPagoPayment = {
+  id?: number | string
+  status?: string
+  transaction_amount?: number
+  currency_id?: string
+  external_reference?: string
+  date_approved?: string
+  payer?: { email?: string; first_name?: string; last_name?: string }
+}
 
 const STATUSES: Record<string, ProviderPayment['status']> = {
   approved: 'approved',
@@ -18,9 +27,8 @@ const STATUSES: Record<string, ProviderPayment['status']> = {
 }
 
 /** Mercado Pago's payment in our terms; every status it doesn't settle on reads as pending. */
-export function fromMercadoPagoPayment(
-  payment: Pick<MercadoPagoPayment, 'id' | 'status' | 'transaction_amount' | 'currency_id' | 'external_reference'>,
-): ProviderPayment {
+export function fromMercadoPagoPayment(payment: MercadoPagoPayment): ProviderPayment {
+  const name = [payment.payer?.first_name, payment.payer?.last_name].filter(Boolean).join(' ')
   return {
     provider: 'mercadopago',
     id: String(payment.id ?? ''),
@@ -28,7 +36,33 @@ export function fromMercadoPagoPayment(
     amount: payment.transaction_amount ?? 0,
     currency: payment.currency_id ?? '',
     reference: payment.external_reference ?? null,
+    paidAt: payment.date_approved ?? undefined,
+    payer: payment.payer?.email || name ? { email: payment.payer?.email || null, name: name || null } : undefined,
   }
+}
+
+// Mercado Pago's search hands out a page at a time; past this many it stops,
+// so a wide range can't keep the request going.
+const SEARCH_PAGE = 100
+const SEARCH_PAGES = 10
+
+/**
+ * Every payment Mercado Pago took since `since` (an ISO date with its
+ * offset), newest first: what its notifications would have said, for a
+ * payment whose notification was missed or came before we kept it.
+ */
+export async function searchMercadoPagoPayments(since: string): Promise<ProviderPayment[]> {
+  if (!isMercadoPagoConfigured) return []
+  const client = new Payment(getMercadoPagoConfig())
+  const payments: ProviderPayment[] = []
+  for (let page = 0; page < SEARCH_PAGES; page++) {
+    const { results = [] } = await client.search({
+      options: { range: 'date_created', begin_date: since, end_date: 'NOW', sort: 'date_created', criteria: 'desc', limit: SEARCH_PAGE, offset: page * SEARCH_PAGE },
+    })
+    payments.push(...results.map(fromMercadoPagoPayment))
+    if (results.length < SEARCH_PAGE) break
+  }
+  return payments
 }
 
 export const mercadoPago: PaymentProvider = {

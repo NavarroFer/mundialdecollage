@@ -1,4 +1,6 @@
 import { recordCustomerPaymentError } from '@/lib/customer-payment-errors'
+import { donationPurchase } from '@/lib/donation-payments'
+import { fromPayPalCapture } from '@/lib/payments/providers/paypal'
 import { parseExternalReference } from '@/lib/payments/references'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendSubscriptionReceipt } from '@/lib/subscription-receipts'
@@ -73,8 +75,13 @@ export async function handlePaypalEvent(event: PaypalEvent) {
 }
 
 export async function recordOneTimeCapture(capture: Record<string, unknown>, providerOrderId?: string) {
-  // A donation (lib/donations.ts) is no order of ours: PayPal's records are its ledger.
-  if (parseExternalReference(text(capture.custom_id))?.kind === 'donation') return
+  // A donation (lib/donations.ts) is no order of ours: it's recorded on its own.
+  const reference = parseExternalReference(text(capture.custom_id))
+  if (reference?.kind === 'donation') {
+    // Thrown, the webhook answers 500 and PayPal sends it again.
+    if (!(await donationPurchase.applyPayment(reference.id, fromPayPalCapture(capture)))) throw new Error('Could not record donation')
+    return
+  }
   const paymentId = text(capture.id)
   let orderId = text(capture.custom_id)
   const amount = capture.amount as Record<string, unknown> | undefined

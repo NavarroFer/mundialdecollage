@@ -8,7 +8,7 @@ import type { PaymentProvider, ProviderPayment } from '@/lib/payments/provider'
 // (capturePayPalOrder) and sends them on to the return URL for how it went.
 // The store's PayPal buttons and subscriptions are lib/payments/paypal.
 
-type PayPalCapture = { id?: string; status?: string; custom_id?: string; amount?: { value?: string; currency_code?: string } }
+type PayPalCapture = { id?: string; status?: string; custom_id?: string; create_time?: string; amount?: { value?: string; currency_code?: string } }
 type PayPalOrder = {
   id: string
   status?: string
@@ -38,6 +38,7 @@ export function fromPayPalCapture(capture: PayPalCapture): ProviderPayment {
     amount: Number(capture.amount?.value ?? 0),
     currency: capture.amount?.currency_code ?? '',
     reference: capture.custom_id ?? null,
+    paidAt: capture.create_time ?? undefined,
   }
 }
 

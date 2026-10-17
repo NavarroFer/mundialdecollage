@@ -18,7 +18,8 @@ export type DonationState = { error: 'invalid' | 'unavailable' | null; currency?
 const PROVIDERS: Record<DonationCurrency, PaymentProvider> = { ARS: mercadoPago, USD: payPal }
 
 // A donation (lib/donations.ts): straight to the provider's checkout for the
-// amount picked, with no account, details or row of our own. Runs only when
+// amount picked, with no account or details; its row is written once the
+// provider reports the payment (lib/donation-payments.ts). Runs only when
 // someone taps an amount, so the pages showing the buttons stay static.
 export async function startDonation(_previous: DonationState, formData: FormData): Promise<DonationState> {
   const currency = parseDonationCurrency(formData.get('currency'))
