@@ -43,6 +43,7 @@ describe('imageSrc', () => {
     expect(imageSrc('/logo-mark.png', 120)).toBe('/brand/logo-mark-128.webp')
     expect(imageSrc('/logo-mark.png', 1080)).toBe('/brand/logo-mark-512.webp')
     expect(imageSrc('/logo.png', 1920)).toBe('/brand/logo-1415.webp')
+    expect(imageSrc('/tienda-productos.webp', 828)).toBe('/brand/tienda-productos-828.webp')
   })
 
   // A copy the loader can ask for but scripts/brand-images.mjs didn't write would be a broken logo.
