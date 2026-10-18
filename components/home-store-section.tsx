@@ -1,8 +1,10 @@
 import { ArrowRight, Scissors, Star } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
+import { FreeShippingBadge } from '@/components/free-shipping-badge'
 import { TrackedLink, TrackVisible } from '@/components/track'
 import { fmt } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
+import { priceWithShippingArs } from '@/lib/correo'
 import { cutoutPlans, subscriptionPlans } from '@/lib/store'
 import { cn } from '@/lib/utils'
 
@@ -14,10 +16,11 @@ const SHADOW = 'shadow-[1cqw_1cqw_0_var(--color-ink)]'
 
 // Each catalogue's cheapest plan. The home is the same for everyone (its
 // anonymous copy is built ahead), so it can't know the visitor's country:
-// pesos first, dollars for everyone else; /tienda picks the right one.
+// pesos first, dollars for everyone else; /tienda picks the right one. The
+// pesos include shipping, which the card announces as free.
 function startingPrice(plans: readonly { priceArs: number; priceUsd: number }[]) {
   return {
-    ars: `ARS $${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.min(...plans.map((plan) => plan.priceArs)))}`,
+    ars: `ARS $${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(priceWithShippingArs(Math.min(...plans.map((plan) => plan.priceArs))))}`,
     usd: `USD ${Math.min(...plans.map((plan) => plan.priceUsd))}`,
   }
 }
@@ -121,10 +124,13 @@ export async function HomeStoreSection() {
                 <div className="min-w-0 flex-1">
                   <h3 className="font-display text-xl leading-tight tracking-tight text-ink uppercase sm:text-2xl">{title}</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{summary}</p>
-                  <p className="mt-1.5 text-sm whitespace-nowrap text-ink">
-                    <span className="text-muted-foreground">{home.from} </span>
-                    <span className="font-bold">{price.ars}</span> {t.perMonth}
-                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                    <p className="text-sm whitespace-nowrap text-ink">
+                      <span className="text-muted-foreground">{home.from} </span>
+                      <span className="font-bold">{price.ars}</span> {t.perMonth}
+                    </p>
+                    <FreeShippingBadge label={t.freeShipping} className="px-2 py-0.5 text-[0.65rem]" />
+                  </div>
                   <p className="text-xs text-muted-foreground">{fmt(home.abroad, { price: price.usd })}</p>
                 </div>
                 <span className="hidden size-10 shrink-0 place-items-center rounded-full bg-collage-blue text-primary-foreground transition-colors group-hover:bg-ink sm:grid" aria-hidden="true">

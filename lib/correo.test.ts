@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { branchDistance, searchBranches } from './correo-branches'
-import { publicBranch } from './correo'
+import { priceWithShippingArs, publicBranch } from './correo'
 
 const raw = {
   code: 'B0107', name: 'Monte Grande', status: 'ACTIVE', services: { pickupAvailability: true },
@@ -45,6 +45,15 @@ beforeEach(() => {
   vi.stubEnv('CORREO_PACKAGES_JSON', JSON.stringify({ inicial: { weight: 500, height: 5, width: 20, length: 25 } }))
 })
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
+
+describe('free shipping price', () => {
+  it('shows the plan with the flat tariff folded in, the same sum the checkout charges', () => {
+    vi.stubEnv('CORREO_FLAT_SHIPPING_FEE', undefined)
+    expect(priceWithShippingArs(15000)).toBe(22000)
+    vi.stubEnv('CORREO_FLAT_SHIPPING_FEE', '8500')
+    expect(priceWithShippingArs(36000)).toBe(44500)
+  })
+})
 
 describe('official API and tariff', () => {
   it('uses the provisional monthly fee without requesting a provider quote', async () => {

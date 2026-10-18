@@ -108,6 +108,14 @@ export function flatShippingFee() {
   return Math.round(fee * 100) / 100
 }
 
+// The store advertises free shipping in Argentina: the peso price it shows
+// already has this tariff in it, and the monthly charge is the same sum
+// (tienda/actions.ts, plan + shipping_fee). With per-branch rates
+// (CORREO_SHIPPING_RATE_MODE=api) the charge would vary from this price.
+export function priceWithShippingArs(priceArs: number) {
+  return Math.round((priceArs + flatShippingFee()) * 100) / 100
+}
+
 /** Physical package dimensions must be configured from actual packed products. */
 export async function quoteSubscriptionShipping(plan: string, branch: CorreoBranch) {
   if (process.env.CORREO_SHIPPING_RATE_MODE !== 'api') return flatShippingFee()

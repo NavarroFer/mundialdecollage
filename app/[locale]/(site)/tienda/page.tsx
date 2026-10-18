@@ -16,7 +16,8 @@ import { MagazinePromo } from '@/components/store-promo'
 import { site } from '@/lib/site'
 import { PaypalSubscriptionCheckout } from '@/components/paypal-subscription-checkout'
 import { isMercadoPagoConfigured } from '@/lib/mercadopago'
-import { correoConfigured, flatShippingFee } from '@/lib/correo'
+import { correoConfigured, priceWithShippingArs } from '@/lib/correo'
+import { FreeShippingBadge } from '@/components/free-shipping-badge'
 import { isPayPalCheckoutConfigured } from '@/lib/payments/paypal/client'
 
 // Argentina pays in pesos with Mercado Pago, everywhere else in dollars with
@@ -31,8 +32,10 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
   // Until Correo Argentino's credentials are set, buyers give an address and
   // we choose the branch, at a flat fee (lib/correo.ts).
   const byAddress = !correoConfigured()
+  // In pesos the shipping is in the price and the card says «Envío gratis»;
+  // abroad it's still arranged and charged apart.
   const priceLabel = (priceArs: number, priceUsd: number) => argentina
-    ? `ARS $${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(priceArs)}`
+    ? `ARS $${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(priceWithShippingArs(priceArs))}`
     : `USD ${new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(priceUsd)}`
   return (
     <>
@@ -103,7 +106,9 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 <p className="mt-6 text-3xl font-bold tracking-tight">
                   {priceLabel(plan.priceArs, plan.priceUsd)} <span className="text-base font-medium">{t.perMonth}</span>
                 </p>
-                <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{argentina && byAddress ? `${copy.shipping} ${priceLabel(flatShippingFee(), 0)}` : copy.shipping}</p>
+                {argentina
+                  ? <FreeShippingBadge label={t.freeShipping} className="mt-3 px-3.5 py-1.5 text-sm" />
+                  : <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.shipping}</p>}
                 <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
                   {localizedPlan.contents.map((content) => (
                     <li key={content} className="flex gap-2.5">
@@ -160,7 +165,9 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
                 <p className="mt-6 text-3xl font-bold tracking-tight">
                   {priceLabel(plan.priceArs, plan.priceUsd)} <span className="text-base font-medium">{t.perMonth}</span>
                 </p>
-                <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{argentina && byAddress ? `${copy.shipping} ${priceLabel(flatShippingFee(), 0)}` : copy.shipping}</p>
+                {argentina
+                  ? <FreeShippingBadge label={t.freeShipping} className="mt-3 px-3.5 py-1.5 text-sm" />
+                  : <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.shipping}</p>}
                 <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
                   {[`${plan.count} ${copy.cutouts}`, copy.stickers].map((content) => (
                     <li key={content} className="flex gap-2.5">

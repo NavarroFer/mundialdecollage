@@ -41,7 +41,7 @@ const es = {
   "manualSubject": "Membresía {plan}: envío a mi dirección",
   "addressTitle": "Tu dirección",
   "addressMode": "Retiro en la sucursal de Correo Argentino más cercana a tu dirección",
-  "addressHelp": "Poné tu dirección y elegimos la sucursal de Correo Argentino más cercana: te avisamos cuál es cuando lo despachemos. Envío: {fee} por mes, incluido en el cobro mensual."
+  "addressHelp": "Poné tu dirección y elegimos la sucursal de Correo Argentino más cercana: te avisamos cuál es cuando lo despachemos. El envío es gratis."
 }
 const en: typeof es = {
   "title": "Choose a pickup branch",
@@ -84,7 +84,7 @@ const en: typeof es = {
   "manualSubject": "{plan} membership: delivery to my address",
   "addressTitle": "Your address",
   "addressMode": "Pickup at the Correo Argentino branch nearest your address",
-  "addressHelp": "Enter your address and we'll choose the nearest Correo Argentino branch: we'll tell you which one when we ship it. Shipping: {fee} a month, included in the monthly charge."
+  "addressHelp": "Enter your address and we'll choose the nearest Correo Argentino branch: we'll tell you which one when we ship it. Shipping is free."
 }
 
 // International visitors retain an English fallback for the Argentina-only pickup flow.

@@ -55,7 +55,7 @@ export function AddressForBranchFields({ fee, initial, onChange }: {
   initial: Partial<Record<'province' | 'city' | 'postal_code' | 'address_line_1' | 'address_line_2', string>>
   onChange: (delivery: AddressForBranch | null) => void
 }) {
-  const { m, locale } = useI18n()
+  const { m } = useI18n()
   const t = m.store.pickup
   const labels = m.store.mp
   const id = useId()
@@ -68,12 +68,11 @@ export function AddressForBranchFields({ fee, initial, onChange }: {
     onChange(complete ? { address: values.address_line_1.trim(), city: values.city.trim(), province: values.province, fee } : null)
   }, [complete, values, fee, onChange])
   const set = (field: keyof typeof values) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setValues((current) => ({ ...current, [field]: event.target.value }))
-  const money = new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(fee)
   const input = 'mt-1 min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
   return (
     <fieldset className="space-y-3 rounded-xl border-2 border-ink/15 bg-background p-4 text-left">
       <legend className="px-1 text-base font-semibold">{t.addressTitle}</legend>
-      <p className="text-sm">{t.addressHelp.replace('{fee}', money)}</p>
+      <p className="text-sm">{t.addressHelp}</p>
       <label className="block text-sm font-medium" htmlFor={`${id}-province`}>{labels.province}</label>
       <select id={`${id}-province`} name="province" required value={values.province} onChange={set('province')} className={input}>
         <option value="">{labels.province}…</option>
@@ -219,7 +218,7 @@ export function CorreoBranchPicker({ plan, initialProvince = '', initialCode = '
         </div>
         {filtered.length > limit && <button type="button" onClick={() => setLimit((n) => n + 10)} className="min-h-11 text-sm underline">{t.more}</button>}
       </>}
-      {selected && available && <p role="status" className="text-sm font-semibold">{selected.name} · {plan ? (validQuote ? `${m.store.subscriptions.shipping}: ${new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency: 'ARS' }).format(validQuote.fee)}${m.store.perMonth}` : t.loading) : t.included}</p>}
+      {selected && available && <p role="status" className="text-sm font-semibold">{selected.name} · {plan ? (validQuote ? m.store.freeShipping : t.loading) : t.included}</p>}
       {selected && quoteError && <div className="space-y-2 text-sm"><p role="alert" className="font-semibold text-collage-red">{t.unavailable}</p><button type="button" className="min-h-11 underline" onClick={() => { setQuoteError(false); setQuoteRetry((n) => n + 1) }}>{t.retry}</button><ManualAddress plan={plan} province={province} /></div>}
       <input type="hidden" name="branch_code" value={selected?.code ?? ''} />
       <input type="hidden" name="province" value={province} />

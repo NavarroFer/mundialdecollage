@@ -11,6 +11,7 @@ import { LOCALE_INFO } from '@/lib/i18n/locales'
 import { useI18n } from '@/lib/i18n/client'
 import { cn } from '@/lib/utils'
 import { MpCardSubscriptionCheckout } from '@/components/mp-card-subscription-checkout'
+import { FreeShippingBadge } from '@/components/free-shipping-badge'
 
 const initial: MpSubscriptionState = { error: null, invalid: [], values: {} }
 
@@ -46,7 +47,7 @@ export function MpSubscriptionCheckout({ plan, flatShippingFee }: { plan: StoreP
   const formRef = useRef<HTMLFormElement>(null)
   const result = cardResult ?? state
   const money = (amount: number) => new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency: 'ARS' }).format(amount)
-  const price = money(planById(plan)!.priceArs)
+  // Shipping is free to the buyer: it's already in the plan's price.
   const total = money(planById(plan)!.priceArs + shippingFee)
   const snapshot = (form: HTMLFormElement) => Object.fromEntries(Array.from(new FormData(form).entries()).map(([field, value]) => [field, String(value)]))
 
@@ -100,12 +101,12 @@ export function MpSubscriptionCheckout({ plan, flatShippingFee }: { plan: StoreP
       </div>
       {step === 2 && <section aria-label={p.review} className="space-y-3 rounded-xl border p-4">
         <p className="font-semibold">{p.review}</p>
-        <p>{storePlanName(planById(plan)!, m.store)} · {price}{m.store.perMonth}</p>
+        <p>{storePlanName(planById(plan)!, m.store)} · {total} {m.store.perMonth}</p>
+        <FreeShippingBadge label={m.store.freeShipping} />
         {byAddress
           ? <p className="text-sm">{p.addressMode}: {address?.address}<br />{address?.city}, {address?.province}</p>
           : <p className="text-sm">{p.mode}: {pickup?.branch.name}<br />{pickup?.branch.address} · {pickup?.branch.locality || pickup?.branch.city}</p>}
         <p className="text-sm">{review.recipient_name || review.name}<br />{review.email} · {review.phone}</p>
-        <p className="text-sm font-semibold">{m.store.subscriptions.shipping}: {money(shippingFee)}{m.store.perMonth}</p>
         <p className="border-t pt-3 font-semibold">{p.total}: {total}</p>
         <p className="text-xs text-muted-foreground">{p.recurring}</p>
         <p className="text-xs text-muted-foreground">{p.readyHelp}</p>
