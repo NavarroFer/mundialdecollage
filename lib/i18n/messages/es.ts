@@ -647,8 +647,8 @@ const es = {
     faq: [{ q: '¿A dónde envían?', a: 'En Argentina retirás en la sucursal de Correo Argentino que elijas y pagás en pesos con Mercado Pago. También enviamos al exterior, con pago en dólares por PayPal.' }, { q: '¿Qué trae cada pack de recortes?', a: '50, 100 o 200 recortes vintage, según el pack que elijas, seleccionados y curados por Fersos y Te hace falta collage. Todos incluyen stickers.' }, { q: '¿El envío está incluido?', a: 'En Argentina, sí: el envío es gratis y el precio publicado es el total que pagás cada mes. Para el exterior, coordinamos el envío aparte.' }, { q: '¿Cómo cancelo?', a: 'Podés cancelar cuando quieras: en Argentina desde «Suscripciones» en tu cuenta de Mercado Pago, y desde el exterior en la configuración de tu suscripción de PayPal. La cancelación se aplica a los próximos cobros mensuales.' }],
     subscriptions: {
       cutoutsNav: 'Elegir mis recortes',
-      membershipNav: 'Conocer la membresía', membershipEyebrow: '01 / El club mensual', membershipTitle: 'Membresía · Papel por correo', membershipBody: 'Cuadernos, láminas, fanzines y stickers: elegí tu edición mensual del Mundial.',
-      cutoutsEyebrow: '02 / Para crear', cutoutsTitle: 'Tu próxima obra empieza acá.',
+      membershipNav: 'Conocer la membresía', membershipEyebrow: '02 / El club mensual', membershipTitle: 'Membresía · Papel por correo', membershipBody: 'Cuadernos, láminas, fanzines y stickers: elegí tu edición mensual del Mundial.',
+      cutoutsEyebrow: '01 / Para crear', cutoutsTitle: 'Tu próxima obra empieza acá.',
       cutoutsBody: 'Suscripción mensual de recortes vintage para hacer collage. Tres tamaños de pack, todos con stickers.',
       // {curators}: the organizers' names, linked to their Instagram (lib/site.ts).
       curated: 'Recortes vintage, seleccionados y curados por {curators}.',

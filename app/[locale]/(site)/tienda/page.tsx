@@ -83,63 +83,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
             </nav>
             <p className="max-w-md text-sm text-muted-foreground">{argentina ? `${byAddress ? t.pickup.addressMode : t.pickup.mode}. ${t.regionArNote}` : t.regionAbroadNote}</p>
           </div>
-          <section id="membresia" aria-labelledby="membership-title" className="mb-16 scroll-mt-24">
-            <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.membershipEyebrow}</p>
-            <h2 id="membership-title" className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-5xl">{copy.membershipTitle}</h2>
-            <p className="mt-4 mb-8 max-w-2xl text-muted-foreground">{copy.membershipBody}</p>
-          <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
-            {subscriptionPlans.map((plan) => {
-              const localizedPlan = t.plans[plan.id]
-              return (
-              <article
-                key={plan.id}
-                className={`relative flex flex-col rounded-2xl border-2 p-6 shadow-sm ${plan.featured ? 'border-collage-blue bg-collage-blue text-primary-foreground lg:-translate-y-3' : 'border-ink/15 bg-card'}`}
-              >
-                {plan.featured && (
-                  <span className="torn-strip absolute -top-4 left-1/2 -translate-x-1/2 bg-collage-yellow px-4 py-1.5 text-xs font-bold tracking-[0.16em] text-ink uppercase">
-                    {t.popular}
-                  </span>
-                )}
-                <PackageOpen className={`h-8 w-8 ${plan.featured ? 'text-collage-yellow' : 'text-collage-red'}`} aria-hidden="true" />
-                <h3 className="font-display mt-5 text-3xl tracking-tight uppercase">{localizedPlan.name}</h3>
-                <p className={`mt-3 min-h-12 text-sm ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{localizedPlan.description}</p>
-                <p className="mt-6 text-3xl font-bold tracking-tight">
-                  {priceLabel(plan.priceArs, plan.priceUsd)} <span className="text-base font-medium">{t.perMonth}</span>
-                </p>
-                {argentina
-                  ? <FreeShippingBadge label={t.freeShipping} className="mt-3 px-3.5 py-1.5 text-sm" />
-                  : <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.shipping}</p>}
-                <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
-                  {localizedPlan.contents.map((content) => (
-                    <li key={content} className="flex gap-2.5">
-                      <Check className={`mt-0.5 h-4 w-4 shrink-0 ${plan.featured ? 'text-collage-yellow' : 'text-collage-blue'}`} aria-hidden="true" />
-                      <span>{content}</span>
-                    </li>
-                  ))}
-                </ul>
-                {argentina ? (
-                  isMercadoPagoConfigured
-                    ? <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full"><Link href={`/tienda/suscribirme?plan=${plan.id}`}>{t.mp.subscribe}</Link></Button>
-                    : <PlanComingSoon plan={plan} label={t.comingSoon} title={t.notifyPlan} body={t.notifyPlanBody} />
-                ) : isPayPalCheckoutConfigured ? (
-                  <PaypalSubscriptionCheckout plan={plan.id} clientId={process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!} />
-                ) : (
-                  <PlanComingSoon plan={plan} label={t.comingSoon} title={t.notifyPlan} body={t.notifyPlanBody} />
-                )}
-                <p className={`mt-4 text-center text-xs ${plan.featured ? 'text-paper/70' : 'text-muted-foreground'}`}>{t.cancelAnytime}</p>
-              </article>
-              )
-            })}
-          </div>
-          </section>
-          <Image
-            src="/tienda-productos.webp"
-            alt={t.productsAlt}
-            width={2000}
-            height={728}
-            sizes="(min-width: 1152px) 1088px, calc(100vw - 40px)"
-            className="mb-14 h-auto w-full rounded-2xl border-2 border-ink/10 shadow-sm"
-          />
+          <h2 id="plans-title" className="sr-only">{t.plansLabel}</h2>
           <div id="recortes" className="mb-8 scroll-mt-24">
             <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.cutoutsEyebrow}</p>
             <h2 className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-5xl">{copy.cutoutsTitle}</h2>
@@ -158,7 +102,6 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
               </span>
             </p>
           </div>
-          <h2 id="plans-title" className="sr-only">{t.plansLabel}</h2>
           <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
             {cutoutPlans.map((plan) => {
               return (
@@ -208,6 +151,63 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
               )
             })}
           </div>
+          <Image
+            src="/tienda-productos.webp"
+            alt={t.productsAlt}
+            width={2000}
+            height={728}
+            sizes="(min-width: 1152px) 1088px, calc(100vw - 40px)"
+            className="my-14 h-auto w-full rounded-2xl border-2 border-ink/10 shadow-sm"
+          />
+          <section id="membresia" aria-labelledby="membership-title" className="scroll-mt-24">
+            <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.membershipEyebrow}</p>
+            <h2 id="membership-title" className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-5xl">{copy.membershipTitle}</h2>
+            <p className="mt-4 mb-8 max-w-2xl text-muted-foreground">{copy.membershipBody}</p>
+          <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
+            {subscriptionPlans.map((plan) => {
+              const localizedPlan = t.plans[plan.id]
+              return (
+              <article
+                key={plan.id}
+                className={`relative flex flex-col rounded-2xl border-2 p-6 shadow-sm ${plan.featured ? 'border-collage-blue bg-collage-blue text-primary-foreground lg:-translate-y-3' : 'border-ink/15 bg-card'}`}
+              >
+                {plan.featured && (
+                  <span className="torn-strip absolute -top-4 left-1/2 -translate-x-1/2 bg-collage-yellow px-4 py-1.5 text-xs font-bold tracking-[0.16em] text-ink uppercase">
+                    {t.popular}
+                  </span>
+                )}
+                <PackageOpen className={`h-8 w-8 ${plan.featured ? 'text-collage-yellow' : 'text-collage-red'}`} aria-hidden="true" />
+                <h3 className="font-display mt-5 text-3xl tracking-tight uppercase">{localizedPlan.name}</h3>
+                <p className={`mt-3 min-h-12 text-sm ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{localizedPlan.description}</p>
+                <p className="mt-6 text-3xl font-bold tracking-tight">
+                  {priceLabel(plan.priceArs, plan.priceUsd)} <span className="text-base font-medium">{t.perMonth}</span>
+                </p>
+                {argentina
+                  ? <FreeShippingBadge label={t.freeShipping} className="mt-3 px-3.5 py-1.5 text-sm" />
+                  : <p className={`mt-2 text-sm font-semibold ${plan.featured ? 'text-paper/80' : 'text-muted-foreground'}`}>{copy.shipping}</p>}
+                <ul className={`mt-7 space-y-3 border-t-2 pt-6 text-sm ${plan.featured ? 'border-paper/25' : 'border-ink/10'}`}>
+                  {localizedPlan.contents.map((content) => (
+                    <li key={content} className="flex gap-2.5">
+                      <Check className={`mt-0.5 h-4 w-4 shrink-0 ${plan.featured ? 'text-collage-yellow' : 'text-collage-blue'}`} aria-hidden="true" />
+                      <span>{content}</span>
+                    </li>
+                  ))}
+                </ul>
+                {argentina ? (
+                  isMercadoPagoConfigured
+                    ? <Button asChild size="lg" variant={plan.featured ? 'default' : 'primary'} className="mt-8 w-full"><Link href={`/tienda/suscribirme?plan=${plan.id}`}>{t.mp.subscribe}</Link></Button>
+                    : <PlanComingSoon plan={plan} label={t.comingSoon} title={t.notifyPlan} body={t.notifyPlanBody} />
+                ) : isPayPalCheckoutConfigured ? (
+                  <PaypalSubscriptionCheckout plan={plan.id} clientId={process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!} />
+                ) : (
+                  <PlanComingSoon plan={plan} label={t.comingSoon} title={t.notifyPlan} body={t.notifyPlanBody} />
+                )}
+                <p className={`mt-4 text-center text-xs ${plan.featured ? 'text-paper/70' : 'text-muted-foreground'}`}>{t.cancelAnytime}</p>
+              </article>
+              )
+            })}
+          </div>
+          </section>
           <p className="mt-8 text-sm text-muted-foreground">{copy.shippingNote}</p>
           <MagazinePromo m={m} event="magazine_click_store" forArtist={false} className="mt-12" />
         </section>
