@@ -44,6 +44,12 @@
      normal-vision separation, 3:1 on paper) together with the red. */
   --chart-1: color-mix(in oklab, var(--collage-blue) 90%, var(--paper));
   --chart-2: var(--collage-red);
+  /* The one color outside the guide: «Envío gratis» is green in Argentina
+     (Mercado Libre taught everyone to scan for it), so the store's badge
+     is too, in a deep riso green that sits with the warm palette. Mercado
+     Libre's own #00a650 looks foreign here, and paper text on it is only
+     3:1; on this one it's 5:1. */
+  --free-shipping: #1f7a45;
   --radius: 0.75rem;
 }
 
@@ -74,6 +80,7 @@
   --color-collage-blue: var(--collage-blue);
   --color-collage-red: var(--collage-red);
   --color-collage-yellow: var(--collage-yellow);
+  --color-free-shipping: var(--free-shipping);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --radius-sm: calc(var(--radius) - 4px);
