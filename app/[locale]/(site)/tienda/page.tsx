@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { Check, PackageOpen, Scissors } from 'lucide-react'
+import { BadgeCheck, Check, PackageOpen, Scissors } from 'lucide-react'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { ScrollToTop } from '@/components/scroll-to-top'
@@ -144,6 +144,19 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
             <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.cutoutsEyebrow}</p>
             <h2 className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-5xl">{copy.cutoutsTitle}</h2>
             <p className="mt-4 max-w-2xl text-muted-foreground">{copy.cutoutsBody}</p>
+            {/* What sets the packs apart: who picks every scrap. */}
+            <p className="torn-strip mt-6 flex w-full -rotate-1 items-start gap-2.5 bg-collage-yellow px-4 py-3 font-semibold text-ink sm:px-5 sm:text-lg lg:-rotate-[0.5deg]">
+              <BadgeCheck className="mt-0.5 size-5 shrink-0 sm:mt-1" aria-hidden="true" />
+              <span>
+                {copy.curated.split('{curators}').flatMap((part, index) => index === 0 ? [part] : [
+                  ...site.organizers.flatMap(({ name, instagram }, i) => [
+                    i > 0 ? ' y ' : '',
+                    <a key={name} href={instagram} target="_blank" rel="noopener noreferrer" className="font-bold whitespace-nowrap underline decoration-2 underline-offset-2">{name}</a>,
+                  ]),
+                  part,
+                ])}
+              </span>
+            </p>
           </div>
           <h2 id="plans-title" className="sr-only">{t.plansLabel}</h2>
           <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
