@@ -490,6 +490,7 @@ const en: Messages = {
     },
     contemplation: {
       details: 'Details',
+      comments: 'See the comments',
       hideDetails: 'Back to the artwork',
       back: 'Keep exploring',
       keys: 'Keep exploring (E or Esc)',
@@ -616,6 +617,8 @@ const en: Messages = {
     },
     comments: {
       title: 'Comments',
+      count: p({ one: '{count} comment', other: '{count} comments' }),
+      action: 'Comment',
       none: 'No comments yet. Be the first!',
       placeholder: 'Tell us what you think of this artwork…',
       send: 'Comment',

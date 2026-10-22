@@ -489,6 +489,7 @@ const fr: Messages = {
     },
     contemplation: {
       details: 'Voir la fiche',
+      comments: 'Voir les commentaires',
       hideDetails: "Revenir à l'œuvre",
       back: 'Continuer la visite',
       keys: 'Continuer la visite (E ou Échap)',
@@ -615,6 +616,8 @@ const fr: Messages = {
     },
     comments: {
       title: 'Commentaires',
+      count: p({ one: '{count} commentaire', other: '{count} commentaires' }),
+      action: 'Commenter',
       none: 'Pas encore de commentaires. Écris le premier !',
       placeholder: 'Dis-nous ce que tu penses de cette œuvre…',
       send: 'Commenter',

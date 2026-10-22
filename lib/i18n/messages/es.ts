@@ -495,6 +495,7 @@ const es = {
     },
     contemplation: {
       details: 'Ver ficha',
+      comments: 'Ver los comentarios',
       hideDetails: 'Volver a la obra',
       back: 'Seguir recorriendo',
       keys: 'Seguir recorriendo (E o Esc)',
@@ -621,6 +622,8 @@ const es = {
     },
     comments: {
       title: 'Comentarios',
+      count: p({ one: '{count} comentario', other: '{count} comentarios' }),
+      action: 'Comentar',
       none: 'Todavía no hay comentarios. ¡Dejá el primero!',
       placeholder: 'Escribí qué te pareció esta obra…',
       send: 'Comentar',

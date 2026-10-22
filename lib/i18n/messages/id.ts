@@ -489,6 +489,7 @@ const id: Messages = {
     },
     contemplation: {
       details: 'Lihat detail',
+      comments: 'Lihat komentar',
       hideDetails: 'Kembali ke karya',
       back: 'Lanjutkan menjelajah',
       keys: 'Lanjutkan menjelajah (E atau Esc)',
@@ -612,6 +613,8 @@ const id: Messages = {
     },
     comments: {
       title: 'Komentar',
+      count: p({ other: '{count} komentar' }),
+      action: 'Beri komentar',
       none: 'Belum ada komentar. Jadilah yang pertama!',
       placeholder: 'Ceritakan pendapatmu tentang karya ini…',
       send: 'Kirim komentar',

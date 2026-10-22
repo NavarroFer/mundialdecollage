@@ -1,25 +1,43 @@
 'use client'
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type RefObject } from 'react'
+import { MessageCircle } from 'lucide-react'
 import { addArtworkComment, type GalleryComment } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { clearCommentDraft, galleryReturnPath, readCommentDraft, saveCommentDraft } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
 import { useInteractionStore } from '../interaction/store'
 import { forgetArtworkSocial } from './artworkSocial'
+import styles from '../gallery-theme.module.css'
 import { useI18n } from '@/lib/i18n/client'
 
 const MAX_LENGTH = 500
+// Each author keeps one tone of the paper palette for their initial.
+const AVATAR_TONES = ['var(--collage-blue)', 'var(--collage-red)', '#5f7a3a', 'var(--gallery-ink)']
 
 type CommentsState = { comments: GalleryComment[]; signedIn: boolean }
+
+function avatarTone(author: string) {
+  let hash = 0
+  for (let i = 0; i < author.length; i++) hash = (hash * 31 + author.charCodeAt(i)) >>> 0
+  return AVATAR_TONES[hash % AVATAR_TONES.length]
+}
 
 // Approved comments on this obra, plus the viewer's own still waiting for
 // moderation (/admin/comentarios). Writing one needs a Google account: a
 // signed-out visitor's draft is kept across the sign-in round trip and sent
 // automatically once they're back (lib/gallery-return.ts). `initial` comes
 // from the modal's single likes+comments fetch (artworkSocial.ts); `onSent`
-// lets the modal follow up once a comment is in (ArtistInvite).
-export function ArtworkComments({ slug, initial, onSent }: { slug: string; initial: CommentsState; onSent?: () => void }) {
+// lets the modal follow up once a comment is in (ArtistInvite). `fieldRef`
+// lets the ficha's «Comentar» tile jump to the box; `scrollIntoView` brings
+// the section up on arrival (the comments button over an obra).
+export function ArtworkComments({ slug, initial, onSent, fieldRef, scrollIntoView = false }: {
+  slug: string
+  initial: CommentsState
+  onSent?: () => void
+  fieldRef?: RefObject<HTMLTextAreaElement | null>
+  scrollIntoView?: boolean
+}) {
   const [state, setState] = useState<CommentsState>(initial)
   const [draft, setDraft] = useState(() => readCommentDraft(slug))
   const [busy, setBusy] = useState(false)
@@ -33,6 +51,13 @@ export function ArtworkComments({ slug, initial, onSent }: { slug: string; initi
   } as Record<string, string>
   const headingId = useId()
   const fieldId = useId()
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!scrollIntoView) return
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    sectionRef.current?.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' })
+  }, [scrollIntoView])
 
   const signIn = useCallback(async (text: string) => {
     track('sign_in_start')
@@ -90,21 +115,29 @@ export function ArtworkComments({ slug, initial, onSent }: { slug: string; initi
   const dateFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
 
   return (
-    <section aria-labelledby={headingId} className="mt-2 space-y-3 border-t border-ink/10 pt-4">
-      <h3 id={headingId} className="text-sm font-bold tracking-wide text-ink uppercase">{t.title}</h3>
+    <section ref={sectionRef} aria-labelledby={headingId} className="scroll-mt-2 space-y-4 border-t border-ink/10 pt-5">
+      <h3 id={headingId} className="flex items-center gap-2 text-lg font-bold text-ink">
+        <MessageCircle className="size-5" aria-hidden="true" />
+        {t.title}
+        {state.comments.length > 0 && <span className={styles.ficheBadge}>{state.comments.length}</span>}
+      </h3>
 
-      {state.comments.length === 0 && <p className="text-sm text-muted-foreground">{t.none}</p>}
+      {state.comments.length === 0 && <p className="text-base">{t.none}</p>}
       {state.comments.length > 0 && (
         <ul className="space-y-3">
           {state.comments.map((comment) => (
-            <li key={comment.id} className="text-sm">
-              <p className="text-xs text-muted-foreground">
-                <span className="font-semibold text-ink">{comment.author}</span>
-                {' · '}
-                <time dateTime={comment.createdAt}>{dateFormat.format(new Date(comment.createdAt))}</time>
-                {comment.pending && <span className="ml-2 rounded-full bg-ink/10 px-2 py-0.5 font-semibold">{t.pending}</span>}
-              </p>
-              <p className="mt-1 whitespace-pre-line break-words text-ink/90">{comment.body}</p>
+            <li key={comment.id} className={styles.ficheComment}>
+              <div className="flex items-center gap-2.5">
+                <span aria-hidden="true" className={styles.ficheAvatar} style={{ background: avatarTone(comment.author) }}>
+                  {Array.from(comment.author.trim())[0]?.toUpperCase()}
+                </span>
+                <span className="flex min-w-0 flex-col leading-tight">
+                  <span className="truncate text-sm font-bold">{comment.author}</span>
+                  <time dateTime={comment.createdAt} className="text-xs opacity-70">{dateFormat.format(new Date(comment.createdAt))}</time>
+                </span>
+                {comment.pending && <span className="ml-auto shrink-0 rounded-full bg-ink/10 px-2 py-0.5 text-xs font-semibold">{t.pending}</span>}
+              </div>
+              <p className="mt-2 whitespace-pre-line break-words text-base leading-relaxed">{comment.body}</p>
             </li>
           ))}
         </ul>
@@ -112,20 +145,18 @@ export function ArtworkComments({ slug, initial, onSent }: { slug: string; initi
 
       <form onSubmit={(event) => { event.preventDefault(); void send(state, draft) }} className="space-y-2">
         <label htmlFor={fieldId} className="sr-only">{t.placeholder}</label>
-        <textarea id={fieldId} value={draft} onChange={(event) => setDraft(event.target.value)}
-          maxLength={MAX_LENGTH} rows={3} placeholder={t.placeholder} disabled={busy}
-          className="w-full resize-none rounded-lg border border-ink/20 bg-paper px-3 py-2 text-sm" />
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">{t.moderationNote}</p>
-          <button type="submit" disabled={busy || !draft.trim()}
-            className="inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-paper disabled:opacity-60">
+        <textarea ref={fieldRef} id={fieldId} value={draft} onChange={(event) => setDraft(event.target.value)}
+          maxLength={MAX_LENGTH} rows={3} placeholder={t.placeholder} disabled={busy} className={styles.ficheField} />
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <p className="text-xs opacity-70">{t.moderationNote}</p>
+          <button type="submit" disabled={busy || !draft.trim()} className={styles.ficheSubmit}>
             {!state.signedIn && <GoogleIcon />}
             {busy ? (state.signedIn ? t.sending : m.auth.signingIn) : state.signedIn ? t.send : t.signInToComment}
           </button>
         </div>
       </form>
 
-      {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
+      {notice && <p role="status" className="text-sm">{notice}</p>}
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
     </section>
   )

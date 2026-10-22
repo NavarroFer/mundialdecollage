@@ -499,6 +499,7 @@ const pl: Messages = {
     },
     contemplation: {
       details: 'Zobacz opis',
+      comments: 'Zobacz komentarze',
       hideDetails: 'Wróć do pracy',
       back: 'Zwiedzaj dalej',
       keys: 'Zwiedzaj dalej (E lub Esc)',
@@ -637,6 +638,8 @@ const pl: Messages = {
     },
     comments: {
       title: 'Komentarze',
+      count: p({ one: '{count} komentarz', few: '{count} komentarze', many: '{count} komentarzy', other: '{count} komentarza' }),
+      action: 'Skomentuj',
       none: 'Nie ma jeszcze komentarzy. Napisz pierwszy!',
       placeholder: 'Napisz, co myślisz o tej pracy…',
       send: 'Skomentuj',

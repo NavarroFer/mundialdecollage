@@ -489,6 +489,7 @@ const it: Messages = {
     },
     contemplation: {
       details: 'Vedi scheda',
+      comments: 'Vedi i commenti',
       hideDetails: "Torna all'opera",
       back: 'Continua il percorso',
       keys: 'Continua il percorso (E o Esc)',
@@ -615,6 +616,8 @@ const it: Messages = {
     },
     comments: {
       title: 'Commenti',
+      count: p({ one: '{count} commento', other: '{count} commenti' }),
+      action: 'Commenta',
       none: 'Ancora nessun commento. Scrivi il primo!',
       placeholder: "Racconta cosa ne pensi di quest'opera…",
       send: 'Commenta',

@@ -499,6 +499,7 @@ const ru: Messages = {
     },
     contemplation: {
       details: 'Подробнее',
+      comments: 'Посмотреть комментарии',
       hideDetails: 'Назад к работе',
       back: 'Продолжить прогулку',
       keys: 'Продолжить прогулку (E или Esc)',
@@ -637,6 +638,8 @@ const ru: Messages = {
     },
     comments: {
       title: 'Комментарии',
+      count: p({ one: '{count} комментарий', few: '{count} комментария', many: '{count} комментариев', other: '{count} комментария' }),
+      action: 'Комментировать',
       none: 'Комментариев пока нет. Напишите первый!',
       placeholder: 'Расскажите, что вы думаете об этой работе…',
       send: 'Отправить',

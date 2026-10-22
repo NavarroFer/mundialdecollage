@@ -2,8 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
-import { ArrowLeft, Info, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowLeft, Info, MessageCircle, X } from 'lucide-react'
 import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ArtworkLike } from './ArtworkLike'
@@ -19,6 +19,7 @@ import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
+import { plural } from '@/lib/i18n/format'
 
 // How long the player has to keep looking at an obra before its likes and
 // comments are fetched: skips the ones they only sweep past.
@@ -27,8 +28,9 @@ const PREFETCH_DWELL_MS = 250
 /**
  * An obra up close. It opens in contemplation: the camera glides in front of
  * it and only its name stays on screen, over the walk, so the image is what
- * the visitor sees. The details (story, likes, comments, stamp) unfold on
- * request, and are already open when coming back from signing in to use them.
+ * the visitor sees, with how many comments it has beside the name. The
+ * details (story, likes, comments, stamp) unfold on request, and are already
+ * open when coming back from signing in to use them.
  */
 export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
   const openId = useInteractionStore((state) => state.openId)
@@ -37,6 +39,8 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
   const { m } = useI18n()
   const t = m.gallery.contemplation
   const themeClass = cn(styles.modal, theme === 'windows98' && styles.windows98, theme === 'collage' && styles.collage, theme === 'garden' && styles.garden)
+  // Opened from the comments button, the ficha scrolls down to them.
+  const [commentsFor, setCommentsFor] = useState<string | null>(null)
 
   useEffect(() => {
     if (openId) track('artwork_open')
@@ -60,6 +64,10 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
   if (!artwork) return null
 
   const close = () => useInteractionStore.getState().close()
+  const openDetails = (atComments: boolean) => {
+    setCommentsFor(atComments ? artwork.id : null)
+    useInteractionStore.getState().setDetails(true)
+  }
 
   if (!detailsOpen) {
     return (
@@ -68,16 +76,20 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           aria-describedby={undefined}
           showClose={false}
           overlayClassName="bg-transparent"
-          className={cn(themeClass, styles.contemplation, 'top-auto bottom-4 flex w-[min(40rem,calc(100%-2rem))] translate-y-0 items-center gap-3 px-4 py-3')}
+          className={cn(themeClass, styles.contemplation, 'top-auto bottom-4 flex w-[min(40rem,calc(100%-2rem))] translate-y-0 flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap')}
         >
           <div className="min-w-0 flex-1">
             <DialogTitle className="font-display truncate text-xl leading-tight text-ink">{artwork.title}</DialogTitle>
             <p className="truncate text-sm font-semibold text-muted-foreground">{artwork.artist} · {artwork.year}</p>
           </div>
-          <button type="button" className={styles.contemplationButton} onClick={() => useInteractionStore.getState().setDetails(true)}>
-            <Info className="h-4 w-4" aria-hidden="true" /> {t.details}
-          </button>
-          <button type="button" className={styles.contemplationClose} onClick={close} aria-label={t.back} title={t.keys}>
+          {/* On a phone the two buttons get a row of their own under the name. */}
+          <div className="order-2 flex w-full gap-2 sm:order-none sm:w-auto">
+            <ContemplationComments key={artwork.id} slug={artwork.id} onOpen={() => openDetails(true)} />
+            <button type="button" className={cn(styles.contemplationButton, 'flex-1 justify-center sm:flex-none')} onClick={() => openDetails(false)}>
+              <Info className="h-4 w-4" aria-hidden="true" /> {t.details}
+            </button>
+          </div>
+          <button type="button" className={cn(styles.contemplationClose, 'order-1 sm:order-none')} onClick={close} aria-label={t.back} title={t.keys}>
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </DialogContent>
@@ -110,7 +122,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           <p className="text-sm leading-relaxed opacity-80">{artwork.description}</p>
           <ArtworkViewers artworkId={artwork.id} />
         </header>
-        <ArtworkSocialPanel key={artwork.id} artwork={artwork} />
+        <ArtworkSocialPanel key={artwork.id} artwork={artwork} showComments={commentsFor === artwork.id} />
         <footer className="flex shrink-0 flex-col gap-2 border-t border-ink/10 pt-4">
           <p className="text-xs font-semibold tracking-wide uppercase opacity-70">{m.gallery.closeToContinue}</p>
           <Link href="/" onClick={() => track('home_from_gallery')} className="self-start text-sm font-semibold underline">{m.gallery.homeLink}</Link>
@@ -122,6 +134,38 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
 
 const pulse = 'animate-pulse rounded-full bg-ink/10 motion-reduce:animate-none'
 
+// The obra's likes and comments: the prefetched ones when they're already
+// here (the usual case), else fetched now. `retry` asks again after a failure.
+function useArtworkSocial(slug: string) {
+  const [result, setResult] = useState<SocialResult | undefined>(() => peekArtworkSocial(slug))
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    let active = true
+    loadArtworkSocial(slug).then((next) => { if (active) setResult(next) })
+    return () => { active = false }
+  }, [slug, attempt])
+  const retry = useCallback(() => {
+    setResult(undefined)
+    setAttempt((value) => value + 1)
+  }, [])
+  return { result, retry }
+}
+
+// Beside the obra's name in contemplation: how many comments it has, one
+// tap from reading them.
+function ContemplationComments({ slug, onOpen }: { slug: string; onOpen: () => void }) {
+  const { result } = useArtworkSocial(slug)
+  const { locale, m } = useI18n()
+  const t = m.gallery.comments
+  const count = result && !('error' in result) ? result.comments.comments.length : null
+  return (
+    <button type="button" className={cn(styles.contemplationComments, 'flex-1 sm:flex-none')} onClick={onOpen} title={m.gallery.contemplation.comments}>
+      <MessageCircle aria-hidden="true" />
+      {count === null ? t.title : count === 0 ? t.action : plural(locale, count, t.count)}
+    </button>
+  )
+}
+
 // Where the invitation to send an obra appears: under the like or the comment
 // that triggered it. It doesn't go away on its own: closing the obra (a tap
 // outside, E) used to take it with it before anyone could read it, so once
@@ -132,13 +176,15 @@ let inviteForVisit: 'unseen' | 'pending' | 'settled' = 'unseen'
 
 // Likes and comments share one request and appear in the same frame, over
 // placeholders the size of what replaces them so nothing below jumps.
-function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
-  const [result, setResult] = useState<SocialResult | undefined>(() => peekArtworkSocial(artwork.id))
+function ArtworkSocialPanel({ artwork, showComments }: { artwork: Artwork; showComments: boolean }) {
+  const { result, retry } = useArtworkSocial(artwork.id)
   // Already fetched (the usual case): it opens with the modal, no fade of its own.
   const [instant] = useState(() => result !== undefined)
-  const [attempt, setAttempt] = useState(0)
+  // Comments sent from this ficha, on top of the fetched count.
+  const [sentHere, setSentHere] = useState(0)
+  const commentField = useRef<HTMLTextAreaElement>(null)
   const [invite, setInvite] = useState<Invite>(() => (inviteForVisit === 'settled' ? 'dismissed' : inviteForVisit === 'pending' ? 'like' : null))
-  const { m } = useI18n()
+  const { locale, m } = useI18n()
   const showInvite = useCallback((from: 'like' | 'comment') => setInvite((current) => {
     if (current) return current
     inviteForVisit = 'pending'
@@ -146,22 +192,26 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
   }), [])
   // Stable, so ArtworkLike/ArtworkComments can keep them in their callbacks' deps.
   const afterLike = useCallback(() => showInvite('like'), [showInvite])
-  const afterComment = useCallback(() => showInvite('comment'), [showInvite])
+  const afterComment = useCallback(() => {
+    setSentHere((count) => count + 1)
+    showInvite('comment')
+  }, [showInvite])
   const settleInvite = useCallback(() => {
     inviteForVisit = 'settled'
     setInvite('dismissed')
   }, [])
 
-  useEffect(() => {
-    let active = true
-    loadArtworkSocial(artwork.id).then((next) => { if (active) setResult(next) })
-    return () => { active = false }
-  }, [artwork.id, attempt])
-
   const social = result && !('error' in result) ? result : undefined
   const failed = result !== undefined && !social
   const reveal = cn(!instant && 'animate-in fade-in duration-300 motion-reduce:animate-none')
   const inviteUnder = (from: Invite) => social?.canJoin && invite === from && <ArtistInvite onDismiss={settleInvite} onAccept={settleInvite} />
+  const writeComment = () => {
+    const field = commentField.current
+    if (!field) return
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    field.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' })
+    field.focus({ preventScroll: true })
+  }
 
   return (
     <>
@@ -171,11 +221,22 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
         ) : failed ? (
           <p role="alert" className={cn(styles.ficheNote, 'text-sm text-red-700')}>
             {m.gallery.like.unavailable}{' '}
-            <button type="button" className="underline" onClick={() => { setResult(undefined); setAttempt((value) => value + 1) }}>
+            <button type="button" className="underline" onClick={retry}>
               {m.gallery.like.retry}
             </button>
           </p>
         ) : (
+          <div aria-hidden="true" className={cn(styles.ficheSkeleton, 'animate-pulse motion-reduce:animate-none')} />
+        )}
+        {social ? (
+          <button type="button" onClick={writeComment} className={cn(styles.ficheAction, reveal)}>
+            <MessageCircle aria-hidden="true" />
+            <span className={styles.ficheActionText}>
+              <span className={styles.ficheActionLabel}>{m.gallery.comments.action}</span>
+              <span className={styles.ficheActionMeta}>{plural(locale, social.comments.comments.length + sentHere, m.gallery.comments.count)}</span>
+            </span>
+          </button>
+        ) : !failed && (
           <div aria-hidden="true" className={cn(styles.ficheSkeleton, 'animate-pulse motion-reduce:animate-none')} />
         )}
         <ArtworkStamp slug={artwork.id} signedIn={social?.like.signedIn ?? false} />
@@ -183,9 +244,11 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
       </div>
       {inviteUnder('like')}
       {social ? (
-        <div className={reveal}><ArtworkComments slug={artwork.id} initial={social.comments} onSent={afterComment} /></div>
+        <div className={cn('shrink-0', reveal)}>
+          <ArtworkComments slug={artwork.id} initial={social.comments} onSent={afterComment} fieldRef={commentField} scrollIntoView={showComments} />
+        </div>
       ) : !failed && (
-        <div aria-hidden="true" className="mt-2 space-y-3 border-t border-ink/10 pt-4">
+        <div aria-hidden="true" className="shrink-0 space-y-3 border-t border-ink/10 pt-5">
           <div className={cn(pulse, 'h-4 w-28')} />
           <div className={cn(pulse, 'h-20 w-full rounded-lg')} />
         </div>
