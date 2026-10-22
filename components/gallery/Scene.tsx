@@ -7,7 +7,6 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import type { Artwork } from '@/data/artworks'
-import { FloatingReactions } from './artwork/FloatingReactions'
 import { EdgeLook } from './camera/EdgeLook'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
 import { InteractionManager } from './interaction/InteractionManager'
@@ -67,7 +66,6 @@ export function Scene({ artworks, theme, active, controlMode, paused, isTouchDev
         <InteractionManager artworks={artworks} />
         <PlayerTracker />
         <AttentionRay active={active} />
-        <FloatingReactions artworks={artworks} />
         <SouvenirCapture />
         <WallAim />
         <CollageWall theme={theme} title={wall.title} subtitle={wall.subtitle} cyrillic={wall.cyrillic} />

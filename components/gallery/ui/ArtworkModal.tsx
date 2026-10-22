@@ -12,7 +12,6 @@ import { ArtworkComments } from './ArtworkComments'
 import { ArtworkShare } from './ArtworkShare'
 import { ArtistInvite } from './ArtistInvite'
 import { ArtworkViewers } from './PresenceCounter'
-import { LiveReactions } from './LiveReactions'
 import { loadArtworkSocial, peekArtworkSocial, type SocialResult } from './artworkSocial'
 import type { Artwork } from '@/data/artworks'
 import { useInteractionStore } from '../interaction/store'
@@ -112,7 +111,6 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           </p>
           <p className="text-base leading-relaxed text-ink/80">{artwork.description}</p>
           <ArtworkViewers artworkId={artwork.id} />
-          <LiveReactions artworkId={artwork.id} />
           <ArtworkSocialPanel key={artwork.id} artwork={artwork} />
           <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {m.gallery.closeToContinue}

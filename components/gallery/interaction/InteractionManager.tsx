@@ -44,7 +44,7 @@ export function InteractionManager({ artworks }: { artworks: Artwork[] }) {
 
   // Ignore gallery shortcuts while typing into the like form, or while the
   // souvenir photo is up. Buttons don't
-  // count: the modal auto-focuses its first reaction button, and E has to
+  // count: the modal auto-focuses its first button, and E has to
   // keep closing it from there.
   useEffect(() => {
     return subscribeKeys(

@@ -8,8 +8,7 @@ import { useInteractionStore } from '../interaction/store'
 import { usePlayerTrackerStore } from '../minimap/store'
 import { useGalleryPreferences } from '../preferences/store'
 import {
-  MAX_LIVE_VISITORS, parsePose, parseReaction, poseMessage, shouldSendPose, summarizePresence,
-  type ReactionEmoji, type SentPose,
+  MAX_LIVE_VISITORS, parsePose, poseMessage, shouldSendPose, summarizePresence, type SentPose,
 } from './protocol'
 import { peerPoses, prunePeerPoses, recordPeerPose, usePresenceStore } from './store'
 
@@ -17,18 +16,17 @@ import { peerPoses, prunePeerPoses, recordPeerPose, usePresenceStore } from './s
 // tabs that have entered the exhibition and are in the foreground announce
 // themselves. Presence lives in Supabase's memory — no table, and the payload
 // is just which obra is open, so nothing about a visitor is sent or stored.
-// Reactions and avatar positions ride the same channel as broadcasts:
-// delivered live, never kept.
+// Avatar positions ride the same channel as broadcasts: delivered live,
+// never kept.
 // Local dev shares the production Supabase project; a separate topic keeps
 // `next dev` sessions out of the real gallery's count and avatars.
 const TOPIC = process.env.NODE_ENV === 'production' ? 'galeria-3d' : 'galeria-3d-dev'
-const REACTION_COOLDOWN_MS = 600
 // A background tab still receives every broadcast — and each delivery counts
 // against the Realtime message quota — so one left hidden this long lets go
 // of its connection, and reconnects when it's shown again.
 const HIDDEN_DISCONNECT_MS = 60_000
 // Kill switch for the quota: NEXT_PUBLIC_GALLERY_LIVE=off (and a redeploy)
-// turns off the count, avatars and reactions; the gallery itself still works.
+// turns off the count and avatars; the gallery itself still works.
 const LIVE_ENABLED = process.env.NEXT_PUBLIC_GALLERY_LIVE !== 'off'
 // Catches the spot where someone stopped between two throttled sends.
 const POSE_CHECK_MS = 500
@@ -72,7 +70,7 @@ function sendPose(connection: Connection) {
 
 // Opens this tab's socket and joins the channel; returns what closes them.
 function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () => void {
-  const { setSummary, addReaction } = usePresenceStore.getState()
+  const { setSummary } = usePresenceStore.getState()
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   const url = new URL('realtime/v1', process.env.NEXT_PUBLIC_SUPABASE_URL)
   url.protocol = url.protocol.replace('http', 'ws')
@@ -84,15 +82,6 @@ function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () =
   current.seq = 0
   const channel = client.channel(TOPIC, { config: { presence: { key: current.key } } })
   current.channel = channel
-
-  let lastReactionAt = 0
-  const react = (artworkId: string, emoji: ReactionEmoji) => {
-    if (!isPresent(current) || Date.now() - lastReactionAt < REACTION_COOLDOWN_MS) return
-    lastReactionAt = Date.now()
-    // Broadcasts don't echo back to the sender, so show our own right away.
-    addReaction(artworkId, emoji)
-    void channel.send({ type: 'broadcast', event: 'reaction', payload: { artworkId, emoji } })
-  }
 
   channel
     .on('presence', { event: 'sync' }, () => {
@@ -107,10 +96,6 @@ function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () =
       current.lastPose = null
       sendPose(current)
     })
-    .on('broadcast', { event: 'reaction' }, ({ payload }) => {
-      const reaction = parseReaction(payload, artworkIds)
-      if (reaction && current.channel === channel) addReaction(reaction.artworkId, reaction.emoji)
-    })
     .on('broadcast', { event: 'pose' }, ({ payload }) => {
       const pose = parsePose(payload)
       if (pose && pose.key !== current.key && current.channel === channel) recordPeerPose(pose, Date.now())
@@ -119,7 +104,6 @@ function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () =
       // A channel from a previous mount can still report CLOSED late.
       if (current.channel !== channel) return
       current.joined = status === 'SUBSCRIBED'
-      usePresenceStore.setState({ react: current.joined ? react : null })
       // Realtime rejoins on its own after a dropped connection and reports
       // SUBSCRIBED again, which re-announces this tab.
       if (current.joined) announce(current)
@@ -132,7 +116,6 @@ function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () =
     current.joined = false
     current.lastPose = null
     setSummary(null)
-    usePresenceStore.setState({ react: null })
     void channel.unsubscribe().finally(() => client.disconnect())
   }
 }

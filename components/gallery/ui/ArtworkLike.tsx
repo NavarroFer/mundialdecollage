@@ -7,7 +7,6 @@ import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-
 import { galleryReturnPath } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
 import { useInteractionStore } from '../interaction/store'
-import { usePresenceStore } from '../presence/store'
 import { forgetArtworkSocial } from './artworkSocial'
 import { useI18n } from '@/lib/i18n/client'
 import { plural } from '@/lib/i18n/format'
@@ -60,8 +59,6 @@ export function ArtworkLike({ slug, initial, onSaved }: { slug: string; initial:
       forgetArtworkSocial(slug)
       track('like_saved')
       onSaved?.()
-      // Everyone inside sees a heart rise from the obra.
-      usePresenceStore.getState().react?.(slug, '❤️')
       // Fetch the authoritative count: another tab may have already voted.
       const latest = await getArtworkLike(slug)
       if (!('error' in latest)) setState(latest)
