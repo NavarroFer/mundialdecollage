@@ -576,6 +576,83 @@
 .windows98 .contemplationButton { color: #fff; background: #000080; }
 .windows98.contemplation { padding-top: 2.4rem !important; }
 
+/* The ficha's actions: big tiles with a word each, two to a row, so what can
+   be done with an obra reads at a glance. What a tile answers (sign in, an
+   error, stamps left) spans the row right under it: `dense` lets the next
+   tile take the slot beside the previous one first. Lines about the whole
+   set (the newsletter notice, the thanks) go after every tile. */
+.ficheActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  gap: .65rem;
+}
+.ficheNote { grid-column: 1 / -1; }
+.ficheFootnote { grid-column: 1 / -1; order: 1; }
+.ficheAction {
+  display: flex;
+  min-width: 0;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: .55rem;
+  padding: .55rem .8rem;
+  border: 2px solid var(--gallery-ink);
+  color: var(--gallery-ink);
+  background: var(--gallery-panel-solid);
+  box-shadow: 3px 3px 0 var(--gallery-ink);
+  font-size: .95rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.ficheAction > svg { width: 1.3rem; height: 1.3rem; flex-shrink: 0; }
+.ficheAction:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--gallery-ink); }
+.ficheAction:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--gallery-ink); }
+.ficheAction:focus-visible { outline: 3px solid var(--gallery-accent); outline-offset: 2px; }
+.ficheAction:disabled { cursor: default; opacity: .7; }
+/* Done (liked, stamp saved): pressed in, nothing left to do there. */
+.ficheAction[data-done='true'] {
+  opacity: 1;
+  box-shadow: none;
+  transform: translate(2px, 2px);
+  background: color-mix(in srgb, var(--gallery-accent) 18%, var(--gallery-panel-solid));
+}
+.ficheActionLabel { min-width: 0; overflow-wrap: anywhere; }
+/* A tile with a count: the word on top, «12 likes» under it. */
+.ficheActionText { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
+.ficheActionMeta { font-size: .8rem; font-weight: 600; opacity: .75; font-variant-numeric: tabular-nums; }
+.ficheHeart { color: var(--collage-red); }
+.ficheSkeleton {
+  min-height: 3.25rem;
+  border-radius: var(--gallery-radius);
+  background: color-mix(in srgb, var(--gallery-ink) 10%, transparent);
+}
+.ficheLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 1.1rem;
+  font-size: .875rem;
+  font-weight: 700;
+}
+.ficheLinks button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: .4rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ficheLinks svg { width: 1rem; height: 1rem; }
+.windows98 .ficheAction { border: 2px solid; border-color: #fff #000 #000 #fff; background: #c0c0c0; box-shadow: none; }
+.windows98 .ficheAction:hover:not(:disabled) { transform: none; box-shadow: none; }
+.windows98 .ficheAction:active:not(:disabled),
+.windows98 .ficheAction[data-done='true'] { border-color: #000 #fff #fff #000; transform: none; background: #d4d0c8; }
+@media (prefers-reduced-motion: reduce) {
+  .ficheAction { transition: none; }
+}
+
 /* The visit passport: three seals, then the day's obras as stamps to collect. */
 .passportSeals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; margin: 0; padding: 0; list-style: none; }
 .passportSeals li {

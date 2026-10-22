@@ -8,14 +8,17 @@ import { galleryReturnPath } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
 import { useInteractionStore } from '../interaction/store'
 import { forgetArtworkSocial } from './artworkSocial'
+import styles from '../gallery-theme.module.css'
 import { useI18n } from '@/lib/i18n/client'
 import { plural } from '@/lib/i18n/format'
+import { cn } from '@/lib/utils'
 
 type LikeState = { count: number; liked: boolean; signedIn: boolean }
 
 // `initial` comes from the modal's single likes+comments fetch (artworkSocial.ts).
 // `onSaved` lets the modal follow up once the like is in (ArtistInvite).
-export function ArtworkLike({ slug, initial, onSaved }: { slug: string; initial: LikeState; onSaved?: () => void }) {
+// A tile of the ficha's action grid: its notes span the row under it.
+export function ArtworkLike({ slug, initial, onSaved, className }: { slug: string; initial: LikeState; onSaved?: () => void; className?: string }) {
   const [state, setState] = useState<LikeState>(initial)
   const [busy, setBusy] = useState(false)
   // A signed-out visitor pressed the heart: offer Google right under it.
@@ -80,16 +83,18 @@ export function ArtworkLike({ slug, initial, onSaved }: { slug: string; initial:
   }, [slug, initial, save])
 
   return (
-    <div className="mt-3 space-y-3">
+    <>
       <button type="button" onClick={() => { track('like_click'); void save(state) }} disabled={busy || redirecting || state.liked}
         aria-pressed={state.liked} aria-expanded={!state.signedIn ? askSignIn : undefined}
-        className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-5 py-3 font-semibold disabled:opacity-60">
-        <Heart className="h-5 w-5" fill={state.liked || askSignIn ? 'currentColor' : 'none'} aria-hidden="true" />
-        {busy ? t.saving : state.liked ? t.liked : t.like}
-        <span aria-label={plural(locale, state.count, t.count)}>· {state.count}</span>
+        data-done={state.liked} className={cn(styles.ficheAction, className)}>
+        <Heart className={styles.ficheHeart} fill={state.liked || askSignIn ? 'currentColor' : 'none'} aria-hidden="true" />
+        <span className={styles.ficheActionText}>
+          <span className={styles.ficheActionLabel}>{busy ? t.saving : state.liked ? t.liked : t.like}</span>
+          <span className={styles.ficheActionMeta}>{plural(locale, state.count, t.count)}</span>
+        </span>
       </button>
       {askSignIn && !state.liked && (
-        <div className="space-y-2 rounded-xl border border-ink/15 p-4">
+        <div className={cn(styles.ficheNote, 'space-y-2 rounded-[var(--gallery-radius)] border border-ink/15 p-4')}>
           <p className="text-sm font-semibold">{t.signIn}</p>
           <button type="button" onClick={() => void signIn()} disabled={redirecting} autoFocus
             className="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60">
@@ -101,9 +106,9 @@ export function ArtworkLike({ slug, initial, onSaved }: { slug: string; initial:
           </p>
         </div>
       )}
-      {state.signedIn && !state.liked && <p className="text-xs text-muted-foreground">{t.newsletter}</p>}
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-      {state.liked && <p role="status" className="text-sm text-muted-foreground">{t.thanks}</p>}
-    </div>
+      {error && <p role="alert" className={cn(styles.ficheNote, 'text-sm text-red-700')}>{error}</p>}
+      {state.signedIn && !state.liked && <p className={cn(styles.ficheFootnote, 'text-xs text-muted-foreground')}>{t.newsletter}</p>}
+      {state.liked && <p role="status" className={cn(styles.ficheFootnote, 'text-sm text-muted-foreground')}>{t.thanks}</p>}
+    </>
   )
 }

@@ -90,7 +90,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
       <DialogContent
         aria-describedby={undefined}
         overlayClassName="bg-ink/25 backdrop-blur-[1px]"
-        className={cn(themeClass, 'flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl flex-col gap-6 overflow-y-auto p-6 sm:left-auto sm:right-6 sm:w-[min(25rem,calc(100%-3rem))] sm:max-w-md sm:translate-x-0 sm:p-8')}
+        className={cn(themeClass, 'flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl flex-col gap-5 overflow-y-auto p-5 sm:left-auto sm:right-6 sm:w-[min(28rem,calc(100%-3rem))] sm:max-w-md sm:translate-x-0 sm:p-7')}
       >
         <button type="button" className="-mb-3 inline-flex min-h-11 items-center gap-2 self-start text-sm font-semibold underline" onClick={() => useInteractionStore.getState().setDetails(false)}>
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t.hideDetails}
@@ -104,19 +104,17 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
             className="object-contain"
           />
         </div>
-        <div className="flex min-w-0 shrink-0 flex-col justify-center gap-3">
-          <DialogTitle className="font-display text-2xl leading-tight text-ink">{artwork.title}</DialogTitle>
-          <p className="text-sm font-semibold tracking-wide text-muted-foreground">
-            {artwork.artist} · {artwork.year}
-          </p>
-          <p className="text-base leading-relaxed text-ink/80">{artwork.description}</p>
+        <header className="flex min-w-0 shrink-0 flex-col gap-2">
+          <DialogTitle className="font-display text-3xl leading-tight text-ink">{artwork.title}</DialogTitle>
+          <p className="text-base font-semibold">{artwork.artist} · {artwork.year}</p>
+          <p className="text-sm leading-relaxed opacity-80">{artwork.description}</p>
           <ArtworkViewers artworkId={artwork.id} />
-          <ArtworkSocialPanel key={artwork.id} artwork={artwork} />
-          <p className="mt-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            {m.gallery.closeToContinue}
-          </p>
-          <Link href="/" onClick={() => track('home_from_gallery')} className="text-sm font-semibold underline">{m.gallery.homeLink}</Link>
-        </div>
+        </header>
+        <ArtworkSocialPanel key={artwork.id} artwork={artwork} />
+        <footer className="flex shrink-0 flex-col gap-2 border-t border-ink/10 pt-4">
+          <p className="text-xs font-semibold tracking-wide uppercase opacity-70">{m.gallery.closeToContinue}</p>
+          <Link href="/" onClick={() => track('home_from_gallery')} className="self-start text-sm font-semibold underline">{m.gallery.homeLink}</Link>
+        </footer>
       </DialogContent>
     </Dialog>
   )
@@ -167,21 +165,23 @@ function ArtworkSocialPanel({ artwork }: { artwork: Artwork }) {
 
   return (
     <>
-      {social ? (
-        <div className={reveal}><ArtworkLike slug={artwork.id} initial={social.like} onSaved={afterLike} /></div>
-      ) : failed ? (
-        <p role="alert" className="mt-3 text-sm text-red-700">
-          {m.gallery.like.unavailable}{' '}
-          <button type="button" className="underline" onClick={() => { setResult(undefined); setAttempt((value) => value + 1) }}>
-            {m.gallery.like.retry}
-          </button>
-        </p>
-      ) : (
-        <div aria-hidden="true" className={cn(pulse, 'mt-3 h-12 w-36')} />
-      )}
+      <div className={cn(styles.ficheActions, 'shrink-0')}>
+        {social ? (
+          <ArtworkLike slug={artwork.id} initial={social.like} onSaved={afterLike} className={reveal} />
+        ) : failed ? (
+          <p role="alert" className={cn(styles.ficheNote, 'text-sm text-red-700')}>
+            {m.gallery.like.unavailable}{' '}
+            <button type="button" className="underline" onClick={() => { setResult(undefined); setAttempt((value) => value + 1) }}>
+              {m.gallery.like.retry}
+            </button>
+          </p>
+        ) : (
+          <div aria-hidden="true" className={cn(styles.ficheSkeleton, 'animate-pulse motion-reduce:animate-none')} />
+        )}
+        <ArtworkStamp slug={artwork.id} signedIn={social?.like.signedIn ?? false} />
+        <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
+      </div>
       {inviteUnder('like')}
-      <ArtworkStamp slug={artwork.id} signedIn={social?.like.signedIn ?? false} />
-      <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
       {social ? (
         <div className={reveal}><ArtworkComments slug={artwork.id} initial={social.comments} onSent={afterComment} /></div>
       ) : !failed && (
