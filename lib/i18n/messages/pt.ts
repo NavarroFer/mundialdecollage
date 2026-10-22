@@ -603,7 +603,6 @@ const pt: Messages = {
     like: {
       unavailable: 'Não conseguimos carregar as curtidas. Tente de novo em um instante.',
       saveFailed: 'Não conseguimos salvar sua curtida. Tente de novo.',
-      saving: 'Salvando…',
       liked: 'Você curtiu esta obra',
       like: 'Curtir',
       signIn: 'Entre com o Google para curtir',

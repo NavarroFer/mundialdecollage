@@ -603,7 +603,6 @@ const fr: Messages = {
     like: {
       unavailable: "Nous n'avons pas pu charger les j'aime. Réessaie dans un instant.",
       saveFailed: "Nous n'avons pas pu enregistrer ton j'aime. Réessaie.",
-      saving: 'Enregistrement…',
       liked: 'Tu aimes cette œuvre',
       like: "J'aime",
       signIn: 'Connecte-toi avec Google pour aimer',

@@ -603,7 +603,6 @@ const de: Messages = {
     like: {
       unavailable: 'Die Likes konnten nicht geladen werden. Versuch es gleich noch einmal.',
       saveFailed: 'Dein Like konnte nicht gespeichert werden. Versuch es noch einmal.',
-      saving: 'Wird gespeichert…',
       liked: 'Dir gefällt dieses Werk',
       like: 'Gefällt mir',
       signIn: 'Mit Google anmelden, um zu liken',

@@ -621,8 +621,16 @@
 .ficheActionLabel { min-width: 0; overflow-wrap: anywhere; }
 /* A tile with a count: the word on top, «12 likes» under it. */
 .ficheActionText { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
-.ficheActionMeta { font-size: .8rem; font-weight: 600; opacity: .75; font-variant-numeric: tabular-nums; }
-.ficheHeart { color: var(--collage-red); }
+.ficheActionMeta { font-size: .8rem; font-weight: 600; line-height: 1.2; opacity: .75; font-variant-numeric: tabular-nums; }
+.ficheHeart { color: var(--gallery-ink); transition: color .16s ease; }
+.ficheAction:hover:not(:disabled) .ficheHeart { color: color-mix(in srgb, var(--gallery-ink) 45%, var(--collage-red)); }
+.ficheAction[data-done='true'] .ficheHeart { color: var(--collage-red); }
+/* Mid-pulse (ArtworkLike): the frames set the transform, no easing on top. */
+.ficheAction[data-running] { opacity: 1; transition: none; }
+.ficheAction[data-running] .ficheHeart { transition: none; }
+.ficheRoll { display: block; height: 1.2em; overflow: hidden; }
+.ficheRollTrack { display: flex; flex-direction: column; animation: ficheRoll .35s cubic-bezier(.23, 1, .32, 1) forwards; }
+@keyframes ficheRoll { to { transform: translateY(-50%); } }
 .ficheSkeleton {
   min-height: 3.25rem;
   border-radius: var(--gallery-radius);
@@ -650,7 +658,8 @@
 .windows98 .ficheAction:active:not(:disabled),
 .windows98 .ficheAction[data-done='true'] { border-color: #000 #fff #fff #000; transform: none; background: #d4d0c8; }
 @media (prefers-reduced-motion: reduce) {
-  .ficheAction { transition: none; }
+  .ficheAction, .ficheHeart { transition: none; }
+  .ficheRollTrack { animation: none; transform: translateY(-50%); }
 }
 
 /* The visit passport: three seals, then the day's obras as stamps to collect. */

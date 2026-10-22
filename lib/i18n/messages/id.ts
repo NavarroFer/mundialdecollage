@@ -600,7 +600,6 @@ const id: Messages = {
     like: {
       unavailable: 'Kami tidak dapat memuat suka. Coba lagi sebentar lagi.',
       saveFailed: 'Kami tidak dapat menyimpan suka-mu. Coba lagi.',
-      saving: 'Menyimpan…',
       liked: 'Kamu menyukai karya ini',
       like: 'Suka',
       signIn: 'Masuk dengan Google untuk memberi suka',

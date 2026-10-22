@@ -609,7 +609,6 @@ const es = {
     like: {
       unavailable: 'No pudimos cargar los likes. Intentá de nuevo en un momento.',
       saveFailed: 'No pudimos guardar tu like. Intentá de nuevo.',
-      saving: 'Guardando…',
       liked: 'Te gusta esta obra',
       like: 'Me gusta',
       signIn: 'Ingresá con Google para dar like',

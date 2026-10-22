@@ -604,7 +604,6 @@ const en: Messages = {
     like: {
       unavailable: "We couldn't load the likes. Please try again in a moment.",
       saveFailed: "We couldn't save your like. Please try again.",
-      saving: 'Saving…',
       liked: 'You like this artwork',
       like: 'Like',
       signIn: 'Sign in with Google to like',

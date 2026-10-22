@@ -625,7 +625,6 @@ const pl: Messages = {
     like: {
       unavailable: 'Nie udało się wczytać polubień. Spróbuj ponownie za chwilę.',
       saveFailed: 'Nie udało się zapisać polubienia. Spróbuj ponownie.',
-      saving: 'Zapisywanie…',
       liked: 'Lubisz tę pracę',
       like: 'Lubię to',
       signIn: 'Zaloguj się przez Google, aby polubić',

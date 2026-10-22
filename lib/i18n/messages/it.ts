@@ -603,7 +603,6 @@ const it: Messages = {
     like: {
       unavailable: 'Non siamo riusciti a caricare i like. Riprova tra un momento.',
       saveFailed: 'Non siamo riusciti a salvare il tuo like. Riprova.',
-      saving: 'Salvataggio…',
       liked: "Ti piace quest'opera",
       like: 'Mi piace',
       signIn: 'Accedi con Google per mettere like',
