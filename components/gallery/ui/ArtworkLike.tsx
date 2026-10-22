@@ -179,7 +179,7 @@ export function ArtworkLike({ slug, initial, onSaved, className }: { slug: strin
     <>
       <button ref={tileRef} type="button" onClick={() => { track('like_click'); void save(state) }} disabled={busy || redirecting || state.liked}
         aria-pressed={state.liked} aria-expanded={!state.signedIn ? askSignIn : undefined}
-        data-done={state.liked} className={cn(styles.ficheAction, className)}>
+        data-done={state.liked} className={cn(styles.ficheAction, styles.ficheActionInk, className)}>
         <Heart ref={heartRef} className={styles.ficheHeart} fill={state.liked ? 'currentColor' : 'none'} aria-hidden="true" />
         <span className={styles.ficheActionText}>
           <span className={styles.ficheActionLabel}>{state.liked ? t.liked : t.like}</span>

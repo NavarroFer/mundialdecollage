@@ -229,7 +229,7 @@ function ArtworkSocialPanel({ artwork, showComments }: { artwork: Artwork; showC
           <div aria-hidden="true" className={cn(styles.ficheSkeleton, 'animate-pulse motion-reduce:animate-none')} />
         )}
         {social ? (
-          <button type="button" onClick={writeComment} className={cn(styles.ficheAction, reveal)}>
+          <button type="button" onClick={writeComment} className={cn(styles.ficheAction, styles.ficheActionBlue, reveal)}>
             <MessageCircle aria-hidden="true" />
             <span className={styles.ficheActionText}>
               <span className={styles.ficheActionLabel}>{m.gallery.comments.action}</span>

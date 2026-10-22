@@ -628,19 +628,26 @@
 .ficheAction:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--gallery-ink); }
 .ficheAction:focus-visible { outline: 3px solid var(--gallery-accent); outline-offset: 2px; }
 .ficheAction:disabled { cursor: default; opacity: .7; }
+/* Weight by importance, in the paper palette: the like dark with a red
+   shadow (its heart turns red), comments blue, the stamp ocre, sharing plain
+   paper. */
+.ficheActionInk { color: var(--gallery-panel-solid); background: var(--gallery-ink); box-shadow: 3px 3px 0 var(--collage-red); }
+.ficheActionInk:hover:not(:disabled) { box-shadow: 4px 4px 0 var(--collage-red); }
+.ficheActionInk:active:not(:disabled) { box-shadow: 1px 1px 0 var(--collage-red); }
+.ficheActionBlue { color: #fff; background: var(--collage-blue); }
+.ficheActionOcre { background: var(--gallery-accent); }
 /* Done (liked, stamp saved): pressed in, nothing left to do there. */
 .ficheAction[data-done='true'] {
   opacity: 1;
   box-shadow: none;
   transform: translate(2px, 2px);
-  background: color-mix(in srgb, var(--gallery-accent) 18%, var(--gallery-panel-solid));
 }
 .ficheActionLabel { min-width: 0; overflow-wrap: anywhere; }
 /* A tile with a count: the word on top, «12 likes» under it. */
 .ficheActionText { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
 .ficheActionMeta { font-size: .8rem; font-weight: 600; line-height: 1.2; opacity: .75; font-variant-numeric: tabular-nums; }
-.ficheHeart { color: var(--gallery-ink); transition: color .16s ease; }
-.ficheAction:hover:not(:disabled) .ficheHeart { color: color-mix(in srgb, var(--gallery-ink) 45%, var(--collage-red)); }
+.ficheHeart { transition: color .16s ease; }
+.ficheAction:hover:not(:disabled) .ficheHeart { color: color-mix(in srgb, currentColor 45%, var(--collage-red)); }
 .ficheAction[data-done='true'] .ficheHeart { color: var(--collage-red); }
 /* Mid-pulse (ArtworkLike): the frames set the transform, no easing on top. */
 .ficheAction[data-running] { opacity: 1; transition: none; }
@@ -728,7 +735,7 @@
 .windows98 .ficheAvatar, .windows98 .ficheBadge { border-radius: 0; }
 .windows98 .ficheField { border: 2px solid; border-color: #808080 #fff #fff #808080; }
 .windows98 .ficheSubmit { border: 2px solid; border-color: #fff #000 #000 #fff; color: #000; background: #c0c0c0; }
-.windows98 .ficheAction { border: 2px solid; border-color: #fff #000 #000 #fff; background: #c0c0c0; box-shadow: none; }
+.windows98 .ficheAction { border: 2px solid; border-color: #fff #000 #000 #fff; color: #000; background: #c0c0c0; box-shadow: none; }
 .windows98 .ficheAction:hover:not(:disabled) { transform: none; box-shadow: none; }
 .windows98 .ficheAction:active:not(:disabled),
 .windows98 .ficheAction[data-done='true'] { border-color: #000 #fff #fff #000; transform: none; background: #d4d0c8; }

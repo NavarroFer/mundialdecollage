@@ -58,7 +58,7 @@ export function ArtworkStamp({ slug, signedIn }: { slug: string; signedIn: boole
   // A tile of the ficha's action grid: its notes span the row under it.
   return (
     <>
-      <button type="button" onClick={() => void save()} disabled={busy || saved} data-done={saved} className={styles.ficheAction}>
+      <button type="button" onClick={() => void save()} disabled={busy || saved} data-done={saved} className={cn(styles.ficheAction, styles.ficheActionOcre)}>
         <Stamp aria-hidden="true" /> <span className={styles.ficheActionLabel}>{label}</span>
       </button>
       {result?.status === 'limit_reached' && <p role="status" className={cn(styles.ficheNote, 'text-sm text-muted-foreground')}>Ya guardaste 3 obras en las últimas 12 horas.</p>}
