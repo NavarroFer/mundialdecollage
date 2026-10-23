@@ -1,5 +1,6 @@
 'use client'
 
+import { TRACKS, musicController, skipTrack, useVinylStore } from '../vinyl/store'
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { Volume2, VolumeX } from 'lucide-react'
 import type { GalleryTheme } from '../themes'
@@ -13,7 +14,7 @@ export type BackgroundMusicHandle = {
   play: () => void
 }
 
-const MUSIC_SRC = '/cancion.mp3'
+const MUSIC_SRC = TRACKS[0].src
 
 /** The tank's 1–100 as loudness, squared so its lower half isn't all whisper (the default 60 ≈ the 0.35 it always played at). */
 const gainFor = (volume: number) => (volume / 100) ** 2
@@ -53,6 +54,8 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
   const audioRef = useRef<HTMLAudioElement>(null)
   // Only on iOS (obeysVolume), set up on the first play(), before a note has
   // sounded: an AudioContext only starts inside a user gesture.
+  const startedRef = useRef(false)
+  const playAttempt = useRef(0)
   const checkedRef = useRef(false)
   const gainRef = useRef<{ context: AudioContext; gain: GainNode } | null>(null)
   const muted = useGalleryPreferences((state) => state.muted)
@@ -79,7 +82,13 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
       applyVolume()
     }
     void gainRef.current?.context.resume().catch(() => {})
-    audio.play().catch(() => {})
+    const attempt = ++playAttempt.current
+    useVinylStore.setState({ error: '', loading: true })
+    audio.play().then(() => {
+      if (attempt === playAttempt.current) useVinylStore.setState({ loading: false })
+    }).catch((error: unknown) => {
+      if (attempt === playAttempt.current && !(error instanceof DOMException && error.name === 'AbortError')) useVinylStore.setState({ loading: false, playing: false, error: 'No se pudo reproducir. Probá de nuevo o elegí otra canción.' })
+    })
   }
 
   function toggle() {
@@ -125,11 +134,45 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
 
   useEffect(() => () => void gainRef.current?.context.close().catch(() => {}), [])
 
-  useImperativeHandle(ref, () => ({ play }))
+  useEffect(() => {
+    const audio = audioRef.current!
+    const attempts = playAttempt
+    const controller = {
+      play: () => { startedRef.current = true; useGalleryPreferences.getState().update({ muted: false }); play() },
+      pause: () => { ++playAttempt.current; audio.pause(); useVinylStore.setState({ playing: false, loading: false }) },
+      stop: () => { ++playAttempt.current; audio.pause(); audio.currentTime = 0; useVinylStore.setState({ playing: false, loading: false, time: 0 }) },
+      select: (index: number) => {
+        if (!TRACKS[index]) return
+        ++playAttempt.current
+        audio.pause()
+        audio.src = TRACKS[index].src
+        useVinylStore.setState({ index, time: 0, duration: 0, playing: false, error: '' })
+        controller.play()
+      },
+      seek: (time: number) => { if (Number.isFinite(audio.duration)) audio.currentTime = Math.max(0, Math.min(time, audio.duration)) },
+    }
+    musicController.current = controller
+    return () => { if (musicController.current === controller) musicController.current = null; ++attempts.current; audio.pause() }
+    // Controller methods read current refs/stores, and run in the user's gesture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useImperativeHandle(ref, () => ({ play: () => {
+    if (startedRef.current) return
+    startedRef.current = true
+    play()
+  } }))
 
   return (
     <>
-      <audio ref={audioRef} src={MUSIC_SRC} loop preload="auto" muted={muted} />
+      <audio ref={audioRef} src={MUSIC_SRC} preload="metadata" muted={muted}
+        onPlaying={() => useVinylStore.setState({ playing: true, loading: false, error: '' })}
+        onPause={() => useVinylStore.setState({ playing: false })}
+        onWaiting={() => useVinylStore.setState({ loading: true })}
+        onTimeUpdate={(event) => useVinylStore.setState({ time: event.currentTarget.currentTime })}
+        onLoadedMetadata={(event) => useVinylStore.setState({ duration: Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0 })}
+        onError={() => useVinylStore.setState({ playing: false, loading: false, error: 'No se pudo cargar esta canción. Elegí otra o reintentá.' })}
+        onEnded={() => skipTrack(1)} />
       <button
         type="button"
         onClick={toggle}

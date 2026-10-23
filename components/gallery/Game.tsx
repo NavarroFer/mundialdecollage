@@ -24,6 +24,8 @@ import { VisitPreferences } from './ui/VisitPreferences'
 import { useGalleryPreferences } from './preferences/store'
 import { replayTutorial } from './tutorial/store'
 import { useInteractionStore } from './interaction/store'
+import { VinylDialog } from './vinyl/VinylDialog'
+import { useVinylStore } from './vinyl/store'
 import { SnakeDialog } from './arcade/SnakeDialog'
 import { useArcadeStore } from './arcade/store'
 import { WallDialog } from './wall/WallDialog'
@@ -86,6 +88,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
     if (openId && artworks.some((artwork) => artwork.id === openId)) useGalleryPreferences.getState().visit(openId)
   }, [openId, artworks])
   const souvenirOpen = useSouvenirStore((state) => state.open)
+  const vinylOpen = useVinylStore((state) => state.open)
   const arcadeOpen = useArcadeStore((state) => state.open)
   const wallOpen = useWallStore((state) => state.placing !== null)
   const wallWeek = useWallStore((state) => state.weekStart)
@@ -109,7 +112,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // the camera widens its view when held upright (Player.tsx).
   const usesPointerLock = !isTouchDevice && controlMode === 'classic'
   // Something in front of the walk: an obra, the photo, the collage, the passport.
-  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || arcadeOpen
+  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || arcadeOpen || vinylOpen
   const overlayOpen = optionsOpen || dialogOpen
   const isActive = sceneReady && !overlayOpen && (usesPointerLock ? locked : hasStarted && playing)
   // Under the start screen or the phone menu nothing needs to move, so the
@@ -156,7 +159,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
     const stopResuming = () => setResuming(false)
     document.addEventListener('pointerlockerror', stopResuming)
     // The collage's dialog (E on the big frame) works the same way.
-    const isOpen = () => Boolean(useInteractionStore.getState().openId || useWallStore.getState().placing || useArcadeStore.getState().open)
+    const isOpen = () => Boolean(useInteractionStore.getState().openId || useWallStore.getState().placing || useArcadeStore.getState().open || useVinylStore.getState().open)
     let wasOpen = isOpen()
     const onChange = () => {
       const open = isOpen()
@@ -174,12 +177,14 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       requestLock(shell, stopResuming)
     }
     const unsubscribeInteraction = useInteractionStore.subscribe(onChange)
+    const unsubscribeVinyl = useVinylStore.subscribe(onChange)
     const unsubscribeArcade = useArcadeStore.subscribe(onChange)
     const unsubscribeWall = useWallStore.subscribe(onChange)
     return () => {
       unsubscribeInteraction()
       unsubscribeWall()
       unsubscribeArcade()
+      unsubscribeVinyl()
       document.removeEventListener('pointerlockerror', stopResuming)
     }
   }, [usesPointerLock, shell])
@@ -327,7 +332,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           />
         )}
       </div>
-      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!arcadeOpen && !passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />
+      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!vinylOpen && !arcadeOpen && !passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />
       <PassportRecorder userId={userId} started={hasStarted} />
       <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} />
       {isTouchDevice && isActive && <TouchControls theme={theme} />}
@@ -378,6 +383,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
       <SnakeDialog />
+      <VinylDialog />
       {cover.mounted && <GalleryCover loading={loading} translucent={false} leaving={cover.leaving} fadeIn={false} onExited={cover.exited} />}
       {menuOpen && !loading && (
         <StartScreen

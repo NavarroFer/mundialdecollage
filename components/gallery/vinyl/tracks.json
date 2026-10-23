@@ -1,0 +1,38 @@
+[
+  {
+    "id": "satie-gymnopedie",
+    "title": "Gymnopédie n.º 1",
+    "composer": "Erik Satie",
+    "performer": "Robin Alciatore",
+    "src": "/music/satie-gymnopedie.mp3",
+    "source": "https://commons.wikimedia.org/wiki/File:Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg",
+    "license": "Dominio público"
+  },
+  {
+    "id": "chopin-op9",
+    "title": "Nocturno op. 9 n.º 2",
+    "composer": "Frédéric Chopin",
+    "performer": "Peter Johnston",
+    "src": "/music/chopin-op9.mp3",
+    "source": "https://commons.wikimedia.org/wiki/File:Chopin_Nocturne_No._2_in_E_Flat_Major%2C_Op._9.ogg",
+    "license": "CC0 1.0"
+  },
+  {
+    "id": "chopin-op37",
+    "title": "Nocturno op. 37 n.º 2",
+    "composer": "Frédéric Chopin",
+    "performer": "Olga Gurevich",
+    "src": "/music/chopin-op37.mp3",
+    "source": "https://commons.wikimedia.org/wiki/File:Chopin_Nocturne_Op_37_no_2_in_G_major_Olga_Gurevich.ogg",
+    "license": "CC0 1.0"
+  },
+  {
+    "id": "romance",
+    "title": "Romance anónimo",
+    "composer": "Anónimo",
+    "performer": "Jim Greeninger",
+    "src": "/music/romance.mp3",
+    "source": "https://commons.wikimedia.org/wiki/File:Romance_An%C3%B3nimo_%28Jeux_interdits%29.ogg",
+    "license": "CC0 1.0"
+  }
+]

@@ -1,5 +1,6 @@
 'use client'
 
+import { VINYL, useVinylStore } from '../vinyl/store'
 import { ARCADE, useArcadeStore } from '../arcade/store'
 import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
@@ -49,12 +50,14 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden }
       pointer.set(((state.request.x - rect.left) / rect.width) * 2 - 1, -((state.request.y - rect.top) / rect.height) * 2 + 1)
       ray.setFromCamera(pointer, camera)
       const aim = aimAt(ray.intersectObjects(scene.children, true))
-      if (aim?.kind === 'arcade') {
+      if (aim?.kind === 'arcade' || aim?.kind === 'vinyl') {
         const navigation = useNavigationStore.getState()
-        if (aim.distance <= OPEN_DISTANCE) { navigation.cancel(); useArcadeStore.getState().setOpen(true) }
+        const furniture = aim.kind === 'vinyl' ? VINYL : ARCADE
+        const store = aim.kind === 'vinyl' ? useVinylStore : useArcadeStore
+        if (aim.distance <= OPEN_DISTANCE) { navigation.cancel(); store.getState().setOpen(true) }
         else if (!touch) {
           camera.getWorldPosition(playerPosition)
-          const route = findWalkPath({ x: playerPosition.x, z: playerPosition.z }, { x: ARCADE.x, z: ARCADE.z + 1.7 }, garden)
+          const route = findWalkPath({ x: playerPosition.x, z: playerPosition.z }, { x: furniture.x, z: furniture.z + 1.7 }, garden)
           if (route) navigation.start(route)
         }
         return

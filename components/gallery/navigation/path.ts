@@ -1,3 +1,4 @@
+import { VINYL } from '../vinyl/store'
 import { ARCADE } from '../arcade/store'
 import { GALLERY_BOUNDS, GARDEN_FLOWERS, walls } from '../world/roomsData'
 
@@ -21,6 +22,7 @@ const inBox = (point: Point, x: number, z: number, halfWidth: number, halfDepth:
 export function walkable(point: Point, garden = false): boolean {
   if (!Number.isFinite(point.x) || !Number.isFinite(point.z)) return false
   if (point.x <= minX + CLEARANCE || point.x >= maxX - CLEARANCE || point.z <= minZ + CLEARANCE || point.z >= maxZ - CLEARANCE) return false
+  if (inBox(point, VINYL.x, VINYL.z, VINYL.width / 2, VINYL.depth / 2)) return false
   if (inBox(point, ARCADE.x, ARCADE.z, ARCADE.width / 2, ARCADE.depth / 2)) return false
   if (walls.some(({ position, size }) => inBox(point, position[0], position[2], size[0] / 2, size[2] / 2))) return false
   return !garden || !GARDEN_FLOWERS.some(({ x, z }) => Math.hypot(point.x - x, point.z - z) < FLOWER_RADIUS + CLEARANCE)
@@ -65,6 +67,7 @@ function crossesWall(a: Point, b: Point, x: number, z: number, halfWidth: number
 // Nothing in the way between two points: no wall, and every 10 cm inside the
 // gallery and (in the garden) away from the flowers.
 function clear(a: Point, b: Point, garden: boolean): boolean {
+  if ([VINYL, ARCADE].some(({ x, z, width, depth }) => crossesWall(a, b, x, z, width / 2, depth / 2))) return false
   if (walls.some(({ position, size }) => crossesWall(a, b, position[0], position[2], size[0] / 2, size[2] / 2))) return false
   const steps = Math.ceil(distance(a, b) / 0.1)
   for (let i = 1; i <= steps; i++) {

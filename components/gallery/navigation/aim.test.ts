@@ -47,3 +47,13 @@ it('recognizes the arcade through its parent group and respects occlusion', () =
   expect(aimAt(ray.intersectObjects([cabinet], true))).toEqual({ kind: 'arcade', distance: 2 })
   expect(aimAt(ray.intersectObjects([plane(-1), cabinet], true))?.kind).toBe('spot')
 })
+
+it('recognizes the record console through its parent and respects walls', () => {
+  const console = new Group()
+  console.userData.vinyl = true
+  console.add(plane(-2))
+  console.updateMatrixWorld(true)
+  const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1))
+  expect(aimAt(ray.intersectObjects([console], true))).toEqual({ kind: 'vinyl', distance: 2 })
+  expect(aimAt(ray.intersectObjects([plane(-1), console], true))?.kind).toBe('spot')
+})

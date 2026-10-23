@@ -1,3 +1,4 @@
+import { useVinylStore } from '../vinyl/store'
 import { useArcadeStore } from '../arcade/store'
 import { currentAim, useWallStore } from '../wall/store'
 import { useInteractionStore } from './store'
@@ -8,6 +9,9 @@ import { useInteractionStore } from './store'
  * obra in sight, opens the dialog to paste a photo right there.
  */
 export function interact() {
+  const vinyl = useVinylStore.getState()
+  if (vinyl.open) return
+  if (vinyl.aiming) { vinyl.setOpen(true); return }
   const arcade = useArcadeStore.getState()
   if (arcade.open) return
   if (arcade.aiming) { arcade.setOpen(true); return }
