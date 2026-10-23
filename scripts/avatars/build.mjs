@@ -1,6 +1,6 @@
 // Builds the 3D gallery's people: every cast member in
 // components/gallery/world/people/cast.ts, from Microsoft Rocketbox (MIT), as
-// compressed glTF, plus the shared walk and idle for each sex and a
+// compressed glTF, plus the shared walk, idle and crouch for each sex and a
 // portrait of everyone for the avatar picker.
 //
 //   node scripts/avatars/build.mjs [out]      (default: a folder in the system's temp)

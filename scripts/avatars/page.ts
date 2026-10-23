@@ -110,6 +110,12 @@ async function animations(sex: CastMember['sex']) {
   strip(walkScene, true)
   walkScene.scale.setScalar(0.01)
   await send(`animations-${sex}.glb`, walkScene, [walk.clip, idle.clip])
+  // Its own file (cast.ts's crouchUrl), so a body still walks if it's missing.
+  const crouchScene = await load(`all_animations_max_motextr_static/${sex}_crouch_idle`)
+  const crouch = tidy(crouchScene.animations[0], 'crouch')
+  strip(crouchScene, true)
+  crouchScene.scale.setScalar(0.01)
+  await send(`crouch-${sex}.glb`, crouchScene, [crouch.clip])
   return walk.speed
 }
 
