@@ -20,13 +20,14 @@ const pointer = new Vector2()
 const playerPosition = new Vector3()
 
 /**
- * Click-to-walk, alongside WASD and the joystick (either takes over at any
- * time): a click (or a tap from TouchControls) on the floor walks there
- * along a route around the walls, and one on an obra walks up to it and
- * opens it. With a free cursor, the view turns towards the side the mouse is
- * on (EdgeLook) and dragging still looks around the way a finger does on a
- * phone; with the mouse captured (Pointer Lock), the click goes where the
- * crosshair in the middle of the screen points.
+ * Click-to-walk, alongside WASD (either takes over at any time): a click on
+ * the floor walks there along a route around the walls, and one on an obra
+ * walks up to it and opens it. On a phone only the obras answer a tap (from
+ * TouchControls); the floor is the joystick's. With a free cursor, the view
+ * turns towards the side the mouse is on (EdgeLook) and dragging still looks
+ * around the way a finger does on a phone; with the mouse captured (Pointer
+ * Lock), the click goes where the crosshair in the middle of the screen
+ * points.
  */
 export function PointNavigation({ active, touch, pointerLock, artworks, garden }: { active: boolean; touch: boolean; pointerLock: boolean; artworks: Artwork[]; garden: boolean }) {
   const { camera, scene, gl } = useThree()
@@ -54,6 +55,8 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden }
         useInteractionStore.getState().open(artwork.id)
         return
       }
+      // A phone walks with the joystick: off an obra, a tap does nothing.
+      if (touch && !artwork) return
       const to = artwork ? viewingSpot(artwork) : aim?.kind === 'spot' ? aim.point : null
       camera.getWorldPosition(playerPosition)
       const route = to && findWalkPath({ x: playerPosition.x, z: playerPosition.z }, to, garden)

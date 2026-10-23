@@ -41,13 +41,13 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
     const joystickOriginPoint = { current: null as Vec2 | null }
     const lookTouchId = { current: null as number | null }
     const lookLast = { current: { x: 0, y: 0 } }
-    // The look finger, while it could still be a tap on the floor or an obra.
+    // The look finger, while it could still be a tap on an obra.
     let tap: { x: number; y: number; at: number } | null = null
 
     // A thumb on the joystick's circle (and a thumb's width around it)
     // walks from the stick's center, as before. Anywhere else in the lower
     // left quarter it walks too, from where it landed: thumbs missed the
-    // small circle. A quick tap there still walks to the floor point.
+    // small circle. A quick tap there still opens an obra under it.
     function isStick(x: number, y: number) {
       const stick = layer!.querySelector('[data-move-stick]')?.getBoundingClientRect()
       if (!stick) return false

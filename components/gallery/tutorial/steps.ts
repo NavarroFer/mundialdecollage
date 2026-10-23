@@ -5,9 +5,10 @@ export const LEARN_STEPS = ['look', 'move', 'open'] as const
 export type LearnStep = (typeof LEARN_STEPS)[number]
 
 /**
- * Clicks and keys (or taps and the joystick) always both walk; what differs
- * is how a computer looks around: a free cursor that turns the view towards
- * the side it's on, or the mouse captured with a crosshair, the videogame way.
+ * On a computer clicks and keys always both walk (a phone walks with the
+ * joystick alone); what differs is how a computer looks around: a free
+ * cursor that turns the view towards the side it's on, or the mouse captured
+ * with a crosshair, the videogame way.
  */
 export type ControlScheme = 'keys' | 'click' | 'tap'
 
