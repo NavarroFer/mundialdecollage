@@ -117,10 +117,10 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // collage or the souvenir keep it going:
   // the camera glides to the obra and the walls show around the dialog.
   const paused = !loading && !isActive && !openId && !souvenirOpen && !wallOpen && !resuming
-  // The start and pause screens, over the home's paper and scraps
-  // (GalleryCover), which alone stays while the scene loads.
+  // Keep the splash through the initial load only. Pausing later leaves
+  // the gallery visible behind the resume controls.
   const menuOpen = !isActive && !overlayOpen && !resuming
-  const cover = useCover(menuOpen)
+  const cover = useCover(!sceneReady)
 
   useEffect(() => {
     if (isTouchDevice || !shell) return
@@ -378,7 +378,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
       <SnakeDialog />
-      {cover.mounted && <GalleryCover loading={loading} translucent={hasStarted && !loading} leaving={cover.leaving} fadeIn={hasStarted} onExited={cover.exited} />}
+      {cover.mounted && <GalleryCover loading={loading} translucent={false} leaving={cover.leaving} fadeIn={false} onExited={cover.exited} />}
       {menuOpen && !loading && (
         <StartScreen
           artworks={artworks}
