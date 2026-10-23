@@ -383,7 +383,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <SnakeDialog />
       <VinylDialog />
       {!sceneReady && <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-paper">
-        {loading && <p role="status" className="px-6 text-center font-sans text-sm font-semibold text-ink">{m.gallery.loading}</p>}
+        {loading && <p role="status" className="mx-6 border-b-4 border-collage-red px-2 py-3 text-center font-display text-2xl tracking-wide text-ink uppercase sm:text-3xl">{m.gallery.loading}</p>}
       </div>}
       {menuOpen && !loading && (
         <StartScreen
