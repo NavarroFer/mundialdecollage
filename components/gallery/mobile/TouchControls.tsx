@@ -5,9 +5,10 @@ import { useInteractionStore } from '../interaction/store'
 import { useNavigationStore } from '../navigation/store'
 import { useWallStore } from '../wall/store'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Pointer } from 'lucide-react'
 import { interact } from '../interaction/interact'
+import { useTapHintStore } from './tapHintStore'
 import { useTouchStore } from './touchStore'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
@@ -19,6 +20,7 @@ const TAP_MS = 600
 const STICK_MARGIN_PX = 24
 const HINT_KEY = 'mdc-gallery-touch-hint-seen'
 const HINT_MS = 3000
+const TAP_HINT_KEY = 'mdc-gallery-tap-hint-seen'
 
 type Vec2 = { x: number; y: number }
 
@@ -26,6 +28,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
   const { m } = useI18n()
   const targetId = useInteractionStore((state) => state.targetId)
   const aimingAtWall = useWallStore((state) => state.aiming && !state.placing)
+  const sticksHint = useSticksHint()
   const layerRef = useRef<HTMLDivElement>(null)
   const [moveKnobOffset, setMoveKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
   const [lookKnobOffset, setLookKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
@@ -158,7 +161,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
     <div ref={layerRef} className="absolute inset-0 z-20" style={{ touchAction: 'none' }}>
       <VirtualStick move className={styles.moveStick} offset={moveKnobOffset} />
       <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
-      <TouchHint />
+      {sticksHint ? <TouchHint /> : <ArtworkTapHint />}
 
       {(targetId || aimingAtWall) && <button
         type="button"
@@ -185,35 +188,43 @@ function VirtualStick({ className, offset, move = false }: { className: string; 
   )
 }
 
-function hintSeen() {
+function seen(key: string) {
   try {
-    return window.localStorage.getItem(HINT_KEY) === '1'
+    return window.localStorage.getItem(key) === '1'
   } catch {
     return true
   }
 }
 
+function markSeen(key: string) {
+  try {
+    window.localStorage.setItem(key, '1')
+  } catch {}
+}
+
 const noSubscription = () => () => {}
 
-// The first time on a phone, for HINT_MS: which thumb walks and which looks,
-// with a finger dragging over each stick. Marked as seen once it has been
-// on screen the whole time, so leaving right away shows it again next visit.
-function TouchHint() {
-  const { m } = useI18n()
-  const firstVisit = useSyncExternalStore(noSubscription, () => !hintSeen(), () => false)
+// The first time on a phone, for HINT_MS: which thumb walks and which looks.
+// Marked as seen once it has been on screen the whole time, so leaving right
+// away shows it again next visit.
+function useSticksHint() {
+  const firstVisit = useSyncExternalStore(noSubscription, () => !seen(HINT_KEY), () => false)
   const [done, setDone] = useState(false)
   const visible = firstVisit && !done
   useEffect(() => {
     if (!visible) return
     const timer = setTimeout(() => {
-      try {
-        window.localStorage.setItem(HINT_KEY, '1')
-      } catch {}
+      markSeen(HINT_KEY)
       setDone(true)
     }, HINT_MS)
     return () => clearTimeout(timer)
   }, [visible])
-  if (!visible) return null
+  return visible
+}
+
+// A finger dragging over each stick.
+function TouchHint() {
+  const { m } = useI18n()
   return (
     <div className="animate-in fade-in pointer-events-none absolute inset-0 z-30 duration-300 motion-reduce:animate-none" role="status">
       <HintBubble className={styles.touchHintMove} finger={styles.touchHintFinger} label={m.gallery.tutorial.touchMove} />
@@ -227,6 +238,56 @@ function HintBubble({ className, finger, label }: { className: string; finger: s
     <div className={`${className} absolute flex h-28 w-28 items-center justify-center rounded-full border-2 border-paper bg-paper/25`}>
       <span className="absolute bottom-full mb-3 w-36 rounded-2xl bg-ink px-3 py-1.5 text-center text-sm leading-tight font-semibold text-paper shadow-md">{label}</span>
       <Pointer className={`${finger} size-10 text-paper drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]`} aria-hidden="true" />
+    </div>
+  )
+}
+
+// Where the Pointer icon's fingertip is, in a size-10 (40px) icon.
+const FINGERTIP = { x: 13, y: 3 }
+
+// After the sticks' hint, the first time on a phone: a finger tapping the
+// obra in clearest view (TapHintTracker finds it), until the visitor opens
+// one. It moves with the obra on screen without re-rendering.
+function ArtworkTapHint() {
+  const { m } = useI18n()
+  const firstVisit = useSyncExternalStore(noSubscription, () => !seen(TAP_HINT_KEY), () => false)
+  const shown = useTapHintStore((state) => state.spot !== null)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!firstVisit) return
+    useTapHintStore.setState({ active: true })
+    const unsubscribe = useInteractionStore.subscribe((state) => {
+      if (state.openId) markSeen(TAP_HINT_KEY)
+    })
+    return () => {
+      unsubscribe()
+      useTapHintStore.setState({ active: false, spot: null })
+    }
+  }, [firstVisit])
+
+  // Before paint, so it never flashes at the corner.
+  useLayoutEffect(() => {
+    if (!shown) return
+    const place = ({ spot }: { spot: { x: number; y: number } | null }) => {
+      if (spot && ref.current) ref.current.style.transform = `translate(${spot.x}px, ${spot.y}px)`
+    }
+    place(useTapHintStore.getState())
+    return useTapHintStore.subscribe(place)
+  }, [shown])
+
+  if (!firstVisit || !shown) return null
+  return (
+    <div ref={ref} className="pointer-events-none absolute top-0 left-0 z-30" role="status">
+      <div className="animate-in fade-in relative duration-300 motion-reduce:animate-none">
+        <span className={`${styles.tapHintRing} absolute -top-7 -left-7 size-14 rounded-full border-2 border-paper`} aria-hidden="true" />
+        <span className={`${styles.tapHintBubble} absolute bottom-10 left-0 w-max max-w-44 -translate-x-1/2 rounded-2xl bg-ink px-3 py-1.5 text-center text-sm leading-tight font-semibold text-paper shadow-md`}>{m.gallery.tutorial.touchArtwork}</span>
+        <Pointer
+          className={`${styles.tapHintFinger} absolute size-10 text-paper drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]`}
+          style={{ left: -FINGERTIP.x, top: -FINGERTIP.y }}
+          aria-hidden="true"
+        />
+      </div>
     </div>
   )
 }

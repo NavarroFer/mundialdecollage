@@ -590,6 +590,7 @@ const pt: Messages = {
       skip: 'Pular',
       touchMove: 'Arraste aqui para andar',
       touchLook: 'Arraste aqui para olhar',
+      touchArtwork: 'Toque na obra para vê-la',
       replay: 'Ver o tutorial de novo',
       helpKey: 'Aperte H para ver de novo.',
       helpMenu: 'Você pode rever em Opções.',

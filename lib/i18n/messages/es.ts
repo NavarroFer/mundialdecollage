@@ -596,6 +596,7 @@ const es = {
       skip: 'Saltar',
       touchMove: 'Arrastrá acá para caminar',
       touchLook: 'Arrastrá acá para mirar',
+      touchArtwork: 'Tocá la obra para verla',
       replay: 'Ver el tutorial de nuevo',
       helpKey: 'Apretá H para volver a verlo.',
       helpMenu: 'Lo volvés a ver en Opciones.',

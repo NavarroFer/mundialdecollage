@@ -591,6 +591,7 @@ const en: Messages = {
       skip: 'Skip',
       touchMove: 'Drag here to walk',
       touchLook: 'Drag here to look around',
+      touchArtwork: 'Tap the artwork to view it',
       replay: 'Watch the tutorial again',
       helpKey: 'Press H to see it again.',
       helpMenu: 'You can see it again in Options.',

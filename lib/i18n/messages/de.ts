@@ -590,6 +590,7 @@ const de: Messages = {
       skip: 'Überspringen',
       touchMove: 'Hier ziehen zum Gehen',
       touchLook: 'Hier ziehen zum Umsehen',
+      touchArtwork: 'Tipp auf das Werk, um es anzusehen',
       replay: 'Tutorial noch einmal ansehen',
       helpKey: 'Drück H, um es noch einmal zu sehen.',
       helpMenu: 'Du findest es wieder unter Optionen.',

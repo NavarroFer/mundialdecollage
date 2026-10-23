@@ -587,6 +587,7 @@ const id: Messages = {
       skip: 'Lewati',
       touchMove: 'Geser di sini untuk berjalan',
       touchLook: 'Geser di sini untuk melihat',
+      touchArtwork: 'Ketuk karya untuk melihatnya',
       replay: 'Lihat tutorial lagi',
       helpKey: 'Tekan H untuk melihatnya lagi.',
       helpMenu: 'Anda bisa melihatnya lagi di Opsi.',

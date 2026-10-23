@@ -11,6 +11,7 @@ import { EdgeLook } from './camera/EdgeLook'
 import { FirstPersonCamera } from './camera/FirstPersonCamera'
 import { InteractionManager } from './interaction/InteractionManager'
 import { PlayerTracker } from './minimap/PlayerTracker'
+import { TapHintTracker } from './mobile/TapHintTracker'
 import { TouchLookController } from './mobile/TouchLookController'
 import { Player } from './player/Player'
 import { keyboardMap } from './player/controls'
@@ -64,6 +65,7 @@ export function Scene({ artworks, theme, active, controlMode, paused, isTouchDev
         <TouchLookController active={active} />
         <PointNavigation active={active} touch={isTouchDevice} pointerLock={!isTouchDevice && controlMode === 'classic'} artworks={artworks} garden={theme === 'garden'} />
         <InteractionManager artworks={artworks} />
+        {isTouchDevice && <TapHintTracker artworks={artworks} />}
         <PlayerTracker />
         <AttentionRay active={active} />
         <SouvenirCapture />

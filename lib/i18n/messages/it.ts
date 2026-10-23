@@ -590,6 +590,7 @@ const it: Messages = {
       skip: 'Salta',
       touchMove: 'Trascina qui per camminare',
       touchLook: 'Trascina qui per guardarti intorno',
+      touchArtwork: "Tocca l'opera per vederla",
       replay: 'Rivedi il tutorial',
       helpKey: 'Premi H per rivederlo.',
       helpMenu: 'Puoi rivederlo in Opzioni.',

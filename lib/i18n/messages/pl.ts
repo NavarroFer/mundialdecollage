@@ -612,6 +612,7 @@ const pl: Messages = {
       skip: 'Pomiń',
       touchMove: 'Przeciągnij tutaj, aby iść',
       touchLook: 'Przeciągnij tutaj, aby się rozejrzeć',
+      touchArtwork: 'Dotknij pracy, aby ją zobaczyć',
       replay: 'Zobacz samouczek ponownie',
       helpKey: 'Naciśnij H, aby zobaczyć go ponownie.',
       helpMenu: 'Zobaczysz go ponownie w Opcjach.',
