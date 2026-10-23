@@ -22,7 +22,7 @@ describe('gallery record console', () => {
   })
   it('keeps the console solid and its listening spot accessible', () => {
     expect(walkable(VINYL)).toBe(false)
-    const to = { x: VINYL.x, z: VINYL.z - 1.7 }
+    const to = VINYL.approach
     expect(walkable(to, true)).toBe(true)
     const from = { x: VINYL.x - 2, z: VINYL.z - 1.2 }
     const route = findWalkPath(from, to)!

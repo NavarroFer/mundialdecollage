@@ -19,7 +19,6 @@ import { Minimap } from './ui/Minimap'
 import { PresenceCounter } from './ui/PresenceCounter'
 import { Souvenir } from './ui/Souvenir'
 import { StartScreen } from './ui/StartScreen'
-import { GalleryCover, useCover } from './ui/GalleryCover'
 import { VisitPreferences } from './ui/VisitPreferences'
 import { useGalleryPreferences } from './preferences/store'
 import { replayTutorial } from './tutorial/store'
@@ -120,10 +119,9 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   // collage or the souvenir keep it going:
   // the camera glides to the obra and the walls show around the dialog.
   const paused = !loading && !isActive && !openId && !souvenirOpen && !wallOpen && !resuming
-  // Keep the splash through the initial load only. Pausing later leaves
-  // the gallery visible behind the resume controls.
+  // The gallery stays visible behind resume controls; initial loading uses
+  // a static status instead of the animated paper splash.
   const menuOpen = !isActive && !overlayOpen && !resuming
-  const cover = useCover(!sceneReady)
 
   useEffect(() => {
     if (isTouchDevice || !shell) return
@@ -384,7 +382,9 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       <WallDialog theme={theme} />
       <SnakeDialog />
       <VinylDialog />
-      {cover.mounted && <GalleryCover loading={loading} translucent={false} leaving={cover.leaving} fadeIn={false} onExited={cover.exited} />}
+      {!sceneReady && <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-paper">
+        {loading && <p role="status" className="px-6 text-center font-sans text-sm font-semibold text-ink">{m.gallery.loading}</p>}
+      </div>}
       {menuOpen && !loading && (
         <StartScreen
           artworks={artworks}

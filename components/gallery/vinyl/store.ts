@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import classics from './tracks.json'
 
-// Against the clear west end of the central panel, facing north.
-export const VINYL = { x: -2.85, z: 1.12, width: 1.05, depth: 0.8 }
+// Room 1: west face of the divider, in the gap beside the doorway and
+// before the artwork. Footprint includes the quarter-turn toward the room.
+export const VINYL = { x: -8.68, z: 0, width: 0.8, depth: 1.05, rotation: -Math.PI / 2, approach: { x: -10.38, z: 0 } }
 export const TRACKS = [{ id: 'mundial', title: 'La canción del Mundial', composer: 'Mundial de Collage', performer: '', src: '/cancion.mp3', source: '', license: '' }, ...classics]
 export function adjacentTrack(index: number, delta: number, shuffle = false, random = Math.random) {
   const count = TRACKS.length
