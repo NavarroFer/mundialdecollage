@@ -7,10 +7,10 @@ export const HOME_STATS_TOPIC = 'home-stats'
 export const HOME_STATS_EVENT = 'stats'
 
 export type HomeStats = {
-  // Published obras and their countries: the hero's «Ya participan…».
+  // Published obras and their countries (the hero's «… de N países»).
   artworks: number
   countries: number
-  // Every obra received: the edition banner's.
+  // Every obra received: the hero's «Ya participan N obras» and the edition banner's.
   received: number
 }
 

@@ -10,6 +10,7 @@ import { site } from '@/lib/site'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { getFinalists } from '@/lib/finalists'
+import { getSubmissionsCount } from '@/lib/submissions'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { getCallState } from '@/lib/call-state'
@@ -23,9 +24,10 @@ async function isSignedIn() {
 }
 
 export async function HeroSection() {
-  const [{ locale, m }, signedIn, artworks, { open }] = await Promise.all([
+  const [{ locale, m }, signedIn, received, artworks, { open }] = await Promise.all([
     getI18n(),
     isSignedIn(),
+    getSubmissionsCount(),
     getFinalists(),
     getCallState(),
   ])
@@ -110,9 +112,9 @@ export async function HeroSection() {
           </p>
         </FadeIn>
 
-        {artworks.length > 0 && countries > 0 && (
+        {received > 0 && countries > 0 && (
           <FadeIn delay={225}>
-            <AnimatedParticipationProof artworks={artworks.length} countries={countries} />
+            <AnimatedParticipationProof received={received} countries={countries} />
           </FadeIn>
         )}
 
