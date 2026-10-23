@@ -37,3 +37,13 @@ describe('aimAt', () => {
     expect(aim()).toBeNull()
   })
 })
+
+it('recognizes the arcade through its parent group and respects occlusion', () => {
+  const cabinet = new Group()
+  cabinet.userData.arcade = true
+  cabinet.add(plane(-2))
+  cabinet.updateMatrixWorld(true)
+  const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1))
+  expect(aimAt(ray.intersectObjects([cabinet], true))).toEqual({ kind: 'arcade', distance: 2 })
+  expect(aimAt(ray.intersectObjects([plane(-1), cabinet], true))?.kind).toBe('spot')
+})

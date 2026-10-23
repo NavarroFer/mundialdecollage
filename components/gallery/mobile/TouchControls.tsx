@@ -1,5 +1,6 @@
 'use client'
 
+import { useArcadeStore } from '../arcade/store'
 import { useI18n } from '@/lib/i18n/client'
 import { useInteractionStore } from '../interaction/store'
 import { useNavigationStore } from '../navigation/store'
@@ -26,6 +27,7 @@ type Vec2 = { x: number; y: number }
 
 export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
   const { m } = useI18n()
+  const arcade = useArcadeStore((state) => state.aiming)
   const targetId = useInteractionStore((state) => state.targetId)
   const aimingAtWall = useWallStore((state) => state.aiming && !state.placing)
   const sticksHint = useSticksHint()
@@ -163,7 +165,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
       <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
       {sticksHint ? <TouchHint /> : <ArtworkTapHint />}
 
-      {(targetId || aimingAtWall) && <button
+      {(arcade || targetId || aimingAtWall) && <button
         type="button"
         onTouchStart={(event) => {
           event.stopPropagation()
@@ -171,7 +173,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
         onClick={() => interact()}
         className={`${styles.hudButton} pointer-events-auto absolute right-[7%] bottom-[calc(7%+7.5rem)] flex min-h-12 max-w-48 items-center justify-center px-4 text-sm active:scale-95`}
       >
-        {targetId ? m.gallery.viewArtwork : m.gallery.wall.prompt}
+        {arcade ? 'Jugar Snake' : targetId ? m.gallery.viewArtwork : m.gallery.wall.prompt}
       </button>}
     </div>
   )

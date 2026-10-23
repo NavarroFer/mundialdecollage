@@ -131,7 +131,7 @@ export const GARDEN_FLOWERS = [
   { x: 4.7, z: 4.25, color: '#8f67b1' },
   { x: 8.5, z: -4.25, color: '#ffd23f' },
   { x: 13, z: 4.25, color: '#ef6f61' },
-  { x: 16.2, z: -4.25, color: '#ff8f3d' },
+  { x: 15.2, z: -4.25, color: '#ff8f3d' },
 ]
 
 /** The garden theme's sand path: through both doorways, then up and down Room 3's bays. */

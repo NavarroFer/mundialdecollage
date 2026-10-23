@@ -74,3 +74,12 @@ describe('viewingSpot', () => {
     expect(walkable(spot)).toBe(true)
   })
 })
+
+ it('routes around the arcade and leaves its playing spot accessible', () => {
+   expect(walkable({ x: 16.5, z: -4.25 })).toBe(false)
+   expect(walkable({ x: 16.5, z: -2.55 }, true)).toBe(true)
+   const from = { x: 15.5, z: -3 }
+   const route = findWalkPath(from, { x: 17.2, z: -3.5 })
+   expect(route).not.toBeNull()
+   expect(legsAreClear(from, route!)).toBe(true)
+ })
