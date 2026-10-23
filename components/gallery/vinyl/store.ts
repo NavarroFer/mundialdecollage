@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import classics from './tracks.json'
 
-// A listening island in the hall, clear of the panel, artworks and doorways.
-export const VINYL = { x: -4.2, z: -0.2, width: 1.05, depth: 0.8 }
+// Against the clear west end of the central panel, facing north.
+export const VINYL = { x: -2.85, z: 1.12, width: 1.05, depth: 0.8 }
 export const TRACKS = [{ id: 'mundial', title: 'La canción del Mundial', composer: 'Mundial de Collage', performer: '', src: '/cancion.mp3', source: '', license: '' }, ...classics]
 export function adjacentTrack(index: number, delta: number, shuffle = false, random = Math.random) {
   const count = TRACKS.length
   return shuffle ? (index + 1 + Math.floor(random() * (count - 1))) % count : (index + delta + count) % count
 }
-export type MusicController = { play: () => void; pause: () => void; stop: () => void; select: (index: number) => void; seek: (time: number) => void }
+export type MusicController = { play: () => void; pause: () => void; stop: () => void; select: (index: number) => void; seek: (time: number) => void; setVolume: (level: number) => void }
 export const musicController: { current: MusicController | null } = { current: null }
 export const useVinylStore = create<{
   open: boolean; aiming: boolean; index: number; playing: boolean; shuffle: boolean; time: number; duration: number; error: string; loading: boolean

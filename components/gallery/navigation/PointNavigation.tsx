@@ -57,7 +57,7 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden }
         if (aim.distance <= OPEN_DISTANCE) { navigation.cancel(); store.getState().setOpen(true) }
         else if (!touch) {
           camera.getWorldPosition(playerPosition)
-          const route = findWalkPath({ x: playerPosition.x, z: playerPosition.z }, { x: furniture.x, z: furniture.z + 1.7 }, garden)
+          const route = findWalkPath({ x: playerPosition.x, z: playerPosition.z }, { x: furniture.x, z: furniture.z + (aim.kind === 'vinyl' ? -1.7 : 1.7) }, garden)
           if (route) navigation.start(route)
         }
         return

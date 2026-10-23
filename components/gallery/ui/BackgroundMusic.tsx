@@ -1,5 +1,6 @@
 'use client'
 
+import { applyAudioVolume, routeThroughGain, type VolumeRoute } from '../vinyl/audio'
 import { TRACKS, musicController, skipTrack, useVinylStore } from '../vinyl/store'
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { Volume2, VolumeX } from 'lucide-react'
@@ -16,31 +17,6 @@ export type BackgroundMusicHandle = {
 
 const MUSIC_SRC = TRACKS[0].src
 
-/** The tank's 1–100 as loudness, squared so its lower half isn't all whisper (the default 60 ≈ the 0.35 it always played at). */
-const gainFor = (volume: number) => (volume / 100) ** 2
-
-// iOS ignores `volume` on a media element (the phone's buttons own it): the
-// value set doesn't stick. There the song goes through Web Audio instead,
-// whose gain does obey.
-function obeysVolume(audio: HTMLAudioElement) {
-  const before = audio.volume
-  audio.volume = before === 0.5 ? 0.25 : 0.5
-  const obeyed = audio.volume !== before
-  audio.volume = before
-  return obeyed
-}
-
-function routeThroughGain(audio: HTMLAudioElement) {
-  try {
-    const context = new AudioContext()
-    const gain = context.createGain()
-    context.createMediaElementSource(audio).connect(gain).connect(context.destination)
-    return { context, gain }
-  } catch {
-    return null
-  }
-}
-
 /**
  * Ambient loop for the exhibition. play() is exposed imperatively so Game.tsx
  * can call it from inside the same click handler as "ENTRAR A LA
@@ -52,12 +28,11 @@ function routeThroughGain(audio: HTMLAudioElement) {
  */
 export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: GalleryTheme; inline?: boolean; showVolume?: boolean }>(function BackgroundMusic({ theme: _theme, inline = false, showVolume = false }, ref) {
   const audioRef = useRef<HTMLAudioElement>(null)
-  // Only on iOS (obeysVolume), set up on the first play(), before a note has
-  // sounded: an AudioContext only starts inside a user gesture.
+  // Set up the gain route on the first user gesture, before playback.
   const startedRef = useRef(false)
   const playAttempt = useRef(0)
   const checkedRef = useRef(false)
-  const gainRef = useRef<{ context: AudioContext; gain: GainNode } | null>(null)
+  const gainRef = useRef<VolumeRoute | null>(null)
   const muted = useGalleryPreferences((state) => state.muted)
   const volume = useGalleryPreferences((state) => state.volume)
   const { m } = useI18n()
@@ -65,12 +40,7 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
   function applyVolume() {
     const audio = audioRef.current
     const { muted, volume } = useGalleryPreferences.getState()
-    // `volume` isn't a real HTML attribute (React's audio/video typings don't
-    // expose it as a prop) — it only exists as a DOM property.
-    if (audio) audio.volume = gainFor(volume)
-    // Eased, or each step of a drag clicks.
-    const routed = gainRef.current
-    routed?.gain.gain.setTargetAtTime(muted ? 0 : gainFor(volume), routed.context.currentTime, 0.02)
+    if (audio) applyAudioVolume(audio, gainRef.current, volume, muted)
   }
 
   function play() {
@@ -78,9 +48,9 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
     if (!audio) return
     if (!checkedRef.current) {
       checkedRef.current = true
-      if (!obeysVolume(audio)) gainRef.current = routeThroughGain(audio)
-      applyVolume()
+      gainRef.current = routeThroughGain(audio)
     }
+    applyVolume()
     void gainRef.current?.context.resume().catch(() => {})
     const attempt = ++playAttempt.current
     useVinylStore.setState({ error: '', loading: true })
@@ -104,7 +74,11 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
     const patch = level === 0 ? { muted: true } : { volume: level, muted: false }
     if (save) state.update(patch)
     else useGalleryPreferences.setState(patch)
-    if (state.muted && level > 0) play()
+    applyVolume()
+    if (level > 0) {
+      void gainRef.current?.context.resume().catch(() => {})
+      if (state.muted) play()
+    }
   }
 
   // Again whenever either changes; applyVolume reads them from the store.
@@ -146,9 +120,11 @@ export const BackgroundMusic = forwardRef<BackgroundMusicHandle, { theme: Galler
         ++playAttempt.current
         audio.pause()
         audio.src = TRACKS[index].src
+        audio.load()
         useVinylStore.setState({ index, time: 0, duration: 0, playing: false, error: '' })
         controller.play()
       },
+      setVolume: (level: number) => setLevel(level, true),
       seek: (time: number) => { if (Number.isFinite(audio.duration)) audio.currentTime = Math.max(0, Math.min(time, audio.duration)) },
     }
     musicController.current = controller

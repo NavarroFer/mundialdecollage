@@ -42,7 +42,7 @@ export function VinylConsole({ active }: { active: boolean }) {
     if (state.aiming !== aiming) useVinylStore.setState({ aiming })
   })
   useEffect(() => () => useVinylStore.setState({ open: false, aiming: false }), [])
-  return <RigidBody type="fixed" colliders={false} position={[VINYL.x, 0, VINYL.z]}>
+  return <RigidBody type="fixed" colliders={false} position={[VINYL.x, 0, VINYL.z]} rotation={[0, Math.PI, 0]}>
     <CuboidCollider args={[.525, .69, .4]} position={[0, .69, 0]} />
     <group userData={{ vinyl: true }}>
       <mesh position={[0, .48, 0]} castShadow receiveShadow><boxGeometry args={[.85, .96, .65]} /><meshStandardMaterial color="#574432" roughness={.85} /></mesh>
