@@ -17,7 +17,7 @@ import { peerPoses, prunePeerPoses, recordPeerPose, usePresenceStore } from './s
 // themselves. Presence lives in Supabase's memory — no table, and the payload
 // is just which obra is open, so nothing about a visitor is sent or stored.
 // Avatar positions ride the same channel as broadcasts: delivered live,
-// never kept.
+// never kept. A crouch or a jump rides on them too, under the same throttle.
 // Local dev shares the production Supabase project; a separate topic keeps
 // `next dev` sessions out of the real gallery's count and avatars.
 const TOPIC = process.env.NODE_ENV === 'production' ? 'galeria-3d' : 'galeria-3d-dev'
@@ -59,12 +59,12 @@ function announce(connection: Connection) {
 function sendPose(connection: Connection) {
   if (!connection.channel || !isPresent(connection)) return
   if ((usePresenceStore.getState().count ?? 0) > MAX_LIVE_VISITORS) return
-  const { x, z, heading } = usePlayerTrackerStore.getState()
-  const next = { x, z, h: heading, t: Date.now() }
+  const { x, z, heading, crouching, jumps } = usePlayerTrackerStore.getState()
+  const next = { x, z, h: heading, crouching, jumps, t: Date.now() }
   if (!shouldSendPose(connection.lastPose, next)) return
   connection.lastPose = next
   const avatar = useGalleryPreferences.getState().avatar ?? undefined
-  const payload = poseMessage({ key: connection.key, seq: connection.seq++, x, z, h: heading, avatar })
+  const payload = poseMessage({ key: connection.key, seq: connection.seq++, x, z, h: heading, avatar, crouching, jumps })
   void connection.channel.send({ type: 'broadcast', event: 'pose', payload })
 }
 

@@ -18,11 +18,14 @@ export const LOOK_COUNT = LOOKS.length
  */
 export type Appearance = { look: number; shirt: string; avatar?: string }
 
-/** What a person's driver decided this frame; Person animates the rest. */
-export type Motion = { moving: boolean; facing: number; step: number }
+/**
+ * What a person's driver decided this frame; Person animates the rest.
+ * `crouch` goes from 0 (standing) to 1 (squatting all the way down).
+ */
+export type Motion = { moving: boolean; facing: number; step: number; crouch?: number }
 
 /** The walk as the body sees it, kept up to date by Person every frame. */
-export type Gait = { moving: boolean; speed: number; distance: number; elapsed: number }
+export type Gait = { moving: boolean; speed: number; distance: number; elapsed: number; crouch: number }
 
 // Every person shares these: geometry by shape, materials by color. Nothing is
 // disposed because the set is small and fixed.
@@ -93,6 +96,10 @@ const FOREARM = 0.25
 const HEAD_Y = 1.615
 // A touch bigger than life, like the illustrated figures this style comes from.
 const HEAD_SCALE = 1.08
+// All the way down, thighs this far forward (radians) and shins as far back,
+// so the feet stay under the hips; the chest leans to keep the balance.
+const SQUAT = 1.1
+const SQUAT_LEAN = 0.45
 
 type BuildShape = { armX: number; hipX: number; arm: number; torso: Ring[]; pelvis: Ring[]; head: Ring[] }
 
@@ -157,7 +164,7 @@ type PersonProps = {
   phase?: number
   /** A small marker overhead: this is a real visitor, not a scripted one. */
   marker?: boolean
-  /** Moves the root group's x/z (and may hide it); called every frame. */
+  /** Moves the root group (and may hide it); called every frame. */
   move: (person: THREE.Group, delta: number) => Motion
 }
 
@@ -168,13 +175,13 @@ type PersonProps = {
  */
 export function Person({ appearance, theme, start, phase = 0, marker = false, move }: PersonProps) {
   const root = useRef<THREE.Group>(null)
-  const gait = useRef<Gait>({ moving: false, speed: 0, distance: 0, elapsed: phase })
+  const gait = useRef<Gait>({ moving: false, speed: 0, distance: 0, elapsed: phase, crouch: 0 })
 
   useFrame((_, frameDelta) => {
     const person = root.current
     if (!person) return
     const delta = Math.min(frameDelta, 0.05)
-    const { moving, facing, step } = move(person, delta)
+    const { moving, facing, step, crouch = 0 } = move(person, delta)
     // Always take the shortest turn, including across the -PI / PI boundary.
     const turn = Math.atan2(Math.sin(facing - person.rotation.y), Math.cos(facing - person.rotation.y))
     person.rotation.y += turn * (1 - Math.exp(-6 * delta))
@@ -182,6 +189,7 @@ export function Person({ appearance, theme, start, phase = 0, marker = false, mo
     gait.current.speed = delta > 0 ? step / delta : 0
     gait.current.distance += step
     gait.current.elapsed += delta
+    gait.current.crouch = crouch
   })
 
   const member = avatarsEnabled ? castMember(appearance.avatar) : undefined
@@ -210,6 +218,9 @@ function Figure({ appearance, theme, gait }: { appearance: Appearance; theme: Ga
   const elbows = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
   const hips = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
   const knees = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
+  const feet = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)]
+  const bob = useRef(0)
+  const sunk = useRef(0)
 
   const look = LOOKS[appearance.look % LOOKS.length]
   const build = BUILDS[look.build]
@@ -217,33 +228,49 @@ function Figure({ appearance, theme, gait }: { appearance: Appearance; theme: Ga
 
   useFrame((_, frameDelta) => {
     const delta = Math.min(frameDelta, 0.05)
-    const { moving, distance, elapsed } = gait.current
+    const { moving, distance, elapsed, crouch } = gait.current
     const g = distance * 8.5
-    const stride = moving ? Math.sin(g) * 0.34 : 0
+    // Shorter steps squatting.
+    const stride = moving ? Math.sin(g) * 0.34 * (1 - crouch * 0.5) : 0
+    const squat = crouch * SQUAT
+    const lean = crouch * SQUAT_LEAN
     const damp = (object: THREE.Object3D | null, axis: 'x' | 'y' | 'z', target: number, lambda = 10) => {
       if (object) object.rotation[axis] = THREE.MathUtils.damp(object.rotation[axis], target, lambda, delta)
     }
 
     ;[-1, 1].forEach((side, i) => {
       // A leg bends its knee while it swings forward, and stays almost straight while it carries weight.
-      damp(hips[i].current, 'x', side * stride)
-      damp(knees[i].current, 'x', moving ? 0.05 + Math.max(0, -side * Math.cos(g)) * 0.8 : 0.03)
+      damp(hips[i].current, 'x', side * stride - squat)
+      damp(knees[i].current, 'x', (moving ? 0.05 + Math.max(0, -side * Math.cos(g)) * 0.8 : 0.03) + squat * 2)
+      // The shin tilts back as far as the thigh goes forward: the foot turns back flat on the floor.
+      damp(feet[i].current, 'x', -squat)
       // Arms swing against the leg on the same side, unless the hand is busy.
       const swing = -side * stride * 0.8
       const pose = poses[i]
       const shoulder = pose === 'cup' ? -0.06 + swing * 0.15 : pose === 'pocket' ? 0.1 : pose === 'strap' ? swing * 0.25 : swing
       const elbow = pose === 'cup' ? -1.45 : pose === 'pocket' ? -0.35 : pose === 'strap' ? -0.3 : -0.12 - Math.max(0, -swing) * 0.9
       const spread = pose === 'strap' ? 0.2 : pose === 'pocket' ? 0.02 : 0.06
-      damp(shoulders[i].current, 'x', shoulder)
+      // Hanging straight down while the chest leans; free hands reach a little toward the knees.
+      damp(shoulders[i].current, 'x', shoulder - lean - (pose === 'swing' ? crouch * 0.3 : 0))
       damp(shoulders[i].current, 'z', side * spread)
       damp(elbows[i].current, 'x', elbow)
     })
-    damp(chest.current, 'y', moving ? Math.sin(g) * 0.07 : 0, 6)
+    if (chest.current) {
+      damp(chest.current, 'y', moving ? Math.sin(g) * 0.07 : 0, 6)
+      // Leans forward around the hips, not around the feet.
+      damp(chest.current, 'x', lean)
+      const tilt = chest.current.rotation.x
+      chest.current.position.set(0, HIP_Y * (1 - Math.cos(tilt)), -HIP_Y * Math.sin(tilt))
+    }
     if (head.current) {
+      head.current.rotation.x = -(chest.current?.rotation.x ?? 0) * 0.8
       head.current.rotation.y = THREE.MathUtils.damp(head.current.rotation.y, moving ? 0 : Math.sin(elapsed * 0.55) * 0.18, 4, delta)
       head.current.rotation.z = Math.sin(elapsed * 0.7) * 0.025
     }
-    if (body.current) body.current.position.y = THREE.MathUtils.damp(body.current.position.y, moving ? Math.abs(Math.sin(g)) * 0.016 : 0, 10, delta)
+    bob.current = THREE.MathUtils.damp(bob.current, moving ? Math.abs(Math.sin(g)) * 0.016 : 0, 10, delta)
+    // Eased like the joints, so the hips come down exactly as far as the bent legs bring them.
+    sunk.current = THREE.MathUtils.damp(sunk.current, squat, 10, delta)
+    if (body.current) body.current.position.y = bob.current - HIP_Y * (1 - Math.cos(sunk.current)) * look.height
   })
 
   const skin = themeSkin[theme] ?? look.skin
@@ -340,7 +367,7 @@ function Figure({ appearance, theme, gait }: { appearance: Appearance; theme: Ga
             : lofted('shin', [[-SHIN, 0.033, 0.036], [-0.3, 0.04, 0.045], [-0.14, 0.05, 0.056, -0.005], [0.02, 0.052, 0.056]])} material={material} shadow />
           {/* Cuffed hems, like rolled-up trousers. */}
           {wide && <Part geometry={lofted('turn-up', [[-SHIN - 0.005, 0.068, 0.072], [-SHIN + 0.075, 0.067, 0.071]])} material={material} />}
-          <group position={[0, -SHIN - ANKLE_TO_GROUND, 0]}>{shoe()}</group>
+          <group ref={feet[index]} position={[0, -SHIN - ANKLE_TO_GROUND, 0]}>{shoe()}</group>
         </group>
       </group>
     )

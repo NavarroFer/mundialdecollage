@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { appearanceFor, parsePose, poseMessage, shouldSendPose, POSE_HEARTBEAT_MS, POSE_MIN_INTERVAL_MS } from './protocol'
 import { peerPoses, prunePeerPoses, recordPeerPose } from './store'
 
-const at = (t: number, x = 0, z = 0, h = 0) => ({ x, z, h, t })
+const at = (t: number, x = 0, z = 0, h = 0) => ({ x, z, h, crouching: false, jumps: 0, t })
 
 describe('shouldSendPose', () => {
   it('always sends the first pose', () => {
@@ -20,6 +20,11 @@ describe('shouldSendPose', () => {
     expect(shouldSendPose(at(0, 0, 0, 0), at(500, 0, 0, 0.5))).toBe(true)
     expect(shouldSendPose(at(0, 0, 0, Math.PI - 0.01), at(500, 0, 0, -Math.PI + 0.01))).toBe(false)
   })
+  it('sends a crouch or a jump made standing still, within the same throttle', () => {
+    expect(shouldSendPose(at(0), { ...at(POSE_MIN_INTERVAL_MS), crouching: true })).toBe(true)
+    expect(shouldSendPose(at(0), { ...at(POSE_MIN_INTERVAL_MS), jumps: 1 })).toBe(true)
+    expect(shouldSendPose(at(0), { ...at(POSE_MIN_INTERVAL_MS - 1), jumps: 1 })).toBe(false)
+  })
 })
 
 describe('parsePose', () => {
@@ -30,6 +35,16 @@ describe('parsePose', () => {
     expect(parsePose(poseMessage({ key: 'k', seq: 0, x: 0, z: 0, h: 0, avatar: 'Female_Adult_11' }))).toMatchObject({ avatar: 'Female_Adult_11' })
     expect(parsePose({ k: 'k', s: 0, x: 0, z: 0, h: 0, a: '../evil.glb' })).not.toHaveProperty('avatar')
     expect(parsePose({ k: 'k', s: 0, x: 0, z: 0, h: 0, a: 42 })).not.toHaveProperty('avatar')
+  })
+  it('carries a crouch and the hops taken, and leaves them out while standing', () => {
+    expect(parsePose(poseMessage({ key: 'k', seq: 0, x: 0, z: 0, h: 0, crouching: true, jumps: 3 }))).toMatchObject({ crouching: true, jumps: 3 })
+    expect(poseMessage({ key: 'k', seq: 0, x: 0, z: 0, h: 0, crouching: false, jumps: 0 })).toEqual({ k: 'k', s: 0, x: 0, z: 0, h: 0 })
+  })
+  it('drops a crouch or a hop count that isn\'t one', () => {
+    const parsed = parsePose({ k: 'k', s: 0, x: 0, z: 0, h: 0, c: 'yes', j: 1.5 })
+    expect(parsed).not.toHaveProperty('crouching')
+    expect(parsed).not.toHaveProperty('jumps')
+    expect(parsePose({ k: 'k', s: 0, x: 0, z: 0, h: 0, j: -2 })).not.toHaveProperty('jumps')
   })
   it('keeps positions inside the gallery', () => {
     expect(parsePose({ k: 'k', s: 0, x: 999, z: -999, h: 0 })).toMatchObject({ x: 18, z: -5 })

@@ -1,16 +1,16 @@
 'use client'
 
-import { Component, useEffect, useMemo, useRef, type ReactNode, type RefObject } from 'react'
+import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { walkRate } from './avatarMotion'
-import { animationsUrl, avatarUrl, type CastMember } from './cast'
+import { animationsUrl, avatarUrl, crouchUrl, type CastMember } from './cast'
 import type { Gait } from './Person'
 
 /**
- * A cast member's real body, walking or standing as the walker says. It
+ * A cast member's real body, walking, standing or squatting as the walker says. It
  * suspends while its files download (Person shows the drawn figure meanwhile)
  * and throws if they can't, which AvatarFallback catches.
  */
@@ -61,20 +61,52 @@ export function AvatarBody({ member, gait, phase }: { member: CastMember; gait: 
     return () => { mixer.stopAllAction() }
   }, [actions, mixer, phase])
 
+  // Fetched the first time this person squats or hops: the scripted visitors never do.
+  const [crouchWanted, wantCrouch] = useState(false)
+  const crouch = useRef<THREE.AnimationAction | null>(null)
   const walking = useRef(0)
   const speed = useRef(0)
   useFrame((_, frameDelta) => {
     const delta = Math.min(frameDelta, 0.05)
     const { moving, speed: current } = gait.current
+    if (!crouchWanted && gait.current.crouch > 0) wantCrouch(true)
     walking.current = THREE.MathUtils.damp(walking.current, moving ? 1 : 0, 6, delta)
     speed.current = THREE.MathUtils.damp(speed.current, current, 4, delta)
-    actions.walk.setEffectiveWeight(walking.current)
-    actions.idle.setEffectiveWeight(1 - walking.current)
+    // Until the crouch loads (or if it never does) they stay standing; a hop still shows.
+    const down = crouch.current ? gait.current.crouch : 0
+    crouch.current?.setEffectiveWeight(down)
+    actions.walk.setEffectiveWeight(walking.current * (1 - down))
+    actions.idle.setEffectiveWeight((1 - walking.current) * (1 - down))
     actions.walk.setEffectiveTimeScale(walkRate(speed.current, member.sex))
     mixer.update(delta)
   })
 
-  return <primitive object={body} />
+  return (
+    <>
+      <primitive object={body} />
+      {crouchWanted && (
+        <AvatarFallback fallback={null}>
+          <Suspense fallback={null}><CrouchClip sex={member.sex} mixer={mixer} actionRef={crouch} /></Suspense>
+        </AvatarFallback>
+      )}
+    </>
+  )
+}
+
+/** Adds the squat to a body's mixer once its file arrives. */
+function CrouchClip({ sex, mixer, actionRef }: { sex: CastMember['sex']; mixer: THREE.AnimationMixer; actionRef: RefObject<THREE.AnimationAction | null> }) {
+  const { animations } = useGLTF(crouchUrl(sex), false, true)
+  useEffect(() => {
+    const action = mixer.clipAction(animations[0])
+    action.setEffectiveWeight(0)
+    action.play()
+    actionRef.current = action
+    return () => {
+      action.stop()
+      actionRef.current = null
+    }
+  }, [animations, mixer, actionRef])
+  return null
 }
 
 /** Shows the drawn figure for good when a body can't load (offline, a missing file, R2 throttling). */

@@ -42,3 +42,5 @@ export const avatarUrl = (name: string) => `${ASSETS}/avatars/${AVATARS_VERSION}
 export const portraitUrl = (name: string) => `${ASSETS}/avatars/${AVATARS_VERSION}/thumbs/${name}.webp`
 /** Walk and idle, shared by everyone of that sex (the skeletons match bone for bone). */
 export const animationsUrl = (sex: CastMember['sex']) => `${ASSETS}/avatars/${AVATARS_VERSION}/animations-${sex}.glb`
+/** Squatting, for visitors holding Control: a file of its own, so a body still walks without it. */
+export const crouchUrl = (sex: CastMember['sex']) => `${ASSETS}/avatars/${AVATARS_VERSION}/crouch-${sex}.glb`

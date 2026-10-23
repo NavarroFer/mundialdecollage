@@ -55,9 +55,16 @@ export type Pose = {
   h: number
   /** The cast member (world/people/cast.ts) they chose to be seen as, if any. */
   avatar?: string
+  /** Holding Control. */
+  crouching?: boolean
+  /**
+   * Hops taken since they came in. A count instead of a flag, so a jump
+   * still shows when its message was throttled or lost: the next one has it.
+   */
+  jumps?: number
 }
 
-export type SentPose = { x: number; z: number; h: number; t: number }
+export type SentPose = { x: number; z: number; h: number; crouching: boolean; jumps: number; t: number }
 
 function angleBetween(a: number, b: number) {
   return Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)))
@@ -68,7 +75,10 @@ export function shouldSendPose(last: SentPose | null, next: SentPose): boolean {
   const elapsed = next.t - last.t
   if (elapsed >= POSE_HEARTBEAT_MS) return true
   if (elapsed < POSE_MIN_INTERVAL_MS) return false
-  return Math.hypot(next.x - last.x, next.z - last.z) > MIN_MOVE || angleBetween(next.h, last.h) > MIN_TURN
+  return Math.hypot(next.x - last.x, next.z - last.z) > MIN_MOVE
+    || angleBetween(next.h, last.h) > MIN_TURN
+    || next.crouching !== last.crouching
+    || next.jumps !== last.jumps
 }
 
 const round = (value: number, digits: number) => Number(value.toFixed(digits))
@@ -76,13 +86,16 @@ const round = (value: number, digits: number) => Number(value.toFixed(digits))
 // Rides on every position, so it costs no extra message; the receiver checks it against the cast.
 const AVATAR_NAME = /^\w{1,40}$/
 
-export function poseMessage({ key, seq, x, z, h, avatar }: Pose) {
-  return { k: key, s: seq, x: round(x, 2), z: round(z, 2), h: round(h, 3), ...(avatar && { a: avatar }) }
+export function poseMessage({ key, seq, x, z, h, avatar, crouching, jumps }: Pose) {
+  return {
+    k: key, s: seq, x: round(x, 2), z: round(z, 2), h: round(h, 3),
+    ...(avatar && { a: avatar }), ...(crouching && { c: 1 }), ...(jumps && { j: jumps }),
+  }
 }
 
 export function parsePose(payload: unknown): Pose | null {
   if (typeof payload !== 'object' || payload === null) return null
-  const { k, s, x, z, h, a } = payload as Record<string, unknown>
+  const { k, s, x, z, h, a, c, j } = payload as Record<string, unknown>
   if (typeof k !== 'string' || k.length === 0 || k.length > 64) return null
   if (typeof s !== 'number' || !Number.isSafeInteger(s) || s < 0) return null
   if (![x, z, h].every((value) => typeof value === 'number' && Number.isFinite(value))) return null
@@ -94,6 +107,8 @@ export function parsePose(payload: unknown): Pose | null {
     z: Math.min(maxZ, Math.max(minZ, z as number)),
     h: h as number,
     ...(typeof a === 'string' && AVATAR_NAME.test(a) && { avatar: a }),
+    ...(c === 1 && { crouching: true }),
+    ...(typeof j === 'number' && Number.isSafeInteger(j) && j > 0 && { jumps: j }),
   }
 }
 

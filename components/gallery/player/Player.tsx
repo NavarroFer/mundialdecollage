@@ -10,8 +10,10 @@ import { useInteractionStore } from '../interaction/store'
 import { useTouchStore } from '../mobile/touchStore'
 import { useGalleryPreferences } from '../preferences/store'
 import { useNavigationStore } from '../navigation/store'
+import { usePlayerTrackerStore } from '../minimap/store'
 import type { Controls } from './controls'
 import { verticalFov } from '../camera/fov'
+import { JUMP_SPEED } from './jump'
 import { SPAWN_HEIGHT, pickSpawn, standInFront } from './spawn'
 
 const WALK_SPEED = 2.6
@@ -24,8 +26,6 @@ const STALL_SECONDS = 1.5
 const PLAYER_RADIUS = 0.35
 const PLAYER_HALF_HEIGHT = 0.5
 const EYE_HEIGHT_OFFSET = 0.75
-// About half a metre of hop under Rapier's default gravity (v = √(2gh)).
-const JUMP_SPEED = 3.2
 // Capsule centre to its bottom is the same standing or crouched (the
 // collider shifts down as it shrinks), plus a little slack for the ground.
 const GROUND_PROBE = PLAYER_HALF_HEIGHT + PLAYER_RADIUS + 0.05
@@ -148,6 +148,7 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
       colliderRef.current.setTranslationWrtParent({ x: 0, y: -halfDrop, z: 0 })
       body.wakeUp()
       wasCrouching.current = crouching
+      usePlayerTrackerStore.getState().setCrouching(crouching)
     }
     if (!active || modalOpen) {
       jumpRequested.current = false
@@ -225,7 +226,10 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
       const origin = body.translation()
       const ray = new rapier.Ray(origin, { x: 0, y: -1, z: 0 })
       const grounded = world.castRay(ray, GROUND_PROBE, true, undefined, undefined, undefined, body) !== null
-      if (grounded) velocityY = JUMP_SPEED
+      if (grounded) {
+        velocityY = JUMP_SPEED
+        usePlayerTrackerStore.getState().jumped()
+      }
     }
     body.setLinvel(
       { x: moveDirection.current.x * speed, y: velocityY, z: moveDirection.current.z * speed },
