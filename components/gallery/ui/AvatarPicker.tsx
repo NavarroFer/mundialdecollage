@@ -20,14 +20,14 @@ export function AvatarPicker() {
     if (list && picked) list.scrollLeft = picked.offsetLeft - list.offsetLeft - (list.clientWidth - picked.offsetWidth) / 2
   }, [avatar])
   if (!avatarsEnabled) return null
-  const option = 'shrink-0 rounded-md border-2 p-0.5 aria-checked:border-current border-transparent focus-visible:outline-2 focus-visible:outline-offset-2'
+  const option = 'snap-start shrink-0 rounded-md border-2 p-0.5 aria-checked:border-current border-transparent focus-visible:outline-2 focus-visible:outline-offset-2'
   return (
-    <section className="mt-3 sm:mt-5" aria-labelledby="gallery-avatar-title">
+    <section className="mt-2" aria-labelledby="gallery-avatar-title">
       <p id="gallery-avatar-title" className="text-sm font-bold">{t.title}</p>
       <p className="text-xs opacity-70">{t.hint}</p>
-      <div ref={strip} role="radiogroup" aria-labelledby="gallery-avatar-title" className="mt-2 grid grid-cols-5 gap-1 sm:flex sm:gap-1.5 sm:overflow-x-auto sm:pb-2">
+      <div ref={strip} role="radiogroup" aria-labelledby="gallery-avatar-title" className="relative mt-1 grid grid-flow-col grid-rows-2 auto-cols-[56px] gap-1 overflow-x-auto overscroll-x-contain snap-x snap-proximity pb-2 sm:grid-rows-1 sm:auto-cols-[60px]">
         <button type="button" role="radio" aria-checked={avatar === null} onClick={() => update({ avatar: null })}
-          className={`${option} grid min-h-11 min-w-0 place-items-center sm:h-[84px] sm:w-[68px] text-center text-xs font-bold`}>
+          className={`${option} grid min-h-11 min-w-0 place-items-center h-[56px] sm:h-[64px] text-center text-xs font-bold`}>
           {t.random}
         </button>
         {CAST.map(({ name }, i) => (
@@ -35,7 +35,7 @@ export function AvatarPicker() {
             onClick={() => update({ avatar: name })} className={`${option} flex min-h-11 min-w-0 items-center justify-center`}>
             {/* Straight from the gallery's R2 bucket: next/image would resize it on a Vercel Function. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={portraitUrl(name)} alt="" width={64} height={81} loading="lazy" className="block h-[48px] w-auto rounded sm:h-[81px] sm:w-[64px]" />
+            <img src={portraitUrl(name)} alt="" width={64} height={81} loading="lazy" className="block h-[48px] w-auto rounded sm:h-[56px]" />
           </button>
         ))}
       </div>
