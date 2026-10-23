@@ -75,7 +75,7 @@ export function StartScreen({ artworks, label, hint, showPresence, onEnter, onRe
         </h1>
         <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{m.gallery.tutorial.welcome}</p>
         <AvatarPicker />
-        <Button type="button" variant="primary" size="lg" onClick={onEnter} className="mt-3 h-11 w-full px-10 text-base sm:w-auto">
+        <Button type="button" variant="primary" size="lg" onClick={onEnter} className="mt-4 h-auto min-h-16 w-full whitespace-normal rounded-2xl border-2 border-ink/15 px-5 py-4 text-center font-display text-2xl leading-tight tracking-wide uppercase shadow-[4px_5px_0_rgba(27,17,12,0.18)] sm:min-h-20 sm:text-3xl">
           {label}
         </Button>
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
