@@ -1,0 +1,28 @@
+.cabinet { width: min(430px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto; padding: 18px 24px; border: 7px solid #38291e; border-radius: 10px; background: #e6b931; color: #191d17; font-family: monospace; box-shadow: 0 20px 90px #0009, inset 0 0 0 2px #f9dd75; }
+.header { display: flex; align-items: center; justify-content: space-between; font-size: 10px; letter-spacing: 2px; }
+.header button { min-width: 44px; min-height: 36px; }
+.title { text-align: center; font-family: monospace; font-size: 42px; font-weight: 900; letter-spacing: 10px; line-height: 1.1; margin-bottom: 14px; color: #201e17; }
+.screen { border: 9px solid #25241e; border-radius: 12px; background: #080d17; color: #dafa79; box-shadow: inset 0 0 25px #000, 0 3px 0 #f5d56e; overflow: hidden; }
+.score { display: flex; justify-content: space-between; padding: 12px 8px; font-size: 11px; font-weight: bold; }
+.menu { min-height: 290px; display: flex; flex-direction: column; gap: 12px; padding: 12px 22px 24px; }
+.logo { color: #72da3f; font-size: 28px; line-height: .8; letter-spacing: 4px; }
+.menu p { font-size: 9px; letter-spacing: 1px; margin: 5px 0; }
+.cabinet button, .cabinet select { cursor: pointer; touch-action: manipulation; }
+.cabinet button:focus-visible, .cabinet select:focus-visible { outline: 3px solid #ef4949; outline-offset: 3px; }
+.menu button, .cover button { background: #dafa79; color: #111a13; padding: 12px; font-weight: bold; border: 0; }
+.menu label { font-size: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.menu select { padding: 10px; background: #1c2631; color: #e1f5ab; border: 1px solid #45552f; max-width: 65%; }
+.board { position: relative; }
+.board svg { width: 100%; display: block; }
+.cover { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #080d17e8; }
+.cover strong { font-size: 24px; letter-spacing: 2px; }
+.cover p { font-size: 12px; }
+.controls { display: flex; align-items: center; justify-content: space-around; gap: 20px; margin-top: 16px; }
+.pad { display: grid; grid-template: repeat(3, 40px) / repeat(3, 42px); }
+.pad button { background: #292b25; color: #efdf9a; border: 1px solid #4f5146; font-size: 17px; }
+.up { grid-area: 1 / 2; }.left { grid-area: 2 / 1; }.down { grid-area: 3 / 2; }.right { grid-area: 2 / 3; }
+.controls > div > button:not(.up, .left, .down, .right) { padding: 12px; background: #a52e24; color: #fff2c0; border-radius: 5px; font-weight: bold; box-shadow: 0 3px 0 #742219; }
+.controls button:disabled { opacity: .5; cursor: default; }
+.controls p { margin-top: 12px; text-align: center; font-size: 10px; letter-spacing: 2px; }
+.help { margin-top: 12px; text-align: center; font-size: 10px; line-height: 1.5; }
+@media (max-height: 720px) { .cabinet { padding: 10px 18px; } .title { font-size: 30px; margin-bottom: 8px; } .screen { max-width: 285px; margin: auto; } .menu { min-height: 240px; gap: 8px; } .pad { grid-template: repeat(3, 36px) / repeat(3, 44px); } .controls { margin-top: 10px; } }

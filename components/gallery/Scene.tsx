@@ -1,5 +1,6 @@
 'use client'
 
+import { ArcadeCabinet } from './arcade/ArcadeCabinet'
 import { PointNavigation } from './navigation/PointNavigation'
 import { AttentionRay } from './attention/AttentionRay'
 import { useRef } from 'react'
@@ -58,6 +59,7 @@ export function Scene({ artworks, theme, active, controlMode, paused, isTouchDev
       >
         <Physics paused={paused}>
           <World artworks={artworks} theme={theme} />
+          <ArcadeCabinet active={active} />
           <Player active={active} artworks={artworks} />
         </Physics>
         {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}

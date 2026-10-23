@@ -61,25 +61,25 @@ export function StartScreen({ artworks, label, hint, showPresence, onEnter, onRe
   // The home's look whatever the walls' theme: the themes dress the walk,
   // the menu around it is the Mundial's.
   return (
-    <div className="animate-in fade-in absolute inset-0 z-30 flex items-start justify-center overflow-y-auto p-4 pt-20 font-sans text-ink duration-300">
+    <div className="animate-in fade-in absolute inset-0 z-30 flex items-start justify-center overflow-y-auto p-3 pt-16 sm:p-4 sm:pt-20 font-sans text-ink duration-300">
       <section
-        className="bg-grain my-auto w-full max-w-2xl rounded-3xl border-2 border-ink/10 bg-paper p-6 shadow-[6px_8px_0_rgba(27,17,12,0.16)] sm:p-10"
+        className="bg-grain my-auto w-full max-w-2xl rounded-3xl border-2 border-ink/10 bg-paper p-3 shadow-[6px_8px_0_rgba(27,17,12,0.16)] sm:p-10"
         aria-labelledby="gallery-start-title"
       >
-        <span className="torn-strip inline-block -rotate-2 bg-collage-blue px-4 py-2 text-[0.7rem] font-bold tracking-[0.12em] text-primary-foreground uppercase sm:px-5 sm:text-xs sm:tracking-[0.2em]">
+        <span className="torn-strip inline-block -rotate-2 bg-collage-blue px-3 py-1 sm:py-2 text-[0.7rem] font-bold tracking-[0.12em] text-primary-foreground uppercase sm:px-5 sm:text-xs sm:tracking-[0.2em]">
           {m.gallery.startEyebrow}
         </span>
-        <h1 id="gallery-start-title" className="font-display mt-6 text-4xl tracking-tight uppercase sm:text-6xl">
+        <h1 id="gallery-start-title" className="font-display mt-2 text-2xl sm:mt-6 tracking-tight uppercase sm:text-6xl">
           {m.gallery.startTitle}
         </h1>
-        <p className="mt-3 text-lg text-muted-foreground">{m.gallery.tutorial.welcome}</p>
+        <p className="mt-1 text-xs text-muted-foreground sm:mt-3 sm:text-lg">{m.gallery.tutorial.welcome}</p>
         <AvatarPicker />
-        <Button type="button" variant="primary" size="lg" onClick={onEnter} className="mt-6 h-16 w-full px-10 text-lg sm:w-auto">
+        <Button type="button" variant="primary" size="lg" onClick={onEnter} className="mt-3 h-11 w-full px-10 text-base sm:mt-6 sm:h-16 sm:w-auto sm:text-lg">
           {label}
         </Button>
-        <p className="mt-3 text-xs text-muted-foreground">{hint}</p>
+        <p className="mt-1 text-xs text-muted-foreground sm:mt-3">{hint}</p>
         {showPresence && <PresenceNote />}
-        <details className="mt-4">
+        <details className="mt-1 sm:mt-4">
           <summary className="cursor-pointer py-2 text-sm font-semibold">{m.gallery.mobileMenu.open}</summary>
           <VisitPreferences artworks={artworks} onResume={onResume} />
         </details>
@@ -92,16 +92,16 @@ export function StartScreen({ artworks, label, hint, showPresence, onEnter, onRe
           </p>
         )}
         {/* Before the first entry and on every pause (lib/donations.ts). */}
-        <section aria-labelledby="gallery-donate-title" className="mt-6 border-t-2 border-dashed border-ink/15 pt-6">
-          <p id="gallery-donate-title" className="mb-4 text-sm font-bold">{m.donate.galleryBody}</p>
+        <details className="mt-1 border-t-2 border-dashed border-ink/15 sm:mt-6">
+          <summary className="cursor-pointer py-2 text-xs font-bold sm:py-4 sm:text-sm">{m.donate.galleryBody}</summary>
           <DonationForm origin="gallery" />
-        </section>
+        </details>
         {/* The way back to the rest of the Mundial — signed-in visitors who
             haven't finished signing up get asked to there (ParticipationStatus). */}
-        <Link href="/" onClick={() => track('home_from_gallery')} className="mt-6 inline-block text-sm font-semibold underline underline-offset-4 hover:text-collage-red">
+        <Link href="/" onClick={() => track('home_from_gallery')} className="mt-1 inline-flex min-h-11 items-center text-xs sm:mt-6 sm:text-sm font-semibold underline underline-offset-4 hover:text-collage-red">
           {m.gallery.homeLink}
         </Link>
-        <TrackedLink href="/partners" event="partners_click_gallery" className="mt-2 block text-xs text-muted-foreground underline underline-offset-4 hover:text-ink">
+        <TrackedLink href="/partners" event="partners_click_gallery" className="ml-3 inline-flex min-h-11 items-center text-xs sm:mt-2 sm:ml-0 sm:flex text-muted-foreground underline underline-offset-4 hover:text-ink">
           {m.gallery.partnersLink}
         </TrackedLink>
       </section>

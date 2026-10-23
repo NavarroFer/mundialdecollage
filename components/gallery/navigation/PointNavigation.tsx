@@ -1,5 +1,6 @@
 'use client'
 
+import { ARCADE, useArcadeStore } from '../arcade/store'
 import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import { Raycaster, Vector2, Vector3 } from 'three'
@@ -48,6 +49,16 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden }
       pointer.set(((state.request.x - rect.left) / rect.width) * 2 - 1, -((state.request.y - rect.top) / rect.height) * 2 + 1)
       ray.setFromCamera(pointer, camera)
       const aim = aimAt(ray.intersectObjects(scene.children, true))
+      if (aim?.kind === 'arcade') {
+        const navigation = useNavigationStore.getState()
+        if (aim.distance <= OPEN_DISTANCE) { navigation.cancel(); useArcadeStore.getState().setOpen(true) }
+        else if (!touch) {
+          camera.getWorldPosition(playerPosition)
+          const route = findWalkPath({ x: playerPosition.x, z: playerPosition.z }, { x: ARCADE.x, z: ARCADE.z + 1.7 }, garden)
+          if (route) navigation.start(route)
+        }
+        return
+      }
       const artwork = aim?.kind === 'artwork' ? artworks.find(({ id }) => id === aim.id) : undefined
       const navigation = useNavigationStore.getState()
       if (artwork && aim?.kind === 'artwork' && aim.distance <= OPEN_DISTANCE) {

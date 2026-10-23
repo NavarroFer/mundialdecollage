@@ -1,3 +1,4 @@
+import { useArcadeStore } from '../arcade/store'
 import { currentAim, useWallStore } from '../wall/store'
 import { useInteractionStore } from './store'
 
@@ -7,6 +8,9 @@ import { useInteractionStore } from './store'
  * obra in sight, opens the dialog to paste a photo right there.
  */
 export function interact() {
+  const arcade = useArcadeStore.getState()
+  if (arcade.open) return
+  if (arcade.aiming) { arcade.setOpen(true); return }
   const interaction = useInteractionStore.getState()
   if (interaction.openId || interaction.targetId) {
     interaction.toggle()

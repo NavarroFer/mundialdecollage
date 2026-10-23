@@ -1,3 +1,4 @@
+import { ARCADE } from '../arcade/store'
 import { GALLERY_BOUNDS, GARDEN_FLOWERS, walls } from '../world/roomsData'
 
 export type Point = { x: number; z: number }
@@ -20,6 +21,7 @@ const inBox = (point: Point, x: number, z: number, halfWidth: number, halfDepth:
 export function walkable(point: Point, garden = false): boolean {
   if (!Number.isFinite(point.x) || !Number.isFinite(point.z)) return false
   if (point.x <= minX + CLEARANCE || point.x >= maxX - CLEARANCE || point.z <= minZ + CLEARANCE || point.z >= maxZ - CLEARANCE) return false
+  if (inBox(point, ARCADE.x, ARCADE.z, ARCADE.width / 2, ARCADE.depth / 2)) return false
   if (walls.some(({ position, size }) => inBox(point, position[0], position[2], size[0] / 2, size[2] / 2))) return false
   return !garden || !GARDEN_FLOWERS.some(({ x, z }) => Math.hypot(point.x - x, point.z - z) < FLOWER_RADIUS + CLEARANCE)
 }
