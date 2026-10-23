@@ -516,6 +516,7 @@ const pt: Messages = {
     },
     musicOn: 'Ligar música',
     musicOff: 'Silenciar música',
+    volume: 'Volume da música',
     souvenir: {
       button: 'Tirar uma foto',
       title: 'Sua foto do museu',

@@ -526,6 +526,7 @@ const ru: Messages = {
     },
     musicOn: 'Включить музыку',
     musicOff: 'Выключить музыку',
+    volume: 'Громкость музыки',
     souvenir: {
       button: 'Сделать фото',
       title: 'Ваше фото из музея',

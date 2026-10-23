@@ -516,6 +516,7 @@ const id: Messages = {
     },
     musicOn: 'Nyalakan musik',
     musicOff: 'Matikan musik',
+    volume: 'Volume musik',
     souvenir: {
       button: 'Ambil foto',
       title: 'Fotomu di museum',

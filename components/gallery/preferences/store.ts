@@ -5,9 +5,9 @@ import { castMember } from '../world/people/cast'
 const KEY = 'mdc-gallery-preferences-v1'
 /** How a computer looks around: a free cursor that turns the view at the sides ('point') or with the mouse captured ('classic'). Clicks and keys walk either way. */
 export type ControlMode = 'point' | 'classic'
-/** `avatar` is the cast member others see this visitor as; null leaves it to chance (RemoteVisitors). */
-export type Preferences = { controlMode: ControlMode; theme: GalleryTheme; muted: boolean; sensitivity: number; visited: string[]; lastArtwork: string | null; avatar: string | null }
-const defaults: Preferences = { controlMode: 'point', theme: 'collage', muted: false, sensitivity: 1, visited: [], lastArtwork: null, avatar: null }
+/** `avatar` is the cast member others see this visitor as; null leaves it to chance (RemoteVisitors). `volume` is the music's level, 1–100: silence is `muted`, so turning it back on always sounds. */
+export type Preferences = { controlMode: ControlMode; theme: GalleryTheme; muted: boolean; volume: number; sensitivity: number; visited: string[]; lastArtwork: string | null; avatar: string | null }
+const defaults: Preferences = { controlMode: 'point', theme: 'collage', muted: false, volume: 60, sensitivity: 1, visited: [], lastArtwork: null, avatar: null }
 
 export function parsePreferences(raw: string | null): Preferences {
   try {
@@ -16,6 +16,7 @@ export function parsePreferences(raw: string | null): Preferences {
       controlMode: value.controlMode === 'classic' ? 'classic' : 'point',
       theme: GALLERY_THEMES.includes(value.theme) ? value.theme : defaults.theme,
       muted: value.muted === true,
+      volume: Number.isInteger(value.volume) && value.volume >= 1 && value.volume <= 100 ? value.volume : defaults.volume,
       sensitivity: [0.5, 1, 1.5].includes(value.sensitivity) ? value.sensitivity : 1,
       visited: Array.isArray(value.visited) ? [...new Set<string>(value.visited.filter((id: unknown) => typeof id === 'string' && id.length < 200))].slice(-500) : [],
       lastArtwork: typeof value.lastArtwork === 'string' && value.lastArtwork.length < 200 ? value.lastArtwork : null,
@@ -39,8 +40,8 @@ export const useGalleryPreferences = create<State>((set, get) => ({
   },
   update: (patch) => {
     set(patch)
-    const { theme, muted, sensitivity, visited, lastArtwork, controlMode, avatar } = get()
-    try { localStorage.setItem(KEY, JSON.stringify({ theme, muted, sensitivity, visited, lastArtwork, controlMode, avatar })) } catch {}
+    const { theme, muted, volume, sensitivity, visited, lastArtwork, controlMode, avatar } = get()
+    try { localStorage.setItem(KEY, JSON.stringify({ theme, muted, volume, sensitivity, visited, lastArtwork, controlMode, avatar })) } catch {}
   },
   visit: (id) => {
     const state = get()

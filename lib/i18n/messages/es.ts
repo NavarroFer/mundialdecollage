@@ -522,6 +522,7 @@ const es = {
     },
     musicOn: 'Activar música',
     musicOff: 'Silenciar música',
+    volume: 'Volumen de la música',
     souvenir: {
       button: 'Sacar una foto',
       title: 'Tu foto del museo',

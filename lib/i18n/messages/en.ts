@@ -517,6 +517,7 @@ const en: Messages = {
     },
     musicOn: 'Turn music on',
     musicOff: 'Mute music',
+    volume: 'Music volume',
     souvenir: {
       button: "Take a photo",
       title: "Your museum photo",

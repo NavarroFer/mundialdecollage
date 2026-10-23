@@ -342,11 +342,15 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
         </button>
         {!isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice={false} active={isActive} onResume={resumeWalk} />}
       </nav>
-      <BackgroundMusic ref={musicRef} theme={theme} inline={isTouchDevice} />
+      {/* The volume shows once the music plays (ENTRAR). A phone's start
+          and pause screens fill the width, so it waits for the walk there. */}
+      <div className={cn(styles.hudCorner, isTouchDevice && styles.hudCornerEnd)}>
+        <BackgroundMusic ref={musicRef} theme={theme} inline={isTouchDevice} showVolume={hasStarted && !(isTouchDevice && menuOpen)} />
+        {!isTouchDevice && hasStarted && <PresenceCounter />}
+      </div>
       {/* On a computer the minimap stays on screen; a phone keeps it (and
           the photo button) in Opciones, so the walk has the whole screen. */}
       {!isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
-      {!isTouchDevice && hasStarted && <PresenceCounter />}
       <div id="gallery-options" className={styles.visitMenu} hidden={!optionsOpen || !hasStarted || dialogOpen}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>

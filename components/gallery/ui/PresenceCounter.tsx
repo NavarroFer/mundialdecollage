@@ -17,7 +17,7 @@ export function PresenceCounter() {
   return (
     <div
       title={m.gallery.presenceTitle}
-      className={`${styles.hudPanel} animate-in fade-in pointer-events-none absolute top-16 left-4 z-20 flex h-9 items-center gap-2 px-3 text-xs font-semibold duration-300`}
+      className={`${styles.hudPanel} animate-in fade-in pointer-events-none relative z-20 flex h-9 items-center gap-2 px-3 text-xs font-semibold duration-300`}
     >
       <span className={styles.liveDot} aria-hidden="true" />
       {insideLabel(count, locale, m.gallery.presence)}

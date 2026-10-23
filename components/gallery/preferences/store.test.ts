@@ -14,6 +14,11 @@ describe('gallery preferences', () => {
     expect(parsePreferences('{"controlMode":"classic"}').controlMode).toBe('classic')
     expect(parsePreferences('{"controlMode":"teleport"}').controlMode).toBe('point')
   })
+  it('remembers the music volume, never silence or out of range', () => {
+    expect(parsePreferences(null).volume).toBe(60)
+    expect(parsePreferences('{"volume":25}').volume).toBe(25)
+    for (const volume of [0, 101, 12.5, '40', null]) expect(parsePreferences(JSON.stringify({ volume })).volume).toBe(60)
+  })
   it('remembers the avatar chosen, unless it left the cast', () => {
     expect(parsePreferences(null).avatar).toBeNull()
     expect(parsePreferences('{"avatar":"Female_Adult_11"}').avatar).toBe('Female_Adult_11')
@@ -29,11 +34,11 @@ describe('gallery preferences', () => {
   it('remembers the latest artwork without duplicating visits and restores preferences', () => {
     const storage = new Map<string, string>()
     vi.stubGlobal('localStorage', { getItem: (key: string) => storage.get(key), setItem: (key: string, value: string) => storage.set(key, value) })
-    useGalleryPreferences.getState().update({ muted: true, theme: 'garden', controlMode: 'classic' })
+    useGalleryPreferences.getState().update({ muted: true, volume: 30, theme: 'garden', controlMode: 'classic' })
     for (const id of ['a', 'b', 'a']) useGalleryPreferences.getState().visit(id)
     useGalleryPreferences.setState(parsePreferences(null))
     useGalleryPreferences.getState().hydrate()
-    expect(useGalleryPreferences.getState()).toMatchObject({ muted: true, theme: 'garden', controlMode: 'classic', visited: ['b', 'a'], lastArtwork: 'a' })
+    expect(useGalleryPreferences.getState()).toMatchObject({ muted: true, volume: 30, theme: 'garden', controlMode: 'classic', visited: ['b', 'a'], lastArtwork: 'a' })
   })
   it('keeps the gallery usable when browser storage is blocked', () => {
     vi.stubGlobal('localStorage', { getItem: () => { throw Error('blocked') }, setItem: () => { throw Error('blocked') } })

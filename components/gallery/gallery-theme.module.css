@@ -313,6 +313,92 @@
 .garden .hudButton { border-color: rgba(255, 207, 69, .72); }
 .collage .hudButton { border-style: dashed; }
 
+/* The music and its volume, then who else is walking: top left on a
+   computer, clear of the minimap; top right on a phone, clear of the
+   visit's buttons. Its children keep their own z-index (it makes no
+   stacking context) and only they take the pointer. */
+.hudCorner {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  left: max(1rem, env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+  pointer-events: none;
+}
+.hudCornerEnd { left: auto; right: max(1rem, env(safe-area-inset-right)); align-items: flex-end; }
+
+/* The volume (VolumeGauge), a tank under the speaker whose liquid sloshes
+   to the level, after React Bits' Slosh Gauge. As wide as the music button
+   is tall, so it hangs right under its icon. */
+.volumeGauge {
+  --volume-on-liquid: var(--gallery-ink);
+  position: relative;
+  z-index: 40;
+  width: 2.75rem;
+  height: 6.5rem;
+  overflow: clip;
+  isolation: isolate;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+  font-size: .75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.volumeGauge:focus-visible { outline: 3px solid var(--gallery-accent); outline-offset: 2px; }
+.volumeValue {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  pointer-events: none;
+}
+.volumeLiquid {
+  position: absolute;
+  inset: 0;
+  background: var(--gallery-accent);
+  clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+}
+.volumeLiquid .volumeValue { color: var(--volume-on-liquid); }
+/* A mark every quarter, down the right side. */
+.volumeTicks {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 22%;
+  height: 100%;
+  background: linear-gradient(to top, color-mix(in srgb, currentColor 30%, transparent) 0 1px, transparent 1px) bottom / 100% 25% repeat-y;
+  pointer-events: none;
+}
+/* While dragging, the line the liquid is heading to. */
+.volumeMarker {
+  position: absolute;
+  top: 0;
+  right: 10%;
+  left: 10%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity .15s ease;
+  pointer-events: none;
+}
+.volumeGauge[data-held] .volumeMarker { opacity: 1; }
+.windows98 .volumeGauge { --volume-on-liquid: #fff; }
+/* A phone on its side: short enough to stay clear of the «ver obra» button. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .volumeGauge { height: 4.75rem; }
+}
+
 .modal {
   border-color: var(--gallery-border) !important;
   border-radius: var(--gallery-radius) !important;
@@ -568,9 +654,21 @@
 }
 
 /* A phone held upright is too narrow for the card beside the visit's
-   buttons at the top left: it goes just under them. */
+   buttons at the top left: it goes just under them, short of the volume
+   tank down the right (.hudCornerEnd). */
 @media (pointer: coarse) and (orientation: portrait) {
-  .learningCard { top: calc(max(.75rem, env(safe-area-inset-top)) + 3.5rem); }
+  .learningCard {
+    top: calc(max(.75rem, env(safe-area-inset-top)) + 3.5rem);
+    right: calc(max(1rem, env(safe-area-inset-right)) + 3.25rem);
+    left: max(.75rem, env(safe-area-inset-left));
+    width: auto;
+    max-width: 22rem;
+    transform: none;
+    animation-name: learningInBelow;
+  }
+}
+@keyframes learningInBelow {
+  from { opacity: 0; transform: translateY(-.5rem); }
 }
 
 /* An obra in contemplation: just its name, low on the screen, over the walk. */
