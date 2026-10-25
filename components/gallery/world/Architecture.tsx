@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { galleryThemes, type GalleryTheme, type GalleryThemeDefinition } from '../themes'
@@ -235,6 +235,7 @@ export function Architecture({ theme }: { theme: GalleryTheme }) {
 function Skylights({ palette }: { palette: NonNullable<GalleryThemeDefinition['architecture']> }) {
   const skylights = useMemo(() => buildSkylights(), [])
   const sky = useMemo(() => skyTexture(palette.sky), [palette.sky])
+  useEffect(() => () => sky.dispose(), [sky])
   return (
     <group>
       <mesh geometry={skylights.trim}>

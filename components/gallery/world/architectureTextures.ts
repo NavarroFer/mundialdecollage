@@ -85,6 +85,6 @@ export function plankTexture(base: string, metersPerTile: number) {
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-  texture.anisotropy = 8
+  texture.anisotropy = 1
   return texture
 }

@@ -4,7 +4,11 @@ import { VinylConsole } from './vinyl/VinylConsole'
 import { ArcadeCabinet } from './arcade/ArcadeCabinet'
 import { PointNavigation } from './navigation/PointNavigation'
 import { AttentionRay } from './attention/AttentionRay'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { EnvironmentLight } from './graphics/EnvironmentLight'
+import { GraphicsRuntime } from './graphics/GraphicsRuntime'
+import { useGraphics } from './graphics/store'
+import { PRESETS } from './graphics/quality'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
@@ -45,20 +49,28 @@ export type SceneProps = {
  * a scene nobody could see yet.
  */
 export function Scene({ artworks, theme, active, controlMode, paused, isTouchDevice, lockTarget, wall, onReady }: SceneProps) {
+  const quality = useGraphics((s) => s.current)
+  const dpr = useGraphics((s) => s.dpr)
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    const update = () => setVisible(!document.hidden)
+    update()
+    document.addEventListener('visibilitychange', update)
+    return () => document.removeEventListener('visibilitychange', update)
+  }, [])
   return (
     <KeyboardControls map={keyboardMap}>
       <Canvas
-        // Phones get no shadow maps and at most 1.5× pixels: a 3× screen
-        // otherwise draws over twice the pixels of 2× for a difference
-        // nobody sees at arm's length.
-        shadows={isTouchDevice ? false : 'variance'}
-        dpr={isTouchDevice ? [1, 1.5] : [1, 2]}
+        shadows={PRESETS[quality].shadows ? 'percentage' : false}
+        dpr={dpr}
         // Paused, it only draws when something asks (a resize, the souvenir
         // photo), so the last frame stays put behind the overlay.
-        frameloop={paused ? 'demand' : 'always'}
+        frameloop={paused || !visible ? 'demand' : 'always'}
         style={{ width: '100%', height: '100%', background: galleryThemes[theme].canvas }}
       >
-        <Physics paused={paused}>
+        <EnvironmentLight />
+        <GraphicsRuntime active={active && !paused && visible} mobile={isTouchDevice} />
+        <Physics paused={paused || !visible}>
           <World artworks={artworks} theme={theme} />
           <ArcadeCabinet active={active} />
           <VinylConsole active={active} />

@@ -3,6 +3,7 @@
 import type { Artwork } from '@/data/artworks'
 import { useI18n } from '@/lib/i18n/client'
 import { useGalleryPreferences } from '../preferences/store'
+import { GraphicsSettings } from '../graphics/GraphicsSettings'
 import { ThemePicker } from './ThemePicker'
 
 export function VisitPreferences({ artworks, onResume }: { artworks: Artwork[]; onResume?: (id: string) => void }) {
@@ -17,6 +18,7 @@ export function VisitPreferences({ artworks, onResume }: { artworks: Artwork[]; 
         <option value={0.5}>{t.slow}</option><option value={1}>{t.normal}</option><option value={1.5}>{t.fast}</option>
       </select>
     </label>
+    <GraphicsSettings />
     <p>{t.visited}: {artworks.filter((artwork) => visited.includes(artwork.id)).length}/{artworks.length}</p>
     {last && onResume && <button type="button" className="min-h-11 underline" onClick={() => onResume(last.id)}>{t.resume}: {last.title}</button>}
     {visited.length > 0 && <button type="button" className="min-h-11 text-xs underline" onClick={() => update({ visited: [], lastArtwork: null })}>{t.reset}</button>}

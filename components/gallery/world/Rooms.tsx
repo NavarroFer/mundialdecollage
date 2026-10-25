@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useSurfaceDetail } from '../graphics/SurfaceDetail'
+import { useEffect, useMemo } from 'react'
 import {
   BASEBOARD_HEIGHT,
   DOOR_HEIGHT,
@@ -169,6 +170,7 @@ function Ceiling({ color, skylights }: { color: string; skylights: boolean }) {
 }
 
 export function Rooms({ theme }: { theme: GalleryTheme }) {
+  const { maps, anisotropy } = useSurfaceDetail()
   const palette = galleryThemes[theme].room
   const architecture = galleryThemes[theme].architecture
   const planks = useMemo(() => {
@@ -177,11 +179,15 @@ export function Rooms({ theme }: { theme: GalleryTheme }) {
     texture.repeat.set(floorWidth / PLANK_TILE_METERS, floorDepth / PLANK_TILE_METERS)
     return texture
   }, [architecture, palette.floor])
+  useEffect(() => () => planks?.dispose(), [planks])
+  // Three textures are mutable GPU resources; reuse the map instead of allocating on every quality change.
+  // eslint-disable-next-line react-hooks/immutability
+  useEffect(() => { if (planks) { planks.anisotropy = anisotropy; planks.needsUpdate = true } }, [planks, anisotropy])
   return (
     <group>
       <mesh position={[floorCenter[0], 0, floorCenter[1]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[floorWidth, floorDepth]} />
-        <meshStandardMaterial color={planks ? '#ffffff' : palette.floor} map={planks} roughness={theme === 'garden' ? 0.95 : planks ? 0.5 : 0.6} />
+        <meshStandardMaterial color={planks ? '#ffffff' : palette.floor} map={planks} bumpMap={planks ? maps?.wood : null} bumpScale={0.012} roughnessMap={planks ? maps?.wood : null} roughness={theme === 'garden' ? 0.95 : planks ? 0.68 : 0.6} />
       </mesh>
 
       {theme !== 'garden' && <Ceiling color={palette.ceiling} skylights={Boolean(architecture?.skylight)} />}
@@ -189,7 +195,7 @@ export function Rooms({ theme }: { theme: GalleryTheme }) {
       {walls.map((wall) => (
         <mesh key={wall.id} position={wall.position} castShadow receiveShadow>
           <boxGeometry args={wall.size} />
-          <meshStandardMaterial color={palette.wall} roughness={theme === 'garden' ? 0.88 : 0.75} />
+          <meshStandardMaterial color={palette.wall} bumpMap={theme === 'windows98' ? null : maps?.plaster} bumpScale={0.006} roughness={theme === 'garden' ? 0.88 : 0.82} />
         </mesh>
       ))}
 

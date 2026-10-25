@@ -80,7 +80,7 @@ export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryThem
   return (
     <group position={data.position} rotation={data.rotation}>
       {/* Slim outer frame, sitting slightly proud of the wall */}
-      <mesh position={[0, 0, FRAME_DEPTH / 2]}>
+      <mesh position={[0, 0, FRAME_DEPTH / 2]} castShadow receiveShadow>
         <boxGeometry args={[frameWidth, frameHeight, FRAME_DEPTH]} />
         <meshStandardMaterial color={frame.outer} roughness={frame.roughness} emissive={frame.emissive} emissiveIntensity={frame.emissive ? 0.55 : 0} />
       </mesh>

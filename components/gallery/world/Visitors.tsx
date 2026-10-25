@@ -1,5 +1,7 @@
 'use client'
 
+import { PRESETS } from '../graphics/quality'
+import { useGraphics } from '../graphics/store'
 import { useRef } from 'react'
 import * as THREE from 'three'
 import type { GalleryTheme } from '../themes'
@@ -51,6 +53,7 @@ export function Visitors({ theme }: { theme: GalleryTheme }) {
   // as it really is once people show up (all five return in a crowd too big
   // for live avatars).
   const realVisitors = usePresenceStore((state) => (state.count ?? 0) > MAX_LIVE_VISITORS ? 0 : state.peers.length)
-  const scripted = VISITORS.slice(0, Math.max(0, VISITORS.length - realVisitors))
+  const quality = useGraphics((s) => s.current)
+  const scripted = VISITORS.slice(0, Math.max(0, PRESETS[quality].visitors - realVisitors))
   return <group>{scripted.map((definition) => <Visitor key={definition.id} definition={definition} theme={theme} />)}</group>
 }
