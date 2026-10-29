@@ -127,3 +127,27 @@ describe('ensureSystemTemplate adds the Club to a stored template', () => {
     expect(state.updates).toHaveLength(1)
   })
 })
+
+describe('the Club launch template', () => {
+  const definition = SYSTEM_TEMPLATES.club_lanzamiento
+
+  it('opens with the hook question and personalises the subject and greeting', () => {
+    const html = renderEmailDocumentToHtml(definition.createDocument(SITE))
+    expect(html).toContain('¿Querés que tus obras tengan su casa?')
+    expect(definition.subject).toContain('{{nombre}}')
+    expect(html).toContain('{{nombre}}')
+  })
+
+  it('sends to /club marked as coming from a mail, and states the price from the plan', () => {
+    const html = renderEmailDocumentToHtml(definition.createDocument(SITE))
+    expect(html).toContain(`${SITE}/club?desde=mail`)
+    expect(html).toContain('$29.000')
+    expect(html).toContain('USD 29')
+  })
+
+  it('is for artists, and is created whether or not the Club is open', () => {
+    expect(definition.audiences).toEqual(['artistas'])
+    vi.stubEnv('CLUB_OPEN', '')
+    expect(renderEmailDocumentToHtml(definition.createDocument(SITE))).toContain('/club')
+  })
+})

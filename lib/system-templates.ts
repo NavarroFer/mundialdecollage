@@ -18,9 +18,10 @@ import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-transla
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
 import { isClubOpen } from '@/lib/club-launch'
+import { clubMembershipPlanById } from '@/lib/store'
 import type { TemplateAudience } from '@/lib/template-audiences'
 
-export type SystemTemplateKey = 'elegir_obra' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha'
+export type SystemTemplateKey = 'elegir_obra' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
@@ -408,6 +409,50 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         ...footer(),
       ],
     }),
+  },
+  club_lanzamiento: {
+    name: 'Club: lanzamiento de las galerías propias',
+    audiences: ['artistas'],
+    subject: '{{nombre}}, ¿tus obras ya tienen su casa?',
+    description:
+      'Para la campaña de lanzamiento del Club: en Campañas elegí esta plantilla y el público «Artistas sin galería del Club». No se envía sola. Campañas no deja mandar a ese público mientras el Club esté cerrado (falta CLUB_OPEN=on); a otro público sí, así que no la uses antes de abrirlo. Usá {{nombre}}. El precio se escribió al crear la plantilla: si cambia, editalo acá.',
+    createDocument: (siteUrl) => {
+      const plan = clubMembershipPlanById('club-monthly')
+      const ars = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(plan?.priceArs ?? 0)
+      return {
+        blocks: [
+          logo(siteUrl),
+          { id: nextBlockId(), type: 'spacer', size: 'sm' },
+          { id: nextBlockId(), type: 'heading', text: '¿Querés que tus obras tengan su casa?', align: 'left', size: 'md' },
+          {
+            id: nextBlockId(),
+            type: 'text',
+            text: 'Hola {{nombre}}: en el museo del Mundial cada obra cuelga un solo día, y mañana le toca a otra. Por eso nace el Club del Mundial de Collage: tu galería 3D propia.',
+            align: 'left',
+          },
+          {
+            id: nextBlockId(),
+            type: 'text',
+            text: 'Una sala solo tuya, abierta las 24 horas, con toda tu serie, tus textos y un enlace para compartir con quien quieras. Quien la visita no necesita crearse una cuenta.',
+            align: 'left',
+          },
+          {
+            id: nextBlockId(),
+            type: 'text',
+            text: 'Elegí el clima de tu sala (taller, galpón, museo o callejón de afiches), el marco de tus cuadros y sumá monedas todos los meses para seguir mejorándola.',
+            align: 'left',
+          },
+          { id: nextBlockId(), type: 'button', text: 'Quiero mi galería', url: `${siteUrl}/club?desde=mail`, align: 'left', color: 'red' },
+          {
+            id: nextBlockId(),
+            type: 'text',
+            text: `$${ars} por mes, o USD ${plan?.priceUsd ?? ''} si estás fuera de Argentina. Podés cancelar cuando quieras: si pausás, tu galería y tus monedas te esperan.`,
+            align: 'left',
+          },
+          ...footer(),
+        ],
+      }
+    },
   },
 }
 
