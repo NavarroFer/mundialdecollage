@@ -59,7 +59,7 @@ export async function saveGallerySettings(formData: FormData) {
     back(/not unlocked/i.test(error.message) ? 'locked' : 'unavailable')
   }
   refreshClubGallery(gallery.slug)
-  redirect(`${EDITOR}?guardado=1`)
+  redirect(`${EDITOR}?guardado=1#ajustes`)
 }
 
 export async function saveHangings(formData: FormData) {
@@ -82,7 +82,7 @@ export async function saveHangings(formData: FormData) {
     back('unavailable')
   }
   refreshClubGallery(gallery.slug)
-  redirect(`${EDITOR}?guardado=1`)
+  redirect(`${EDITOR}?guardado=1#obras`)
 }
 
 // An obra only for the Club (artworks.is_club_only): it never enters the
@@ -210,5 +210,5 @@ export async function unlockItem(formData: FormData) {
     if (!/insufficient/i.test(error.message)) console.error('unlockItem: spend failed', error.code, error.message)
     back(/insufficient/i.test(error.message) ? 'coins' : 'unavailable')
   }
-  redirect(`${EDITOR}?desbloqueado=1`)
+  redirect(`${EDITOR}?desbloqueado=1#ajustes`)
 }
