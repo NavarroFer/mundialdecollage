@@ -8,6 +8,8 @@ export const addressSchema = z.object({
   admin_area_1: z.string().trim().max(300).optional().default(''),
   postal_code: z.string().trim().max(60).optional().default(''),
   country_code: z.string().trim().length(2).transform((value) => value.toUpperCase()),
+  // The courier's delivery updates; same rule as the Argentine checkout (lib/magazine.ts).
+  phone: z.string().trim().max(30).regex(/^\+?[\d\s().-]+$/).refine((value) => { const digits = value.replace(/\D/g, '').length; return digits >= 6 && digits <= 20 }),
 })
 
 export const customerSchema = z.object({
@@ -19,6 +21,6 @@ export const customerSchema = z.object({
 export type Address = z.infer<typeof addressSchema>
 
 export function toPaypalAddress(address: Address) {
-  const { full_name, ...paypalAddress } = address
+  const { full_name, phone: _phone, ...paypalAddress } = address
   return { name: { full_name }, address: paypalAddress }
 }

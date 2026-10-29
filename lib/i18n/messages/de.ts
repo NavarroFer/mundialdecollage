@@ -684,7 +684,7 @@ const de: Messages = {
     formTitle: "Reserviere dein Exemplar",
     name: "Vor- und Nachname",
     email: "E-Mail",
-    phone: "Telefon (für die Lieferung)",
+    phone: "Handynummer (für Versandhinweise)",
     address: "Straße und Hausnummer",
     apartment: "Etage / Wohnung (optional)",
     city: "Stadt",

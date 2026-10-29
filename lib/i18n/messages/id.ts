@@ -681,7 +681,7 @@ const id: Messages = {
     formTitle: "Pesan eksemplarmu",
     name: "Nama lengkap",
     email: "Email",
-    phone: "Telepon (untuk pengiriman)",
+    phone: "Nomor ponsel (untuk info pengiriman)",
     address: "Jalan dan nomor",
     apartment: "Lantai / unit (opsional)",
     city: "Kota",

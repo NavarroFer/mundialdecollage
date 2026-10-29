@@ -684,7 +684,7 @@ const pt: Messages = {
     formTitle: "Reserve seu exemplar",
     name: "Nome completo",
     email: "E-mail",
-    phone: "Telefone (para a entrega)",
+    phone: "Celular (para avisos da entrega)",
     address: "Rua e número",
     apartment: "Andar / apto. (opcional)",
     city: "Cidade",

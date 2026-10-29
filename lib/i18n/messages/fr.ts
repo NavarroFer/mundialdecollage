@@ -684,7 +684,7 @@ const fr: Messages = {
     formTitle: "Réservez votre exemplaire",
     name: "Nom et prénom",
     email: "E-mail",
-    phone: "Téléphone (pour la livraison)",
+    phone: "Téléphone portable (pour le suivi de la livraison)",
     address: "Rue et numéro",
     apartment: "Étage / appt. (facultatif)",
     city: "Ville",

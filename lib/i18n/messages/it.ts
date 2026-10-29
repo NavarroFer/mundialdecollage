@@ -684,7 +684,7 @@ const it: Messages = {
     formTitle: "Prenota la tua copia",
     name: "Nome e cognome",
     email: "Email",
-    phone: "Telefono (per la consegna)",
+    phone: "Cellulare (per gli avvisi di consegna)",
     address: "Via e numero civico",
     apartment: "Piano / interno (facoltativo)",
     city: "Città",

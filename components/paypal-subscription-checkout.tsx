@@ -21,14 +21,15 @@ type FormValues = {
   admin_area_1: string
   postal_code: string
   country_code: string
+  phone: string
 }
 
 const blankForm: FormValues = {
-  given_name: '', surname: '', email: '', full_name: '', address_line_1: '', address_line_2: '', admin_area_2: '', admin_area_1: '', postal_code: '', country_code: '',
+  given_name: '', surname: '', email: '', full_name: '', address_line_1: '', address_line_2: '', admin_area_2: '', admin_area_1: '', postal_code: '', country_code: '', phone: '',
 }
 
 function valid(form: FormValues) {
-  return Boolean(form.given_name && form.surname && form.email && form.address_line_1 && form.admin_area_2 && /^[a-z]{2}$/i.test(form.country_code))
+  return Boolean(form.given_name && form.surname && form.email && form.address_line_1 && form.admin_area_2 && /^[a-z]{2}$/i.test(form.country_code) && form.phone.replace(/\D/g, '').length >= 6)
 }
 
 export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPlanKey; clientId: string }) {
@@ -51,6 +52,7 @@ export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPla
         <Field autoComplete="family-name" label={t.lastName} value={form.surname} onChange={(value) => update('surname', value)} />
       </div>
       <Field autoComplete="email" label={t.email} type="email" value={form.email} onChange={(value) => update('email', value)} />
+      <Field autoComplete="tel" label={t.phone} type="tel" maxLength={30} value={form.phone} onChange={(value) => update('phone', value)} />
       <details className="text-xs"><summary className="cursor-pointer underline">{t.fullName}</summary><Field required={false} autoComplete="shipping name" label={t.fullName} value={form.full_name} onChange={(value) => update('full_name', value)} /></details>
       <Field autoComplete="shipping address-line1" label={t.address} value={form.address_line_1} onChange={(value) => update('address_line_1', value)} />
       <Field required={false} autoComplete="shipping address-line2" label={t.apartment} value={form.address_line_2} onChange={(value) => update('address_line_2', value)} />
@@ -65,7 +67,7 @@ export function PaypalSubscriptionCheckout({ plan, clientId }: { plan: PaypalPla
             setError(null)
             track('store_checkout_start')
             const response = await fetch('/api/paypal/subscriptions', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan, customer: { email: form.email, given_name: form.given_name, surname: form.surname }, shipping: { full_name: form.full_name.trim() || `${form.given_name} ${form.surname}`.trim(), address_line_1: form.address_line_1, address_line_2: form.address_line_2, admin_area_2: form.admin_area_2, admin_area_1: form.admin_area_1, postal_code: form.postal_code, country_code: form.country_code } }),
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan, customer: { email: form.email, given_name: form.given_name, surname: form.surname }, shipping: { full_name: form.full_name.trim() || `${form.given_name} ${form.surname}`.trim(), address_line_1: form.address_line_1, address_line_2: form.address_line_2, admin_area_2: form.admin_area_2, admin_area_1: form.admin_area_1, postal_code: form.postal_code, country_code: form.country_code, phone: form.phone } }),
             })
             if (!response.ok) {
               setError(t.startFailed)

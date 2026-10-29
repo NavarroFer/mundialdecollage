@@ -685,7 +685,7 @@ const en: Messages = {
     formTitle: "Reserve your copy",
     name: "Full name",
     email: "Email",
-    phone: "Phone (for delivery)",
+    phone: "Mobile phone (for delivery updates)",
     address: "Street and number",
     apartment: "Floor / apt. (optional)",
     city: "City",

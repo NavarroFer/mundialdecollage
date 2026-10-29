@@ -706,7 +706,7 @@ const pl: Messages = {
     formTitle: "Zarezerwuj egzemplarz",
     name: "Imię i nazwisko",
     email: "E-mail",
-    phone: "Telefon (do dostawy)",
+    phone: "Telefon komórkowy (do powiadomień o dostawie)",
     address: "Ulica i numer",
     apartment: "Piętro / mieszkanie (opcjonalnie)",
     city: "Miasto",
