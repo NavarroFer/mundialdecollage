@@ -448,6 +448,10 @@ const it: Messages = {
       exhibitedOn: 'La tua opera «{title}» è stata nella Galleria 3D il {date}.',
       referral: '{name} ha aderito al Mondiale tramite il tuo link. Grazie per la condivisione!',
       referralSomeone: 'Qualcuno ha aderito al Mondiale tramite il tuo link. Grazie per la condivisione!',
+      clubWeekly: 'La settimana scorsa la tua galleria «{title}» ha avuto {what}.',
+      clubWeeklyQuiet: 'La settimana scorsa nessuno con un account ha visitato la tua galleria «{title}». Condividi il tuo link perché la visitino.',
+      people: p({ one: '{count} persona davanti alle tue opere', other: '{count} persone davanti alle tue opere' }),
+      stamps: p({ one: '{count} francobollo', other: '{count} francobolli' }),
     },
   },
   gallery: {

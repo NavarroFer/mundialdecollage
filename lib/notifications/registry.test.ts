@@ -39,6 +39,17 @@ describe('renderNotification', () => {
     expect(renderNotification({ type: 'artwork_activity', data: { title: 'x', slug: 'x', likes: 0, comments: 0 } }, context())).toBeNull()
   })
 
+  it('sums up a Club gallery\'s week, or invites to share it when nobody came', () => {
+    const row = { type: 'club_weekly', data: { slug: 'g', title: 'Taller', week: '2026-10-26', viewers: 4, stamps: 1, likes: 2 } }
+    expect(renderNotification(row, context())).toEqual({
+      text: 'La semana pasada, tu galería «Taller» tuvo 4 personas mirando tus obras, 1 estampilla y 2 me gusta.',
+      href: '/mi-galeria/editar',
+      icon: 'activity',
+    })
+    expect(renderNotification({ ...row, data: { ...row.data, viewers: 0, stamps: 0, likes: 0 } }, context())?.text)
+      .toBe('La semana pasada nadie con cuenta recorrió tu galería «Taller». Compartí tu enlace para que la visiten.')
+  })
+
   it('says "hoy" only on the exhibition day itself', () => {
     const today = renderNotification({ type: 'artwork_exhibited', data: { title: 'Recortes', slug: 'recortes', day: '2026-10-05' } }, context())
     expect(today?.text).toBe('Hoy tu obra «Recortes» está en la Galería 3D. ¡Andá a verla!')
@@ -89,6 +100,7 @@ describe('renderNotification', () => {
       artwork_activity: { title: 'T', slug: 's', likes: 2, comments: 2 },
       artwork_exhibited: { title: 'T', slug: 's', day: '2026-10-05' },
       referral_joined: { name: 'N', slug: 's' },
+      club_weekly: { slug: 's', title: 'T', week: '2026-10-26', viewers: 2, stamps: 1, likes: 0 },
       admin_comments_pending: { count: 2 },
       admin_wall_pending: { count: 2 },
       admin_images_failed: { count: 2 },

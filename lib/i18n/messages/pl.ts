@@ -458,6 +458,10 @@ const pl: Messages = {
       exhibitedOn: 'Twoja praca „{title}” wisiała w Galerii 3D {date}.',
       referral: 'Nowa osoba w Mistrzostwach dzięki twojemu linkowi: {name}. Dzięki za udostępnianie!',
       referralSomeone: 'Dzięki twojemu linkowi do Mistrzostw dołączyła nowa osoba. Dzięki za udostępnianie!',
+      clubWeekly: 'W zeszłym tygodniu twoja galeria «{title}» miała {what}.',
+      clubWeeklyQuiet: 'W zeszłym tygodniu nikt z kontem nie odwiedził twojej galerii «{title}». Udostępnij link, żeby ją odwiedzano.',
+      people: p({ one: '{count} osobę oglądającą twoje prace', few: '{count} osoby oglądające twoje prace', many: '{count} osób oglądających twoje prace', other: '{count} osoby oglądające twoje prace' }),
+      stamps: p({ one: '{count} znaczek', few: '{count} znaczki', many: '{count} znaczków', other: '{count} znaczka' }),
     },
   },
   gallery: {

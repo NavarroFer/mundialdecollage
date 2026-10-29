@@ -27,7 +27,9 @@ export const maxDuration = 300
 //   2. "así le fue a tu obra" to artists with likes/comments yesterday,
 //   3. a reminder to the admins when comments are waiting for moderation,
 //   4. the welcome mail for new supporters,
-//   5. clearing out old notifications from the bell.
+//   5. clearing out old notifications from the bell,
+//   6. the Club's weekly summary in each member's bell (Mondays, in effect:
+//      only the first run of a week writes it).
 // Safe to run again: every mail is claimed in the database before it's
 // sent. `?dry=1` shows who would get what without sending anything.
 export const GET = cronRoute(async ({ dryRun }) => {
@@ -38,6 +40,7 @@ export const GET = cronRoute(async ({ dryRun }) => {
     { key: 'pendingComments', label: 'Recordatorio de moderación', run: () => remindPendingComments(db, dryRun) },
     { key: 'supporters', label: 'Bienvenida a hinchas', run: () => sendSupporterWelcomes(db, dryRun) },
     { key: 'notifications', label: 'Limpieza de notificaciones', run: () => pruneNotifications(db, dryRun) },
+    { key: 'clubWeekly', label: 'Resumen semanal del Club', run: () => writeClubWeeklySummaries(db, dryRun) },
   ])
 
   if (problems.length && !dryRun) await mailAdmins('Mundial de Collage · Avisos diarios con problemas', problems.join('\n\n'))
@@ -221,4 +224,12 @@ async function pruneNotifications(db: SupabaseClient, dryRun: boolean) {
   const { data, error } = await db.rpc('prune_notifications')
   if (error) throw new Error(error.message)
   return { result: { deleted: data as number } }
+}
+
+// One note per active gallery and week, written by the database itself
+// (supabase/migrations/20261029220000_club_weekly_summary.sql).
+async function writeClubWeeklySummaries(db: SupabaseClient, dryRun: boolean) {
+  const { data, error } = await db.rpc('club_weekly_summaries', { p_dry: dryRun })
+  if (error) throw new Error(`No se pudo escribir el resumen semanal: ${error.message}`)
+  return { result: dryRun ? { wouldWrite: data } : { written: data } }
 }

@@ -448,6 +448,10 @@ const id: Messages = {
       exhibitedOn: 'Karyamu "{title}" dipajang di Galeri 3D pada {date}.',
       referral: '{name} bergabung ke Piala Dunia lewat tautanmu. Terima kasih sudah berbagi!',
       referralSomeone: 'Seseorang bergabung ke Piala Dunia lewat tautanmu. Terima kasih sudah berbagi!',
+      clubWeekly: 'Minggu lalu galerimu «{title}» mendapat {what}.',
+      clubWeeklyQuiet: 'Minggu lalu tidak ada pengguna berakun yang menjelajahi galerimu «{title}». Bagikan tautanmu agar dikunjungi.',
+      people: p({ other: '{count} orang melihat karyamu' }),
+      stamps: p({ other: '{count} prangko' }),
     },
   },
   gallery: {

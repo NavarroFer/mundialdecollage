@@ -125,6 +125,26 @@ export const NOTIFICATION_TYPES = {
       return { text, href: obraLink(data.slug) }
     },
   }),
+  club_weekly: define({
+    schema: z.object({
+      title: z.string(),
+      viewers: z.number().int().nonnegative(),
+      stamps: z.number().int().nonnegative(),
+      likes: z.number().int().nonnegative(),
+    }),
+    icon: 'activity',
+    render: (data, { locale, m }) => {
+      const parts = [
+        data.viewers > 0 && plural(locale, data.viewers, m.types.people),
+        data.stamps > 0 && plural(locale, data.stamps, m.types.stamps),
+        data.likes > 0 && plural(locale, data.likes, m.types.likes),
+      ].filter((part): part is string => Boolean(part))
+      const text = parts.length
+        ? fmt(m.types.clubWeekly, { title: data.title, what: new Intl.ListFormat(LOCALE_INFO[locale].intl, { type: 'conjunction' }).format(parts) })
+        : fmt(m.types.clubWeeklyQuiet, { title: data.title })
+      return { text, href: '/mi-galeria/editar' }
+    },
+  }),
   referral_joined: define({
     schema: z.object({ name: z.string().nullish(), slug: z.string().min(1).nullish() }),
     icon: 'referral',

@@ -454,6 +454,10 @@ const es = {
       exhibitedOn: 'Tu obra «{title}» estuvo en la Galería 3D el {date}.',
       referral: '{name} se sumó al Mundial con tu link. ¡Gracias por compartir!',
       referralSomeone: 'Alguien se sumó al Mundial con tu link. ¡Gracias por compartir!',
+      clubWeekly: 'La semana pasada, tu galería «{title}» tuvo {what}.',
+      clubWeeklyQuiet: 'La semana pasada nadie con cuenta recorrió tu galería «{title}». Compartí tu enlace para que la visiten.',
+      people: p({ one: '{count} persona mirando tus obras', other: '{count} personas mirando tus obras' }),
+      stamps: p({ one: '{count} estampilla', other: '{count} estampillas' }),
     },
   },
   gallery: {
