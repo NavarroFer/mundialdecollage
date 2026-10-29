@@ -146,6 +146,25 @@ Riesgos a cuidar:
 5. [ ] Construir la página pública `/[locale]/(site)/club/[slug]` (cacheada en CDN) y el editor privado `/[locale]/(site)/mi-galeria`.
 6. [ ] Conectar el plan del Club y los packs de monedas en Mercado Pago y PayPal (`lib/payments/`).
 7. [ ] Lanzar la etapa 1 con un grupo chico de socios fundadores.
+8. [ ] Abrir el Club al resto con la página del Club, una sección en la landing y una campaña de mail (ver «Lanzamiento: landing y campaña de mail»).
+
+## Lanzamiento: landing y campaña de mail
+
+Cuando los fundadores ya tienen sus galerías armadas y compartidas (Puerta 1), el Club se abre al resto con una página propia, una sección en la landing y una campaña de mail, en ese orden: así el enlace del mail lleva a algo que ya se puede recorrer.
+
+1. **Galerías de muestra:** 2 o 3 galerías de fundadores, completas y con permiso de sus dueños, sirven de ejemplo. Como entrar no pide sesión, el enlace abre la sala directamente.
+2. **Página del Club (`/[locale]/(site)/club`):** qué recibe un socio, el precio en pesos y en dólares, las galerías de muestra y el botón para suscribirse. Es igual para todos, así que va a `lib/static-pages.ts` con su copia `anon/`; el botón lleva a la ruta de suscripción, que sí lee la sesión.
+3. **Sección en la landing (`app/[locale]/(site)/page.tsx`):** un bloque `ClubSection` cerca de `HomeStoreSection` o `MapSection`, con una captura de una galería de muestra, una frase y el enlace a la página del Club.
+   - Textos en los 9 idiomas, leídos con `getI18n()`.
+   - La captura es una imagen fija en R2; nunca se dibuja por pedido.
+   - Si se muestra cuántos socios hay, el número sale de la base por un endpoint cacheado en el CDN, nunca escrito a mano.
+   - Después de `next build`, la ruta `anon` de la home sigue en ●.
+4. **Campaña desde `/admin/campanas`:** la herramienta ya traduce cada mail al idioma del contacto (`lib/email-translation.ts`), agrega el pie para darse de baja, respeta bajas, rebotes y quejas (`lib/campaign-audience.ts`), cuenta aperturas con el webhook de Resend y programa envíos que manda el cron diario (`app/api/cron/campanas`). Falta:
+   - Una audiencia nueva en `CAMPAIGN_AUDIENCES`: artistas con obra que todavía no son socios.
+   - Agregar `?desde=mail` a los enlaces, que no se marcan solos: `lib/visit-source.ts` los cuenta como origen `email` y `/admin/estadisticas` muestra cuántas altas vinieron del mail.
+5. **Cupo de envíos:** las campañas salen como envío masivo (`lib/mail/index.ts`): primero por Brevo, después por Resend dejando 20 de reserva para los recibos. Lo que no entra en ningún cupo igual se manda por Brevo, que puede rechazarlo. Con una lista más grande que el cupo del día (`/admin/envios`), conviene programar la campaña en tandas.
+6. **Términos antes de cobrar:** sumar a `lib/terms.ts` una sección del Club con qué incluye la cuota, cómo se da de baja, el arrepentimiento de 10 días que ya figura para las compras (art. 34 de la Ley 24.240) y que las monedas no tienen valor en dinero, no se transfieren y no se reembolsan una vez gastadas. Confirmar con quien lleve lo legal si el sitio necesita un botón de baja o de arrepentimiento visible.
+7. **Medir:** visitas a la página del Club y a las galerías de muestra, aperturas de la campaña y altas por origen.
 
 ## Anexo técnico: reglas que no se pueden romper
 
@@ -185,6 +204,8 @@ Todo lo de la galería vive en `components/gallery/`; los cobros, en `lib/paymen
 | Notificaciones | `supabase/migrations/20261005120000_notifications.sql`, `app/[locale]/(site)/notificaciones` | Base del resumen semanal al socio |
 | Mapa | `components/world-map.tsx`, `map-explorer.tsx` | |
 | Estadísticas y atención | `gallery/attention/AttentionRecorder.tsx`, `components/admin/stats/`, `supabase/migrations/20261011180000_gallery_attention.sql` | «Atención por obra» mide mirada directa (> 2s a < 5m) y apertura de ficha |
+| Landing | `app/[locale]/(site)/page.tsx`, `anon/page.tsx`, `lib/static-pages.ts` | La copia `anon/` reutiliza la misma página y se sirve desde el CDN |
+| Campañas de mail | `app/[locale]/(site)/admin/campanas`, `lib/campaign-audience.ts`, `lib/campaign-delivery.ts`, `lib/mail/index.ts`, `lib/visit-source.ts` | Audiencias, traducción, bajas, cupo entre Brevo y Resend, y origen de cada alta |
 | Textos | `lib/i18n/messages/*.ts` | 9 idiomas; `messages.test.ts` controla los marcadores como `{name}`; las claves las exige TypeScript, con `es.ts` como modelo |
 
 ## Propuesta técnica detallada para la etapa 1 y forma de trabajo
