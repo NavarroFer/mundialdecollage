@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { canUseClub } from '@/lib/club-launch'
-import { optionState, roomCapacity, shopItems, type ShopItem } from '@/lib/club-editor'
+import { optionState, roomCapacity, shopItems, statsSince, statsTotals, type ShopItem, type StatsRow } from '@/lib/club-editor'
 import { CLUB_FRAME_STYLES, CLUB_GALLERY_THEMES, CLUB_ROOM_TEMPLATES, type ClubRoomTemplate, type GalleryCatalogKind } from '@/lib/gallery-catalog'
 import { saveGallerySettings, saveHangings, unlockItem } from './actions'
 
@@ -36,7 +36,8 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
     .maybeSingle()
   if (!gallery || gallery.status !== 'active') redirect('/mi-galeria')
 
-  const [{ data: inventory }, { data: wallet }, { data: artworks }, { data: hangings }] = await Promise.all([
+  const since = statsSince(30)
+  const [{ data: inventory }, { data: wallet }, { data: artworks }, { data: hangings }, { data: statsData }] = await Promise.all([
     supabase.from('user_gallery_inventory').select('item_id'),
     supabase.from('club_wallets').select('balance').eq('user_id', user.id).maybeSingle(),
     supabase
@@ -47,6 +48,7 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
       .is('duplicate_of', null)
       .order('created_at', { ascending: true }),
     supabase.from('club_gallery_hangings').select('slot, artwork_id').eq('gallery_id', gallery.id),
+    supabase.rpc('club_gallery_stats', { since }),
   ])
 
   const owned = new Set((inventory ?? []).map((row) => row.item_id))
@@ -54,6 +56,9 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
   const slotOf = new Map((hangings ?? []).map((row) => [row.artwork_id, row.slot]))
   const capacity = roomCapacity(gallery.template_id as ClubRoomTemplate)
   const shop = shopItems(owned)
+  const stats = (statsData ?? []) as StatsRow[]
+  const totals = statsTotals(stats)
+  const number = (value: number | string) => Number(value).toLocaleString(locale)
 
   const themeName = (id: string) => galleryThemes[id as GalleryTheme]?.name ?? id
   const itemName = (item: Pick<ShopItem, 'kind' | 'selectionId'>) => {
@@ -80,6 +85,51 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
 
         {error && <p role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-center text-sm font-medium text-collage-red">{error}</p>}
         {notice && <p role="status" className="rounded-lg bg-muted px-3 py-2 text-center text-sm">{notice}</p>}
+
+        <section className="rounded-2xl bg-card p-6 sm:p-8">
+          <h2 className="font-display text-2xl uppercase">{e.statsTitle}</h2>
+          <p className="my-3 text-sm text-muted-foreground">{e.statsBody}</p>
+          {stats.length === 0 ? (
+            <p className="text-sm">{e.statsEmpty}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[34rem] text-left text-sm">
+                <thead>
+                  <tr className="border-b text-xs text-muted-foreground">
+                    <th className="py-2 pr-3 font-semibold">{e.colWork}</th>
+                    <th className="px-2 py-2 text-right font-semibold">{e.colViewers}</th>
+                    <th className="px-2 py-2 text-right font-semibold">{e.colSeconds}</th>
+                    <th className="px-2 py-2 text-right font-semibold">{e.colDetails}</th>
+                    <th className="px-2 py-2 text-right font-semibold">{e.colStamps}</th>
+                    <th className="py-2 pl-2 text-right font-semibold">{e.colLikes}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.map((row) => (
+                    <tr key={row.artwork_id} className="border-b last:border-0">
+                      <td className="max-w-[12rem] truncate py-2 pr-3 font-semibold">{row.slot}. {row.title || '—'}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{number(row.viewers)}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{number(row.view_seconds)}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{number(row.details_seconds)}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{number(row.stamps)}</td>
+                      <td className="py-2 pl-2 text-right tabular-nums">{number(row.likes)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 font-bold">
+                    <td className="py-2 pr-3">{e.statsTotal}</td>
+                    <td className="px-2 py-2 text-right">—</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{number(totals.viewSeconds)}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{number(totals.detailsSeconds)}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{number(totals.stamps)}</td>
+                    <td className="py-2 pl-2 text-right tabular-nums">{number(totals.likes)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </section>
 
         <section className="rounded-2xl bg-card p-6 sm:p-8">
           <h2 className="font-display text-2xl uppercase">{e.settingsTitle}</h2>

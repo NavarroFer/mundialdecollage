@@ -126,3 +126,35 @@ export function parseHangings(form: FormData, capacity: number, ownedArtworkIds:
 export function fitsRoom(hungSlots: readonly number[], capacity: number): boolean {
   return hungSlots.every((slot) => slot <= capacity)
 }
+
+/** One hung obra's numbers, as club_gallery_stats() returns them (numeric may arrive as text). */
+export type StatsRow = {
+  artwork_id: string
+  slug: string
+  title: string | null
+  slot: number
+  viewers: number | string
+  view_seconds: number | string
+  details_seconds: number | string
+  stamps: number | string
+  likes: number | string
+}
+
+/**
+ * The gallery's totals. People are not added up: the same person can look at
+ * several obras, so the sum would be more people than came.
+ */
+export function statsTotals(rows: readonly StatsRow[]) {
+  const sum = (pick: (row: StatsRow) => number | string) => rows.reduce((total, row) => total + (Number(pick(row)) || 0), 0)
+  return {
+    viewSeconds: Math.round(sum((row) => row.view_seconds) * 10) / 10,
+    detailsSeconds: Math.round(sum((row) => row.details_seconds) * 10) / 10,
+    stamps: sum((row) => row.stamps),
+    likes: sum((row) => row.likes),
+  }
+}
+
+/** The start of the stats window: `days` days before `now`, as the ISO text the database takes. */
+export function statsSince(days: number, now: Date = new Date()): string {
+  return new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString()
+}

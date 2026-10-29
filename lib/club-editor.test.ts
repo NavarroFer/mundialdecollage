@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fitsRoom, optionState, parseGallerySettings, parseHangings, roomCapacity, shopItems } from './club-editor'
+import { fitsRoom, optionState, parseGallerySettings, parseHangings, roomCapacity, shopItems, statsSince, statsTotals, type StatsRow } from './club-editor'
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData()
@@ -100,5 +100,31 @@ describe('fitsRoom', () => {
     expect(fitsRoom([1, 5, 8], 8)).toBe(true)
     expect(fitsRoom([1, 9], 8)).toBe(false)
     expect(fitsRoom([], 8)).toBe(true)
+  })
+})
+
+describe('statsTotals', () => {
+  const row = (over: Partial<StatsRow>): StatsRow => ({ artwork_id: 'a', slug: 'a', title: 'A', slot: 1, viewers: 0, view_seconds: 0, details_seconds: 0, stamps: 0, likes: 0, ...over })
+
+  it('adds seconds, stamps and likes, reading the numeric text the database sends', () => {
+    expect(statsTotals([
+      row({ view_seconds: '8.0', details_seconds: '4.0', stamps: 2, likes: '2' }),
+      row({ slot: 2, view_seconds: '3.3', details_seconds: '0.0', stamps: 1, likes: 0 }),
+    ])).toEqual({ viewSeconds: 11.3, detailsSeconds: 4, stamps: 3, likes: 2 })
+  })
+
+  it('does not add people up, since one person can look at several obras', () => {
+    expect(statsTotals([row({ viewers: 5 }), row({ viewers: 5 })])).not.toHaveProperty('viewers')
+  })
+
+  it('is all zeros for a gallery with nothing hung', () => {
+    expect(statsTotals([])).toEqual({ viewSeconds: 0, detailsSeconds: 0, stamps: 0, likes: 0 })
+  })
+})
+
+describe('statsSince', () => {
+  it('goes back the given number of days from now', () => {
+    expect(statsSince(30, new Date('2026-11-30T12:00:00.000Z'))).toBe('2026-10-31T12:00:00.000Z')
+    expect(statsSince(0, new Date('2026-11-30T12:00:00.000Z'))).toBe('2026-11-30T12:00:00.000Z')
   })
 })
