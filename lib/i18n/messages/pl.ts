@@ -829,6 +829,12 @@ const pl: Messages = {
     viewGallery: 'Zobacz moją galerię',
     errorUnavailable: 'Nie udało się rozpocząć subskrypcji. Spróbuj ponownie za kilka minut.',
     errorInvalid: 'Sprawdź swoje dane i spróbuj ponownie.',
+    packsTitle: 'Dodaj monety',
+    packsBody: 'Monety odblokowują motywy, ramy i większe sale. Trafiają na konto zaraz po potwierdzeniu płatności.',
+    pack: 'Pakiet {name}',
+    buyArs: 'Zapłać {price} przez Mercado Pago',
+    buyUsd: 'Zapłać {price} przez PayPal',
+    coinsPending: 'Księgujemy Twoje monety: może to potrwać kilka minut.',
   },
 }
 

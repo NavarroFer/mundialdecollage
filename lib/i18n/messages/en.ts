@@ -808,6 +808,12 @@ const en: Messages = {
     viewGallery: 'View my gallery',
     errorUnavailable: 'We couldn\'t start the subscription. Please try again in a few minutes.',
     errorInvalid: 'Check your details and try again.',
+    packsTitle: 'Get more coins',
+    packsBody: 'Coins unlock themes, frames and bigger rooms. They arrive as soon as the payment is confirmed.',
+    pack: '{name} pack',
+    buyArs: 'Pay {price} with Mercado Pago',
+    buyUsd: 'Pay {price} with PayPal',
+    coinsPending: 'We are crediting your coins: it can take a few minutes.',
   },
 }
 

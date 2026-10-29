@@ -845,6 +845,12 @@ const es = {
     viewGallery: 'Ver mi galería',
     errorUnavailable: 'No pudimos iniciar la suscripción. Probá de nuevo en unos minutos.',
     errorInvalid: 'Revisá tus datos e intentá de nuevo.',
+    packsTitle: 'Sumá monedas',
+    packsBody: 'Las monedas destraban temas, marcos y salas más grandes. Se acreditan apenas se confirma el pago.',
+    pack: 'Pack {name}',
+    buyArs: 'Pagar {price} con Mercado Pago',
+    buyUsd: 'Pagar {price} con PayPal',
+    coinsPending: 'Estamos acreditando tus monedas: pueden tardar unos minutos.',
   },
 }
 

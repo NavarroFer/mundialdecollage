@@ -807,6 +807,12 @@ const pt: Messages = {
     viewGallery: 'Ver minha galeria',
     errorUnavailable: 'Não conseguimos iniciar a assinatura. Tente de novo em alguns minutos.',
     errorInvalid: 'Confira seus dados e tente de novo.',
+    packsTitle: 'Some moedas',
+    packsBody: 'As moedas liberam temas, molduras e salas maiores. Chegam assim que o pagamento é confirmado.',
+    pack: 'Pacote {name}',
+    buyArs: 'Pagar {price} com Mercado Pago',
+    buyUsd: 'Pagar {price} com PayPal',
+    coinsPending: 'Estamos creditando suas moedas: pode levar alguns minutos.',
   },
 }
 

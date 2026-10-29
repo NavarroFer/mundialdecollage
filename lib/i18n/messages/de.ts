@@ -807,6 +807,12 @@ const de: Messages = {
     viewGallery: 'Meine Galerie ansehen',
     errorUnavailable: 'Wir konnten das Abonnement nicht starten. Bitte versuche es in ein paar Minuten erneut.',
     errorInvalid: 'Prüfe deine Angaben und versuche es erneut.',
+    packsTitle: 'Münzen aufladen',
+    packsBody: 'Mit Münzen schaltest du Themen, Rahmen und größere Räume frei. Sie kommen an, sobald die Zahlung bestätigt ist.',
+    pack: '{name}-Paket',
+    buyArs: '{price} mit Mercado Pago zahlen',
+    buyUsd: '{price} mit PayPal zahlen',
+    coinsPending: 'Wir schreiben deine Münzen gut: Das kann ein paar Minuten dauern.',
   },
 }
 

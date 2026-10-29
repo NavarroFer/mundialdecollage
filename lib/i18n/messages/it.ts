@@ -807,6 +807,12 @@ const it: Messages = {
     viewGallery: 'Vedi la mia galleria',
     errorUnavailable: 'Non siamo riusciti ad avviare l\'abbonamento. Riprova tra qualche minuto.',
     errorInvalid: 'Controlla i tuoi dati e riprova.',
+    packsTitle: 'Aggiungi monete',
+    packsBody: 'Le monete sbloccano temi, cornici e sale più grandi. Arrivano appena il pagamento è confermato.',
+    pack: 'Pacchetto {name}',
+    buyArs: 'Paga {price} con Mercado Pago',
+    buyUsd: 'Paga {price} con PayPal',
+    coinsPending: 'Stiamo accreditando le tue monete: può volerci qualche minuto.',
   },
 }
 

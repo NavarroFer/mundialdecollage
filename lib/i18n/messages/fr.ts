@@ -807,6 +807,12 @@ const fr: Messages = {
     viewGallery: 'Voir ma galerie',
     errorUnavailable: 'Nous n\'avons pas pu démarrer l\'abonnement. Réessayez dans quelques minutes.',
     errorInvalid: 'Vérifiez vos informations et réessayez.',
+    packsTitle: 'Ajoutez des pièces',
+    packsBody: 'Les pièces débloquent des thèmes, des cadres et des salles plus grandes. Elles arrivent dès que le paiement est confirmé.',
+    pack: 'Pack {name}',
+    buyArs: 'Payer {price} avec Mercado Pago',
+    buyUsd: 'Payer {price} avec PayPal',
+    coinsPending: 'Nous créditons vos pièces : cela peut prendre quelques minutes.',
   },
 }
 

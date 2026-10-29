@@ -6,14 +6,18 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt, formatMoney } from '@/lib/i18n/format'
-import { clubMembershipPlanById } from '@/lib/store'
-import { joinClub } from './actions'
+import { clubMembershipPlanById, coinPacks } from '@/lib/store'
+import { mercadoPago } from '@/lib/payments/providers/mercadopago'
+import { payPal } from '@/lib/payments/providers/paypal'
+import { buyCoinPack, joinClub } from './actions'
+
+const PACK_NAMES = { chico: 'Chico', mediano: 'Mediano', mecenas: 'Mecenas' } as const
 
 // The artist's own place in the Club. Private (reads the session), so it is
 // not one of lib/static-pages.ts. With no gallery, or after a lapse, it offers
 // the membership; waiting for the first charge it says so; once the gallery
 // is active it links to it.
-export default async function MyGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; suscripcion?: string }> }) {
+export default async function MyGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; suscripcion?: string; monedas?: string }> }) {
   if (!isSupabaseConfigured) redirect('/')
   const { locale, m } = await getI18n()
   const t = m.club
@@ -29,7 +33,7 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
     )
   }
 
-  const { error } = await searchParams
+  const { error, monedas } = await searchParams
   const supabase = await createClient()
   const [{ data: gallery }, { data: wallet }] = await Promise.all([
     supabase.from('club_galleries').select('slug, title, status').eq('user_id', user.id).maybeSingle(),
@@ -42,6 +46,26 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
         <h1 className="font-display text-3xl uppercase">{t.activeTitle}</h1>
         <p className="my-6 text-muted-foreground">{gallery.title} · {fmt(t.coins, { coins: (wallet?.balance ?? 0).toLocaleString(locale) })}</p>
         <Link href={`/club/${gallery.slug}`} className="inline-flex min-h-11 items-center rounded-full bg-ink px-6 font-bold text-white">{t.viewGallery}</Link>
+        <section className="mt-10 border-t pt-8">
+          <h2 className="font-display text-2xl uppercase">{t.packsTitle}</h2>
+          <p className="my-3 text-sm text-muted-foreground">{t.packsBody}</p>
+          {monedas === 'ok' && <p role="status" className="mb-4 rounded-lg bg-muted px-3 py-2 text-sm">{t.coinsPending}</p>}
+          {error && <p role="alert" className="mb-4 rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">{t.errorUnavailable}</p>}
+          <ul className="space-y-3">
+            {coinPacks.map((pack) => (
+              <li key={pack.id} className="rounded-xl border p-4 text-left">
+                <form action={buyCoinPack} className="space-y-3">
+                  <input type="hidden" name="pack" value={pack.id} />
+                  <p className="font-bold">{fmt(t.pack, { name: PACK_NAMES[pack.id] })} · {fmt(t.coins, { coins: pack.coins.toLocaleString(locale) })}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {mercadoPago.isConfigured && <SubmitButton name="currency" value="ARS" variant="outline" className="min-h-11">{fmt(t.buyArs, { price: formatMoney(locale, pack.priceArs, 'ARS') })}</SubmitButton>}
+                    {payPal.isConfigured && <SubmitButton name="currency" value="USD" variant="outline" className="min-h-11">{fmt(t.buyUsd, { price: formatMoney(locale, pack.priceUsd, 'USD') })}</SubmitButton>}
+                  </div>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </section>
       </Shell>
     )
   }
@@ -51,6 +75,10 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
       <Shell>
         <h1 className="font-display text-3xl uppercase">{t.pendingTitle}</h1>
         <p className="my-6 text-muted-foreground">{t.pendingBody}</p>
+        {/* Whoever closed Mercado Pago before paying can start again: the same gallery is relinked. */}
+        <form action={joinClub}>
+          <SubmitButton variant="outline" className="min-h-11">{t.join}</SubmitButton>
+        </form>
       </Shell>
     )
   }

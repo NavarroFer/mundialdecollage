@@ -804,6 +804,12 @@ const id: Messages = {
     viewGallery: 'Lihat galeri saya',
     errorUnavailable: 'Kami tidak dapat memulai langganan. Coba lagi dalam beberapa menit.',
     errorInvalid: 'Periksa data Anda lalu coba lagi.',
+    packsTitle: 'Tambah koin',
+    packsBody: 'Koin membuka tema, bingkai, dan ruang yang lebih besar. Koin masuk begitu pembayaran dikonfirmasi.',
+    pack: 'Paket {name}',
+    buyArs: 'Bayar {price} lewat Mercado Pago',
+    buyUsd: 'Bayar {price} lewat PayPal',
+    coinsPending: 'Kami sedang mengkredit koin Anda: bisa memakan waktu beberapa menit.',
   },
 }
 

@@ -8,6 +8,11 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { upsertCustomer } from '@/lib/payments/customers'
 import { startClubMpSubscription } from '@/lib/club-subscriptions'
+import { createCoinPackCheckout } from '@/lib/club-payments'
+import { mercadoPago } from '@/lib/payments/providers/mercadopago'
+import { payPal } from '@/lib/payments/providers/paypal'
+import { coinPackById } from '@/lib/store'
+import type { Checkout } from '@/lib/payments/provider'
 import { getSiteUrl } from '@/lib/site'
 
 // «Suscribirme al Club»: the artist's gallery is created here, when they
@@ -45,4 +50,31 @@ export async function joinClub() {
   if (!result.ok) redirect(`/mi-galeria?error=${result.error === 'already_member' ? 'already' : result.error}`)
 
   redirect(result.checkoutUrl)
+}
+
+// A one-time coin pack, in pesos with Mercado Pago or in dollars with PayPal.
+// The coins are credited when the provider reports the payment
+// (lib/coin-pack-payments.ts), not when the buyer comes back.
+export async function buyCoinPack(formData: FormData) {
+  const user = await getCurrentUser()
+  if (!user) redirect('/mi-galeria')
+  const pack = coinPackById(String(formData.get('pack') ?? ''))
+  const provider = formData.get('currency') === 'USD' ? payPal : mercadoPago
+  if (!pack || !user.email || !provider.isConfigured || !isSupabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) redirect('/mi-galeria?error=unavailable')
+
+  const back = `${getSiteUrl()}/mi-galeria`
+  let checkout: Checkout
+  try {
+    checkout = await createCoinPackCheckout({
+      userId: user.id,
+      email: user.email,
+      packId: pack.id,
+      provider,
+      returnUrls: { success: `${back}?monedas=ok`, pending: `${back}?monedas=ok`, failure: back },
+    })
+  } catch (err) {
+    console.error('buyCoinPack: failed to create checkout', provider.id, pack.id, err)
+    redirect('/mi-galeria?error=unavailable')
+  }
+  redirect(checkout.url)
 }
