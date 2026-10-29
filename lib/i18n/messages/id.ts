@@ -451,6 +451,7 @@ const id: Messages = {
     },
   },
   gallery: {
+    contact: { consult: 'Tanya seniman tentang karya ini', message: 'Halo, saya melihat karya Anda “{title}” di galeri Klub Anda dan ingin bertanya.' },
     mobileMenu: { open: "Opsi", close: "Tutup opsi", resume: "Lanjutkan menjelajah" },
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
     startTitle: 'Jelajahi pameran',

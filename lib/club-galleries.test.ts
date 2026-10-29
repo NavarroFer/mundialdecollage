@@ -60,5 +60,20 @@ describe('Club galleries', () => {
     expect(clubGalleryFromRow(row({ template_id: 'palace' }))).toBeUndefined()
     expect(clubGalleryFromRow(row({ theme: 'neon' }))).toBeUndefined()
   })
-})
 
+  it('gives every obra the gallery contact: WhatsApp and a web address', () => {
+    const gallery = clubGalleryFromRow(row({ contact_whatsapp: ' +54 9 223 555-1234 ', contact_url: 'https://ana.example/obra' }))
+    expect(gallery?.artworks[0].contact).toEqual({ whatsapp: '+54 9 223 555-1234', url: 'https://ana.example/obra' })
+    expect(gallery).toMatchObject({ contactWhatsapp: '+54 9 223 555-1234', contactUrl: 'https://ana.example/obra' })
+  })
+
+  it('leaves out a web address that is not http(s), even if it reached the database', () => {
+    const gallery = clubGalleryFromRow(row({ contact_whatsapp: null, contact_url: 'javascript:alert(1)' }))
+    expect(gallery?.artworks[0]).not.toHaveProperty('contact')
+    expect(gallery?.contactUrl).toBeUndefined()
+  })
+
+  it('has no contact on an obra when the member gave none', () => {
+    expect(clubGalleryFromRow(row({ contact_whatsapp: null, contact_url: null }))?.artworks[0]).not.toHaveProperty('contact')
+  })
+})

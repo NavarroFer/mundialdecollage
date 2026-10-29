@@ -10,6 +10,7 @@ import { ArtworkLike } from './ArtworkLike'
 import { ArtworkStamp } from './ArtworkStamp'
 import { ArtworkComments } from './ArtworkComments'
 import { ArtworkShare } from './ArtworkShare'
+import { ArtworkContact } from './ArtworkContact'
 import { ArtistInvite } from './ArtistInvite'
 import { ArtworkViewers } from './PresenceCounter'
 import { loadArtworkSocial, peekArtworkSocial, type SocialResult } from './artworkSocial'
@@ -241,6 +242,7 @@ function ArtworkSocialPanel({ artwork, showComments }: { artwork: Artwork; showC
         )}
         <ArtworkStamp slug={artwork.id} signedIn={social?.like.signedIn ?? false} />
         <ArtworkShare slug={artwork.id} title={artwork.title} artist={artwork.artist} />
+        <ArtworkContact artwork={artwork} />
       </div>
       {inviteUnder('like')}
       {social ? (

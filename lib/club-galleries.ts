@@ -5,6 +5,7 @@ import { clubGallerySlots, type Artwork, type GalleryFrameStyle } from '@/data/a
 import { cachedPublicData } from '@/lib/public-data-cache'
 import { clubGalleryTag } from '@/lib/public-cache-tags'
 import { flagSvg } from '@/lib/flag-svg'
+import { safeWebAddress } from '@/lib/club-contact'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createPublicClient } from '@/lib/supabase/public'
@@ -78,6 +79,9 @@ function frameStyle(value: string | null | undefined, fallback: GalleryFrameStyl
 export function clubGalleryFromRow(row: ClubGalleryRow): ClubGallery | undefined {
   if (!isTemplate(row.template_id) || !isTheme(row.theme)) return undefined
   const defaultFrameStyle = frameStyle(row.default_frame_style, 'standard')
+  const whatsapp = row.contact_whatsapp?.trim() || undefined
+  const webAddress = safeWebAddress(row.contact_url) ?? undefined
+  const contact = whatsapp || webAddress ? { ...(whatsapp ? { whatsapp } : {}), ...(webAddress ? { url: webAddress } : {}) } : undefined
   const slots = clubGallerySlots[row.template_id]
   const artworks = (row.club_gallery_hangings ?? [])
     .toSorted((left, right) => left.slot - right.slot)
@@ -97,6 +101,7 @@ export function clubGalleryFromRow(row: ClubGalleryRow): ClubGallery | undefined
         image: artwork.image_url,
         description: technique || profile.name,
         frameStyle: frameStyle(hanging.frame_style, defaultFrameStyle),
+        ...(contact ? { contact } : {}),
         ...slot,
       }]
     })
@@ -112,8 +117,8 @@ export function clubGalleryFromRow(row: ClubGalleryRow): ClubGallery | undefined
     hostAvatarId: row.host_avatar_id,
     hostOutfit: row.host_outfit,
     musicTrack: row.music_track,
-    contactWhatsapp: row.contact_whatsapp?.trim() || undefined,
-    contactUrl: row.contact_url?.trim() || undefined,
+    contactWhatsapp: whatsapp,
+    contactUrl: webAddress,
     artworks,
   }
 }

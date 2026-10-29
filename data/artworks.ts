@@ -25,6 +25,8 @@ export type Artwork = {
   height: number
   /** Club galleries may override the room's default mounting per obra. */
   frameStyle?: GalleryFrameStyle
+  /** A Club member's way to be asked about the obra: their WhatsApp and/or a web address. */
+  contact?: { whatsapp?: string; url?: string }
 }
 
 /** Where an obra can hang — content-agnostic, filled in from real data at request time. */

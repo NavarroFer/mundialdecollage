@@ -451,6 +451,7 @@ const fr: Messages = {
     },
   },
   gallery: {
+    contact: { consult: 'Contacter l\'artiste à propos de cette œuvre', message: 'Bonjour, j\'ai vu votre œuvre « {title} » dans votre galerie du Club et j\'aimerais vous poser une question.' },
     mobileMenu: { open: "Options", close: "Fermer les options", resume: "Reprendre la visite" },
     startEyebrow: 'MONDIAL DU COLLAGE · GALERIE 3D',
     startTitle: "Parcours l'exposition",

@@ -461,6 +461,7 @@ const pl: Messages = {
     },
   },
   gallery: {
+    contact: { consult: 'Zapytaj artystę o tę pracę', message: 'Cześć, zobaczyłem Twoją pracę „{title}” w Twojej galerii Klubu i chciałbym o nią zapytać.' },
     mobileMenu: { open: "Opcje", close: "Zamknij opcje", resume: "Wróć do zwiedzania" },
     startEyebrow: 'MISTRZOSTWA ŚWIATA W KOLAŻU · GALERIA 3D',
     startTitle: 'Przejdź się po wystawie',

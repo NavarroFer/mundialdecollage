@@ -457,6 +457,7 @@ const es = {
     },
   },
   gallery: {
+    contact: { consult: 'Consultar al artista por esta obra', message: 'Hola, vi tu obra «{title}» en tu galería del Club del Mundial de Collage y quisiera consultarte.' },
     mobileMenu: { open: "Opciones", close: "Cerrar opciones", resume: "Volver al recorrido" },
     startEyebrow: 'MUNDIAL DE COLLAGE · GALERÍA 3D',
     startTitle: 'Recorré la exposición',
