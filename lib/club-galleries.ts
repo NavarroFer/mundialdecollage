@@ -56,6 +56,8 @@ export type ClubGallery = {
    * host (ClubGame.tsx) without putting the id in the public page.
    */
   ownerKey: string
+  /** The member's name as their profile has it, for the host and the door; the gallery's title without one. */
+  artistName: string
   slug: string
   title: string
   statement?: string
@@ -88,7 +90,7 @@ export function clubOwnerKey(userId: string): string {
 }
 
 /** Converts a public RLS row into the serializable contract consumed by the 3D client. */
-export function clubGalleryFromRow(row: ClubGalleryRow): ClubGallery | undefined {
+export function clubGalleryFromRow(row: ClubGalleryRow, ownerName?: string | null): ClubGallery | undefined {
   if (!isTemplate(row.template_id) || !isTheme(row.theme)) return undefined
   const defaultFrameStyle = frameStyle(row.default_frame_style, 'standard')
   const whatsapp = row.contact_whatsapp?.trim() || undefined
@@ -121,6 +123,7 @@ export function clubGalleryFromRow(row: ClubGalleryRow): ClubGallery | undefined
   return {
     id: row.id,
     ownerKey: clubOwnerKey(row.user_id),
+    artistName: ownerName?.trim() || row.title,
     slug: row.slug,
     title: row.title,
     statement: row.statement?.trim() || undefined,
@@ -153,7 +156,12 @@ const getPublicClubGallery = cachedPublicData(async (slug: string): Promise<Club
     .maybeSingle()
 
   if (error) throw new Error(error.message)
-  return data ? clubGalleryFromRow(data as unknown as ClubGalleryRow) : undefined
+  if (!data) return undefined
+  const row = data as unknown as ClubGalleryRow
+  // A gallery's owner is an auth user, which the query above cannot join to
+  // profiles; the profile of an active gallery's member is public.
+  const { data: owner } = await createPublicClient().from('profiles').select('name').eq('id', row.user_id).maybeSingle()
+  return clubGalleryFromRow(row, owner?.name)
 }, 'club-gallery', (slug) => [clubGalleryTag(slug)])
 
 export const getClubGalleryBySlug = cache(getPublicClubGallery)

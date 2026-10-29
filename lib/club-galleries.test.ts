@@ -45,6 +45,11 @@ describe('Club galleries', () => {
     expect(gallery?.artworks[0].position).toHaveLength(3)
   })
 
+  it('names the host after the member\'s profile, or the gallery when there is none', () => {
+    expect(clubGalleryFromRow(row(), ' Ana Pérez ')?.artistName).toBe('Ana Pérez')
+    expect(clubGalleryFromRow(row(), null)?.artistName).toBe('La galería de Ana')
+  })
+
   it('carries a hash of the member\'s account id, never the id itself', () => {
     const gallery = clubGalleryFromRow(row())
     expect(gallery?.ownerKey).toBe(createHash('sha256').update('7d2c0a4e-0000-4000-8000-000000000001').digest('hex'))

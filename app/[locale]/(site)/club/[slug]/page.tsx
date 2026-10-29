@@ -36,7 +36,7 @@ export default async function ClubGalleryPage({ params }: { params: Promise<{ sl
       ownerKey={gallery.ownerKey}
       clubHost={{
         avatarId: gallery.hostAvatarId,
-        artistName: gallery.artworks[0]?.artist ?? gallery.title,
+        artistName: gallery.artistName,
         title: gallery.title,
         statement: gallery.statement,
         contact: gallery.contactWhatsapp || gallery.contactUrl ? { whatsapp: gallery.contactWhatsapp, url: gallery.contactUrl } : undefined,
