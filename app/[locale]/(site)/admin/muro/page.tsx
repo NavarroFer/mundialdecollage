@@ -43,9 +43,11 @@ export default async function MuroPage({
       .from('wall_pieces')
       .select('id, author_name, author_email, image_path, week_start, created_at')
       .eq('status', tab.status)
+      // A Club gallery's board is moderated by its member, not here.
+      .is('gallery_id', null)
       .order('created_at', { ascending: tab.status === 'pending' })
       .limit(200),
-    supabase.from('wall_pieces').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('wall_pieces').select('id', { count: 'exact', head: true }).eq('status', 'pending').is('gallery_id', null),
   ])
   const pieces = (data ?? []) as PieceRow[]
   // Rejected photos are deleted from Storage: only their record remains.

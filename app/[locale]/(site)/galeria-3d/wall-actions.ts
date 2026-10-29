@@ -9,7 +9,8 @@ import { authorName } from '@/lib/gallery-author'
 import { isCutoutPath, WALL_BUCKET, wallPhotoPattern, type WallLives, type WallPiece, type WallState } from '@/lib/collage-wall'
 
 // The collective collage on Room 1's end wall (supabase/migrations/
-// 20261002180000_collage_wall.sql). The browser uploads the photo into its
+// 20261002180000_collage_wall.sql), and each Club gallery's board (the same
+// pieces with its gallery, 20261029240000_club_guest_boards.sql). The browser uploads the photo into its
 // own folder of the 'wall' bucket; these place it and read the week's
 // collage. Error codes, not sentences: the gallery shows them in the
 // reader's language.
@@ -55,19 +56,36 @@ async function livesOf(admin: AdminClient, user: User): Promise<WallLives | null
   return error || !data ? null : toLives(data as LivesRow, user)
 }
 
-/** This week's collage — approved pieces, plus the visitor's own still in review — and their lives. */
-export async function getWall(): Promise<WallState | { error: string }> {
+/** An active Club gallery's id from its slug, for its board; null when there is none. */
+async function boardId(admin: AdminClient, slug: string): Promise<string | null> {
+  const { data } = await admin.from('club_galleries').select('id').eq('slug', slug).eq('status', 'active').maybeSingle()
+  return data?.id ?? null
+}
+
+/**
+ * This week's collage — approved pieces, plus the visitor's own still in
+ * review — and their lives. With a Club gallery's slug, its board instead,
+ * which keeps its pieces from week to week.
+ */
+export async function getWall(board?: string | null): Promise<WallState | { error: string }> {
   if (!isConfigured()) return { error: unavailable }
   try {
     const admin = createAdminClient()
-    const [user, week] = await Promise.all([getSessionUser(), admin.rpc('wall_week_start')])
-    if (week.error || !week.data) return { error: unavailable }
+    const [user, week, gallery] = await Promise.all([
+      getSessionUser(),
+      admin.rpc('wall_week_start'),
+      board ? boardId(admin, board) : Promise.resolve(null),
+    ])
+    if (week.error || !week.data || (board && !gallery)) return { error: unavailable }
     const columns = 'id, image_path, x, y, rotation, status, created_at'
+    const scoped = () => {
+      const query = admin.from('wall_pieces').select(columns)
+      return gallery ? query.eq('gallery_id', gallery) : query.eq('week_start', week.data).is('gallery_id', null)
+    }
     const [approved, own, lives] = await Promise.all([
-      admin.from('wall_pieces').select(columns).eq('week_start', week.data).eq('status', 'approved')
-        .order('created_at', { ascending: false }).limit(MAX_PIECES),
+      scoped().eq('status', 'approved').order('created_at', { ascending: false }).limit(MAX_PIECES),
       user
-        ? admin.from('wall_pieces').select(columns).eq('week_start', week.data).eq('user_id', user.id).eq('status', 'pending')
+        ? scoped().eq('user_id', user.id).eq('status', 'pending')
         : Promise.resolve({ data: [] as PieceRow[], error: null }),
       user ? livesOf(admin, user) : Promise.resolve(null),
     ])
@@ -82,9 +100,14 @@ export async function getWall(): Promise<WallState | { error: string }> {
   }
 }
 
+async function ownsBoard(admin: AdminClient, gallery: string, userId: string): Promise<boolean> {
+  const { data } = await admin.from('club_galleries').select('user_id').eq('id', gallery).maybeSingle()
+  return data?.user_id === userId
+}
+
 const inFrame = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1
 
-export async function placeWallPiece(input: { path: string; x: number; y: number }): Promise<{ piece: WallPiece; lives: WallLives } | { error: string; lives?: WallLives }> {
+export async function placeWallPiece(input: { path: string; x: number; y: number; board?: string | null }): Promise<{ piece: WallPiece; lives: WallLives } | { error: string; lives?: WallLives }> {
   if (!isConfigured()) return { error: unavailable }
   if (!input || typeof input.path !== 'string' || !inFrame(input.x) || !inFrame(input.y)) return { error: 'invalid' }
   try {
@@ -100,7 +123,12 @@ export async function placeWallPiece(input: { path: string; x: number; y: number
     const { data: files, error: listError } = await bucket.list(user.id, { search: match[2] })
     if (listError || !files?.some((file) => file.name === match[2])) return { error: 'upload_failed' }
 
-    const { data, error } = await admin.rpc('place_wall_piece', {
+    const gallery = input.board ? await boardId(admin, input.board) : null
+    if (input.board && !gallery) {
+      await bucket.remove([input.path])
+      return { error: unavailable }
+    }
+    const placement = {
       visitor: user.id,
       visitor_name: await authorName(user),
       visitor_email: user.email?.toLowerCase() ?? null,
@@ -108,7 +136,10 @@ export async function placeWallPiece(input: { path: string; x: number; y: number
       at_x: input.x,
       at_y: input.y,
       unlimited: isUnlimited(user),
-    }).single()
+    }
+    const { data, error } = gallery
+      ? await admin.rpc('place_club_board_piece', { ...placement, board: gallery }).single()
+      : await admin.rpc('place_wall_piece', placement).single()
     const row = data as ({ status: string; piece_id: string | null; piece_rotation: number | null } & LivesRow) | null
     if (error || !row || row.status !== 'placed' || !row.piece_id) {
       // Not on the collage, so the photo has nowhere to be.
@@ -131,8 +162,9 @@ export async function placeWallPiece(input: { path: string; x: number; y: number
       x: input.x,
       y: input.y,
       rotation: row.piece_rotation ?? 0,
-      // An admin's piece goes up approved (place_wall_piece).
-      status: isUnlimited(user) ? 'approved' : 'pending',
+      // An admin's piece goes up approved (place_wall_piece), and so does a
+      // member's on their own board (place_club_board_piece).
+      status: isUnlimited(user) || (gallery && row.status === 'placed' && await ownsBoard(admin, gallery, user.id)) ? 'approved' : 'pending',
       created_at: new Date().toISOString(),
     })
     return { piece, lives: toLives(row, user) }

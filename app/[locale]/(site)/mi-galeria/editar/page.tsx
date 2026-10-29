@@ -10,7 +10,9 @@ import { fmt } from '@/lib/i18n/format'
 import { canUseOwnClubGallery } from '@/lib/club-launch'
 import { CLUB_MAX_OBRAS, optionState, roomCapacity, shopItems, statsSince, statsTotals, type ShopItem, type StatsRow } from '@/lib/club-editor'
 import { CLUB_FRAME_STYLES, CLUB_GALLERY_THEMES, CLUB_ROOM_TEMPLATES, type ClubRoomTemplate, type GalleryCatalogKind } from '@/lib/gallery-catalog'
-import { removeClubArtwork, saveGallerySettings, saveHangings, unlockItem } from './actions'
+import { moderateBoardPiece, removeClubArtwork, saveGallerySettings, saveHangings, unlockItem } from './actions'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { WALL_BUCKET } from '@/lib/collage-wall'
 import { ClubArtworkUpload } from './club-artwork-upload'
 import { HomePicker } from './home-picker'
 
@@ -19,7 +21,7 @@ const inputClass = 'mt-1 w-full rounded-lg border-2 border-ink/15 bg-background 
 // The member's editor. Private (reads the session), so it is not one of
 // lib/static-pages.ts. Options the member has not unlocked are shown in the
 // shop with their price; the settings form only offers what they can use.
-export default async function EditGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; guardado?: string; desbloqueado?: string; subida?: string; quitada?: string; casa?: string }> }) {
+export default async function EditGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; guardado?: string; desbloqueado?: string; subida?: string; quitada?: string; casa?: string; tablero?: string }> }) {
   if (!isSupabaseConfigured) redirect('/')
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
@@ -53,6 +55,18 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
     supabase.rpc('club_gallery_stats', { since }),
     supabase.from('profiles').select('name, country_code').eq('id', user.id).maybeSingle(),
   ])
+  // What visitors pasted on this member's board, waiting for them. Pieces
+  // have no grants for members: read with the service role, scoped to the
+  // gallery the session just proved is theirs.
+  const admin = createAdminClient()
+  const { data: boardPieces } = await admin
+    .from('wall_pieces')
+    .select('id, author_name, image_path, created_at')
+    .eq('gallery_id', gallery.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .limit(50)
+  const boardPhoto = (path: string) => admin.storage.from(WALL_BUCKET).getPublicUrl(path).data.publicUrl
 
   const owned = new Set((inventory ?? []).map((row) => row.item_id))
   const balance = wallet?.balance ?? 0
@@ -72,7 +86,7 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
   const kindName: Partial<Record<GalleryCatalogKind, string>> = { room: e.fieldRoom, theme: e.fieldTheme, frame: e.fieldFrame }
 
   const error = params.error ? e.errors[params.error as keyof typeof e.errors] ?? e.errors.unavailable : undefined
-  const notice = params.guardado ? e.saved : params.desbloqueado ? e.unlocked : params.subida ? e.uploaded : params.quitada ? e.removed : params.casa === '1' ? e.homeSaved : params.casa === '0' ? e.homeCleared : undefined
+  const notice = params.guardado ? e.saved : params.desbloqueado ? e.unlocked : params.subida ? e.uploaded : params.quitada ? e.removed : params.casa === '1' ? e.homeSaved : params.casa === '0' ? e.homeCleared : params.tablero ? e.boardDone : undefined
   const clubArtworks = (artworks ?? []).filter((artwork) => artwork.is_club_only)
   const needsProfile = !profile?.name?.trim() || !profile.country_code
   const metadataName = (user.user_metadata as { full_name?: string } | undefined)?.full_name?.trim() ?? ''
@@ -179,6 +193,36 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
             texts={{ enter: m.clubLanding.mapEnter, hint: m.clubLanding.mapHint, close: m.clubLanding.mapClose, yourHouse: e.homeYours }}
             labels={{ save: e.homeSave, clear: e.homeClear, none: e.homeNone }}
           />
+        </section>
+
+        <section id="tablero" className="scroll-mt-6 rounded-2xl bg-card p-6 sm:p-8">
+          <h2 className="font-display text-2xl uppercase">{e.boardTitle}</h2>
+          <p className="my-3 text-sm text-muted-foreground">{e.boardBody}</p>
+          {(boardPieces ?? []).length === 0 ? (
+            <p className="text-sm">{e.boardEmpty}</p>
+          ) : (
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {(boardPieces ?? []).map((piece) => (
+                <li key={piece.id} className="rounded-xl border p-3">
+                  <div className="relative aspect-square overflow-hidden rounded-lg bg-[#cdb38c]">
+                    <Image src={boardPhoto(piece.image_path)} alt="" fill sizes="(min-width: 640px) 300px, 90vw" className="object-contain" />
+                  </div>
+                  <p className="mt-2 truncate text-sm font-semibold">{piece.author_name}</p>
+                  <div className="mt-2 flex gap-2">
+                    {(['approve', 'reject'] as const).map((decision) => (
+                      <form key={decision} action={moderateBoardPiece} className="flex-1">
+                        <input type="hidden" name="id" value={piece.id} />
+                        <input type="hidden" name="decision" value={decision} />
+                        <SubmitButton variant={decision === 'approve' ? 'default' : 'outline'} className="min-h-11 w-full">
+                          {decision === 'approve' ? e.boardApprove : e.boardReject}
+                        </SubmitButton>
+                      </form>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section id="obras" className="scroll-mt-6 rounded-2xl bg-card p-6 sm:p-8">

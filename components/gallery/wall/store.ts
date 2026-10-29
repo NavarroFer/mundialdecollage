@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { getWall } from '@/app/[locale]/(site)/galeria-3d/wall-actions'
-import type { WallLives, WallPiece, WallPoint } from '@/lib/collage-wall'
+import { WALL_FRAME, type WallFrame, type WallLives, type WallPiece, type WallPoint } from '@/lib/collage-wall'
 
 // Where the crosshair meets the frame, updated every frame by WallAim —
 // kept out of React so the ghost can follow it without re-rendering
@@ -8,6 +8,10 @@ import type { WallLives, WallPiece, WallPoint } from '@/lib/collage-wall'
 export const currentAim: { point: WallPoint | null } = { point: null }
 
 type WallStore = {
+  /** Where the frame is: the museum's collage unless a Club gallery set its board. */
+  frame: WallFrame
+  /** The Club gallery whose board this is (its slug); null for the museum's collage. */
+  board: string | null
   pieces: WallPiece[]
   /** Null while signed out (or before the collage loads). */
   lives: WallLives | null
@@ -27,6 +31,8 @@ type WallStore = {
 }
 
 export const useWallStore = create<WallStore>((set, get) => ({
+  frame: WALL_FRAME,
+  board: null,
   pieces: [],
   lives: null,
   userId: null,
@@ -44,10 +50,15 @@ export const useWallStore = create<WallStore>((set, get) => ({
   setLives: (lives) => set({ lives }),
 }))
 
-/** This week's collage; a failure leaves the frame empty rather than breaking the gallery. */
+/** In a Club gallery, its board instead of the museum's collage; call before loadWall. */
+export function showClubBoard(frame: WallFrame, board: string) {
+  useWallStore.setState({ frame, board, pieces: [], loaded: false })
+}
+
+/** This week's collage (or the Club board's pieces); a failure leaves the frame empty rather than breaking the gallery. */
 export async function loadWall() {
   try {
-    const result = await getWall()
+    const result = await getWall(useWallStore.getState().board)
     if ('error' in result) {
       useWallStore.setState({ loaded: true, available: false })
       return

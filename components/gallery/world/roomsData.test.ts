@@ -108,7 +108,7 @@ describe('layout', () => {
     const door = doorways.find(({ id }) => id === 'door-1-2')!
     const from = { x: door.center[0] - 0.3, z: door.center[2] }
     for (const t of [-0.5, -0.25, 0, 0.25, 0.5]) {
-      const to = { x: WALL_FRAME.faceX + 0.05, z: WALL_FRAME.centerZ + WALL_FRAME.width * t }
+      const to = { x: WALL_FRAME.center[0] + 0.05, z: WALL_FRAME.center[1] + WALL_FRAME.width * t }
       const blocked = Array.from({ length: 100 }, (_, i) => i / 100).some((s) =>
         hitsWall(from.x + (to.x - from.x) * s, from.z + (to.z - from.z) * s, 0),
       )

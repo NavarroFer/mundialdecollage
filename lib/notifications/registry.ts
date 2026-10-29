@@ -145,6 +145,21 @@ export const NOTIFICATION_TYPES = {
       return { text, href: '/mi-galeria/editar' }
     },
   }),
+  club_board_pending: define({
+    schema: z.object({ count: z.number().int().positive(), title: z.string() }),
+    icon: 'wall',
+    render: (data, { locale, m }) => ({ text: plural(locale, data.count, m.types.clubBoardPending, { title: data.title }), href: '/mi-galeria/editar#tablero' }),
+  }),
+  club_board_approved: define({
+    schema: z.object({ slug: z.string().min(1), title: z.string() }),
+    icon: 'wall',
+    render: (data, { m }) => ({ text: fmt(m.types.clubBoardApproved, { title: data.title }), href: `/club/${encodeURIComponent(data.slug)}` }),
+  }),
+  club_board_rejected: define({
+    schema: z.object({ slug: z.string().min(1), title: z.string() }),
+    icon: 'wallRejected',
+    render: (data, { m }) => ({ text: fmt(m.types.clubBoardRejected, { title: data.title }), href: `/club/${encodeURIComponent(data.slug)}` }),
+  }),
   referral_joined: define({
     schema: z.object({ name: z.string().nullish(), slug: z.string().min(1).nullish() }),
     icon: 'referral',

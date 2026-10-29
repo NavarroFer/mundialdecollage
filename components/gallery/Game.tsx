@@ -28,7 +28,8 @@ import { useVinylStore } from './vinyl/store'
 import { SnakeDialog } from './arcade/SnakeDialog'
 import { useArcadeStore } from './arcade/store'
 import { WallDialog } from './wall/WallDialog'
-import { loadWall, useWallStore } from './wall/store'
+import { loadWall, showClubBoard, useWallStore } from './wall/store'
+import { clubBoardFrame } from './club/board'
 import { useSouvenirStore } from './souvenir/store'
 import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
@@ -242,6 +243,9 @@ export function Game({
   useEffect(() => {
     track('gallery_view')
     openedAt.current = performance.now()
+    // A Club room has its own board, by its way in, instead of the museum's collage.
+    const board = clubSlug && template ? clubBoardFrame(template) : null
+    if (board && clubSlug) showClubBoard(board, clubSlug)
     void loadWall()
     // Back from signing in to paste on the collective collage: reopen its
     // dialog at the same spot of the frame.
@@ -274,7 +278,7 @@ export function Game({
     window.history.replaceState(null, '', window.location.pathname)
     track('sign_in_return')
     if (artworks.some((artwork) => artwork.id === pending.slug)) useInteractionStore.getState().resume(pending)
-  }, [artworks])
+  }, [artworks, clubSlug, template])
 
   // Same as after reading an obra: the click that closes the photo is the
   // gesture the browser needs to give the mouse back to the walk.
@@ -371,8 +375,10 @@ export function Game({
             isTouchDevice={isTouchDevice}
             lockTarget={isTouchDevice ? null : shell}
             wall={{
-              title: m.gallery.wall.plaque,
-              subtitle: wallWeek ? fmt(m.gallery.wall.week, { date: formatDayMonth(locale, `${wallWeek}T12:00:00-03:00`) }) : '',
+              title: clubHost ? m.gallery.clubBoard.plaque : m.gallery.wall.plaque,
+              subtitle: clubHost
+                ? fmt(m.gallery.clubBoard.subtitle, { name: clubHost.artistName })
+                : wallWeek ? fmt(m.gallery.wall.week, { date: formatDayMonth(locale, `${wallWeek}T12:00:00-03:00`) }) : '',
               cyrillic: locale === 'ru',
             }}
             clubDoor={clubDoorLabels}

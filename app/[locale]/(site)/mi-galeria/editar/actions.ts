@@ -9,6 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { CLUB_MAX_OBRAS, fitsRoom, parseClubArtwork, parseGallerySettings, parseHangings, roomCapacity } from '@/lib/club-editor'
 import { uniqueArtworkSlug } from '@/lib/artwork-slug'
 import { parseHome } from '@/lib/club-map'
+import { WALL_BUCKET } from '@/lib/collage-wall'
 import { getAllCountryCodes } from '@/lib/participants'
 import { slugify } from '@/lib/slug'
 import { PURCHASABLE_GALLERY_ITEMS, type ClubRoomTemplate } from '@/lib/gallery-catalog'
@@ -171,6 +172,32 @@ export async function saveGalleryHome(formData: FormData) {
   }
   refreshClubGallery(gallery.slug)
   redirect(`${EDITOR}?casa=${home ? 1 : 0}#casa`)
+}
+
+// A photo pasted on the member's board: approved, it shows to everyone;
+// rejected, it is gone with its photo and its author gets the life back
+// (wall_lives skips rejected pieces). Pieces have no grants for members, so
+// the service role does it once the piece is proven to be on their board.
+export async function moderateBoardPiece(formData: FormData) {
+  const { gallery } = await member()
+  const id = String(formData.get('id') ?? '')
+  const approve = formData.get('decision') === 'approve'
+  if (!/^[0-9a-f-]{36}$/i.test(id)) back('invalid')
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('wall_pieces')
+    .update({ status: approve ? 'approved' : 'rejected', moderated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('gallery_id', gallery.id)
+    .eq('status', 'pending')
+    .select('image_path')
+    .maybeSingle()
+  if (error) {
+    console.error('moderateBoardPiece: update failed', error.code, error.message)
+    back('unavailable')
+  }
+  if (data && !approve) await admin.storage.from(WALL_BUCKET).remove([data.image_path])
+  redirect(`${EDITOR}?tablero=1#tablero`)
 }
 
 export async function unlockItem(formData: FormData) {

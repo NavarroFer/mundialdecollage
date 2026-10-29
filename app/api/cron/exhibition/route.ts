@@ -197,7 +197,8 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
 async function remindPendingComments(db: SupabaseClient, dryRun: boolean) {
   const [comments, photos] = await Promise.all([
     db.from('artwork_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-    db.from('wall_pieces').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    // The museum's collage only: each Club board is its member's to moderate.
+    db.from('wall_pieces').select('id', { count: 'exact', head: true }).eq('status', 'pending').is('gallery_id', null),
   ])
   if (comments.error) throw new Error(comments.error.message)
   if (photos.error) throw new Error(photos.error.message)

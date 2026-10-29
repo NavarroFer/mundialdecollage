@@ -32,7 +32,19 @@ describe('aimAtWall', () => {
   it('maps back to the same spot in the world', () => {
     const origin = { x: -14, y: 1.6, z: 1.3 }
     const [x, y, z] = wallPointToWorld(aimAtWall(origin, west)!)
-    expect([x, y, z]).toEqual([WALL_FRAME.faceX, expect.closeTo(1.6), expect.closeTo(1.3)])
+    expect([x, y, z]).toEqual([expect.closeTo(WALL_FRAME.center[0]), expect.closeTo(1.6), expect.closeTo(1.3)])
+  })
+
+  it('works the same for a board turned any way', () => {
+    // A Club board facing -z, a little turned: straight at its middle from in front.
+    const board = { center: [-2, 3] as [number, number], yaw: Math.PI - 0.35, width: 1.5, bottom: 0.6, height: 1.1, piece: 0.32 }
+    const facing = { x: -Math.sin(board.yaw), y: 0, z: -Math.cos(board.yaw) }
+    const middle = aimAtWall({ x: -2 + Math.sin(board.yaw) * 2, y: 1.15, z: 3 + Math.cos(board.yaw) * 2 }, facing, board)
+    expect(middle?.x).toBeCloseTo(0.5)
+    expect(middle?.y).toBeCloseTo(0.5)
+    expect(aimAtWall({ x: -2 - Math.sin(board.yaw) * 2, y: 1.15, z: 3 - Math.cos(board.yaw) * 2 }, { x: -facing.x, y: 0, z: -facing.z }, board)).toBeNull()
+    const [x, y, z] = wallPointToWorld(middle!, board)
+    expect([x, y, z]).toEqual([expect.closeTo(-2), expect.closeTo(1.15), expect.closeTo(3)])
   })
 })
 

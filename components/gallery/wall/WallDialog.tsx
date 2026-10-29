@@ -62,7 +62,7 @@ function WallDialogContent({ theme, point }: { theme: GalleryTheme; point: { x: 
       const path = `${userId}/${crypto.randomUUID()}.${picked.extension}`
       const { error: uploadError } = await createClient().storage.from(WALL_BUCKET).upload(path, picked.blob, { contentType: picked.blob.type })
       if (uploadError) throw new Error(uploadError.message)
-      const result = await placeWallPiece({ path, ...point })
+      const result = await placeWallPiece({ path, ...point, board: useWallStore.getState().board })
       if ('error' in result) {
         if (result.lives) useWallStore.getState().setLives(result.lives)
         if (result.error === 'no_lives') track('wall_no_lives')

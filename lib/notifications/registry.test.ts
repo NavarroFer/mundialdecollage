@@ -101,6 +101,9 @@ describe('renderNotification', () => {
       artwork_exhibited: { title: 'T', slug: 's', day: '2026-10-05' },
       referral_joined: { name: 'N', slug: 's' },
       club_weekly: { slug: 's', title: 'T', week: '2026-10-26', viewers: 2, stamps: 1, likes: 0 },
+      club_board_pending: { count: 2, slug: 's', title: 'T' },
+      club_board_approved: { slug: 's', title: 'T' },
+      club_board_rejected: { slug: 's', title: 'T' },
       admin_comments_pending: { count: 2 },
       admin_wall_pending: { count: 2 },
       admin_images_failed: { count: 2 },
@@ -130,7 +133,8 @@ describe('notification types written by the database', () => {
     .map((file) => readFileSync(path.join(migrations, file), 'utf8'))
     .filter((text) => /public\.notify_(user|admins)\(|on_admin_count_change\(/.test(text))
     .join('\n')
-  const NOT_TYPES = new Set<string>([])
+  // place_club_board_piece's own answer, in the same migration as its notice.
+  const NOT_TYPES = new Set<string>(['no_lives'])
   const written = new Set([...sql.matchAll(/'([a-z]+(?:_[a-z]+)+)'/g)].map((match) => match[1]).filter((name) => !NOT_TYPES.has(name)))
 
   it('are all registered', () => {

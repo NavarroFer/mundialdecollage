@@ -3,21 +3,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { aimAtWall, WALL_FRAME, wallPointToWorld, type WallPiece } from '@/lib/collage-wall'
+import { aimAtWall, type WallFrame, type WallPiece, type WallPoint } from '@/lib/collage-wall'
 import { imageSrc } from '@/lib/image-src'
 import { useInteractionStore } from '../interaction/store'
 import { galleryThemes, type GalleryTheme } from '../themes'
 import { canvasFonts } from '../fonts'
 import { currentAim, useWallStore } from './store'
 
-// The collective collage on Room 1's end wall: a big frame on kraft paper,
-// the week's photos pasted over each other in order, a museum plaque under
-// it, and a pale ghost of a photo wherever the visitor is aiming.
+// A kraft frame visitors paste photos on: the museum's collective collage on
+// Room 1's end wall, or a Club gallery's board on legs by its way in. The
+// photos go over each other in order, a plaque names it, and a pale ghost
+// of a photo shows wherever the visitor is aiming. Everything is drawn in
+// the frame's own space (x across, y up, z out of its face), placed and
+// turned by the group around it.
 
 const BORDER = 0.12
 const BORDER_DEPTH = 0.09
 const KRAFT = '#cdb38c'
-const FACING_ROOM: [number, number, number] = [0, Math.PI / 2, 0]
 // Each photo sits a hair in front of the board and draws over the ones
 // pasted before it (no depth writes, ordered by renderOrder) — so they can
 // overlap without flickering, like real paper.
@@ -37,7 +39,7 @@ export function WallAim() {
     if (!interaction.targetId && !interaction.openId && !wall.placing) {
       camera.getWorldPosition(raycastPosition)
       camera.getWorldDirection(raycastDirection)
-      point = aimAtWall(raycastPosition, raycastDirection)
+      point = aimAtWall(raycastPosition, raycastDirection, wall.frame)
     }
     currentAim.point = point
     wall.setAiming(point !== null)
@@ -45,37 +47,62 @@ export function WallAim() {
   return null
 }
 
+/** Where a spot of the frame sits in the frame's own space. */
+const local = ({ x, y }: WallPoint, frame: WallFrame, lift: number): [number, number, number] =>
+  [(x - 0.5) * frame.width, frame.bottom + y * frame.height, lift]
+
 export function CollageWall({ theme, title, subtitle, cyrillic }: { theme: GalleryTheme; title: string; subtitle: string; cyrillic: boolean }) {
   const pieces = useWallStore((state) => state.pieces)
-  const { faceX, centerZ, width, bottom, height } = WALL_FRAME
+  const frame = useWallStore((state) => state.frame)
+  const { center, yaw, width, bottom, height } = frame
   const centerY = bottom + height / 2
   const frameColor = galleryThemes[theme].frame.outer
 
   return (
-    <group>
-      <mesh position={[faceX - 0.01, centerY, centerZ]} rotation={FACING_ROOM} receiveShadow>
+    <group position={[center[0], 0, center[1]]} rotation={[0, yaw, 0]}>
+      <mesh position={[0, centerY, -0.01]} receiveShadow>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial color={KRAFT} roughness={0.95} />
       </mesh>
       {[
-        { y: bottom + height + BORDER / 2, z: centerZ, size: [width + BORDER * 2, BORDER] },
-        { y: bottom - BORDER / 2, z: centerZ, size: [width + BORDER * 2, BORDER] },
-        { y: centerY, z: centerZ + width / 2 + BORDER / 2, size: [BORDER, height] },
-        { y: centerY, z: centerZ - width / 2 - BORDER / 2, size: [BORDER, height] },
-      ].map(({ y, z, size }) => (
-        <mesh key={`${y} ${z}`} position={[faceX + BORDER_DEPTH / 2 - 0.02, y, z]} rotation={FACING_ROOM} castShadow>
+        { x: 0, y: bottom + height + BORDER / 2, size: [width + BORDER * 2, BORDER] },
+        { x: 0, y: bottom - BORDER / 2, size: [width + BORDER * 2, BORDER] },
+        { x: width / 2 + BORDER / 2, y: centerY, size: [BORDER, height] },
+        { x: -width / 2 - BORDER / 2, y: centerY, size: [BORDER, height] },
+      ].map(({ x, y, size }) => (
+        <mesh key={`${x} ${y}`} position={[x, y, BORDER_DEPTH / 2 - 0.02]} castShadow>
           <boxGeometry args={[size[0], size[1], BORDER_DEPTH]} />
           <meshStandardMaterial color={frameColor} roughness={0.6} />
         </mesh>
       ))}
-      {pieces.map((piece, index) => <Piece key={piece.id} piece={piece} order={index} />)}
-      <Ghost />
-      <Plaque title={title} subtitle={subtitle} cyrillic={cyrillic} />
+      {frame.freestanding && <Stand frame={frame} color={frameColor} />}
+      {pieces.map((piece, index) => <Piece key={piece.id} piece={piece} order={index} frame={frame} />)}
+      <Ghost frame={frame} />
+      {frame.plaqueY !== undefined && <Plaque title={title} subtitle={subtitle} cyrillic={cyrillic} y={frame.plaqueY} width={Math.min(PLAQUE.width, width + BORDER * 2)} />}
     </group>
   )
 }
 
-function Piece({ piece, order }: { piece: WallPiece; order: number }) {
+// A board in the middle of a room: a backing behind the kraft and two legs.
+function Stand({ frame, color }: { frame: WallFrame; color: string }) {
+  const { width, bottom, height } = frame
+  return (
+    <group>
+      <mesh position={[0, bottom + height / 2, -0.05]} castShadow receiveShadow>
+        <boxGeometry args={[width + BORDER * 2, height + BORDER * 2, 0.05]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * (width / 2 - 0.12), 0, -0.05]}>
+          <mesh position={[0, bottom / 2, 0]} castShadow><boxGeometry args={[0.06, bottom, 0.06]} /><meshStandardMaterial color={color} roughness={0.7} /></mesh>
+          <mesh position={[0, 0.02, 0]} castShadow><boxGeometry args={[0.08, 0.04, 0.5]} /><meshStandardMaterial color={color} roughness={0.7} /></mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function Piece({ piece, order, frame }: { piece: WallPiece; order: number; frame: WallFrame }) {
   const [texture, setTexture] = useState<THREE.Texture | null>(null)
 
   useEffect(() => {
@@ -96,17 +123,16 @@ function Piece({ piece, order }: { piece: WallPiece; order: number }) {
   if (!texture) return null
   const image = texture.image as { width: number; height: number }
   const aspect = image.width / image.height
-  const side = WALL_FRAME.piece
+  const side = frame.piece
   const photoWidth = aspect >= 1 ? side : side * aspect
   const photoHeight = aspect >= 1 ? side / aspect : side
-  const [x, y, z] = wallPointToWorld(piece)
   // Still in review: only its author sees it, a little faded.
   const opacity = piece.pending ? 0.6 : 1
   // A cutout keeps its own outline, so it goes on without the white card.
   const seeThrough = piece.pending || piece.cutout
 
   return (
-    <group position={[x + PIECE_LIFT, y, z]} rotation={[0, Math.PI / 2, piece.rotation]}>
+    <group position={local(piece, frame, PIECE_LIFT)} rotation={[0, 0, piece.rotation]}>
       {!piece.cutout && (
         <mesh renderOrder={10 + order * 2}>
           <planeGeometry args={[photoWidth + 0.04, photoHeight + 0.04]} />
@@ -121,26 +147,26 @@ function Piece({ piece, order }: { piece: WallPiece; order: number }) {
   )
 }
 
-function Ghost() {
+function Ghost({ frame }: { frame: WallFrame }) {
   const ref = useRef<THREE.Mesh>(null)
   useFrame(() => {
     const mesh = ref.current
     if (!mesh) return
     const point = useWallStore.getState().placing ?? currentAim.point
     mesh.visible = point !== null
-    if (point) mesh.position.set(...wallPointToWorld(point)).setX(WALL_FRAME.faceX + PIECE_LIFT * 2)
+    if (point) mesh.position.set(...local(point, frame, PIECE_LIFT * 2))
   })
   return (
-    <mesh ref={ref} rotation={FACING_ROOM} renderOrder={100000} visible={false}>
-      <planeGeometry args={[WALL_FRAME.piece, WALL_FRAME.piece]} />
+    <mesh ref={ref} renderOrder={100000} visible={false}>
+      <planeGeometry args={[frame.piece, frame.piece]} />
       <meshBasicMaterial color="#ffffff" transparent opacity={0.45} depthWrite={false} />
     </mesh>
   )
 }
 
-const PLAQUE = { width: 1.9, height: 0.3, y: 0.52 }
+const PLAQUE = { width: 1.9, height: 0.3 }
 
-function Plaque({ title, subtitle, cyrillic }: { title: string; subtitle: string; cyrillic: boolean }) {
+function Plaque({ title, subtitle, cyrillic, y, width }: { title: string; subtitle: string; cyrillic: boolean; y: number; width: number }) {
   const material = useRef<THREE.MeshStandardMaterial>(null)
 
   useEffect(() => {
@@ -178,8 +204,8 @@ function Plaque({ title, subtitle, cyrillic }: { title: string; subtitle: string
   }, [title, subtitle, cyrillic])
 
   return (
-    <mesh position={[WALL_FRAME.faceX + 0.01, PLAQUE.y, WALL_FRAME.centerZ]} rotation={FACING_ROOM}>
-      <planeGeometry args={[PLAQUE.width, PLAQUE.height]} />
+    <mesh position={[0, y, 0.01]}>
+      <planeGeometry args={[width, PLAQUE.height * (width / PLAQUE.width)]} />
       <meshStandardMaterial ref={material} color="#ffffff" roughness={0.6} />
     </mesh>
   )
