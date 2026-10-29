@@ -23,7 +23,8 @@ create table public.club_galleries (
   host_outfit jsonb not null default '{}'::jsonb check (jsonb_typeof(host_outfit) = 'object'),
   music_track text not null default 'default' check (length(music_track) between 1 and 120),
   contact_whatsapp text check (contact_whatsapp is null or length(contact_whatsapp) <= 40),
-  contact_url text check (contact_url is null or length(contact_url) <= 500),
+  -- Shown as a link to every visitor: only a web address, never javascript: and the like.
+  contact_url text check (contact_url is null or (length(contact_url) <= 500 and contact_url ~* '^https?://')),
   status text not null default 'draft' check (status in ('draft', 'active', 'paused')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
