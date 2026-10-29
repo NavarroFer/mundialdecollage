@@ -6,6 +6,8 @@ vi.mock('@/lib/customer-payment-errors', () => ({ recordCustomerPaymentError: vi
 vi.mock('@/lib/subscription-receipts', () => ({ sendSubscriptionReceipt: vi.fn() }))
 const donation = vi.hoisted(() => ({ applyPayment: vi.fn() }))
 vi.mock('@/lib/donation-payments', () => ({ donationPurchase: donation }))
+const coinPack = vi.hoisted(() => ({ applyPayment: vi.fn() }))
+vi.mock('@/lib/coin-pack-payments', () => ({ coinPackPurchase: coinPack }))
 
 import { handlePaypalEvent } from './handlers'
 
@@ -13,6 +15,7 @@ beforeEach(() => {
   db.rpc.mockReset().mockResolvedValue({ error: null })
   db.from.mockReset()
   donation.applyPayment.mockReset().mockResolvedValue('paid')
+  coinPack.applyPayment.mockReset().mockResolvedValue('paid')
 })
 
 const captured = (custom_id: string) => ({
@@ -32,6 +35,17 @@ describe('PayPal capture events', () => {
   it('fails the event when the donation could not be recorded, so PayPal sends it again', async () => {
     donation.applyPayment.mockResolvedValue(null)
     await expect(handlePaypalEvent(captured('donacion:7d2c0a4e-0000-4000-8000-000000000000'))).rejects.toThrow('Could not record donation')
+  })
+
+  it('records a coin pack without creating a physical store order', async () => {
+    await handlePaypalEvent(captured('monedas:7d2c0a4e-0000-4000-8000-000000000001'))
+    expect(coinPack.applyPayment).toHaveBeenCalledWith('7d2c0a4e-0000-4000-8000-000000000001', expect.objectContaining({ provider: 'paypal', id: 'CAP1', amount: 10, currency: 'USD' }))
+    expect(db.rpc).not.toHaveBeenCalled()
+  })
+
+  it('fails the event when a coin pack could not be recorded, so PayPal retries it', async () => {
+    coinPack.applyPayment.mockResolvedValue(null)
+    await expect(handlePaypalEvent(captured('monedas:7d2c0a4e-0000-4000-8000-000000000001'))).rejects.toThrow('Could not record coin pack purchase')
   })
 
   it('records a store order’s payment', async () => {

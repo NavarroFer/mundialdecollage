@@ -7,8 +7,9 @@ const ENTRY_PREFIX = 'entry:'
 const MAGAZINE_PREFIX = 'revista:'
 const SUBSCRIPTION_PREFIX = 'suscripcion:'
 const DONATION_PREFIX = 'donacion:'
+const COIN_PACK_PREFIX = 'monedas:'
 
-export type ReferenceKind = 'entry' | 'magazine' | 'subscription' | 'donation' | 'workshop'
+export type ReferenceKind = 'entry' | 'magazine' | 'subscription' | 'donation' | 'coin-pack' | 'workshop'
 
 export type PaymentReference = { kind: ReferenceKind; id: string }
 
@@ -28,13 +29,17 @@ export function donationExternalReference(donationId: string) {
   return `${DONATION_PREFIX}${donationId}`
 }
 
+export function coinPackExternalReference(purchaseId: string) {
+  return `${COIN_PACK_PREFIX}${purchaseId}`
+}
+
 export function workshopExternalReference(registrationId: string) {
   return registrationId
 }
 
 export function parseExternalReference(reference: string | null | undefined): PaymentReference | null {
   if (!reference) return null
-  for (const [prefix, kind] of [[ENTRY_PREFIX, 'entry'], [MAGAZINE_PREFIX, 'magazine'], [SUBSCRIPTION_PREFIX, 'subscription'], [DONATION_PREFIX, 'donation']] as const) {
+  for (const [prefix, kind] of [[ENTRY_PREFIX, 'entry'], [MAGAZINE_PREFIX, 'magazine'], [SUBSCRIPTION_PREFIX, 'subscription'], [DONATION_PREFIX, 'donation'], [COIN_PACK_PREFIX, 'coin-pack']] as const) {
     if (!reference.startsWith(prefix)) continue
     const id = reference.slice(prefix.length)
     return id ? { kind, id } : null

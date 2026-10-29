@@ -30,12 +30,14 @@ describe('recoverMercadoPago', () => {
     const donation = payment('1', 'donacion:7d2c0a4e-0000-4000-8000-000000000000')
     const entry = payment('2', 'entry:p1')
     const magazine = payment('3', 'revista:o1')
-    search.mockResolvedValue([donation, entry, magazine])
-    expect(await recoverMercadoPago()).toEqual({ donation: 1, entry: 1, magazine: 1, subscriptions: 1, charges: 1 })
+    const coinPack = payment('4', 'monedas:c1')
+    search.mockResolvedValue([donation, entry, magazine, coinPack])
+    expect(await recoverMercadoPago()).toEqual({ 'coin-pack': 1, donation: 1, entry: 1, magazine: 1, subscriptions: 1, charges: 1 })
     expect(search).toHaveBeenCalledWith(MERCADO_PAGO_START)
     expect(apply).toHaveBeenCalledWith(donation, 'donation')
     expect(apply).toHaveBeenCalledWith(entry, 'entry')
     expect(apply).toHaveBeenCalledWith(magazine, 'magazine')
+    expect(apply).toHaveBeenCalledWith(coinPack, 'coin-pack')
   })
 
   it("leaves alone what isn't clearly the Mundial's: other businesses on the same account, the subscriptions' own charges", async () => {
@@ -45,7 +47,7 @@ describe('recoverMercadoPago', () => {
       payment('3', '7d2c0a4e-0000-4000-8000-000000000000'),
       payment('4', 'suscripcion:s1'),
     ])
-    expect(await recoverMercadoPago()).toMatchObject({ donation: 0, entry: 0, magazine: 0 })
+    expect(await recoverMercadoPago()).toMatchObject({ 'coin-pack': 0, donation: 0, entry: 0, magazine: 0 })
     expect(apply).not.toHaveBeenCalled()
   })
 })

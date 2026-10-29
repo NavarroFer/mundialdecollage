@@ -48,7 +48,7 @@ export function rowPurchase({
   label,
   sendReceipt,
 }: {
-  table: 'entry_purchases' | 'magazine_orders'
+  table: 'entry_purchases' | 'magazine_orders' | 'coin_pack_purchases'
   label: string
   sendReceipt: (id: string) => Promise<unknown>
 }): Purchase {

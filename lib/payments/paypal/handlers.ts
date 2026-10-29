@@ -1,5 +1,6 @@
 import { recordCustomerPaymentError } from '@/lib/customer-payment-errors'
 import { donationPurchase } from '@/lib/donation-payments'
+import { coinPackPurchase } from '@/lib/coin-pack-payments'
 import { fromPayPalCapture } from '@/lib/payments/providers/paypal'
 import { parseExternalReference } from '@/lib/payments/references'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -80,6 +81,10 @@ export async function recordOneTimeCapture(capture: Record<string, unknown>, pro
   if (reference?.kind === 'donation') {
     // Thrown, the webhook answers 500 and PayPal sends it again.
     if (!(await donationPurchase.applyPayment(reference.id, fromPayPalCapture(capture)))) throw new Error('Could not record donation')
+    return
+  }
+  if (reference?.kind === 'coin-pack') {
+    if (!(await coinPackPurchase.applyPayment(reference.id, fromPayPalCapture(capture)))) throw new Error('Could not record coin pack purchase')
     return
   }
   const paymentId = text(capture.id)

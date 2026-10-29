@@ -16,7 +16,7 @@ export const MERCADO_PAGO_START = '2026-09-26T00:00:00.000-03:00'
 // What it brings back, by the reference's prefix. The taller's bare
 // references are left out: the account also takes other businesses'
 // payments, and a bare reference can't tell them apart.
-const RECOVERED = ['donation', 'entry', 'magazine'] as const
+const RECOVERED = ['coin-pack', 'donation', 'entry', 'magazine'] as const
 type RecoveredKind = (typeof RECOVERED)[number]
 
 export type Recovered = Record<RecoveredKind, number> & { subscriptions: number; charges: number }
@@ -24,7 +24,7 @@ export type Recovered = Record<RecoveredKind, number> & { subscriptions: number;
 const isRecovered = (kind: string | undefined): kind is RecoveredKind => (RECOVERED as readonly string[]).includes(kind ?? '')
 
 export async function recoverMercadoPago(): Promise<Recovered> {
-  const found = { donation: 0, entry: 0, magazine: 0 }
+  const found = { 'coin-pack': 0, donation: 0, entry: 0, magazine: 0 }
   for (const payment of await searchMercadoPagoPayments(MERCADO_PAGO_START)) {
     const kind = parseExternalReference(payment.reference)?.kind
     if (!isRecovered(kind)) continue
