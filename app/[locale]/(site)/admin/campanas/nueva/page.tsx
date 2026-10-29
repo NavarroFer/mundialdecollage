@@ -44,7 +44,7 @@ export default async function NuevaCampanaPage({
 
   // Both audiences are counted so each option shows its size before it's
   // picked; the picked one is the same list sendCampaign will send to.
-  const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, multipleArtworks, { data: contactCountries }, domainStatus] = await Promise.all([
+  const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, multipleArtworks, clubProspects, { data: contactCountries }, domainStatus] = await Promise.all([
     supabase
       .from('templates')
       .select('id, name, subject, body_html, body_json, translations, translations_source, audiences, system_key')
@@ -54,10 +54,11 @@ export default async function NuevaCampanaPage({
     audienceContacts(supabase, 'profile_review'),
     audienceContacts(supabase, 'not_participating'),
     audienceContacts(supabase, 'multiple_artworks'),
+    audienceContacts(supabase, 'club_prospects'),
     supabase.rpc('contact_country_codes'),
     getDomainStatus(),
   ])
-  const audiences = { subscribed: everyone, no_artwork: withoutArtwork, profile_review: profileReview, not_participating: notParticipating, multiple_artworks: multipleArtworks }
+  const audiences = { subscribed: everyone, no_artwork: withoutArtwork, profile_review: profileReview, not_participating: notParticipating, multiple_artworks: multipleArtworks, club_prospects: clubProspects }
   const { contacts: subscribed, error: audienceError } = audiences[audience]
   const count = subscribed.length
 

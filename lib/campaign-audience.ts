@@ -23,6 +23,13 @@ export const CAMPAIGN_AUDIENCES = [
     // The countdown to the deadline goes here (lib/countdown-campaigns.ts).
     description: 'Suscriptos que todavía no mandaron una obra, por el sitio ni por el formulario (sin admins).',
   },
+  {
+    value: 'club_prospects',
+    label: 'Artistas sin galería del Club',
+    // The launch mail of the Club (docs/club-del-mundial-galerias-virtuales.md):
+    // whoever has taken part and has no Club gallery of their own, active or not.
+    description: 'Suscriptos que participaron con una obra y todavía no tienen una galería del Club (sin admins).',
+  },
   { value: 'multiple_artworks', label: 'Varias obras por elegir', description: 'Artistas con varias obras cargadas y participación publicada que todavía no eligieron cuál participa gratis.' },
   {
     value: 'profile_review',
@@ -68,6 +75,22 @@ export function contactsNotParticipating<T extends { email: string }>(
 ): T[] {
   const excluded = new Set([...participantEmails, ...adminEmails].map(normalize))
   return subscribed.filter((contact) => !excluded.has(normalize(contact.email)))
+}
+
+// The subscribed contacts who have taken part (`participantEmails`) and have
+// no Club gallery (`memberEmails`, club_member_emails()), never an admin's.
+export function contactsClubProspects<T extends { email: string }>(
+  subscribed: T[],
+  participantEmails: Iterable<string>,
+  memberEmails: Iterable<string>,
+  adminEmails: readonly string[] = ADMIN_EMAILS,
+): T[] {
+  const participants = new Set([...participantEmails].map(normalize))
+  const excluded = new Set([...memberEmails, ...adminEmails].map(normalize))
+  return subscribed.filter((contact) => {
+    const email = normalize(contact.email)
+    return participants.has(email) && !excluded.has(email)
+  })
 }
 
 // The same list for the composer's count (app/admin/campanas/nueva) and for
@@ -117,6 +140,17 @@ export async function audienceContacts(
       }),
       error: null,
     }
+  }
+
+  if (audience === 'club_prospects') {
+    const [{ data: participants, error: participantsError }, { data: members, error: membersError }] = await Promise.all([
+      supabase.rpc('participant_emails'),
+      supabase.rpc('club_member_emails'),
+    ])
+    if (participantsError) return { contacts: [], error: participantsError.message }
+    if (membersError) return { contacts: [], error: membersError.message }
+    const emailsOf = (rows: unknown) => ((rows ?? []) as { email: string | null }[]).flatMap((row) => (row.email ? [row.email] : []))
+    return { contacts: contactsClubProspects(subscribed ?? [], emailsOf(participants), emailsOf(members)), error: null }
   }
 
   if (audience === 'not_participating') {

@@ -32,4 +32,5 @@ export const CAMPAIGN_TEMPLATE_AUDIENCES: Record<string, TemplateAudience[]> = {
   not_participating: ['interesados', 'hinchas'],
   profile_review: ['artistas'],
   multiple_artworks: ['artistas'],
+  club_prospects: ['artistas'],
 }
