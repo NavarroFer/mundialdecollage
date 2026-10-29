@@ -12,9 +12,9 @@ export const metadata = {
     'Términos de uso del sitio, bases de la convocatoria, derechos sobre las obras, pagos y datos personales del Mundial Internacional de Collage.',
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-10">
+    <section id={id} className="mt-10 scroll-mt-24">
       <h2 className="font-display text-xl tracking-tight text-ink uppercase sm:text-2xl">
         {title}
       </h2>
@@ -61,7 +61,7 @@ export default async function TerminosYCondicionesPage() {
           </a>
 
           {termsSections.map((section, index) => (
-            <Section key={section.id} title={`${index + 1}. ${section.title}`}>
+            <Section key={section.id} id={section.id} title={`${index + 1}. ${section.title}`}>
               {section.blocks.map((block, blockIndex) =>
                 typeof block === 'string' ? (
                   <p key={blockIndex}>{block}</p>

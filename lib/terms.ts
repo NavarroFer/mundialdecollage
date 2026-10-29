@@ -6,7 +6,7 @@ import { site } from '@/lib/site'
 // Al cambiar el texto de forma sustancial, subí TERMS_VERSION
 // (lib/terms-version.ts) y TERMS_UPDATED_LABEL.
 export { TERMS_PDF_URL, TERMS_VERSION } from '@/lib/terms-version'
-export const TERMS_UPDATED_LABEL = '13 de octubre de 2026'
+export const TERMS_UPDATED_LABEL = '29 de octubre de 2026'
 
 export type TermsBlock = string | { list: string[] }
 export type TermsSection = { id: string; title: string; blocks: TermsBlock[] }
@@ -108,13 +108,30 @@ export const termsSections: TermsSection[] = [
     id: 'pagos',
     title: 'Pagos, suscripciones y envíos',
     blocks: [
-      'Las compras (obras adicionales, productos de la tienda, suscripciones, la revista y el taller) se pagan con Mercado Pago en Argentina y con PayPal en el resto del mundo. Precio, moneda y condiciones se muestran antes de pagar. Los pagos los procesan esos servicios: no guardamos datos de tarjetas.',
+      'Las compras (obras adicionales, productos de la tienda, suscripciones, el Club y sus monedas, la revista y el taller) se pagan con Mercado Pago en Argentina y con PayPal en el resto del mundo. Precio, moneda y condiciones se muestran antes de pagar. Los pagos los procesan esos servicios: no guardamos datos de tarjetas.',
       {
         list: [
           'Arrepentimiento: si sos consumidor, podés arrepentirte de una compra dentro de los 10 días corridos desde que la hiciste o recibiste el producto, sin dar motivos (art. 34 de la Ley 24.240 de Defensa del Consumidor). Escribinos y te devolvemos el dinero por el mismo medio de pago.',
           'Suscripción mensual: se cobra cada mes hasta que la canceles, desde tu cuenta de Mercado Pago o PayPal o escribiéndonos. Al cancelar no hay más cobros ni envíos; el mes ya pagado se completa.',
           'Envíos: los plazos son estimados y dependen del correo. Revisá que la dirección sea correcta; si un paquete vuelve por un error en la dirección, el reenvío se cobra aparte. Si llega dañado o no llega, escribinos y lo resolvemos.',
           'Obras adicionales: si la Convocatoria se suspende antes del cierre, te devolvemos lo que pagaste por obras adicionales.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'club',
+    title: 'Club del Mundial de Collage',
+    blocks: [
+      'El Club es una membresía mensual y opcional que te da una galería virtual 3D propia y permanente en el Sitio, y una billetera de monedas para personalizarla. Estas reglas se suman a las del resto de los términos y rigen solo para quien se suscribe o compra monedas.',
+      {
+        list: [
+          'Qué incluye: una sala con tus obras, un enlace para compartirla y las monedas que se acreditan con cada cuota mensual paga. El precio, la moneda y las monedas de cada cuota se muestran antes de pagar.',
+          'Precio: podemos ajustar la cuota en pesos cada tres meses, avisándote con 30 días de anticipación; el nuevo monto rige desde el cobro siguiente a ese aviso.',
+          'Cobro y baja: se cobra cada mes hasta que canceles, desde tu cuenta de Mercado Pago o PayPal o escribiéndonos. Si cancelás o un cobro es rechazado, tu galería deja de mostrarse al público pero no se borra: conserva sus salas, temas, marcos, obras colgadas y monedas, y vuelve a mostrarse si retomás el pago.',
+          'Arrepentimiento: rigen los 10 días corridos del apartado de pagos. Si te arrepentís de una cuota, te devolvemos lo pagado y retiramos las monedas que acreditó; las mejoras que hayas desbloqueado con ellas dejan de estar disponibles. Los packs de monedas son compras únicas y podés arrepentirte dentro de los 10 días si todavía no gastaste esas monedas.',
+          'Monedas: son un crédito dentro del Sitio para desbloquear mejoras del Club. No tienen valor en dinero, no se pueden transferir, canjear ni retirar, y no se devuelven una vez gastadas. Lo que desbloqueaste queda en tu cuenta aunque pauses la membresía. Las monedas que se ganan por actividad en el Sitio (Me gusta, estampillas) tienen un tope diario.',
+          'Tus obras en la galería: seguís siendo quien tiene los derechos sobre ellas. Al colgarlas en tu galería nos das el permiso de mostrarlas mientras esté activa. Solo podés colgar obras propias o con derechos suficientes, y valen las reglas de autoría y de contenido no permitido de estos términos; podemos despublicar una galería que las incumpla.',
         ],
       },
     ],
