@@ -7,7 +7,9 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getMercadoPagoConfig, isMercadoPagoConfigured } from '@/lib/mercadopago'
 import { upsertCustomer } from '@/lib/payments/customers'
-import { startClubMpSubscription } from '@/lib/club-subscriptions'
+import { startClubSubscription, type ClubProvider } from '@/lib/club-subscriptions'
+import { isPayPalServerConfigured, paypal } from '@/lib/payments/paypal/client'
+import { paypalPlanId } from '@/lib/payments/paypal/plans'
 import { createCoinPackCheckout } from '@/lib/club-payments'
 import { mercadoPago } from '@/lib/payments/providers/mercadopago'
 import { payPal } from '@/lib/payments/providers/paypal'
@@ -17,22 +19,46 @@ import { getSiteUrl } from '@/lib/site'
 
 // «Suscribirme al Club»: the artist's gallery is created here, when they
 // start paying, and goes live with the first approved charge
-// (lib/club-subscriptions.ts). redirect() throws, so it stays out of any try.
-export async function joinClub() {
+// (lib/club-subscriptions.ts). Mercado Pago charges pesos from a preapproval
+// made on the spot; PayPal subscribes to the plan made in its dashboard
+// (scripts/paypal-setup.mjs club). redirect() throws, so it stays out of any try.
+async function startMembership(provider: ClubProvider) {
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
-  if (!isSupabaseConfigured || !isMercadoPagoConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) redirect('/mi-galeria?error=unavailable')
+  const configured = provider === 'paypal' ? isPayPalServerConfigured : isMercadoPagoConfigured
+  if (!isSupabaseConfigured || !configured || !process.env.SUPABASE_SERVICE_ROLE_KEY) redirect('/mi-galeria?error=unavailable')
 
   const { data: profile } = await (await createClient()).from('profiles').select('name').eq('id', user.id).maybeSingle()
   const metadataName = (user.user_metadata as { full_name?: string } | undefined)?.full_name
   const name = profile?.name?.trim() || metadataName?.trim() || (user.email ?? '').split('@')[0]
+  const site = getSiteUrl()
 
-  const result = await startClubMpSubscription(
-    { userId: user.id, email: user.email ?? '', name, planId: 'club-monthly', backUrl: `${getSiteUrl()}/mi-galeria?suscripcion=ok` },
+  const result = await startClubSubscription(
+    { provider, userId: user.id, email: user.email ?? '', name, planId: 'club-monthly', backUrl: `${site}/mi-galeria?suscripcion=ok` },
     {
       admin: createAdminClient(),
       upsertCustomer,
-      async createPreapproval({ reference, reason, payerEmail, amount, backUrl }) {
+      paypalPlanId: paypalPlanId('club-monthly'),
+      async createSubscription({ localId, reference, reason, payerEmail, amount, backUrl }) {
+        if (provider === 'paypal') {
+          const subscription = await paypal<{ id: string; links?: { rel: string; href: string }[] }>('/v1/billing/subscriptions', {
+            method: 'POST',
+            requestId: `club-subscription-${localId}`,
+            body: {
+              plan_id: paypalPlanId('club-monthly'),
+              custom_id: localId,
+              subscriber: { email_address: payerEmail },
+              application_context: {
+                brand_name: process.env.BRAND_NAME ?? 'Mundial de Collage',
+                shipping_preference: 'NO_SHIPPING',
+                user_action: 'SUBSCRIBE_NOW',
+                return_url: backUrl,
+                cancel_url: `${site}/mi-galeria`,
+              },
+            },
+          })
+          return { id: subscription.id, checkoutUrl: subscription.links?.find((link) => link.rel === 'approve')?.href }
+        }
         const preapproval = await new PreApproval(getMercadoPagoConfig()).create({
           body: {
             reason,
@@ -48,8 +74,15 @@ export async function joinClub() {
     },
   )
   if (!result.ok) redirect(`/mi-galeria?error=${result.error === 'already_member' ? 'already' : result.error}`)
-
   redirect(result.checkoutUrl)
+}
+
+export async function joinClub() {
+  return startMembership('mercadopago')
+}
+
+export async function joinClubWithPayPal() {
+  return startMembership('paypal')
 }
 
 // A one-time coin pack, in pesos with Mercado Pago or in dollars with PayPal.

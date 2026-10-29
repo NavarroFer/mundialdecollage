@@ -15,25 +15,37 @@ export function clubGallerySlug(name: string, userId: string): string {
   return `${slugify(name) || 'artista'}-${userId.replace(/-/g, '').slice(0, 8).toLowerCase()}`
 }
 
+export type ClubProvider = 'mercadopago' | 'paypal'
+
 export type ClubSubscriptionInput = {
+  provider: ClubProvider
   userId: string
   email: string
   name: string
   planId: string
-  /** Where Mercado Pago sends the artist back after authorizing the charge. */
+  /** Where the provider sends the artist back after authorizing the charge. */
   backUrl: string
 }
 
 export type ClubSubscriptionDeps = {
   admin: SupabaseClient
   upsertCustomer: (email: string, fullName: string) => Promise<string>
-  createPreapproval: (request: {
+  /**
+   * Opens the subscription at the provider. For Mercado Pago, `planId` is
+   * undefined and the price is `amount` pesos; for PayPal, `planId` is the id
+   * of the plan created in its dashboard and `amount` only informs.
+   */
+  createSubscription: (request: {
+    localId: string
     reference: string
     reason: string
     payerEmail: string
     amount: number
+    currency: 'ARS' | 'USD'
     backUrl: string
   }) => Promise<{ id?: string; checkoutUrl?: string }>
+  /** PayPal's plan id for this Club plan, from the environment; undefined when it is not set up. */
+  paypalPlanId?: string
 }
 
 export type ClubSubscriptionResult =
@@ -41,14 +53,14 @@ export type ClubSubscriptionResult =
   | { ok: false; error: 'invalid' | 'already_member' | 'unavailable' }
 
 /**
- * Starts the monthly Club membership with Mercado Pago. The local rows come
+ * Starts the monthly Club membership with Mercado Pago or PayPal. The local rows come
  * first (service role): a pending subscription and the artist's gallery in
  * draft, linked to it. The first approved charge is what activates the
  * gallery and credits the month's coins (record_subscription_payment), so
  * nobody has a public gallery without paying. An artist who comes back after
  * a lapse keeps the gallery they had: it is linked to the new subscription.
  */
-export async function startClubMpSubscription(input: ClubSubscriptionInput, deps: ClubSubscriptionDeps): Promise<ClubSubscriptionResult> {
+export async function startClubSubscription(input: ClubSubscriptionInput, deps: ClubSubscriptionDeps): Promise<ClubSubscriptionResult> {
   const plan = clubMembershipPlanById(input.planId)
   const email = input.email.trim().toLowerCase()
   const name = input.name.trim().slice(0, 120)
@@ -56,6 +68,9 @@ export async function startClubMpSubscription(input: ClubSubscriptionInput, deps
   if (!plan || plan.billing !== 'monthly' || !UUID.test(input.userId) || !EMAIL.test(email) || email.length > 254 || !name) {
     return { ok: false, error: 'invalid' }
   }
+  // PayPal charges what its plan says, so without the plan there is nothing to subscribe to.
+  const providerPlanId = input.provider === 'paypal' ? deps.paypalPlanId : mpPlanId(plan.id)
+  if (!providerPlanId) return { ok: false, error: 'unavailable' }
 
   const { data: existing, error: existingError } = await deps.admin
     .from('club_galleries')
@@ -70,7 +85,7 @@ export async function startClubMpSubscription(input: ClubSubscriptionInput, deps
     const customerId = await deps.upsertCustomer(email, name)
     const { data, error } = await deps.admin
       .from('subscriptions')
-      .insert({ customer_id: customerId, provider: 'mercadopago', provider_plan_id: mpPlanId(plan.id), shipping_address: null })
+      .insert({ customer_id: customerId, provider: input.provider, provider_plan_id: providerPlanId, shipping_address: null })
       .select('id')
       .single()
     if (error || !data) throw new Error(error?.message ?? 'no row')
@@ -91,17 +106,19 @@ export async function startClubMpSubscription(input: ClubSubscriptionInput, deps
   if (linked.error) return { ok: false, error: 'unavailable' }
 
   try {
-    const preapproval = await deps.createPreapproval({
+    const created = await deps.createSubscription({
+      localId: subscriptionId,
       reference: subscriptionExternalReference(subscriptionId),
       reason: 'Club del Mundial de Collage — membresía mensual',
       payerEmail: email,
-      amount: plan.priceArs,
+      amount: input.provider === 'paypal' ? plan.priceUsd : plan.priceArs,
+      currency: input.provider === 'paypal' ? 'USD' : 'ARS',
       backUrl: input.backUrl,
     })
-    if (!preapproval.id || !preapproval.checkoutUrl) throw new Error('Mercado Pago returned no checkout')
-    const { error } = await deps.admin.from('subscriptions').update({ provider_subscription_id: preapproval.id }).eq('id', subscriptionId)
+    if (!created.id || !created.checkoutUrl) throw new Error('The provider returned no checkout')
+    const { error } = await deps.admin.from('subscriptions').update({ provider_subscription_id: created.id }).eq('id', subscriptionId)
     if (error) throw new Error(error.message)
-    return { ok: true, checkoutUrl: preapproval.checkoutUrl, subscriptionId }
+    return { ok: true, checkoutUrl: created.checkoutUrl, subscriptionId }
   } catch (err) {
     await deps.admin.from('subscriptions').update({ checkout_error: { message: err instanceof Error ? err.message : 'checkout failed' } }).eq('id', subscriptionId)
     return { ok: false, error: 'unavailable' }
