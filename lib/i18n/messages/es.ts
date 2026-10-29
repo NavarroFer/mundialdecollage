@@ -829,6 +829,23 @@ const es = {
     promoBody: "Tu marca puede estar en la revista impresa y en la galería 3D del Mundial.",
     promoCta: "Ver propuestas para partners"
   },
+  club: {
+    title: 'Mi galería del Club',
+    signInTitle: 'Entrá para ver tu galería',
+    signInBody: 'Iniciá sesión con Google para suscribirte al Club o abrir tu galería.',
+    joinTitle: 'Tu galería 3D permanente',
+    joinBody: 'Una sala propia abierta las 24 horas, con toda tu serie de obras, tus textos y un enlace para compartir. Cada mes sumás 1.000 monedas para mejorarla.',
+    price: '{price} por mes',
+    join: 'Suscribirme con Mercado Pago',
+    joinNote: 'Se cobra todos los meses. Podés cancelar cuando quieras desde Mercado Pago.',
+    pendingTitle: 'Estamos confirmando tu pago',
+    pendingBody: 'Apenas Mercado Pago lo confirme, tu galería se activa y recibís tus primeras monedas. Volvé a mirar en unos minutos.',
+    activeTitle: 'Tu galería está activa',
+    coins: '{coins} monedas',
+    viewGallery: 'Ver mi galería',
+    errorUnavailable: 'No pudimos iniciar la suscripción. Probá de nuevo en unos minutos.',
+    errorInvalid: 'Revisá tus datos e intentá de nuevo.',
+  },
 }
 
 export type Messages = typeof es

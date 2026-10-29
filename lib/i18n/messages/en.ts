@@ -792,6 +792,23 @@ const en: Messages = {
     promoBody: "Your brand can be in the printed magazine and in the World Cup 3D gallery.",
     promoCta: "See partner proposals"
   },
+  club: {
+    title: 'My Club gallery',
+    signInTitle: 'Sign in to see your gallery',
+    signInBody: 'Sign in with Google to join the Club or open your gallery.',
+    joinTitle: 'Your permanent 3D gallery',
+    joinBody: 'A room of your own, open 24 hours, with your whole series, your texts and a link to share. Every month you get 1,000 coins to improve it.',
+    price: '{price} per month',
+    join: 'Join with Mercado Pago',
+    joinNote: 'Charged every month. You can cancel any time from Mercado Pago.',
+    pendingTitle: 'We\'re confirming your payment',
+    pendingBody: 'As soon as Mercado Pago confirms it, your gallery goes live and you get your first coins. Check back in a few minutes.',
+    activeTitle: 'Your gallery is live',
+    coins: '{coins} coins',
+    viewGallery: 'View my gallery',
+    errorUnavailable: 'We couldn\'t start the subscription. Please try again in a few minutes.',
+    errorInvalid: 'Check your details and try again.',
+  },
 }
 
 export default en

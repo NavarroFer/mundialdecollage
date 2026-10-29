@@ -791,6 +791,23 @@ const fr: Messages = {
     promoBody: "Votre marque peut figurer dans la revue imprimée et dans la galerie 3D du Mondial.",
     promoCta: "Voir les propositions partenaires"
   },
+  club: {
+    title: 'Ma galerie du Club',
+    signInTitle: 'Connectez-vous pour voir votre galerie',
+    signInBody: 'Connectez-vous avec Google pour rejoindre le Club ou ouvrir votre galerie.',
+    joinTitle: 'Votre galerie 3D permanente',
+    joinBody: 'Une salle à vous, ouverte 24 heures sur 24, avec toute votre série, vos textes et un lien à partager. Chaque mois, vous recevez 1 000 pièces pour l\'améliorer.',
+    price: '{price} par mois',
+    join: 'S\'abonner avec Mercado Pago',
+    joinNote: 'Prélevé chaque mois. Vous pouvez résilier à tout moment depuis Mercado Pago.',
+    pendingTitle: 'Nous confirmons votre paiement',
+    pendingBody: 'Dès que Mercado Pago le confirme, votre galerie est activée et vous recevez vos premières pièces. Revenez dans quelques minutes.',
+    activeTitle: 'Votre galerie est en ligne',
+    coins: '{coins} pièces',
+    viewGallery: 'Voir ma galerie',
+    errorUnavailable: 'Nous n\'avons pas pu démarrer l\'abonnement. Réessayez dans quelques minutes.',
+    errorInvalid: 'Vérifiez vos informations et réessayez.',
+  },
 }
 
 export default fr

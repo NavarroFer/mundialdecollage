@@ -813,6 +813,23 @@ const pl: Messages = {
     promoBody: "Twoja marka może pojawić się w drukowanym magazynie i w galerii 3D Mistrzostw.",
     promoCta: "Zobacz propozycje dla partnerów"
   },
+  club: {
+    title: 'Moja galeria Klubu',
+    signInTitle: 'Zaloguj się, aby zobaczyć swoją galerię',
+    signInBody: 'Zaloguj się przez Google, aby dołączyć do Klubu lub otworzyć swoją galerię.',
+    joinTitle: 'Twoja stała galeria 3D',
+    joinBody: 'Własna sala otwarta całą dobę, z całą Twoją serią prac, tekstami i linkiem do udostępniania. Co miesiąc dostajesz 1000 monet na jej ulepszanie.',
+    price: '{price} miesięcznie',
+    join: 'Subskrybuj przez Mercado Pago',
+    joinNote: 'Opłata co miesiąc. Możesz zrezygnować w dowolnej chwili w Mercado Pago.',
+    pendingTitle: 'Potwierdzamy Twoją płatność',
+    pendingBody: 'Gdy tylko Mercado Pago ją potwierdzi, galeria zostanie aktywowana, a Ty dostaniesz pierwsze monety. Zajrzyj ponownie za kilka minut.',
+    activeTitle: 'Twoja galeria jest aktywna',
+    coins: '{coins} monet',
+    viewGallery: 'Zobacz moją galerię',
+    errorUnavailable: 'Nie udało się rozpocząć subskrypcji. Spróbuj ponownie za kilka minut.',
+    errorInvalid: 'Sprawdź swoje dane i spróbuj ponownie.',
+  },
 }
 
 export default pl

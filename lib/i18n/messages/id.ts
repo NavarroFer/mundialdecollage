@@ -788,6 +788,23 @@ const id: Messages = {
     promoBody: "Merek Anda bisa tampil di majalah cetak dan di galeri 3D Piala Dunia.",
     promoCta: "Lihat penawaran untuk mitra"
   },
+  club: {
+    title: 'Galeri Klub saya',
+    signInTitle: 'Masuk untuk melihat galeri Anda',
+    signInBody: 'Masuk dengan Google untuk bergabung dengan Klub atau membuka galeri Anda.',
+    joinTitle: 'Galeri 3D permanen Anda',
+    joinBody: 'Ruang milik sendiri, buka 24 jam, dengan seluruh seri karya Anda, teks Anda, dan tautan untuk dibagikan. Setiap bulan Anda mendapat 1.000 koin untuk memperbaikinya.',
+    price: '{price} per bulan',
+    join: 'Berlangganan lewat Mercado Pago',
+    joinNote: 'Ditagih setiap bulan. Anda dapat berhenti kapan saja lewat Mercado Pago.',
+    pendingTitle: 'Kami sedang mengonfirmasi pembayaran Anda',
+    pendingBody: 'Begitu Mercado Pago mengonfirmasi, galeri Anda aktif dan Anda mendapat koin pertama. Cek lagi dalam beberapa menit.',
+    activeTitle: 'Galeri Anda sudah aktif',
+    coins: '{coins} koin',
+    viewGallery: 'Lihat galeri saya',
+    errorUnavailable: 'Kami tidak dapat memulai langganan. Coba lagi dalam beberapa menit.',
+    errorInvalid: 'Periksa data Anda lalu coba lagi.',
+  },
 }
 
 export default id
