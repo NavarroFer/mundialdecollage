@@ -38,6 +38,8 @@ export function sendSubscriptionReceipt(subscriptionId: string) {
       .eq('id', subscriptionId)
       .single()
     if (!subscription) return null
+    // The receipt talks about the magazine and its shipping; a Club member gets none yet.
+    if (subscription.provider_plan_id.startsWith('mp:club-')) return null
     const customer = subscription.customers as unknown as { email: string; full_name: string }
     const address = subscription.shipping_address as Record<string, unknown>
     const locale = localeFromCountry(typeof address?.country_code === 'string' ? address.country_code : null)
