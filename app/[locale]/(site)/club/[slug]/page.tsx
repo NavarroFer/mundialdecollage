@@ -4,11 +4,11 @@ import { ClubGame } from '@/components/gallery/ClubGame'
 import { clubGalleryTemplates } from '@/components/gallery/world/roomsData'
 import { getClubGalleryBySlug } from '@/lib/club-galleries'
 
-export const revalidate = 3600
-
-export function generateStaticParams() {
-  return []
-}
+// The copy for visitors with a session: the site's layout reads it, so it
+// cannot be static (it failed with «Page changed from static to dynamic»).
+// The gallery itself comes from cached public data, and visitors without a
+// session get the anonymous copy from the CDN (anon/club/[slug]).
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
