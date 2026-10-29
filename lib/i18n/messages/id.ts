@@ -464,6 +464,7 @@ const id: Messages = {
     clubHost: { prompt: 'Baca surat {name}', eyebrow: 'Surat sambutan', fallback: 'Terima kasih sudah mampir ke ruangku. Jelajahi dengan santai: setiap karya punya ceritanya.', write: 'Kirim pesan', message: 'Halo, saya menjelajahi galeri Anda “{title}” di Klub dan ingin menulis kepada Anda.' },
     clubStamps: { postal: 'Kamu mendapat prangko pos {name}: sudah ada di Album.', vernissage: 'Kamu bertemu {name} langsung di galerinya: prangko «Aku hadir di Vernissage» di Album.' },
     clubBoard: { plaque: 'Buku tamu', subtitle: 'Tempel kenangan untuk {name}' },
+    clubMap: { button: 'Peta', title: 'Peta Klub', enter: 'Masuk ke galerinya', hint: 'Seret untuk menjelajah · roda atau dua jari untuk memperbesar', close: 'Tutup', here: 'Kamu di sini', empty: 'Belum ada galeri yang menaruh rumahnya di peta.' },
     mobileMenu: { open: "Opsi", close: "Tutup opsi", resume: "Lanjutkan menjelajah" },
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
     startTitle: 'Jelajahi pameran',

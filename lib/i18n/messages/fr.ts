@@ -464,6 +464,7 @@ const fr: Messages = {
     clubHost: { prompt: 'Lire la lettre de {name}', eyebrow: 'Lettre de bienvenue', fallback: 'Merci de passer par ma salle. Prenez votre temps : chaque œuvre a son histoire.', write: 'Lui écrire', message: 'Bonjour, j’ai parcouru votre galerie « {title} » au Club et je voulais vous écrire.' },
     clubStamps: { postal: 'Vous avez gagné le timbre postal de {name} : il est dans votre Album.', vernissage: 'Vous avez rencontré {name} en direct dans sa galerie : timbre « J’étais au vernissage » dans votre Album.' },
     clubBoard: { plaque: 'Livre d’or', subtitle: 'Collez un souvenir pour {name}' },
+    clubMap: { button: 'Carte', title: 'La carte du Club', enter: 'Entrer dans sa galerie', hint: 'Glissez pour parcourir · molette ou deux doigts pour zoomer', close: 'Fermer', here: 'Vous êtes ici', empty: 'Aucune galerie n’a encore placé sa maison sur la carte.' },
     mobileMenu: { open: "Options", close: "Fermer les options", resume: "Reprendre la visite" },
     startEyebrow: 'MONDIAL DU COLLAGE · GALERIE 3D',
     startTitle: "Parcours l'exposition",

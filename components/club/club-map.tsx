@@ -27,9 +27,11 @@ export type ClubMapTexts = {
 // To browse, each house opens a card with the artist, their obras and the
 // way into their gallery. To pick (the editor), a click anywhere sets the
 // member's own house.
-export function ClubMap({ houses, texts, picked, onPick, initialCenter, initialZoom }: {
+export function ClubMap({ houses, texts, picked, onPick, onEnter, initialCenter, initialZoom }: {
   houses: ClubHouse[]
   texts: ClubMapTexts
+  /** Inside a gallery: how to go to another one (a full page load); a link otherwise. */
+  onEnter?: (slug: string) => void
   picked?: [number, number] | null
   onPick?: (coordinates: [number, number]) => void
   initialCenter?: [number, number]
@@ -100,9 +102,15 @@ export function ClubMap({ houses, texts, picked, onPick, initialCenter, initialZ
           <p className="pr-10 font-display text-xl leading-tight uppercase">{selected.artistName}</p>
           {selected.title !== selected.artistName && <p className="pr-10 text-sm text-muted-foreground">{selected.title}</p>}
           <p className="mt-1 text-sm font-semibold text-ink">{plural(locale, selected.obras, m.map.artworks)}</p>
-          <Link href={`/club/${selected.slug}`} className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">
-            {texts.enter}
-          </Link>
+          {onEnter ? (
+            <button type="button" onClick={() => onEnter(selected.slug)} className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">
+              {texts.enter}
+            </button>
+          ) : (
+            <Link href={`/club/${selected.slug}`} className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">
+              {texts.enter}
+            </Link>
+          )}
         </div>
       )}
     </div>

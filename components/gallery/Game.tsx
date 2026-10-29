@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
 import { AttentionRecorder } from './attention/AttentionRecorder'
-import { BookOpen, Menu, X } from 'lucide-react'
+import { BookOpen, Map as MapIcon, Menu, X } from 'lucide-react'
 import type { Artwork } from '@/data/artworks'
 import { GalleryPresence } from './presence/GalleryPresence'
 import { TouchControls } from './mobile/TouchControls'
@@ -45,6 +45,7 @@ import { useClubDoorStore } from './club/store'
 import { useClubHostStore, type ClubHostInfo } from './club/host'
 import { WelcomeLetter } from './club/WelcomeLetter'
 import { ClubStamps } from './club/ClubStamps'
+import { ClubMapDialog } from './club/ClubMapDialog'
 import type { ClubHouse } from '@/lib/club-map'
 import { pickNextGallery, readVisitedGalleries, rememberVisitedGallery } from '@/lib/club-next-gallery'
 import { countryCodeToName } from '@/lib/participants'
@@ -145,7 +146,11 @@ export function Game({
     rememberVisitedGallery(clubSlug)
     fetch('/api/club/casas')
       .then((response) => (response.ok ? (response.json() as Promise<ClubHouse[]>) : []))
-      .then((galleries) => { if (current) useClubDoorStore.getState().setNext(pickNextGallery(galleries, clubSlug, visited)) })
+      .then((galleries) => {
+        if (!current) return
+        useClubDoorStore.getState().setGalleries(galleries)
+        useClubDoorStore.getState().setNext(pickNextGallery(galleries, clubSlug, visited))
+      })
       .catch(() => {})
     return () => { current = false }
   }, [clubSlug])
@@ -160,7 +165,8 @@ export function Game({
   const usesPointerLock = !isTouchDevice && controlMode === 'classic'
   // Something in front of the walk: an obra, the photo, the collage, the passport.
   const letterOpen = useClubHostStore((state) => state.open)
-  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || arcadeOpen || vinylOpen || letterOpen
+  const clubMapOpen = useClubDoorStore((state) => state.mapOpen)
+  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || arcadeOpen || vinylOpen || letterOpen || clubMapOpen
   const overlayOpen = optionsOpen || dialogOpen
   const isActive = sceneReady && !overlayOpen && (usesPointerLock ? locked : hasStarted && playing)
   // Under the start screen or the phone menu nothing needs to move, so the
@@ -353,6 +359,12 @@ export function Game({
     usePassportStore.getState().setOpen(true)
   }
 
+  function openClubMap() {
+    if (document.pointerLockElement) document.exitPointerLock()
+    setOptionsOpen(false)
+    useClubDoorStore.getState().setMapOpen(true)
+  }
+
   function resumeArtwork(id: string) {
     useGalleryPreferences.setState({ resumeArtwork: id })
     setOptionsOpen(false)
@@ -394,6 +406,7 @@ export function Game({
       {clubSlug && clubHost && <ClubStamps slug={clubSlug} artistName={clubHost.artistName} artworks={artworks} userId={userId} isOwner={clubOwner} />}
       {isTouchDevice && isActive && <TouchControls theme={theme} hostName={clubHost?.artistName} />}
       {clubHost && <WelcomeLetter host={clubHost} />}
+      {clubSlug && <ClubMapDialog slug={clubSlug} onClose={resumeWalk} />}
       {/* The visit's own buttons, on the pause screen too: on a computer at
           the bottom, out of the minimap's way; on a phone at the top, out of
           the joysticks' way. Hidden, not unmounted, under a dialog: the photo
@@ -408,6 +421,12 @@ export function Game({
           <BookOpen size={18} aria-hidden="true" />
           <span className={styles.visitToolbarLabel}>{m.gallery.passport.button}</span>
         </button>
+        {clubSlug && (
+          <button type="button" className={styles.hudButton} onClick={openClubMap} aria-label={m.gallery.clubMap.button}>
+            <MapIcon size={18} aria-hidden="true" />
+            <span className={styles.visitToolbarLabel}>{m.gallery.clubMap.button}</span>
+          </button>
+        )}
         {!isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice={false} active={isActive} onResume={resumeWalk} />}
       </nav>
       {/* The volume shows once the music plays (ENTRAR). A phone's start

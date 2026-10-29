@@ -474,6 +474,7 @@ const pl: Messages = {
     clubHost: { prompt: 'Przeczytaj list: {name}', eyebrow: 'List powitalny', fallback: 'Dziękuję, że zajrzałeś do mojej sali. Zwiedzaj spokojnie: każda praca ma swoją historię.', write: 'Napisz', message: 'Cześć, zwiedziłem Twoją galerię „{title}” w Klubie i chciałem do Ciebie napisać.' },
     clubStamps: { postal: 'Zdobyto znaczek pocztowy: {name}. Jest już w Albumie.', vernissage: 'Spotkano na żywo w galerii: {name}. Znaczek „Byłem na wernisażu” w Albumie.' },
     clubBoard: { plaque: 'Księga gości', subtitle: 'Przyklej pamiątkę dla: {name}' },
+    clubMap: { button: 'Mapa', title: 'Mapa Klubu', enter: 'Wejdź do galerii', hint: 'Przeciągnij, by zwiedzać · kółko lub dwa palce, by przybliżyć', close: 'Zamknij', here: 'Jesteś tutaj', empty: 'Żadna galeria nie zaznaczyła jeszcze domu na mapie.' },
     mobileMenu: { open: "Opcje", close: "Zamknij opcje", resume: "Wróć do zwiedzania" },
     startEyebrow: 'MISTRZOSTWA ŚWIATA W KOLAŻU · GALERIA 3D',
     startTitle: 'Przejdź się po wystawie',

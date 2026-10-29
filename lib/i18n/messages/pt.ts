@@ -464,6 +464,7 @@ const pt: Messages = {
     clubHost: { prompt: 'Ler a carta de {name}', eyebrow: 'Carta de boas-vindas', fallback: 'Obrigado por passar pela minha sala. Percorra com calma: cada obra tem sua história.', write: 'Escrever', message: 'Olá, percorri sua galeria «{title}» no Clube do Mundial de Collage e queria te escrever.' },
     clubStamps: { postal: 'Você ganhou o selo postal de {name}: já está no seu Álbum.', vernissage: 'Você conheceu {name} ao vivo na galeria: selo «Estive no Vernissage» no seu Álbum.' },
     clubBoard: { plaque: 'Livro de visitas', subtitle: 'Cole uma lembrança para {name}' },
+    clubMap: { button: 'Mapa', title: 'O mapa do Clube', enter: 'Entrar na galeria', hint: 'Arraste para percorrer · roda ou dois dedos para aproximar', close: 'Fechar', here: 'Você está aqui', empty: 'Nenhuma galeria escolheu sua casa no mapa ainda.' },
     mobileMenu: { open: "Opções", close: "Fechar opções", resume: "Voltar ao passeio" },
     startEyebrow: 'MUNDIAL DE COLAGEM · GALERIA 3D',
     startTitle: 'Percorra a exposição',
