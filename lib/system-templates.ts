@@ -17,6 +17,7 @@ import {
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 import { getSiteUrl, site } from '@/lib/site'
+import { isClubOpen } from '@/lib/club-launch'
 import type { TemplateAudience } from '@/lib/template-audiences'
 
 export type SystemTemplateKey = 'elegir_obra' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha'
@@ -59,6 +60,32 @@ const storeBlocks = (siteUrl: string): EmailBlock[] => [
 // existed get them added once (see ensureSystemTemplate). Saved later, the
 // stored version wins — an admin who removes them keeps it that way.
 const STORE_BLOCKS_SHIPPED_AT = '2026-10-01T18:00:00Z'
+
+// The Club, in the daily «Así le fue a tu obra»: an artist whose obra hung in
+// the museum for a day is who a gallery of their own is for. Only while the
+// Club is open (lib/club-launch.ts); before that the button would lead nowhere.
+const clubBlocks = (siteUrl: string): EmailBlock[] => [
+  { id: nextBlockId(), type: 'divider' },
+  { id: nextBlockId(), type: 'heading', text: '¿Querés que tus obras tengan su casa?', align: 'left', size: 'md' },
+  {
+    id: nextBlockId(),
+    type: 'text',
+    text: 'En el museo del Mundial cada obra cuelga un solo día, y mañana le toca a otra. En el Club del Mundial de Collage tenés tu propia galería 3D, abierta las 24 horas, con toda tu serie, tus textos y un enlace para compartir.',
+    align: 'left',
+  },
+  {
+    id: nextBlockId(),
+    type: 'text',
+    text: 'Elegí el clima de tu sala (taller, galpón, museo o callejón de afiches), colgá tus cuadros como quieras y sumá monedas todos los meses para seguir mejorándola.',
+    align: 'left',
+  },
+  { id: nextBlockId(), type: 'button', text: 'Crear mi galería', url: `${siteUrl}/club?desde=mail`, align: 'left', color: 'red' },
+]
+
+// A stored novedades_obra saved before this moment gets the Club blocks once,
+// the first time it is read with the Club open. Saved later, the stored
+// version wins: an admin who removes them keeps it that way.
+const CLUB_BLOCKS_SHIPPED_AT = '2026-10-30T00:00:00Z'
 
 // The countdown to the deadline (lib/countdown-campaigns.ts), sent to the
 // contacts who haven't taken part yet. Same body, a different opening.
@@ -355,7 +382,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
     audiences: ['artistas'],
     subject: 'Así le fue a tu obra en el museo del Mundial de Collage',
     description:
-      'Se envía sola a las 9 h a cada artista cuya obra recibió likes o comentarios aprobados en las últimas 24 horas (uno por día como máximo). Usá {{nombre}}, {{obra}}, {{likes}} (likes del día), {{likes_total}} y {{comentarios}}; el bloque con {{comentarios}} no se envía si no hubo comentarios nuevos.',
+      'Se envía sola a las 9 h a cada artista cuya obra recibió likes o comentarios aprobados en las últimas 24 horas (uno por día como máximo). Usá {{nombre}}, {{obra}}, {{likes}} (likes del día), {{likes_total}} y {{comentarios}}; el bloque con {{comentarios}} no se envía si no hubo comentarios nuevos. Cuando se abre el Club, se le suma una invitación a crear su galería (si la plantilla no se editó desde el 29 de octubre de 2026, se agrega sola; si no, copiá el bloque «¿Querés que tus obras tengan su casa?» a mano).',
     createDocument: (siteUrl) => ({
       blocks: [
         logo(siteUrl),
@@ -376,6 +403,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
           align: 'left',
         },
         { id: nextBlockId(), type: 'button', text: 'Visitar el museo', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'red' },
+        ...(isClubOpen() ? clubBlocks(siteUrl) : []),
         ...storeBlocks(siteUrl),
         ...footer(),
       ],
@@ -426,6 +454,10 @@ export async function ensureSystemTemplate(db: SupabaseClient, key: SystemTempla
       const upgraded = await addStoreBlocks(db, existing.id, existing.body_json)
       if (upgraded) return upgraded
     }
+    if (key === 'novedades_obra' && isClubOpen() && isEmailDocument(existing.body_json) && !existing.body_html.includes('/club')) {
+      const upgraded = await addClubBlocks(db, existing.id, existing.body_json)
+      if (upgraded) return upgraded
+    }
     return existing as StoredTemplate
   }
 
@@ -457,6 +489,30 @@ async function addStoreBlocks(db: SupabaseClient, id: string, doc: EmailDocument
   const footerAt = doc.blocks.findLastIndex((block) => block.type === 'divider')
   const at = footerAt === -1 ? doc.blocks.length : footerAt
   const upgradedDoc: EmailDocument = { ...doc, blocks: [...doc.blocks.slice(0, at), ...storeBlocks(getSiteUrl()), ...doc.blocks.slice(at)] }
+  // Translations are keyed to the wording (translations_source), so the
+  // next send notices the new text and translates it.
+  const { data } = await db.from('templates').update({
+    body_json: upgradedDoc,
+    body_html: renderEmailDocumentToHtml(upgradedDoc),
+    updated_at: new Date().toISOString(),
+  }).eq('id', id).select(COLUMNS).single()
+  return (data as StoredTemplate | null) ?? null
+}
+
+// The Club's invitation goes right before the store's block (its divider),
+// the better offer for an artist; without one, before the closing footer.
+function withClubBlocks(doc: EmailDocument, siteUrl: string): EmailDocument {
+  const store = doc.blocks.findIndex((block) => block.type === 'button' && block.url.includes('/tienda'))
+  const storeAt = store === -1 ? -1 : doc.blocks.findLastIndex((block, index) => index < store && block.type === 'divider')
+  const footerAt = doc.blocks.findLastIndex((block) => block.type === 'divider')
+  const at = storeAt !== -1 ? storeAt : footerAt !== -1 ? footerAt : doc.blocks.length
+  return { ...doc, blocks: [...doc.blocks.slice(0, at), ...clubBlocks(siteUrl), ...doc.blocks.slice(at)] }
+}
+
+async function addClubBlocks(db: SupabaseClient, id: string, doc: EmailDocument): Promise<StoredTemplate | null> {
+  const { data: meta } = await db.from('templates').select('updated_at').eq('id', id).single()
+  if (!meta || new Date(meta.updated_at) >= new Date(CLUB_BLOCKS_SHIPPED_AT)) return null
+  const upgradedDoc = withClubBlocks(doc, getSiteUrl())
   // Translations are keyed to the wording (translations_source), so the
   // next send notices the new text and translates it.
   const { data } = await db.from('templates').update({
