@@ -170,17 +170,31 @@ Al 29 de octubre de 2026. Todo lo hecho está en commits locales, todavía sin s
 - [x] **Interruptor `CLUB_OPEN`:** el Club arranca cerrado y los admins lo prueban en producción.
 - [x] **Términos del Club** y aviso de aceptación junto a los botones de pago.
 - [x] **Campaña:** público «Artistas sin galería del Club», plantilla `club_lanzamiento`, enlaces marcados con `?desde=mail`, freno mientras el Club está cerrado e invitación en el aviso diario «Así le fue a tu obra».
-- [x] **Gamificación ya hecha:** primera estampilla de cada galería fuera del límite de 3 cada 12 horas, y botón «Consultar al artista por esta obra» (WhatsApp o web).
+- [x] **Gamificación ya hecha:** primera estampilla de cada galería fuera del límite de 3 cada 12 horas, y botón «Consultar al artista por esta obra» (WhatsApp o web; el enlace solo puede ser `http(s)`, también en la base de datos).
+- [x] **Mercado Pago y PayPal configurados** (plan de PayPal y variables cargadas en Vercel el 29/10). Toman efecto con el próximo deploy.
+
+**Verificado antes de subir (29/10/2026)**
+
+- Lint del proyecto completo, `tsc`, las 168 pruebas (1024 casos) y `next build` en un checkout limpio sin variables de entorno, como lo corre el CI de GitHub.
+- Las 6 migraciones nuevas (`20261029120000` a `20261029170000`) aplicadas en PGlite sobre todas las anteriores, con escenarios por rol. Están en `scripts/pglite/` (`npm install --no-save @electric-sql/pglite` y `node scripts/pglite/<script>.mjs`).
+- `scripts/pglite/store-regression.mjs` corre el mismo escenario de la tienda antes y después de las migraciones del Club: pagos de suscripción de Mercado Pago y PayPal, envíos, «Me gusta» y estampillas dan idéntico.
+- Errores que encontraron estas pruebas y ya están corregidos: las reglas de acceso de las obras colgadas se llamaban entre sí («infinite recursion») y ningún socio podía colgar obras, y el enlace de contacto aceptaba `javascript:`.
 
 **Para abrir el Club (tuyo)**
 
 - [x] Pasar el proyecto a Vercel Pro.
-- [ ] Subir los commits a `main` (las migraciones se aplican solas al llegar) y esperar que pase el CI.
-- [ ] Crear el plan de PayPal (`node scripts/paypal-setup.mjs club`) y cargar `PAYPAL_PLAN_ID_CLUB_MONTHLY`.
-- [ ] Probar un cobro real en Mercado Pago con una cuenta admin: la galería pasa a `active` y la billetera tiene 600 monedas. Después cancelar y ver que queda en `paused`. Repetir con un pack.
+- [x] Configurar Mercado Pago y PayPal (plan del Club y `PAYPAL_PLAN_ID_CLUB_MONTHLY`).
+- [ ] Subir los commits a `main` en una sola tanda. Ojo: `.github/workflows/supabase-migrations.yml` aplica las migraciones en paralelo al CI, sin esperarlo; por eso todo se verifica antes (ver arriba). El deploy deja el Club cerrado.
+- [ ] Probar un cobro real con una cuenta admin (`lib/admin.ts`). No hay entorno de Preview, así que la prueba es en producción con plata real y el Club cerrado. Orden sugerido: primero un Pack Chico ($5.000) y ver que lleguen las 500 monedas; después la cuota ($29.000) y ver que la galería pase a `active` con 600 monedas; cancelar y ver que quede en `paused`.
 - [ ] Revisar con alguien de lo legal la sección del Club, sobre todo el arrepentimiento, y si hace falta un botón de baja visible.
 - [ ] Armar 2 o 3 galerías de muestra con socios fundadores (pedirles permiso).
 - [ ] Abrir con `CLUB_OPEN=on` y un deploy; recién ahí mandar la campaña.
+
+**Cómo retomar**
+
+- `main` local va adelante de `origin/main` con todo esto, y no hay nada nuevo del otro lado. Antes de subir, `git log origin/main..HEAD` por si otra sesión commiteó.
+- Lo siguiente es el push cuando Fer lo diga, después la prueba de cobro real, y después lo de «Falta construir», empezando por la galería de cortesía para los fundadores.
+- Las partes 3D (avatar anfitrión, vernissage, Puerta al Club, tablero Kraft) conviene hacerlas con Fer mirando la pantalla: las pruebas automáticas no detectan un error visual.
 
 **Falta construir**
 
