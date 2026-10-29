@@ -17,6 +17,7 @@ import {
   Flag,
   Gauge,
   Scissors,
+  DoorOpen,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -132,6 +133,12 @@ export const adminSections: {
     icon: Landmark,
     tone: tones.red,
     items: [
+      {
+        href: '/admin/club',
+        label: 'Galerías del Club',
+        icon: DoorOpen,
+        description: 'Las galerías de los socios del Club. Desde acá se le da una de cortesía a un fundador, con monedas de regalo, y se la termina.',
+      },
       {
         href: '/admin/comentarios',
         label: 'Comentarios',
