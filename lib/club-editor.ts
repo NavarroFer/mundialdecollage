@@ -10,6 +10,10 @@ import {
   type ClubRoomTemplate,
   type GalleryCatalogKind,
 } from '@/lib/gallery-catalog'
+import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
+import { TECHNIQUES } from '@/lib/participants'
+
+type Technique = (typeof TECHNIQUES)[number]
 
 // What the Club editor (/mi-galeria/editar) lets an artist change, and the
 // checks that run before anything is saved. The database repeats them
@@ -152,6 +156,48 @@ export function statsTotals(rows: readonly StatsRow[]) {
     stamps: sum((row) => row.stamps),
     likes: sum((row) => row.likes),
   }
+}
+
+/** How many obras a member keeps only for the Club: the 22 of the biggest room and some to swap. */
+export const CLUB_MAX_OBRAS = 30
+
+export type ClubArtworkInput = {
+  title: string | null
+  technique: Technique | null
+  imagePath: string
+  /** Only when the profile has no name or country yet: the gallery signs each obra with them. */
+  profile?: { name: string; country_code: string }
+}
+
+/**
+ * An obra uploaded only for the Club. The photo is already in Storage, under
+ * the member's own folder (the bucket's policy only lets them write there),
+ * so the path must be in that folder and look like an image.
+ */
+export function parseClubArtwork(
+  form: FormData,
+  userId: string,
+  needsProfile: boolean,
+  countryCodes: ReadonlySet<string>,
+): { ok: true; artwork: ClubArtworkInput } | { ok: false; error: 'invalid' | 'profile' } {
+  const title = text(form, 'title')
+  const technique = text(form, 'technique')
+  const imagePath = text(form, 'image_path')
+  const [folder, filename, ...rest] = imagePath.split('/')
+  const extension = filename?.split('.').pop()?.toLowerCase() ?? ''
+  if (folder !== userId || !filename || rest.length > 0 || !ALLOWED_IMAGE_EXTENSIONS.has(extension) || !/^[\w.-]+$/.test(filename)) {
+    return { ok: false, error: 'invalid' }
+  }
+  if (title.length > 200 || (technique && !oneOf(TECHNIQUES, technique))) return { ok: false, error: 'invalid' }
+
+  let profile: ClubArtworkInput['profile']
+  if (needsProfile) {
+    const name = text(form, 'name')
+    const countryCode = text(form, 'country_code').toUpperCase()
+    if (!name || name.length > 120 || !countryCodes.has(countryCode)) return { ok: false, error: 'profile' }
+    profile = { name, country_code: countryCode }
+  }
+  return { ok: true, artwork: { title: title || null, technique: oneOf(TECHNIQUES, technique), imagePath, ...(profile ? { profile } : {}) } }
 }
 
 /** The start of the stats window: `days` days before `now`, as the ISO text the database takes. */

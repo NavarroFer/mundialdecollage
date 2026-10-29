@@ -64,6 +64,7 @@ export default async function EntriesPage({
       .from('artworks')
       .select('id, title, image_url, is_selected, is_entered, created_at')
       .eq('profile_id', user.id)
+      .eq('is_club_only', false)
       .is('archived_at', null)
       .is('duplicate_of', null)
       .order('created_at', { ascending: true }),

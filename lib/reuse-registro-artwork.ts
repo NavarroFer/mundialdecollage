@@ -12,6 +12,7 @@ export async function reuseRegistroArtwork(
   const { data: artworks, error } = await db.from('artworks')
     .select('id, profile_id, image_url, legacy_submission_id')
     .eq('profile_id', row.claimed_by)
+    .eq('is_club_only', false)
   if (error) throw new Error(`No se pudieron revisar obras existentes: ${error.message}`)
   const oldIds = artworks.map((artwork) => artwork.legacy_submission_id).filter((id): id is string => !!id)
   const { data: sources, error: sourceError } = oldIds.length

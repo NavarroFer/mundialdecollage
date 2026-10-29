@@ -8,6 +8,10 @@ const mocks = vi.hoisted(() => ({
   updateResult: { value: { data: null, error: null } as { data: unknown; error: { code?: string; message: string } | null } },
   rpc: vi.fn(),
   refresh: vi.fn(),
+  inserts: [] as { table: string; values: unknown }[],
+  files: [] as { name: string }[],
+  deleted: { value: [{ id: 'c1' }] as unknown[] | null },
+  deletes: [] as Record<string, unknown>[],
 }))
 vi.mock('next/navigation', () => ({
   redirect: (path: string) => {
@@ -16,10 +20,29 @@ vi.mock('next/navigation', () => ({
 }))
 vi.mock('@/lib/supabase/config', () => ({ isSupabaseConfigured: true }))
 vi.mock('@/lib/public-data-cache', () => ({ refreshClubGallery: mocks.refresh }))
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
+    from: () => {
+      const filters: Record<string, unknown> = {}
+      const chain = {
+        delete: () => chain,
+        eq: (column: string, value: unknown) => { filters[column] = value; return chain },
+        select: async () => { mocks.deletes.push(filters); return { data: mocks.deleted.value, error: null } },
+      }
+      return chain
+    },
+  }),
+}))
 vi.mock('@/lib/supabase/server', () => ({
   getCurrentUser: async () => mocks.user.value,
   createClient: async () => ({
     rpc: mocks.rpc,
+    storage: {
+      from: () => ({
+        list: async () => ({ data: mocks.files, error: null }),
+        getPublicUrl: (path: string) => ({ data: { publicUrl: `https://storage.example/${path}` } }),
+      }),
+    },
     from: (table: string) => {
       const result = (): Result => mocks.tables[table] ?? { data: [], error: null }
       const chain: Record<string, unknown> = {
@@ -27,6 +50,14 @@ vi.mock('@/lib/supabase/server', () => ({
         eq: () => chain,
         is: () => chain,
         maybeSingle: async () => result(),
+        insert: async (values: unknown) => {
+          mocks.inserts.push({ table, values })
+          return { error: null }
+        },
+        upsert: async (values: unknown) => {
+          mocks.inserts.push({ table: `${table}:upsert`, values })
+          return { error: null }
+        },
         update: (values: unknown) => {
           mocks.updates.push({ table, values })
           return { eq: async () => mocks.updateResult.value }
@@ -37,7 +68,7 @@ vi.mock('@/lib/supabase/server', () => ({
     },
   }),
 }))
-import { saveGallerySettings, saveHangings, unlockItem } from './actions'
+import { addClubArtwork, removeClubArtwork, saveGallerySettings, saveHangings, unlockItem } from './actions'
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData()
@@ -52,12 +83,17 @@ beforeEach(() => {
   vi.stubEnv('CLUB_OPEN', 'on')
   mocks.user.value = { id: 'user-1' }
   mocks.updates.length = 0
+  mocks.inserts.length = 0
+  mocks.deletes.length = 0
+  mocks.files = [{ name: 'club-1.jpg' }]
+  mocks.deleted.value = [{ id: 'c1' }]
   mocks.updateResult.value = { data: null, error: null }
   for (const key of Object.keys(mocks.tables)) delete mocks.tables[key]
   mocks.tables.club_galleries = { data: gallery, error: null }
   mocks.tables.user_gallery_inventory = { data: [], error: null }
   mocks.tables.club_gallery_hangings = { data: [], error: null }
   mocks.tables.artworks = { data: [{ id: 'a' }, { id: 'b' }], error: null }
+  mocks.tables.profiles = { data: { name: 'Ana Pérez', country_code: 'AR' }, error: null }
   mocks.rpc.mockResolvedValue({ error: null })
 })
 
@@ -164,6 +200,48 @@ describe('saveGallerySettings', () => {
     mocks.updateResult.value = { data: null, error: { code: 'P0001', message: 'Club item is not unlocked: theme:museum' } }
     vi.spyOn(console, 'error').mockImplementation(() => {})
     await expect(saveGallerySettings(form(settings))).rejects.toThrow('REDIRECT:/mi-galeria/editar?error=locked')
+    expect(mocks.refresh).not.toHaveBeenCalled()
+  })
+})
+
+describe('addClubArtwork', () => {
+  const upload = { title: 'Serie roja', technique: 'Mixta', image_path: 'user-1/club-1.jpg' }
+
+  it('saves the uploaded photo as a Club-only obra', async () => {
+    await expect(addClubArtwork(form(upload))).rejects.toThrow('REDIRECT:/mi-galeria/editar?subida=1#obras')
+    expect(mocks.inserts).toEqual([{
+      table: 'artworks',
+      values: { profile_id: 'user-1', slug: 'ana-perez-serie-roja', title: 'Serie roja', technique: 'Mixta', image_url: 'https://storage.example/user-1/club-1.jpg', is_club_only: true },
+    }])
+  })
+  it('refuses a photo that is not in Storage', async () => {
+    mocks.files = []
+    await expect(addClubArtwork(form(upload))).rejects.toThrow('REDIRECT:/mi-galeria/editar?error=upload')
+    expect(mocks.inserts).toEqual([])
+  })
+  it('refuses a photo outside the member\'s folder', async () => {
+    await expect(addClubArtwork(form({ ...upload, image_path: 'user-2/club-1.jpg' }))).rejects.toThrow('error=invalid')
+    expect(mocks.inserts).toEqual([])
+  })
+  it('asks for a name and country first, then saves them on the profile', async () => {
+    mocks.tables.profiles = { data: null, error: null }
+    await expect(addClubArtwork(form(upload))).rejects.toThrow('error=profile')
+    await expect(addClubArtwork(form({ ...upload, name: 'Ana', country_code: 'AR' }))).rejects.toThrow('subida=1')
+    expect(mocks.inserts[0]).toEqual({ table: 'profiles:upsert', values: { id: 'user-1', name: 'Ana', country_code: 'AR' } })
+  })
+})
+
+describe('removeClubArtwork', () => {
+  const ID = '0b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'
+
+  it('deletes only the member\'s own Club obra and refreshes the gallery', async () => {
+    await expect(removeClubArtwork(form({ id: ID }))).rejects.toThrow('REDIRECT:/mi-galeria/editar?quitada=1#obras')
+    expect(mocks.deletes).toEqual([{ id: ID, profile_id: 'user-1', is_club_only: true }])
+    expect(mocks.refresh).toHaveBeenCalledWith('ana-1')
+  })
+  it('says invalid when nothing of theirs was deleted', async () => {
+    mocks.deleted.value = []
+    await expect(removeClubArtwork(form({ id: ID }))).rejects.toThrow('error=invalid')
     expect(mocks.refresh).not.toHaveBeenCalled()
   })
 })

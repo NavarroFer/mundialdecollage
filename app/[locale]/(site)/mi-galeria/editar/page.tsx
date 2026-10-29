@@ -8,16 +8,17 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
 import { canUseOwnClubGallery } from '@/lib/club-launch'
-import { optionState, roomCapacity, shopItems, statsSince, statsTotals, type ShopItem, type StatsRow } from '@/lib/club-editor'
+import { CLUB_MAX_OBRAS, optionState, roomCapacity, shopItems, statsSince, statsTotals, type ShopItem, type StatsRow } from '@/lib/club-editor'
 import { CLUB_FRAME_STYLES, CLUB_GALLERY_THEMES, CLUB_ROOM_TEMPLATES, type ClubRoomTemplate, type GalleryCatalogKind } from '@/lib/gallery-catalog'
-import { saveGallerySettings, saveHangings, unlockItem } from './actions'
+import { removeClubArtwork, saveGallerySettings, saveHangings, unlockItem } from './actions'
+import { ClubArtworkUpload } from './club-artwork-upload'
 
 const inputClass = 'mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm'
 
 // The member's editor. Private (reads the session), so it is not one of
 // lib/static-pages.ts. Options the member has not unlocked are shown in the
 // shop with their price; the settings form only offers what they can use.
-export default async function EditGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; guardado?: string; desbloqueado?: string }> }) {
+export default async function EditGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; guardado?: string; desbloqueado?: string; subida?: string; quitada?: string }> }) {
   if (!isSupabaseConfigured) redirect('/')
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
@@ -37,18 +38,19 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
   if (!gallery || gallery.status !== 'active') redirect('/mi-galeria')
 
   const since = statsSince(30)
-  const [{ data: inventory }, { data: wallet }, { data: artworks }, { data: hangings }, { data: statsData }] = await Promise.all([
+  const [{ data: inventory }, { data: wallet }, { data: artworks }, { data: hangings }, { data: statsData }, { data: profile }] = await Promise.all([
     supabase.from('user_gallery_inventory').select('item_id'),
     supabase.from('club_wallets').select('balance').eq('user_id', user.id).maybeSingle(),
     supabase
       .from('artworks')
-      .select('id, title, image_url')
+      .select('id, title, image_url, is_club_only')
       .eq('profile_id', user.id)
       .is('archived_at', null)
       .is('duplicate_of', null)
       .order('created_at', { ascending: true }),
     supabase.from('club_gallery_hangings').select('slot, artwork_id').eq('gallery_id', gallery.id),
     supabase.rpc('club_gallery_stats', { since }),
+    supabase.from('profiles').select('name, country_code').eq('id', user.id).maybeSingle(),
   ])
 
   const owned = new Set((inventory ?? []).map((row) => row.item_id))
@@ -69,7 +71,10 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
   const kindName: Partial<Record<GalleryCatalogKind, string>> = { room: e.fieldRoom, theme: e.fieldTheme, frame: e.fieldFrame }
 
   const error = params.error ? e.errors[params.error as keyof typeof e.errors] ?? e.errors.unavailable : undefined
-  const notice = params.guardado ? e.saved : params.desbloqueado ? e.unlocked : undefined
+  const notice = params.guardado ? e.saved : params.desbloqueado ? e.unlocked : params.subida ? e.uploaded : params.quitada ? e.removed : undefined
+  const clubArtworks = (artworks ?? []).filter((artwork) => artwork.is_club_only)
+  const needsProfile = !profile?.name?.trim() || !profile.country_code
+  const metadataName = (user.user_metadata as { full_name?: string } | undefined)?.full_name?.trim() ?? ''
 
   return (
     <main className="bg-grain min-h-screen px-5 py-12 sm:py-16">
@@ -162,6 +167,50 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
             </div>
             <SubmitButton className="min-h-11 w-full">{e.save}</SubmitButton>
           </form>
+        </section>
+
+        <section id="obras" className="scroll-mt-6 rounded-2xl bg-card p-6 sm:p-8">
+          <h2 className="font-display text-2xl uppercase">{e.uploadTitle}</h2>
+          <p className="my-3 text-sm text-muted-foreground">{fmt(e.uploadBody, { max: CLUB_MAX_OBRAS })}</p>
+          {clubArtworks.length > 0 && (
+            <ul className="mb-6 space-y-3">
+              {clubArtworks.map((artwork) => (
+                <li key={artwork.id} className="flex items-center gap-4">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                    {artwork.image_url && <Image src={artwork.image_url} alt="" fill sizes="64px" className="object-contain" />}
+                  </div>
+                  <p className="min-w-0 flex-1 truncate text-sm font-semibold">{artwork.title || '—'}</p>
+                  <form action={removeClubArtwork}>
+                    <input type="hidden" name="id" value={artwork.id} />
+                    <SubmitButton variant="outline" className="min-h-11">{e.remove}</SubmitButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+          {clubArtworks.length < CLUB_MAX_OBRAS && (
+            <ClubArtworkUpload
+              userId={user.id}
+              locale={locale}
+              needsProfile={needsProfile}
+              defaultName={profile?.name?.trim() || metadataName}
+              texts={{
+                image: e.uploadImage,
+                title: m.onboarding.artworkTitle,
+                technique: m.onboarding.technique,
+                techniqueNone: m.onboarding.techniqueNone,
+                techniques: m.common.techniques,
+                optional: m.common.optional,
+                profile: e.uploadProfile,
+                name: m.onboarding.name,
+                country: m.onboarding.country,
+                upload: e.upload,
+                uploading: e.uploading,
+                errorImage: e.errors.image,
+                errorUpload: e.errors.upload,
+              }}
+            />
+          )}
         </section>
 
         <section className="rounded-2xl bg-card p-6 sm:p-8">

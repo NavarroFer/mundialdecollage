@@ -89,6 +89,7 @@ export default async function OnboardingPage({
     .from('artworks')
     .select('id, title, image_url')
     .eq('profile_id', user.id)
+    .eq('is_club_only', false)
     .is('archived_at', null)
     .is('duplicate_of', null)
     .order('is_selected', { ascending: false })

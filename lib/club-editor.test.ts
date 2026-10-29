@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fitsRoom, optionState, parseGallerySettings, parseHangings, roomCapacity, shopItems, statsSince, statsTotals, type StatsRow } from './club-editor'
+import { fitsRoom, optionState, parseClubArtwork, parseGallerySettings, parseHangings, roomCapacity, shopItems, statsSince, statsTotals, type StatsRow } from './club-editor'
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData()
@@ -126,5 +126,41 @@ describe('statsSince', () => {
   it('goes back the given number of days from now', () => {
     expect(statsSince(30, new Date('2026-11-30T12:00:00.000Z'))).toBe('2026-10-31T12:00:00.000Z')
     expect(statsSince(0, new Date('2026-11-30T12:00:00.000Z'))).toBe('2026-11-30T12:00:00.000Z')
+  })
+})
+
+describe('parseClubArtwork', () => {
+  const USER = '7d2c0a4e-0000-4000-8000-000000000001'
+  const countries = new Set(['AR', 'UY'])
+  const upload = { title: ' Serie roja ', technique: 'Mixta', image_path: `${USER}/club-1730000000000.jpg` }
+
+  it('takes the title, the technique and a photo in the member\'s folder', () => {
+    expect(parseClubArtwork(form(upload), USER, false, countries)).toEqual({
+      ok: true,
+      artwork: { title: 'Serie roja', technique: 'Mixta', imagePath: `${USER}/club-1730000000000.jpg` },
+    })
+  })
+
+  it('accepts an obra without title or technique', () => {
+    expect(parseClubArtwork(form({ ...upload, title: '', technique: '' }), USER, false, countries))
+      .toMatchObject({ ok: true, artwork: { title: null, technique: null } })
+  })
+
+  it.each([
+    ['a photo in someone else\'s folder', { image_path: 'otro-usuario/club-1.jpg' }],
+    ['a photo in a subfolder', { image_path: `${USER}/x/club-1.jpg` }],
+    ['a file that is not an image', { image_path: `${USER}/club-1.svg` }],
+    ['no photo', { image_path: '' }],
+    ['a technique that is not offered', { technique: 'Óleo' }],
+    ['a title over 200 characters', { title: 'x'.repeat(201) }],
+  ])('refuses %s', (_label, change) => {
+    expect(parseClubArtwork(form({ ...upload, ...change }), USER, false, countries)).toEqual({ ok: false, error: 'invalid' })
+  })
+
+  it('asks for a name and a known country when the profile has none', () => {
+    expect(parseClubArtwork(form(upload), USER, true, countries)).toEqual({ ok: false, error: 'profile' })
+    expect(parseClubArtwork(form({ ...upload, name: 'Ana', country_code: 'XX' }), USER, true, countries)).toEqual({ ok: false, error: 'profile' })
+    expect(parseClubArtwork(form({ ...upload, name: ' Ana ', country_code: 'uy' }), USER, true, countries))
+      .toMatchObject({ ok: true, artwork: { profile: { name: 'Ana', country_code: 'UY' } } })
   })
 })

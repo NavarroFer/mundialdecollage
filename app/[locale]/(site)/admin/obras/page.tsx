@@ -56,6 +56,7 @@ export default async function ObrasPage({
     .select(
       'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, created_at, legacy_submission_id, review_status, profiles!inner(name, country_code, is_public, onboarded_at, instagram, entries_chosen_at)',
     )
+    .eq('is_club_only', false)
     .is('archived_at', null)
     .is('duplicate_of', null)
     .order('created_at', { ascending: true })

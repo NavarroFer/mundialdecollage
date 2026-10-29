@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { slugify } from '@/lib/slug'
+import { uniqueArtworkSlug } from '@/lib/artwork-slug'
 import { getAllCountryCodes } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { trackServer, trackSignupSource } from '@/lib/track-server'
@@ -41,30 +42,10 @@ function normalizeInstagram(value: string): string | null {
   return /^[a-zA-Z0-9._]{1,30}$/.test(handle) ? `https://instagram.com/${handle}` : null
 }
 
-// Finds a free artwork slug. Every artwork row (including a 2nd+ submission
-// from a returning artist) needs its own distinct slug now that a
-// resubmission is a new `artworks` row instead of overwriting the old one in
-// place — so unlike the old single-artwork version of this function, there's
-// no "exclude my own existing row" case to special-case.
-//
-// Checks via the artwork_slug_taken RPC rather than a plain SELECT: RLS only
-// lets a submitter see their own rows or already-published ones, so a slug
-// belonging to someone else's unpublished/uncurated artwork would otherwise
-// look free here and then fail the insert below with a real
-// unique-constraint violation.
 // The checkbox in TermsCheckbox. Checked again here: the form's `required`
 // is only a convenience.
 function acceptedTerms(formData: FormData) {
   return formData.get('accept_terms') === 'on'
-}
-
-async function uniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, base: string) {
-  let slug = base
-  for (let suffix = 2; ; suffix++) {
-    const { data: taken } = await supabase.rpc('artwork_slug_taken', { candidate: slug })
-    if (!taken) return slug
-    slug = `${base}-${suffix}`
-  }
 }
 
 export async function completeOnboarding(formData: FormData) {
@@ -138,6 +119,7 @@ export async function completeOnboarding(formData: FormData) {
     .from('artworks')
     .select('id', { count: 'exact', head: true })
     .eq('profile_id', user.id)
+    .eq('is_club_only', false)
     .is('archived_at', null)
     .is('duplicate_of', null)
   const totalArtworks = (existingCount ?? 0) + titles.length
@@ -196,7 +178,7 @@ export async function completeOnboarding(formData: FormData) {
     // collapses to '', which /obras/[slug] can't route to. Fall back to a
     // slice of the user id so every submission still gets a working page.
     const baseSlug = slugify(`${name}-${artworkTitle}`) || user.id.slice(0, 8)
-    const slug = await uniqueSlug(supabase, baseSlug)
+    const slug = await uniqueArtworkSlug(supabase, baseSlug)
 
     const { error: artworkError } = await supabase.from('artworks').insert({
       profile_id: user.id,

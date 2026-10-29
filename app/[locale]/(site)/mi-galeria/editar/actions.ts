@@ -5,7 +5,11 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { refreshClubGallery } from '@/lib/public-data-cache'
 import { canUseOwnClubGallery } from '@/lib/club-launch'
-import { fitsRoom, parseGallerySettings, parseHangings, roomCapacity } from '@/lib/club-editor'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { CLUB_MAX_OBRAS, fitsRoom, parseClubArtwork, parseGallerySettings, parseHangings, roomCapacity } from '@/lib/club-editor'
+import { uniqueArtworkSlug } from '@/lib/artwork-slug'
+import { getAllCountryCodes } from '@/lib/participants'
+import { slugify } from '@/lib/slug'
 import { PURCHASABLE_GALLERY_ITEMS, type ClubRoomTemplate } from '@/lib/gallery-catalog'
 
 // The Club editor's writes. Each one runs with the member's own session, so
@@ -77,6 +81,77 @@ export async function saveHangings(formData: FormData) {
   }
   refreshClubGallery(gallery.slug)
   redirect(`${EDITOR}?guardado=1`)
+}
+
+// An obra only for the Club (artworks.is_club_only): it never enters the
+// contest (the database refuses it as entry or main obra). The photo went
+// straight from the browser to Storage, like the onboarding ones, because a
+// Server Action's body is capped well under a phone photo.
+export async function addClubArtwork(formData: FormData) {
+  const { user, supabase } = await member()
+  const [{ data: profile, error: profileError }, { count, error: countError }] = await Promise.all([
+    supabase.from('profiles').select('name, country_code').eq('id', user.id).maybeSingle(),
+    supabase.from('artworks').select('id', { count: 'exact', head: true }).eq('profile_id', user.id).eq('is_club_only', true).is('archived_at', null),
+  ])
+  if (profileError || countError) back('unavailable')
+  if ((count ?? 0) >= CLUB_MAX_OBRAS) back('limit')
+
+  const needsProfile = !profile?.name?.trim() || !profile.country_code
+  const parsed = parseClubArtwork(formData, user.id, needsProfile, new Set(getAllCountryCodes()))
+  if (!parsed.ok) back(parsed.error)
+  if (!parsed.ok) return
+  const { artwork } = parsed
+
+  const [folder, filename] = artwork.imagePath.split('/')
+  const { data: files } = await supabase.storage.from('artworks').list(folder, { search: filename })
+  if (!files?.some((file) => file.name === filename)) back('upload')
+
+  if (artwork.profile) {
+    const { error } = await supabase.from('profiles').upsert({ id: user.id, ...artwork.profile })
+    if (error) {
+      console.error('addClubArtwork: profile failed', error.code, error.message)
+      back('unavailable')
+    }
+  }
+  const name = artwork.profile?.name ?? profile?.name ?? ''
+  const slug = await uniqueArtworkSlug(supabase, slugify(`${name}-${artwork.title ?? 'obra'}`) || user.id.slice(0, 8))
+  const { data: { publicUrl } } = supabase.storage.from('artworks').getPublicUrl(artwork.imagePath)
+  const { error } = await supabase.from('artworks').insert({
+    profile_id: user.id,
+    slug,
+    title: artwork.title,
+    technique: artwork.technique,
+    image_url: publicUrl,
+    is_club_only: true,
+  })
+  if (error) {
+    console.error('addClubArtwork: insert failed', error.code, error.message)
+    back('unavailable')
+  }
+  redirect(`${EDITOR}?subida=1#obras`)
+}
+
+// Removes a Club obra for good, with its likes and stamps. Artists have no
+// DELETE on artworks, so the service role does it once the row is proven to
+// be theirs and Club only.
+export async function removeClubArtwork(formData: FormData) {
+  const { user, gallery } = await member()
+  const id = String(formData.get('id') ?? '')
+  if (!/^[0-9a-f-]{36}$/i.test(id)) back('invalid')
+  const { data, error } = await createAdminClient()
+    .from('artworks')
+    .delete()
+    .eq('id', id)
+    .eq('profile_id', user.id)
+    .eq('is_club_only', true)
+    .select('id')
+  if (error) {
+    console.error('removeClubArtwork: delete failed', error.code, error.message)
+    back('unavailable')
+  }
+  if (!data?.length) back('invalid')
+  refreshClubGallery(gallery.slug)
+  redirect(`${EDITOR}?quitada=1#obras`)
 }
 
 export async function unlockItem(formData: FormData) {

@@ -35,6 +35,7 @@ export async function saveEntryChoice(formData: FormData) {
     .from('artworks')
     .select('id, title, is_selected, legacy_submission_id')
     .eq('profile_id', user.id)
+    .eq('is_club_only', false)
     .is('archived_at', null)
     .is('duplicate_of', null)
   if (ownedError || !owned || owned.length === 0) redirect('/onboarding/obras?error=save_failed')
