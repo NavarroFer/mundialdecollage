@@ -120,7 +120,7 @@ function WallDialogContent({ theme, point }: { theme: GalleryTheme; point: { x: 
                 {picked && (
                   // eslint-disable-next-line @next/next/no-img-element -- a local blob: URL, nothing to optimize
                   <img src={picked.url} alt={t.previewAlt}
-                    className={cn('max-h-[32dvh] w-auto self-center', picked.extension === 'jpg' ? 'rounded-sm border-8 border-white shadow-md' : 'drop-shadow-md')} />
+                    className="max-h-[32dvh] w-auto self-center drop-shadow-md" />
                 )}
                 <div className="flex flex-wrap gap-2">
                   <label className={cn(button, 'cursor-pointer', !picked && 'bg-collage-yellow text-ink')}>

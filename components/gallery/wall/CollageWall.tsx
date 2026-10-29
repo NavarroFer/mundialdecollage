@@ -128,17 +128,11 @@ function Piece({ piece, order, frame }: { piece: WallPiece; order: number; frame
   const photoHeight = aspect >= 1 ? side / aspect : side
   // Still in review: only its author sees it, a little faded.
   const opacity = piece.pending ? 0.6 : 1
-  // A cutout keeps its own outline, so it goes on without the white card.
+  // Pasted as it is, with no white card behind: a cutout keeps its own outline.
   const seeThrough = piece.pending || piece.cutout
 
   return (
     <group position={local(piece, frame, PIECE_LIFT)} rotation={[0, 0, piece.rotation]}>
-      {!piece.cutout && (
-        <mesh renderOrder={10 + order * 2}>
-          <planeGeometry args={[photoWidth + 0.04, photoHeight + 0.04]} />
-          <meshStandardMaterial color="#fbfaf6" roughness={0.8} depthWrite={false} transparent={piece.pending} opacity={opacity} />
-        </mesh>
-      )}
       <mesh renderOrder={11 + order * 2} position={[0, 0, 0.001]}>
         <planeGeometry args={[photoWidth, photoHeight]} />
         <meshStandardMaterial map={texture} roughness={0.7} depthWrite={false} transparent={seeThrough} opacity={opacity} />
