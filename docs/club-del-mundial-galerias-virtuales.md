@@ -212,7 +212,7 @@ Guía lista para implementar paso a paso:
 
 ### 2. Salas, cuadros, temas y ropa en el motor 3D
 
-- **Plantillas de sala (`roomsData.ts` y `data/artworks.ts`):** parametrizar `rooms`, `walls`, `doorways`, `HANGINGS` y `VISITORS` por `template_id` (`cabinet` con 1 sala íntima de 6–8 obras, `classic` con 1 sala + panel central de 14 obras, `double` con 2 salas en zigzag de 22 obras), mantendo el test de `visitorRoutes.test.ts` sobre las 3 plantillas.
+- **Plantillas de sala (`roomsData.ts` y `data/artworks.ts`):** parametrizar `rooms`, `walls`, `doorways`, `HANGINGS` y `VISITORS` por `template_id` (`cabinet` con 1 sala íntima de 6–8 obras, `classic` con 1 sala + panel central de 14 obras, `double` con 2 salas en zigzag de 22 obras), manteniendo el test de `visitorRoutes.test.ts` sobre las 3 plantillas.
 - **Montaje de cuadros (`components/gallery/artwork/Artwork.tsx`):** soportar `frameStyle` por obra (`standard`, `wood`, `gold`, `black-mat`, y `pinned` sin marco exterior, con leve separación de la pared y cabezas de alfiler o cinta de papel en las esquinas).
 - **Ropa del avatar (`AvatarBody.tsx` y `fabrics.ts`):** permitir reemplazar el color y `map`/`normalMap` de los materiales de prenda del GLB usando las texturas procedurales de `fabrics.ts`, y adjuntar mallas livianas de accesorios a los huesos `Bip01 Head`, `Bip01 Spine2` y `Bip01 R Hand`.
 
