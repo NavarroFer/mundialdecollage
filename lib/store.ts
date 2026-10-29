@@ -57,6 +57,47 @@ export type CutoutPlan = (typeof cutoutPlans)[number]
 export type StorePlan = SubscriptionPlan | CutoutPlan
 export type StorePlanId = StorePlan['id']
 
+export const clubMembershipPlans = [
+  {
+    id: 'club-monthly',
+    billing: 'monthly',
+    priceUsd: 47,
+    priceArs: 47000,
+    monthsCharged: 1,
+    monthsIncluded: 1,
+    monthlyCoins: 1000,
+  },
+  {
+    id: 'club-annual',
+    billing: 'annual',
+    priceUsd: 470,
+    priceArs: 470000,
+    monthsCharged: 10,
+    monthsIncluded: 12,
+    monthlyCoins: 1000,
+  },
+] as const
+
+export type ClubMembershipPlan = (typeof clubMembershipPlans)[number]
+export type ClubMembershipPlanId = ClubMembershipPlan['id']
+
+export const coinPacks = [
+  { id: 'chico', coins: 500, priceArs: 5000, priceUsd: 5 },
+  { id: 'mediano', coins: 1725, priceArs: 13000, priceUsd: 13 },
+  { id: 'mecenas', coins: 4550, priceArs: 30000, priceUsd: 30 },
+] as const
+
+export type CoinPack = (typeof coinPacks)[number]
+export type CoinPackId = CoinPack['id']
+
+export function clubMembershipPlanById(id: string): ClubMembershipPlan | null {
+  return clubMembershipPlans.find((plan) => plan.id === id) ?? null
+}
+
+export function coinPackById(id: string): CoinPack | null {
+  return coinPacks.find((pack) => pack.id === id) ?? null
+}
+
 export function isCutoutPlan(plan: StorePlan): plan is CutoutPlan {
   return 'count' in plan
 }
