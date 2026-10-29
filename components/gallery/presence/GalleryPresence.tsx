@@ -20,7 +20,7 @@ import { peerPoses, prunePeerPoses, recordPeerPose, usePresenceStore } from './s
 // never kept. A crouch or a jump rides on them too, under the same throttle.
 // Local dev shares the production Supabase project; a separate topic keeps
 // `next dev` sessions out of the real gallery's count and avatars.
-const TOPIC = process.env.NODE_ENV === 'production' ? 'galeria-3d' : 'galeria-3d-dev'
+const DEFAULT_TOPIC = process.env.NODE_ENV === 'production' ? 'galeria-3d' : 'galeria-3d-dev'
 // A background tab still receives every broadcast — and each delivery counts
 // against the Realtime message quota — so one left hidden this long lets go
 // of its connection, and reconnects when it's shown again.
@@ -69,7 +69,7 @@ function sendPose(connection: Connection) {
 }
 
 // Opens this tab's socket and joins the channel; returns what closes them.
-function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () => void {
+function openChannel(current: Connection, artworkIds: ReadonlySet<string>, topic: string): () => void {
   const { setSummary } = usePresenceStore.getState()
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   const url = new URL('realtime/v1', process.env.NEXT_PUBLIC_SUPABASE_URL)
@@ -80,7 +80,7 @@ function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () =
   const client = new RealtimeClient(url.href, { params: { apikey: anonKey }, accessToken: async () => anonKey })
   current.key = crypto.randomUUID()
   current.seq = 0
-  const channel = client.channel(TOPIC, { config: { presence: { key: current.key } } })
+  const channel = client.channel(topic, { config: { presence: { key: current.key } } })
   current.channel = channel
 
   channel
@@ -120,8 +120,9 @@ function openChannel(current: Connection, artworkIds: ReadonlySet<string>): () =
   }
 }
 
-export function GalleryPresence({ inside, artworks }: { inside: boolean; artworks: Artwork[] }) {
+export function GalleryPresence({ inside, artworks, topic = DEFAULT_TOPIC }: { inside: boolean; artworks: Artwork[]; topic?: string }) {
   const connection = useRef<Connection>({ channel: null, key: '', joined: false, inside: false, lastPose: null, seq: 0 })
+  const resolvedTopic = topic === DEFAULT_TOPIC || process.env.NODE_ENV === 'production' ? topic : `${topic}:dev`
 
   useEffect(() => {
     if (!isSupabaseConfigured || !LIVE_ENABLED) return
@@ -129,7 +130,7 @@ export function GalleryPresence({ inside, artworks }: { inside: boolean; artwork
     const artworkIds = new Set(artworks.map((artwork) => artwork.id))
     let disconnect: (() => void) | null = null
     const connect = () => {
-      disconnect ??= openChannel(current, artworkIds)
+      disconnect ??= openChannel(current, artworkIds, resolvedTopic)
     }
 
     let hiddenTimer: number | undefined
@@ -164,7 +165,7 @@ export function GalleryPresence({ inside, artworks }: { inside: boolean; artwork
       clearInterval(poseCheck)
       disconnect?.()
     }
-  }, [artworks])
+  }, [artworks, resolvedTopic])
 
   useEffect(() => {
     connection.current.inside = inside

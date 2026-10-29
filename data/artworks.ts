@@ -1,4 +1,12 @@
-import { walls } from '@/components/gallery/world/roomsData'
+import {
+  clubGalleryTemplates,
+  walls,
+  type ClubGalleryTemplateId,
+  type WallSegment,
+} from '@/components/gallery/world/roomsData'
+
+export const GALLERY_FRAME_STYLES = ['standard', 'wood', 'gold', 'black-mat', 'pinned'] as const
+export type GalleryFrameStyle = (typeof GALLERY_FRAME_STYLES)[number]
 
 export type Artwork = {
   id: string
@@ -15,6 +23,8 @@ export type Artwork = {
   rotation: [number, number, number]
   width: number
   height: number
+  /** Club galleries may override the room's default mounting per obra. */
+  frameStyle?: GalleryFrameStyle
 }
 
 /** Where an obra can hang — content-agnostic, filled in from real data at request time. */
@@ -48,7 +58,7 @@ const FACING_ROTATION: Record<Facing, number> = {
 }
 
 /** A row of obras on one face of a wall or panel from roomsData. */
-type Hanging = {
+export type Hanging = {
   roomId: string
   wall: string
   facing: Facing
@@ -60,8 +70,11 @@ type Hanging = {
 
 // The slot positions come from the wall itself, so moving a wall or a panel
 // in roomsData moves its obras with it.
-export function hang({ roomId, wall: wallId, facing, count, presetOffset, span }: Hanging): GallerySlot[] {
-  const wall = walls.find((candidate) => candidate.id === wallId)
+export function hang(
+  { roomId, wall: wallId, facing, count, presetOffset, span }: Hanging,
+  layoutWalls: WallSegment[] = walls,
+): GallerySlot[] {
+  const wall = layoutWalls.find((candidate) => candidate.id === wallId)
   if (!wall) throw new Error(`Unknown wall ${wallId}`)
   const runsAlongX = wall.size[0] > wall.size[2]
   if (runsAlongX !== (facing === 'north' || facing === 'south')) throw new Error(`${wallId} has no ${facing} face`)
@@ -132,4 +145,40 @@ export const HANGINGS: Hanging[] = [
   { roomId: 'room-03', wall: 'r3-east', facing: 'west', count: 3, presetOffset: 1 },
 ]
 
-export const gallerySlots: GallerySlot[] = HANGINGS.flatMap(hang)
+export const gallerySlots: GallerySlot[] = HANGINGS.flatMap((hanging) => hang(hanging))
+
+export const CLUB_HANGINGS: Record<ClubGalleryTemplateId, Hanging[]> = {
+  cabinet: [
+    { roomId: 'club-room-01', wall: 'cabinet-north', facing: 'south', count: 3, presetOffset: 0 },
+    { roomId: 'club-room-01', wall: 'cabinet-south-west', facing: 'north', count: 1, presetOffset: 1 },
+    { roomId: 'club-room-01', wall: 'cabinet-south-east', facing: 'north', count: 1, presetOffset: 2 },
+    { roomId: 'club-room-01', wall: 'cabinet-west', facing: 'east', count: 2, presetOffset: 1 },
+    { roomId: 'club-room-01', wall: 'cabinet-east', facing: 'west', count: 1, presetOffset: 2 },
+  ],
+  classic: [
+    { roomId: 'club-room-01', wall: 'classic-north', facing: 'south', count: 4, presetOffset: 0 },
+    { roomId: 'club-room-01', wall: 'classic-west', facing: 'east', count: 3, presetOffset: 1 },
+    { roomId: 'club-room-01', wall: 'classic-east', facing: 'west', count: 3, presetOffset: 2 },
+    { roomId: 'club-room-01', wall: 'classic-panel', facing: 'west', count: 2, presetOffset: 0 },
+    { roomId: 'club-room-01', wall: 'classic-panel', facing: 'east', count: 2, presetOffset: 1 },
+  ],
+  double: [
+    { roomId: 'club-room-01', wall: 'double-north', facing: 'south', count: 4, presetOffset: 0, span: [-11.9, -0.1] },
+    { roomId: 'club-room-02', wall: 'double-north', facing: 'south', count: 4, presetOffset: 1, span: [0.1, 11.9] },
+    { roomId: 'club-room-01', wall: 'double-west', facing: 'east', count: 3, presetOffset: 1 },
+    { roomId: 'club-room-02', wall: 'double-east', facing: 'west', count: 3, presetOffset: 2 },
+    { roomId: 'club-room-01', wall: 'double-divider-north', facing: 'west', count: 2, presetOffset: 0 },
+    { roomId: 'club-room-02', wall: 'double-divider-north', facing: 'east', count: 2, presetOffset: 1 },
+    { roomId: 'club-room-01', wall: 'double-panel-west', facing: 'west', count: 1, presetOffset: 2 },
+    { roomId: 'club-room-01', wall: 'double-panel-west', facing: 'east', count: 1, presetOffset: 0 },
+    { roomId: 'club-room-02', wall: 'double-panel-east', facing: 'west', count: 1, presetOffset: 1 },
+    { roomId: 'club-room-02', wall: 'double-panel-east', facing: 'east', count: 1, presetOffset: 2 },
+  ],
+}
+
+export const clubGallerySlots: Record<ClubGalleryTemplateId, GallerySlot[]> = Object.fromEntries(
+  Object.entries(CLUB_HANGINGS).map(([templateId, hangings]) => {
+    const id = templateId as ClubGalleryTemplateId
+    return [id, hangings.flatMap((hanging) => hang(hanging, clubGalleryTemplates[id].walls))]
+  }),
+) as Record<ClubGalleryTemplateId, GallerySlot[]>

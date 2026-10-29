@@ -7,18 +7,19 @@ import { Rooms } from './Rooms'
 import { galleryThemes, type GalleryTheme } from '../themes'
 import { Visitors } from './Visitors'
 import { RemoteVisitors } from './RemoteVisitors'
+import { mainGalleryTemplate, type GalleryRoomTemplate } from './roomsData'
 
-export function World({ artworks, theme }: { artworks: Artwork[]; theme: GalleryTheme }) {
+export function World({ artworks, theme, template = mainGalleryTemplate }: { artworks: Artwork[]; theme: GalleryTheme; template?: GalleryRoomTemplate }) {
   return (
     <>
       <color attach="background" args={[galleryThemes[theme].canvas]} />
-      <Lighting theme={theme} />
+      <Lighting theme={theme} template={template} />
       <RigidBody type="fixed" colliders="trimesh">
-        <Rooms theme={theme} />
+        <Rooms theme={theme} template={template} />
       </RigidBody>
-      <Architecture theme={theme} />
+      <Architecture theme={theme} template={template} />
       <Artworks artworks={artworks} theme={theme} />
-      <Visitors theme={theme} />
+      <Visitors theme={theme} template={template} />
       <RemoteVisitors theme={theme} />
     </>
   )

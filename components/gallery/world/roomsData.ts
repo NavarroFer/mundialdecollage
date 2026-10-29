@@ -49,6 +49,23 @@ export type Doorway = {
   axis: 'x' | 'z'
 }
 
+export const CLUB_GALLERY_TEMPLATE_IDS = ['cabinet', 'classic', 'double'] as const
+export type ClubGalleryTemplateId = (typeof CLUB_GALLERY_TEMPLATE_IDS)[number]
+
+export type GalleryRoomTemplate = {
+  id: 'main' | ClubGalleryTemplateId
+  capacity: number
+  bounds: Bounds
+  rooms: RoomDef[]
+  walls: WallSegment[]
+  doorways: Doorway[]
+  /** Optional garden dressing. Other themes ignore these points. */
+  garden: {
+    flowers: Array<{ x: number; z: number; color: string }>
+    path: Array<[number, number]>
+  }
+}
+
 function wallAlongX(id: string, xFrom: number, xTo: number, z: number, height = WALL_HEIGHT): WallSegment {
   return {
     id,
@@ -121,6 +138,96 @@ export const doorways: Doorway[] = [
   { id: 'door-2-3', center: [6, 0, DOOR_2_3_Z], axis: 'z' },
 ]
 
+const CLUB_FLOWER_COLORS = ['#ef6f61', '#ffd23f', '#8f67b1', '#ff8f3d']
+
+function flowersAlong(bounds: Bounds) {
+  const [minX, minZ, maxX, maxZ] = bounds
+  const inset = 0.72
+  const xs = [minX + 1.4, (minX + maxX) / 2, maxX - 1.4]
+  return xs.flatMap((x, index) => [
+    { x, z: minZ + inset, color: CLUB_FLOWER_COLORS[index % CLUB_FLOWER_COLORS.length] },
+    { x, z: maxZ - inset, color: CLUB_FLOWER_COLORS[(index + 1) % CLUB_FLOWER_COLORS.length] },
+  ])
+}
+
+const cabinetBounds: Bounds = [-5, -4, 5, 4]
+const cabinetWalls: WallSegment[] = [
+  wallAlongX('cabinet-north', -5, 5, -4),
+  wallAlongX('cabinet-south-west', -5, -doorHalf, 4),
+  wallAlongX('cabinet-south-east', doorHalf, 5, 4),
+  wallAlongZ('cabinet-west', -4, 4, -5),
+  wallAlongZ('cabinet-east', -4, 4, 5),
+]
+
+const classicBounds: Bounds = [-8, -5, 8, 5]
+const classicWalls: WallSegment[] = [
+  wallAlongX('classic-north', -8, 8, -5),
+  wallAlongX('classic-south-west', -8, -doorHalf, 5),
+  wallAlongX('classic-south-east', doorHalf, 8, 5),
+  wallAlongZ('classic-west', -5, 5, -8),
+  wallAlongZ('classic-east', -5, 5, 8),
+  panelAlongZ('classic-panel', -2.5, 2.5, 0),
+]
+
+const doubleBounds: Bounds = [-12, -5, 12, 5]
+const doubleDoorZ = 2.4
+const doubleWalls: WallSegment[] = [
+  wallAlongX('double-north', -12, 12, -5),
+  wallAlongX('double-south-west', -12, -doorHalf, 5),
+  wallAlongX('double-south-east', doorHalf, 12, 5),
+  wallAlongZ('double-west', -5, 5, -12),
+  wallAlongZ('double-east', -5, 5, 12),
+  wallAlongZ('double-divider-north', -5, doubleDoorZ - doorHalf, 0),
+  wallAlongZ('double-divider-south', doubleDoorZ + doorHalf, 5, 0),
+  panelAlongZ('double-panel-west', -2.6, 1.2, -6),
+  panelAlongZ('double-panel-east', -2.6, 1.2, 6),
+]
+
+export const clubGalleryTemplates: Record<ClubGalleryTemplateId, GalleryRoomTemplate> = {
+  cabinet: {
+    id: 'cabinet',
+    capacity: 8,
+    bounds: cabinetBounds,
+    rooms: [{ id: 'club-room-01', name: 'Sala Gabinete', bounds: cabinetBounds }],
+    walls: cabinetWalls,
+    doorways: [{ id: 'cabinet-entrance', center: [0, 0, 4], axis: 'x' }],
+    garden: {
+      flowers: flowersAlong(cabinetBounds),
+      path: [[0, 3.7], [0, 0], [-3.5, 0], [3.5, 0]],
+    },
+  },
+  classic: {
+    id: 'classic',
+    capacity: 14,
+    bounds: classicBounds,
+    rooms: [{ id: 'club-room-01', name: 'Sala Clásica', bounds: classicBounds }],
+    walls: classicWalls,
+    doorways: [{ id: 'classic-entrance', center: [0, 0, 5], axis: 'x' }],
+    garden: {
+      flowers: flowersAlong(classicBounds),
+      path: [[0, 4.7], [3.2, 3.2], [3.2, -3.2], [-3.2, -3.2], [-3.2, 3.2], [0, 4.7]],
+    },
+  },
+  double: {
+    id: 'double',
+    capacity: 22,
+    bounds: doubleBounds,
+    rooms: [
+      { id: 'club-room-01', name: 'Sala 1', bounds: [-12, -5, 0, 5] },
+      { id: 'club-room-02', name: 'Sala 2', bounds: [0, -5, 12, 5] },
+    ],
+    walls: doubleWalls,
+    doorways: [
+      { id: 'double-entrance', center: [0, 0, 5], axis: 'x' },
+      { id: 'double-passage', center: [0, 0, doubleDoorZ], axis: 'z' },
+    ],
+    garden: {
+      flowers: flowersAlong(doubleBounds),
+      path: [[0, 4.7], [-3.2, 3.1], [-9.5, 3.1], [-9.5, -3.1], [-2.2, -3.1], [-2.2, doubleDoorZ], [2.2, doubleDoorZ], [2.2, -3.1], [9.5, -3.1], [9.5, 3.1]],
+    },
+  },
+}
+
 /** The garden theme's flowers, along the walls. */
 export const GARDEN_FLOWERS = [
   { x: -16, z: -4.25, color: '#ef6f61' },
@@ -148,6 +255,16 @@ export const GARDEN_PATH: [number, number][] = [
   [16.3, -2.6],
 ]
 
+export const mainGalleryTemplate: GalleryRoomTemplate = {
+  id: 'main',
+  capacity: 37,
+  bounds: GALLERY_BOUNDS,
+  rooms,
+  walls,
+  doorways,
+  garden: { flowers: GARDEN_FLOWERS, path: GARDEN_PATH },
+}
+
 /** A room's skylight opening. */
 export function skylightOf({ bounds: [minX, minZ, maxX, maxZ] }: RoomDef): Bounds {
   const { inset } = SKYLIGHT
@@ -158,9 +275,9 @@ export function skylightOf({ bounds: [minX, minZ, maxX, maxZ] }: RoomDef): Bound
  * The ceiling around the skylights, as rectangles. Every room spans the
  * gallery's full depth, so all the openings share one band across it.
  */
-export function ceilingAroundSkylights(): Bounds[] {
-  const [minX, minZ, maxX, maxZ] = GALLERY_BOUNDS
-  const openings = rooms.map(skylightOf).sort((a, b) => a[0] - b[0])
+export function ceilingAroundSkylights(template: GalleryRoomTemplate = mainGalleryTemplate): Bounds[] {
+  const [minX, minZ, maxX, maxZ] = template.bounds
+  const openings = template.rooms.map(skylightOf).sort((a, b) => a[0] - b[0])
   const [, top, , bottom] = openings[0]
   const panels: Bounds[] = [
     [minX, minZ, maxX, top],

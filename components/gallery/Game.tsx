@@ -30,7 +30,7 @@ import { useArcadeStore } from './arcade/store'
 import { WallDialog } from './wall/WallDialog'
 import { loadWall, useWallStore } from './wall/store'
 import { useSouvenirStore } from './souvenir/store'
-import { galleryThemes } from './themes'
+import { galleryThemes, type GalleryTheme } from './themes'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
@@ -39,6 +39,7 @@ import { readGalleryReturn, readSharedArtwork, readWallReturn } from '@/lib/gall
 import { readReferralParam, withReferral } from '@/lib/referral'
 import { track } from '@/lib/track'
 import { galleryReadyEvent } from '@/lib/funnel'
+import type { GalleryRoomTemplate } from './world/roomsData'
 
 // Doesn't change over a session, so no subscription is needed — just a
 // client-only snapshot read via useSyncExternalStore (SSR-safe, and no
@@ -67,7 +68,19 @@ function requestLock(element: HTMLElement, onError: () => void) {
   Promise.resolve(element.requestPointerLock()).catch(onError)
 }
 
-export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string }) {
+export function Game({
+  artworks,
+  userId,
+  template,
+  themeOverride,
+  presenceTopic,
+}: {
+  artworks: Artwork[]
+  userId: string | null
+  template?: GalleryRoomTemplate
+  themeOverride?: GalleryTheme
+  presenceTopic?: string
+}) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const controlMode = useGalleryPreferences((state) => state.controlMode)
   // Walking by clicks or on a phone there's no Pointer Lock to say whether
@@ -80,7 +93,8 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
   const [locked, setLocked] = useState(false)
   const { locale, m } = useI18n()
   const [hasStarted, setHasStarted] = useState(false)
-  const theme = useGalleryPreferences((state) => state.theme)
+  const preferredTheme = useGalleryPreferences((state) => state.theme)
+  const theme = themeOverride ?? preferredTheme
   useEffect(() => { useGalleryPreferences.getState().hydrate() }, [])
   const openId = useInteractionStore((state) => state.openId)
   useEffect(() => {
@@ -316,6 +330,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           <Scene
             artworks={artworks}
             theme={theme}
+            template={template}
             active={isActive}
             controlMode={controlMode}
             paused={paused}
@@ -330,9 +345,9 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
           />
         )}
       </div>
-      <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!vinylOpen && !arcadeOpen && !passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />
-      <PassportRecorder userId={userId} started={hasStarted} />
-      <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} />
+      {userId && <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!vinylOpen && !arcadeOpen && !passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />}
+      {userId && <PassportRecorder userId={userId} started={hasStarted} />}
+      <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} topic={presenceTopic} />
       {isTouchDevice && isActive && <TouchControls theme={theme} />}
       {/* The visit's own buttons, on the pause screen too: on a computer at
           the bottom, out of the minimap's way; on a phone at the top, out of
@@ -358,7 +373,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
       </div>
       {/* On a computer the minimap stays on screen; a phone keeps it (and
           the photo button) in Opciones, so the walk has the whole screen. */}
-      {!isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
+      {!isTouchDevice && <Minimap theme={theme} artworks={artworks} template={template} />}
       <div id="gallery-options" className={styles.visitMenu} hidden={!optionsOpen || !hasStarted || dialogOpen}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>
@@ -366,7 +381,7 @@ export function Game({ artworks, userId }: { artworks: Artwork[]; userId: string
         </div>
         {!isTouchDevice && <ControlChoice />}
         {isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice active={false} onResume={resumeWalk} inline />}
-        {isTouchDevice && <Minimap theme={theme} artworks={artworks} />}
+        {isTouchDevice && <Minimap theme={theme} artworks={artworks} template={template} />}
         {isTouchDevice && hasStarted && <PresenceCounter />}
         <VisitPreferences artworks={artworks} onResume={resumeArtwork} />
         <button type="button" className={styles.visitMenuButton} onClick={() => { replayTutorial(); handleEnter() }}>{m.gallery.tutorial.replay}</button>

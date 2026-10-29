@@ -25,10 +25,13 @@ import { SouvenirCapture } from './souvenir/SouvenirCapture'
 import { CollageWall, WallAim } from './wall/CollageWall'
 import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
+import type { GalleryRoomTemplate } from './world/roomsData'
 
 export type SceneProps = {
   artworks: Artwork[]
   theme: GalleryTheme
+  /** Geometry contract for a Club room; omitted for the 37-work main gallery. */
+  template?: GalleryRoomTemplate
   /** The visitor is walking: keys, joystick and look drags move them. */
   controlMode: 'point' | 'classic'
   active: boolean
@@ -48,7 +51,7 @@ export type SceneProps = {
  * mounting them behind the start screen kept the GPU and the physics busy for
  * a scene nobody could see yet.
  */
-export function Scene({ artworks, theme, active, controlMode, paused, isTouchDevice, lockTarget, wall, onReady }: SceneProps) {
+export function Scene({ artworks, theme, template, active, controlMode, paused, isTouchDevice, lockTarget, wall, onReady }: SceneProps) {
   const quality = useGraphics((s) => s.current)
   const dpr = useGraphics((s) => s.dpr)
   const [visible, setVisible] = useState(true)
@@ -71,7 +74,7 @@ export function Scene({ artworks, theme, active, controlMode, paused, isTouchDev
         <EnvironmentLight />
         <GraphicsRuntime active={active && !paused && visible} mobile={isTouchDevice} />
         <Physics paused={paused || !visible}>
-          <World artworks={artworks} theme={theme} />
+          <World artworks={artworks} theme={theme} template={template} />
           <ArcadeCabinet active={active} />
           <VinylConsole active={active} />
           <Player active={active} artworks={artworks} />
@@ -79,7 +82,7 @@ export function Scene({ artworks, theme, active, controlMode, paused, isTouchDev
         {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}
         {!isTouchDevice && controlMode === 'point' && <EdgeLook active={active} />}
         <TouchLookController active={active} />
-        <PointNavigation active={active} touch={isTouchDevice} pointerLock={!isTouchDevice && controlMode === 'classic'} artworks={artworks} garden={theme === 'garden'} />
+        <PointNavigation active={active} touch={isTouchDevice} pointerLock={!isTouchDevice && controlMode === 'classic'} artworks={artworks} garden={theme === 'garden'} template={template} />
         <InteractionManager artworks={artworks} />
         {isTouchDevice && <TapHintTracker artworks={artworks} />}
         <PlayerTracker />

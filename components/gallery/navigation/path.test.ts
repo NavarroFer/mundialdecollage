@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DOOR_WIDTH, GARDEN_FLOWERS, doorways } from '../world/roomsData'
+import { DOOR_WIDTH, GARDEN_FLOWERS, clubGalleryTemplates, doorways } from '../world/roomsData'
 import { findWalkPath, viewingSpot, walkable, type Point } from './path'
 
 // The hall's doorway into Room 1.
@@ -62,6 +62,15 @@ describe('findWalkPath', () => {
     const route = findWalkPath(from, { x: flower.x - 1.2, z: flower.z + 0.2 }, true)
     expect(route).not.toBeNull()
     for (const point of route!) expect(Math.hypot(point.x - flower.x, point.z - flower.z)).toBeGreaterThanOrEqual(0.75)
+  })
+
+  it('uses the selected Club layout and crosses the double gallery passage', () => {
+    const template = clubGalleryTemplates.double
+    const route = findWalkPath({ x: -3, z: 2.4 }, { x: 3, z: 2.4 }, false, template)
+    expect(route).not.toBeNull()
+    expect(route!.at(-1)).toEqual({ x: 3, z: 2.4 })
+    for (const point of route!) expect(walkable(point, false, template)).toBe(true)
+    expect(walkable({ x: 14, z: 0 }, false, template)).toBe(false)
   })
 })
 

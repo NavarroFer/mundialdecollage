@@ -9,7 +9,8 @@ import { MAX_LIVE_VISITORS } from '../presence/protocol'
 import { usePresenceStore } from '../presence/store'
 import { SCRIPTED_CAST } from './people/cast'
 import { Person, type Motion } from './people/Person'
-import { VISITORS, type VisitorDefinition } from './visitorRoutes'
+import { CLUB_VISITORS, VISITORS, type VisitorDefinition } from './visitorRoutes'
+import { mainGalleryTemplate, type GalleryRoomTemplate } from './roomsData'
 
 function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: GalleryTheme }) {
   const initialIndex = definition.offset % definition.route.length
@@ -48,12 +49,13 @@ function Visitor({ definition, theme }: { definition: VisitorDefinition; theme: 
   )
 }
 
-export function Visitors({ theme }: { theme: GalleryTheme }) {
+export function Visitors({ theme, template = mainGalleryTemplate }: { theme: GalleryTheme; template?: GalleryRoomTemplate }) {
   // Real visitors take the scripted ones' place, so the room reads as busy
   // as it really is once people show up (all five return in a crowd too big
   // for live avatars).
   const realVisitors = usePresenceStore((state) => (state.count ?? 0) > MAX_LIVE_VISITORS ? 0 : state.peers.length)
   const quality = useGraphics((s) => s.current)
-  const scripted = VISITORS.slice(0, Math.max(0, PRESETS[quality].visitors - realVisitors))
+  const definitions = template.id === 'main' ? VISITORS : CLUB_VISITORS[template.id]
+  const scripted = definitions.slice(0, Math.max(0, PRESETS[quality].visitors - realVisitors))
   return <group>{scripted.map((definition) => <Visitor key={definition.id} definition={definition} theme={theme} />)}</group>
 }

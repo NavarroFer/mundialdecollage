@@ -3,6 +3,8 @@
 // visitorRoutes.test.ts keeps every leg clear of the walls, so a layout
 // change that puts a panel in someone's way fails there.
 
+import type { ClubGalleryTemplateId } from './roomsData'
+
 export type Stop = {
   position: [number, number]
   wait?: number
@@ -100,3 +102,74 @@ export const VISITORS: VisitorDefinition[] = [
     ],
   },
 ]
+
+export const CLUB_VISITORS: Record<ClubGalleryTemplateId, VisitorDefinition[]> = {
+  cabinet: [
+    {
+      id: 'club-cabinet-01', color: '#5e3b2a', speed: 0.55, offset: 0,
+      route: [
+        { position: [-3.2, -2.4], wait: 3, face: NORTH },
+        { position: [3.2, -2.4], wait: 3.5, face: NORTH },
+        { position: [3.2, 2.3], wait: 3, face: WEST },
+        { position: [-3.2, 2.3], wait: 3.5, face: EAST },
+      ],
+    },
+  ],
+  classic: [
+    {
+      id: 'club-classic-01', color: '#7b2d3b', speed: 0.52, offset: 0,
+      route: [
+        { position: [-5.7, -3.2], wait: 3, face: NORTH },
+        { position: [-2.1, -3.2], wait: 3, face: NORTH },
+        { position: [-2.1, 3.2], wait: 3, face: EAST },
+        { position: [-5.7, 3.2], wait: 3, face: SOUTH },
+      ],
+    },
+    {
+      id: 'club-classic-02', color: '#c99a3a', speed: 0.58, offset: 2,
+      route: [
+        { position: [2.1, -3.2], wait: 3, face: NORTH },
+        { position: [5.7, -3.2], wait: 3, face: NORTH },
+        { position: [5.7, 3.2], wait: 3, face: SOUTH },
+        { position: [2.1, 3.2], wait: 3, face: WEST },
+      ],
+    },
+  ],
+  double: [
+    {
+      id: 'club-double-01', color: '#8fb3d9', speed: 0.57, offset: 0,
+      route: [
+        { position: [-10, -3.2], wait: 3, face: NORTH },
+        { position: [-7.6, -3.2] },
+        { position: [-7.6, 3.3], wait: 3, face: SOUTH },
+        { position: [-4.4, 3.3] },
+        { position: [-4.4, -3.2], wait: 3, face: NORTH },
+        { position: [-4.4, 3.3] },
+        { position: [-10, 3.3], wait: 3, face: SOUTH },
+      ],
+    },
+    {
+      id: 'club-double-02', color: '#6b7c4b', speed: 0.54, offset: 2,
+      route: [
+        { position: [10, -3.2], wait: 3, face: NORTH },
+        { position: [7.6, -3.2] },
+        { position: [7.6, 3.3], wait: 3, face: SOUTH },
+        { position: [4.4, 3.3] },
+        { position: [4.4, -3.2], wait: 3, face: NORTH },
+        { position: [4.4, 3.3] },
+        { position: [10, 3.3], wait: 3, face: WEST },
+      ],
+    },
+    {
+      id: 'club-double-passage', color: '#c99a3a', speed: 0.62, offset: 4,
+      route: [
+        { position: [-2, 2.4], wait: 2, face: EAST },
+        { position: [2, 2.4], wait: 2, face: WEST },
+        { position: [2, 3.6] },
+        { position: [4.4, 3.6], wait: 3, face: SOUTH },
+        { position: [2, 3.6] },
+        { position: [1.7, 2.4] },
+      ],
+    },
+  ],
+}

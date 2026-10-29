@@ -2,7 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { WALL_FRAME } from '@/lib/collage-wall'
 import { gallerySlots } from '@/data/artworks'
 import { HALL_SPAWN, standInFront } from '../player/spawn'
-import { DOOR_WIDTH, GALLERY_BOUNDS, ceilingAroundSkylights, doorways, rooms, skylightOf, walls, type Bounds } from './roomsData'
+import {
+  CLUB_GALLERY_TEMPLATE_IDS,
+  DOOR_WIDTH,
+  GALLERY_BOUNDS,
+  ceilingAroundSkylights,
+  clubGalleryTemplates,
+  doorways,
+  rooms,
+  skylightOf,
+  walls,
+  type Bounds,
+} from './roomsData'
 
 const area = ([x0, z0, x1, z1]: Bounds) => (x1 - x0) * (z1 - z0)
 const [minX, minZ, maxX, maxZ] = GALLERY_BOUNDS
@@ -102,6 +113,45 @@ describe('layout', () => {
         hitsWall(from.x + (to.x - from.x) * s, from.z + (to.z - from.z) * s, 0),
       )
       expect(blocked, `collage edge ${t}`).toBe(false)
+    }
+  })
+})
+
+describe('Club gallery templates', () => {
+  it('defines the three planned capacities', () => {
+    expect(CLUB_GALLERY_TEMPLATE_IDS).toEqual(['cabinet', 'classic', 'double'])
+    expect(Object.fromEntries(CLUB_GALLERY_TEMPLATE_IDS.map((id) => [id, clubGalleryTemplates[id].capacity]))).toEqual({
+      cabinet: 8,
+      classic: 14,
+      double: 22,
+    })
+  })
+
+  it('keeps every entrance and passage open with wall on both sides', () => {
+    for (const id of CLUB_GALLERY_TEMPLATE_IDS) {
+      const template = clubGalleryTemplates[id]
+      const templateHitsWall = (x: number, z: number) => template.walls.some(({ position, size }) =>
+        Math.abs(x - position[0]) < size[0] / 2 && Math.abs(z - position[2]) < size[2] / 2)
+      for (const { center: [x, , z], axis } of template.doorways) {
+        expect(templateHitsWall(x, z), `${id} doorway center`).toBe(false)
+        const half = DOOR_WIDTH / 2 + 0.05
+        expect(
+          axis === 'z'
+            ? templateHitsWall(x, z - half) && templateHitsWall(x, z + half)
+            : templateHitsWall(x - half, z) && templateHitsWall(x + half, z),
+          `${id} doorway jambs`,
+        ).toBe(true)
+      }
+    }
+  })
+
+  it('can build a valid ceiling around every template skylight', () => {
+    for (const id of CLUB_GALLERY_TEMPLATE_IDS) {
+      const template = clubGalleryTemplates[id]
+      const panels = ceilingAroundSkylights(template)
+      const covered = panels.reduce((total, panel) => total + area(panel), 0)
+      const openings = template.rooms.reduce((total, room) => total + area(skylightOf(room)), 0)
+      expect(covered, id).toBeCloseTo(area(template.bounds) - openings)
     }
   })
 })

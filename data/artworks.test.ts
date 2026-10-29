@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { GALLERY_BOUNDS, walls } from '@/components/gallery/world/roomsData'
-import { HANGINGS, gallerySlots, hang } from './artworks'
+import { CLUB_GALLERY_TEMPLATE_IDS, GALLERY_BOUNDS, clubGalleryTemplates, walls } from '@/components/gallery/world/roomsData'
+import { CLUB_HANGINGS, HANGINGS, clubGallerySlots, gallerySlots, hang } from './artworks'
 
 // The player's capsule radius (Player.tsx) plus a little air.
 const CLEARANCE = 0.5
@@ -62,6 +62,31 @@ describe('gallerySlots', () => {
       const { x, z } = viewingSpot(slot)
       expect(x > minX + CLEARANCE && x < maxX - CLEARANCE && z > minZ + CLEARANCE && z < maxZ - CLEARANCE).toBe(true)
       expect(hitsWall(x, z, CLEARANCE), `${slot.roomId} at ${slot.position}`).toBe(false)
+    }
+  })
+})
+
+describe('clubGallerySlots', () => {
+  it('matches the capacity of every Club room template', () => {
+    for (const id of CLUB_GALLERY_TEMPLATE_IDS) {
+      expect(clubGallerySlots[id], id).toHaveLength(clubGalleryTemplates[id].capacity)
+      expect(CLUB_HANGINGS[id].flatMap((hanging) => hang(hanging, clubGalleryTemplates[id].walls))).toEqual(clubGallerySlots[id])
+    }
+  })
+
+  it('hangs every Club obra flat against a wall with open viewing space', () => {
+    for (const id of CLUB_GALLERY_TEMPLATE_IDS) {
+      const template = clubGalleryTemplates[id]
+      const [x0, z0, x1, z1] = template.bounds
+      const templateHitsWall = (x: number, z: number, margin: number) => template.walls.some(({ position, size }) =>
+        Math.abs(x - position[0]) < size[0] / 2 + margin && Math.abs(z - position[2]) < size[2] / 2 + margin)
+      for (const slot of clubGallerySlots[id]) {
+        const facing = { x: Math.sin(slot.rotation[1]), z: Math.cos(slot.rotation[1]) }
+        expect(templateHitsWall(slot.position[0] - facing.x * 0.05, slot.position[2] - facing.z * 0.05, 0), `${id} wall behind`).toBe(true)
+        const spot = viewingSpot(slot)
+        expect(spot.x > x0 + CLEARANCE && spot.x < x1 - CLEARANCE && spot.z > z0 + CLEARANCE && spot.z < z1 - CLEARANCE, `${id} viewing bounds`).toBe(true)
+        expect(templateHitsWall(spot.x, spot.z, CLEARANCE), `${id} viewing space`).toBe(false)
+      }
     }
   })
 })

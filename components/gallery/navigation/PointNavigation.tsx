@@ -11,6 +11,7 @@ import { useTouchStore } from '../mobile/touchStore'
 import { aimAt } from './aim'
 import { findWalkPath, viewingSpot } from './path'
 import { useNavigationStore } from './store'
+import { mainGalleryTemplate, type GalleryRoomTemplate } from '../world/roomsData'
 
 // The same reach as E: closer than this, a click on an obra opens it on the spot.
 const OPEN_DISTANCE = 3.5
@@ -31,7 +32,7 @@ const playerPosition = new Vector3()
  * Lock), the click goes where the crosshair in the middle of the screen
  * points.
  */
-export function PointNavigation({ active, touch, pointerLock, artworks, garden }: { active: boolean; touch: boolean; pointerLock: boolean; artworks: Artwork[]; garden: boolean }) {
+export function PointNavigation({ active, touch, pointerLock, artworks, garden, template = mainGalleryTemplate }: { active: boolean; touch: boolean; pointerLock: boolean; artworks: Artwork[]; garden: boolean; template?: GalleryRoomTemplate }) {
   const { camera, scene, gl } = useThree()
   const ray = useMemo(() => new Raycaster(), [])
   const destination = useNavigationStore((state) => state.path.at(-1))
@@ -57,7 +58,7 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden }
         if (aim.distance <= OPEN_DISTANCE) { navigation.cancel(); store.getState().setOpen(true) }
         else if (!touch) {
           camera.getWorldPosition(playerPosition)
-          const route = findWalkPath({ x: playerPosition.x, z: playerPosition.z }, aim.kind === 'vinyl' ? VINYL.approach : { x: furniture.x, z: furniture.z + 1.7 }, garden)
+          const route = findWalkPath({ x: playerPosition.x, z: playerPosition.z }, aim.kind === 'vinyl' ? VINYL.approach : { x: furniture.x, z: furniture.z + 1.7 }, garden, template)
           if (route) navigation.start(route)
         }
         return
@@ -73,7 +74,7 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden }
       if (touch && !artwork) return
       const to = artwork ? viewingSpot(artwork) : aim?.kind === 'spot' ? aim.point : null
       camera.getWorldPosition(playerPosition)
-      const route = to && findWalkPath({ x: playerPosition.x, z: playerPosition.z }, to, garden)
+      const route = to && findWalkPath({ x: playerPosition.x, z: playerPosition.z }, to, garden, template)
       if (route) navigation.start(route, artwork?.id)
       else navigation.cancel(true)
     })
@@ -142,7 +143,7 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden }
       canvas.removeEventListener('pointerup', up)
       canvas.removeEventListener('pointercancel', cancel)
     }
-  }, [active, touch, pointerLock, camera, scene, gl, ray, artworks, garden])
+  }, [active, touch, pointerLock, camera, scene, gl, ray, artworks, garden, template])
 
   // A ring on the floor where the walk ends (above the garden's stepping
   // stones); the raycast looks through it.

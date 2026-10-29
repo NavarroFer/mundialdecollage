@@ -4,24 +4,16 @@ import {
   BASEBOARD_HEIGHT,
   DOOR_HEIGHT,
   DOOR_WIDTH,
-  GALLERY_BOUNDS,
   WALL_HEIGHT,
   WALL_THICKNESS,
-  GARDEN_FLOWERS,
-  GARDEN_PATH,
   ceilingAroundSkylights,
-  doorways,
-  walls,
+  mainGalleryTemplate,
   type Bounds,
+  type GalleryRoomTemplate,
   type WallSegment,
 } from './roomsData'
 import { plankTexture } from './architectureTextures'
 import { galleryThemes, type GalleryTheme } from '../themes'
-
-const [minX, minZ, maxX, maxZ] = GALLERY_BOUNDS
-const floorWidth = maxX - minX
-const floorDepth = maxZ - minZ
-const floorCenter: [number, number] = [(minX + maxX) / 2, (minZ + maxZ) / 2]
 
 // A modern dark skirting board along every wall's base — reuses the wall's
 // own footprint but stands a hair thicker so the trim line doesn't z-fight
@@ -65,12 +57,17 @@ function DoorwayFrame({ center, axis, theme }: { center: [number, number, number
   )
 }
 
-function WindowsPaintDetails() {
+function WindowsPaintDetails({ template }: { template: GalleryRoomTemplate }) {
   const colors = ['#000080', '#008080', '#ff00ff', '#ffff00', '#00ff00', '#ff0000']
+  const bounds = template.bounds
+  const [minX, , maxX, maxZ] = bounds
+  const width = Math.min(maxX - minX - 1, colors.length * 1.15)
+  const start = template.id === 'main' ? -15 : (minX + maxX - width) / 2
+  const z = template.id === 'main' ? 4.8 : maxZ - 0.2
   return (
     <group>
       {colors.map((color, index) => (
-        <mesh key={color} position={[-15 + index * 1.15, 0.012, 4.8]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh key={color} position={[start + index * (width / colors.length), 0.012, z]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[0.85, 0.26]} />
           <meshBasicMaterial color={color} />
         </mesh>
@@ -110,20 +107,22 @@ function GardenFlower({ x, z, color }: { x: number; z: number; color: string }) 
 const PATH_WIDTH = 1.85
 const STONE_SPACING = 3
 
-// The sand path's straight runs, each overlapping the next at the corner.
-const PATH_RUNS = GARDEN_PATH.slice(1).map(([x, z], index): Bounds => {
-  const [px, pz] = GARDEN_PATH[index]
-  const half = PATH_WIDTH / 2
-  return [Math.min(x, px) - half, Math.min(z, pz) - half, Math.max(x, px) + half, Math.max(z, pz) + half]
-})
+/** The sand path's straight runs, each overlapping the next at the corner. */
+export function gardenPathRuns(path: Array<[number, number]>): Bounds[] {
+  return path.slice(1).map(([x, z], index): Bounds => {
+    const [px, pz] = path[index]
+    const half = PATH_WIDTH / 2
+    return [Math.min(x, px) - half, Math.min(z, pz) - half, Math.max(x, px) + half, Math.max(z, pz) + half]
+  })
+}
 
-// A stepping stone every few meters along the path, starting a meter in.
-const PATH_STONES = (() => {
+function gardenPathGeometry(path: Array<[number, number]>) {
+  const runs = gardenPathRuns(path)
   const stones: [number, number][] = []
   let walked = 0
-  for (let i = 1; i < GARDEN_PATH.length; i++) {
-    const [ax, az] = GARDEN_PATH[i - 1]
-    const [bx, bz] = GARDEN_PATH[i]
+  for (let i = 1; i < path.length; i++) {
+    const [ax, az] = path[i - 1]
+    const [bx, bz] = path[i]
     const length = Math.hypot(bx - ax, bz - az)
     const first = 1 + Math.ceil((walked - 1) / STONE_SPACING) * STONE_SPACING - walked
     for (let along = first; along < length; along += STONE_SPACING) {
@@ -131,25 +130,26 @@ const PATH_STONES = (() => {
     }
     walked += length
   }
-  return stones
-})()
+  return { runs, stones }
+}
 
-function GardenDetails() {
+function GardenDetails({ template }: { template: GalleryRoomTemplate }) {
+  const { runs, stones } = useMemo(() => gardenPathGeometry(template.garden.path), [template])
   return (
     <group>
-      {PATH_RUNS.map(([x0, z0, x1, z1], index) => (
+      {runs.map(([x0, z0, x1, z1], index) => (
         <mesh key={index} position={[(x0 + x1) / 2, 0.014, (z0 + z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[x1 - x0, z1 - z0]} />
           <meshStandardMaterial color="#e9c989" roughness={1} />
         </mesh>
       ))}
-      {PATH_STONES.map(([x, z], index) => (
+      {stones.map(([x, z], index) => (
         <mesh key={index} position={[x, 0.035, z]} receiveShadow>
           <cylinderGeometry args={[0.48, 0.54, 0.055, 12]} />
           <meshStandardMaterial color={index % 2 === 0 ? '#f5dfae' : '#d8b979'} roughness={1} />
         </mesh>
       ))}
-      {GARDEN_FLOWERS.map((flower) => (
+      {template.garden.flowers.map((flower) => (
         <GardenFlower key={`${flower.x}-${flower.z}`} {...flower} />
       ))}
     </group>
@@ -157,10 +157,9 @@ function GardenDetails() {
 }
 
 const PLANK_TILE_METERS = 4
-const CEILING_PANELS = ceilingAroundSkylights()
 
-function Ceiling({ color, skylights }: { color: string; skylights: boolean }) {
-  const panels = skylights ? CEILING_PANELS : [GALLERY_BOUNDS]
+function Ceiling({ color, skylights, template }: { color: string; skylights: boolean; template: GalleryRoomTemplate }) {
+  const panels = skylights ? ceilingAroundSkylights(template) : [template.bounds]
   return panels.map(([x0, z0, x1, z1]) => (
     <mesh key={`${x0} ${z0}`} position={[(x0 + x1) / 2, WALL_HEIGHT, (z0 + z1) / 2]} rotation={[Math.PI / 2, 0, 0]}>
       <planeGeometry args={[x1 - x0, z1 - z0]} />
@@ -169,16 +168,20 @@ function Ceiling({ color, skylights }: { color: string; skylights: boolean }) {
   ))
 }
 
-export function Rooms({ theme }: { theme: GalleryTheme }) {
+export function Rooms({ theme, template = mainGalleryTemplate }: { theme: GalleryTheme; template?: GalleryRoomTemplate }) {
   const { maps, anisotropy } = useSurfaceDetail()
   const palette = galleryThemes[theme].room
   const architecture = galleryThemes[theme].architecture
+  const [minX, minZ, maxX, maxZ] = template.bounds
+  const floorWidth = maxX - minX
+  const floorDepth = maxZ - minZ
+  const floorCenter: [number, number] = [(minX + maxX) / 2, (minZ + maxZ) / 2]
   const planks = useMemo(() => {
     if (!architecture?.planks) return null
     const texture = plankTexture(palette.floor, PLANK_TILE_METERS)
     texture.repeat.set(floorWidth / PLANK_TILE_METERS, floorDepth / PLANK_TILE_METERS)
     return texture
-  }, [architecture, palette.floor])
+  }, [architecture, floorDepth, floorWidth, palette.floor])
   useEffect(() => () => planks?.dispose(), [planks])
   // Three textures are mutable GPU resources; reuse the map instead of allocating on every quality change.
   // eslint-disable-next-line react-hooks/immutability
@@ -190,16 +193,16 @@ export function Rooms({ theme }: { theme: GalleryTheme }) {
         <meshStandardMaterial color={planks ? '#ffffff' : palette.floor} map={planks} bumpMap={planks ? maps?.wood : null} bumpScale={0.012} roughnessMap={planks ? maps?.wood : null} roughness={theme === 'garden' ? 0.95 : planks ? 0.68 : 0.6} />
       </mesh>
 
-      {theme !== 'garden' && <Ceiling color={palette.ceiling} skylights={Boolean(architecture?.skylight)} />}
+      {theme !== 'garden' && <Ceiling color={palette.ceiling} skylights={Boolean(architecture?.skylight)} template={template} />}
 
-      {walls.map((wall) => (
+      {template.walls.map((wall) => (
         <mesh key={wall.id} position={wall.position} castShadow receiveShadow>
           <boxGeometry args={wall.size} />
           <meshStandardMaterial color={palette.wall} bumpMap={theme === 'windows98' ? null : maps?.plaster} bumpScale={0.006} roughness={theme === 'garden' ? 0.88 : 0.82} />
         </mesh>
       ))}
 
-      {walls.map((wall) => (
+      {template.walls.map((wall) => (
         <mesh
           key={`${wall.id}-baseboard`}
           position={[wall.position[0], BASEBOARD_HEIGHT / 2, wall.position[2]]}
@@ -210,11 +213,11 @@ export function Rooms({ theme }: { theme: GalleryTheme }) {
         </mesh>
       ))}
 
-      {doorways.map((doorway) => (
+      {template.doorways.map((doorway) => (
         <DoorwayFrame key={doorway.id} center={doorway.center} axis={doorway.axis} theme={theme} />
       ))}
-      {theme === 'windows98' && <WindowsPaintDetails />}
-      {theme === 'garden' && <GardenDetails />}
+      {theme === 'windows98' && <WindowsPaintDetails template={template} />}
+      {theme === 'garden' && <GardenDetails template={template} />}
     </group>
   )
 }
