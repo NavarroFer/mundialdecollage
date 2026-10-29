@@ -149,7 +149,15 @@ const HAIR_FALL: Record<'long' | 'wavy' | 'bob', Ring[]> = {
 
 const BEARD: Ring[] = [[-0.126, 0.034, 0.034, 0.052], [-0.1, 0.058, 0.062, 0.036], [-0.065, 0.076, 0.086, 0.015], [-0.015, 0.085, 0.099, 0.002], [0.02, 0.086, 0.1, 0]]
 
-const themeSkin: Record<GalleryTheme, string | null> = { collage: null, windows98: '#ffff00', garden: null }
+const themeSkin: Record<GalleryTheme, string | null> = {
+  collage: null,
+  windows98: '#ffff00',
+  garden: null,
+  atelier: null,
+  industrial: null,
+  museum: null,
+  alley: null,
+}
 
 function armPoses(look: Look): [ArmPose, ArmPose] {
   // Index 0 is the person's right side (-X when facing +Z), 1 their left.

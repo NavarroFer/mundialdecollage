@@ -4,8 +4,8 @@ import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNo
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { walkRate } from './avatarMotion'
+import { prepareAvatar, type AvatarMaterialSlots, type AvatarOutfit } from './avatarOutfit'
 import { animationsUrl, avatarUrl, crouchUrl, type CastMember } from './cast'
 import type { Gait } from './Person'
 
@@ -14,37 +14,30 @@ import type { Gait } from './Person'
  * suspends while its files download (Person shows the drawn figure meanwhile)
  * and throws if they can't, which AvatarFallback catches.
  */
-export function AvatarBody({ member, gait, phase }: { member: CastMember; gait: RefObject<Gait>; phase: number }) {
+export function AvatarBody({
+  member,
+  gait,
+  phase,
+  outfit,
+  materialSlots,
+}: {
+  member: CastMember
+  gait: RefObject<Gait>
+  phase: number
+  outfit?: AvatarOutfit
+  materialSlots?: AvatarMaterialSlots
+}) {
   // Meshopt-compressed, no Draco: useGLTF caches each file, so a body shared by two people downloads once.
   const { scene } = useGLTF(avatarUrl(member.name), false, true)
   const { animations } = useGLTF(animationsUrl(member.sex), false, true)
 
-  const body = useMemo(() => {
-    const copy = clone(scene)
-    // GLTFLoader gives each piece (one per material) its own skeleton; one per person is enough.
-    let skeleton: THREE.Skeleton | undefined
-    copy.traverse((object) => {
-      const mesh = object as THREE.SkinnedMesh
-      if (!mesh.isMesh) return
-      if (mesh.isSkinnedMesh) {
-        if (!skeleton) skeleton = mesh.skeleton
-        else mesh.bind(skeleton, mesh.bindMatrix)
-      }
-      mesh.castShadow = true
-      // A skinned mesh's bounds are its rest pose, so culling could hide someone mid-stride.
-      mesh.frustumCulled = false
-      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      for (const material of materials) {
-        // Hair, lashes and brows: cut out instead of blended, so they never sort wrong, with soft edges from MSAA.
-        if (material.transparent) {
-          material.transparent = false
-          material.alphaTest = 0.5
-          material.alphaToCoverage = true
-        }
-      }
-    })
-    return copy
-  }, [scene])
+  const prepared = useMemo(() => prepareAvatar(scene, outfit, materialSlots), [scene, outfit, materialSlots])
+  const body = prepared.body
+
+  useEffect(() => () => {
+    // The weave/normal textures are a tiny shared cache; only the cloned per-avatar materials are owned here.
+    prepared.materials.forEach((material) => material.dispose())
+  }, [prepared])
 
   const mixer = useMemo(() => new THREE.AnimationMixer(body), [body])
   const actions = useMemo(() => {
