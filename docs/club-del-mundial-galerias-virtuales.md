@@ -179,9 +179,12 @@ Cuando los fundadores ya tienen sus galerías armadas y compartidas (Puerta 1), 
    - La captura es una imagen fija en R2; nunca se dibuja por pedido.
    - Si se muestra cuántos socios hay, el número sale de la base por un endpoint cacheado en el CDN, nunca escrito a mano.
    - Después de `next build`, la ruta `anon` de la home sigue en ●.
-4. **Campaña desde `/admin/campanas`:** la herramienta ya traduce cada mail al idioma del contacto (`lib/email-translation.ts`), agrega el pie para darse de baja, respeta bajas, rebotes y quejas (`lib/campaign-audience.ts`), cuenta aperturas con el webhook de Resend y programa envíos que manda el cron diario (`app/api/cron/campanas`). Falta:
-   - Una audiencia nueva en `CAMPAIGN_AUDIENCES`: artistas con obra que todavía no son socios.
-   - Agregar `?desde=mail` a los enlaces, que no se marcan solos: `lib/visit-source.ts` los cuenta como origen `email` y `/admin/estadisticas` muestra cuántas altas vinieron del mail.
+4. **Campaña desde `/admin/campanas`:** la herramienta ya traduce cada mail al idioma del contacto (`lib/email-translation.ts`), agrega el pie para darse de baja, respeta bajas, rebotes y quejas (`lib/campaign-audience.ts`), cuenta aperturas con el webhook de Resend y programa envíos que manda el cron diario (`app/api/cron/campanas`). Ya está hecho para el Club:
+   - **Público nuevo** «Artistas sin galería del Club» (`club_prospects`): suscriptos que participaron y no tienen galería, activa o no, sin admins. Lo arma `club_member_emails()` junto con `participant_emails()`.
+   - **Plantilla de lanzamiento** `club_lanzamiento`, que aparece sola en `/admin/plantillas`: abre con «¿Querés que tus obras tengan su casa?», explica la sala, los temas y las monedas, muestra el precio y manda a `/club`. Si el precio cambia, se edita ahí.
+   - **Enlaces marcados solos:** todo enlace al sitio en un mail masivo lleva `?desde=mail` (`lib/mail-links.ts`), así `/admin/estadisticas` cuenta cuántas altas vinieron del mail.
+   - **Freno:** mientras el Club esté cerrado, Campañas no manda a ese público, ni de forma manual ni programada.
+   - **Invitación en el aviso diario** «Así le fue a tu obra» (`novedades_obra`): la pregunta gancho más un botón «Crear mi galería», que se suma sola cuando se abre el Club.
 5. **Cupo de envíos:** las campañas salen como envío masivo (`lib/mail/index.ts`): primero por Brevo, después por Resend dejando 20 de reserva para los recibos. Lo que no entra en ningún cupo igual se manda por Brevo, que puede rechazarlo. Con una lista más grande que el cupo del día (`/admin/envios`), conviene programar la campaña en tandas.
 6. **Términos antes de cobrar:** sumar a `lib/terms.ts` una sección del Club con qué incluye la cuota, cómo se da de baja, el arrepentimiento de 10 días que ya figura para las compras (art. 34 de la Ley 24.240) y que las monedas no tienen valor en dinero, no se transfieren y no se reembolsan una vez gastadas. Confirmar con quien lleve lo legal si el sitio necesita un botón de baja o de arrepentimiento visible.
 7. **Medir:** visitas a la página del Club y a las galerías de muestra, aperturas de la campaña y altas por origen.
