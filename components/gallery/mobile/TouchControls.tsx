@@ -5,6 +5,7 @@ import { useArcadeStore } from '../arcade/store'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 import { useClubDoorStore } from '../club/store'
+import { useClubHostStore } from '../club/host'
 import { useInteractionStore } from '../interaction/store'
 import { useNavigationStore } from '../navigation/store'
 import { useWallStore } from '../wall/store'
@@ -28,13 +29,14 @@ const TAP_HINT_KEY = 'mdc-gallery-tap-hint-seen'
 
 type Vec2 = { x: number; y: number }
 
-export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
+export function TouchControls({ theme: _theme, hostName }: { theme: GalleryTheme; hostName?: string }) {
   const { m } = useI18n()
   const vinyl = useVinylStore((state) => state.aiming)
   const arcade = useArcadeStore((state) => state.aiming)
   const targetId = useInteractionStore((state) => state.targetId)
   const aimingAtWall = useWallStore((state) => state.aiming && !state.placing)
   const door = useClubDoorStore((state) => (state.aiming ? state.next : null))
+  const host = useClubHostStore((state) => state.aiming)
   const sticksHint = useSticksHint()
   const layerRef = useRef<HTMLDivElement>(null)
   const [moveKnobOffset, setMoveKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
@@ -170,7 +172,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
       <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
       {sticksHint ? <TouchHint /> : <ArtworkTapHint />}
 
-      {(vinyl || arcade || targetId || aimingAtWall || door) && <button
+      {(vinyl || arcade || targetId || aimingAtWall || door || host) && <button
         type="button"
         onTouchStart={(event) => {
           event.stopPropagation()
@@ -178,7 +180,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
         onClick={() => interact()}
         className={`${styles.hudButton} pointer-events-auto absolute right-[7%] bottom-[calc(7%+7.5rem)] flex min-h-12 max-w-48 items-center justify-center px-4 text-sm active:scale-95`}
       >
-        {vinyl ? 'Elegir música' : arcade ? 'Jugar Snake' : targetId ? m.gallery.viewArtwork : door ? fmt(m.gallery.clubDoor.prompt, { name: door.artistName }) : m.gallery.wall.prompt}
+        {vinyl ? 'Elegir música' : arcade ? 'Jugar Snake' : targetId ? m.gallery.viewArtwork : host && hostName ? fmt(m.gallery.clubHost.prompt, { name: hostName }) : door ? fmt(m.gallery.clubDoor.prompt, { name: door.artistName }) : m.gallery.wall.prompt}
       </button>}
     </div>
   )

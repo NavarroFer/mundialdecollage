@@ -457,6 +457,7 @@ const id: Messages = {
   gallery: {
     contact: { consult: 'Tanya seniman tentang karya ini', message: 'Halo, saya melihat karya Anda “{title}” di galeri Klub Anda dan ingin bertanya.' },
     clubDoor: { next: 'Ruang berikutnya', soon: 'Segera, ruang lainnya', prompt: 'Ke ruang {name}' },
+    clubHost: { prompt: 'Baca surat {name}', eyebrow: 'Surat sambutan', fallback: 'Terima kasih sudah mampir ke ruangku. Jelajahi dengan santai: setiap karya punya ceritanya.', write: 'Kirim pesan', message: 'Halo, saya menjelajahi galeri Anda “{title}” di Klub dan ingin menulis kepada Anda.' },
     mobileMenu: { open: "Opsi", close: "Tutup opsi", resume: "Lanjutkan menjelajah" },
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
     startTitle: 'Jelajahi pameran',

@@ -33,6 +33,13 @@ export default async function ClubGalleryPage({ params }: { params: Promise<{ sl
       template={clubGalleryTemplates[gallery.templateId]}
       presenceTopic={`gallery:club:${gallery.slug}`}
       clubSlug={gallery.slug}
+      clubHost={{
+        avatarId: gallery.hostAvatarId,
+        artistName: gallery.artworks[0]?.artist ?? gallery.title,
+        title: gallery.title,
+        statement: gallery.statement,
+        contact: gallery.contactWhatsapp || gallery.contactUrl ? { whatsapp: gallery.contactWhatsapp, url: gallery.contactUrl } : undefined,
+      }}
     />
   )
 }

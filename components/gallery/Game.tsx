@@ -41,6 +41,8 @@ import { track } from '@/lib/track'
 import { galleryReadyEvent } from '@/lib/funnel'
 import type { GalleryRoomTemplate } from './world/roomsData'
 import { useClubDoorStore } from './club/store'
+import { useClubHostStore, type ClubHostInfo } from './club/host'
+import { WelcomeLetter } from './club/WelcomeLetter'
 import type { ClubHouse } from '@/lib/club-map'
 import { pickNextGallery, readVisitedGalleries, rememberVisitedGallery } from '@/lib/club-next-gallery'
 import { countryCodeToName } from '@/lib/participants'
@@ -79,6 +81,7 @@ export function Game({
   themeOverride,
   presenceTopic,
   clubSlug,
+  clubHost,
 }: {
   artworks: Artwork[]
   userId: string | null
@@ -87,6 +90,8 @@ export function Game({
   presenceTopic?: string
   /** A Club gallery's slug: its door leads to another gallery. */
   clubSlug?: string
+  /** A Club gallery's host and their welcome letter. */
+  clubHost?: ClubHostInfo
 }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const controlMode = useGalleryPreferences((state) => state.controlMode)
@@ -149,7 +154,8 @@ export function Game({
   // the camera widens its view when held upright (Player.tsx).
   const usesPointerLock = !isTouchDevice && controlMode === 'classic'
   // Something in front of the walk: an obra, the photo, the collage, the passport.
-  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || arcadeOpen || vinylOpen
+  const letterOpen = useClubHostStore((state) => state.open)
+  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || arcadeOpen || vinylOpen || letterOpen
   const overlayOpen = optionsOpen || dialogOpen
   const isActive = sceneReady && !overlayOpen && (usesPointerLock ? locked : hasStarted && playing)
   // Under the start screen or the phone menu nothing needs to move, so the
@@ -366,6 +372,7 @@ export function Game({
               cyrillic: locale === 'ru',
             }}
             clubDoor={clubDoorLabels}
+            clubHost={clubHost}
             onReady={() => setSceneReady(true)}
           />
         )}
@@ -374,7 +381,8 @@ export function Game({
       {/* The passport counts days of the museum's daily exhibition: walking a member's Club room is no such day (photos still count). */}
       {userId && <PassportRecorder userId={userId} started={hasStarted && !template} />}
       <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} topic={presenceTopic} />
-      {isTouchDevice && isActive && <TouchControls theme={theme} />}
+      {isTouchDevice && isActive && <TouchControls theme={theme} hostName={clubHost?.artistName} />}
+      {clubHost && <WelcomeLetter host={clubHost} />}
       {/* The visit's own buttons, on the pause screen too: on a computer at
           the bottom, out of the minimap's way; on a phone at the top, out of
           the joysticks' way. Hidden, not unmounted, under a dialog: the photo
@@ -414,7 +422,7 @@ export function Game({
         <button type="button" className={styles.visitMenuButton} onClick={() => handleEnter()}>{m.gallery.mobileMenu.resume}</button>
       </div>
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
-      {isActive && !isTouchDevice && <InteractionPrompt theme={theme} />}
+      {isActive && !isTouchDevice && <InteractionPrompt theme={theme} hostName={clubHost?.artistName} />}
       {/* With the mouse captured, where a click walks to (or which obra it opens). */}
       {isActive && usesPointerLock && <span className={styles.crosshair} aria-hidden="true" />}
       {isActive && <WalkNotice />}

@@ -457,6 +457,7 @@ const fr: Messages = {
   gallery: {
     contact: { consult: 'Contacter l\'artiste à propos de cette œuvre', message: 'Bonjour, j\'ai vu votre œuvre « {title} » dans votre galerie du Club et j\'aimerais vous poser une question.' },
     clubDoor: { next: 'Salle suivante', soon: 'Bientôt, d’autres salles', prompt: 'Aller dans la salle de {name}' },
+    clubHost: { prompt: 'Lire la lettre de {name}', eyebrow: 'Lettre de bienvenue', fallback: 'Merci de passer par ma salle. Prenez votre temps : chaque œuvre a son histoire.', write: 'Lui écrire', message: 'Bonjour, j’ai parcouru votre galerie « {title} » au Club et je voulais vous écrire.' },
     mobileMenu: { open: "Options", close: "Fermer les options", resume: "Reprendre la visite" },
     startEyebrow: 'MONDIAL DU COLLAGE · GALERIE 3D',
     startTitle: "Parcours l'exposition",
