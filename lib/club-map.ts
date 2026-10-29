@@ -9,8 +9,8 @@ export type ClubHouse = {
   title: string
   artistName: string
   countryCode: string | null
-  /** [longitude, latitude], as the maps take them. */
-  coordinates: [number, number]
+  /** [longitude, latitude], as the maps take them; null while the member has not placed it. */
+  coordinates: [number, number] | null
   obras: number
 }
 
@@ -36,7 +36,7 @@ export function jitterHome(slug: string, lat: number, lng: number): [number, num
   return [lng + unit(hash) * 0.04, lat + unit(hash >>> 16) * 0.04]
 }
 
-export type HouseRow = { slug: string; title: string; artist_name: string; country_code: string | null; home_lat: number | string; home_lng: number | string; obras: number }
+export type HouseRow = { slug: string; title: string; artist_name: string; country_code: string | null; home_lat: number | string | null; home_lng: number | string | null; obras: number }
 
 export function clubHouseFromRow(row: HouseRow): ClubHouse {
   return {
@@ -44,7 +44,7 @@ export function clubHouseFromRow(row: HouseRow): ClubHouse {
     title: row.title,
     artistName: row.artist_name,
     countryCode: row.country_code,
-    coordinates: jitterHome(row.slug, Number(row.home_lat), Number(row.home_lng)),
+    coordinates: row.home_lat === null || row.home_lng === null ? null : jitterHome(row.slug, Number(row.home_lat), Number(row.home_lng)),
     obras: row.obras,
   }
 }

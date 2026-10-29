@@ -32,6 +32,7 @@ export default async function ClubGalleryPage({ params }: { params: Promise<{ sl
       themeOverride={gallery.theme}
       template={clubGalleryTemplates[gallery.templateId]}
       presenceTopic={`gallery:club:${gallery.slug}`}
+      clubSlug={gallery.slug}
     />
   )
 }

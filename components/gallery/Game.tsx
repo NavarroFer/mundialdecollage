@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
 import { AttentionRecorder } from './attention/AttentionRecorder'
 import { BookOpen, Menu, X } from 'lucide-react'
@@ -40,6 +40,10 @@ import { readReferralParam, withReferral } from '@/lib/referral'
 import { track } from '@/lib/track'
 import { galleryReadyEvent } from '@/lib/funnel'
 import type { GalleryRoomTemplate } from './world/roomsData'
+import { useClubDoorStore } from './club/store'
+import type { ClubHouse } from '@/lib/club-map'
+import { pickNextGallery, readVisitedGalleries, rememberVisitedGallery } from '@/lib/club-next-gallery'
+import { countryCodeToName } from '@/lib/participants'
 
 // Doesn't change over a session, so no subscription is needed — just a
 // client-only snapshot read via useSyncExternalStore (SSR-safe, and no
@@ -74,12 +78,15 @@ export function Game({
   template,
   themeOverride,
   presenceTopic,
+  clubSlug,
 }: {
   artworks: Artwork[]
   userId: string | null
   template?: GalleryRoomTemplate
   themeOverride?: GalleryTheme
   presenceTopic?: string
+  /** A Club gallery's slug: its door leads to another gallery. */
+  clubSlug?: string
 }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const controlMode = useGalleryPreferences((state) => state.controlMode)
@@ -118,6 +125,23 @@ export function Game({
     if (sceneReady) track(galleryReadyEvent(performance.now() - openedAt.current))
   }, [sceneReady])
   const loading = hasStarted && !sceneReady
+
+  // The Puerta al Club: where it leads, from the same CDN list as the Club's
+  // map, and this gallery remembered as visited (lib/club-next-gallery.ts).
+  useEffect(() => {
+    if (!clubSlug) return
+    let current = true
+    const visited = readVisitedGalleries()
+    rememberVisitedGallery(clubSlug)
+    fetch('/api/club/casas')
+      .then((response) => (response.ok ? (response.json() as Promise<ClubHouse[]>) : []))
+      .then((galleries) => { if (current) useClubDoorStore.getState().setNext(pickNextGallery(galleries, clubSlug, visited)) })
+      .catch(() => {})
+    return () => { current = false }
+  }, [clubSlug])
+  const clubDoorLabels = useMemo(() => clubSlug
+    ? { next: m.gallery.clubDoor.next, soon: m.gallery.clubDoor.soon, countryName: (code: string) => countryCodeToName(code, locale) }
+    : undefined, [clubSlug, locale, m])
 
   // With the keyboard on a computer, Pointer Lock IS the active state. Touch
   // and click-to-walk have no Pointer Lock, so ENTRAR is the activation and
@@ -341,6 +365,7 @@ export function Game({
               subtitle: wallWeek ? fmt(m.gallery.wall.week, { date: formatDayMonth(locale, `${wallWeek}T12:00:00-03:00`) }) : '',
               cyrillic: locale === 'ru',
             }}
+            clubDoor={clubDoorLabels}
             onReady={() => setSceneReady(true)}
           />
         )}

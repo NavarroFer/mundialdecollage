@@ -457,6 +457,7 @@ const en: Messages = {
   },
   gallery: {
     contact: { consult: 'Ask the artist about this work', message: 'Hello, I saw your work “{title}” in your World Cup Club gallery and I would like to ask you about it.' },
+    clubDoor: { next: 'Next room', soon: 'More rooms soon', prompt: 'Go to {name}’s room' },
     mobileMenu: { open: "Options", close: "Close options", resume: "Continue exploring" },
     startEyebrow: 'COLLAGE WORLD CUP · 3D GALLERY',
     startTitle: 'Walk through the exhibition',

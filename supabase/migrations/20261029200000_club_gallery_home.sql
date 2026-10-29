@@ -10,9 +10,11 @@ alter table public.club_galleries
 
 grant update (home_lat, home_lng) on public.club_galleries to authenticated;
 
--- Every active gallery that has a house, for the public map: who the artist
--- is and how many obras hang there. Runs with its owner's rights because a
--- gallery's owner is an auth user, which visitors cannot join to profiles.
+-- Every active gallery, for the public map (the ones with a house) and the
+-- Puerta al Club that leads from one gallery to the next (all of them): who
+-- the artist is and how many obras hang there. Runs with its owner's rights
+-- because a gallery's owner is an auth user, which visitors cannot join to
+-- profiles.
 create function public.club_map_houses()
 returns table (slug text, title text, artist_name text, country_code text, home_lat numeric, home_lng numeric, obras integer)
 language sql stable security definer set search_path = public
@@ -21,7 +23,7 @@ as $$
     (select count(*)::integer from public.club_gallery_hangings h where h.gallery_id = g.id)
   from public.club_galleries g
   left join public.profiles p on p.id = g.user_id
-  where g.status = 'active' and g.home_lat is not null
+  where g.status = 'active'
   order by g.created_at
 $$;
 

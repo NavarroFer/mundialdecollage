@@ -3,6 +3,8 @@
 import { useVinylStore } from '../vinyl/store'
 import { useArcadeStore } from '../arcade/store'
 import { useI18n } from '@/lib/i18n/client'
+import { fmt } from '@/lib/i18n/format'
+import { useClubDoorStore } from '../club/store'
 import { useInteractionStore } from '../interaction/store'
 import { useNavigationStore } from '../navigation/store'
 import { useWallStore } from '../wall/store'
@@ -32,6 +34,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
   const arcade = useArcadeStore((state) => state.aiming)
   const targetId = useInteractionStore((state) => state.targetId)
   const aimingAtWall = useWallStore((state) => state.aiming && !state.placing)
+  const door = useClubDoorStore((state) => (state.aiming ? state.next : null))
   const sticksHint = useSticksHint()
   const layerRef = useRef<HTMLDivElement>(null)
   const [moveKnobOffset, setMoveKnobOffset] = useState<Vec2>({ x: 0, y: 0 })
@@ -167,7 +170,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
       <VirtualStick className={styles.lookStick} offset={lookKnobOffset} />
       {sticksHint ? <TouchHint /> : <ArtworkTapHint />}
 
-      {(vinyl || arcade || targetId || aimingAtWall) && <button
+      {(vinyl || arcade || targetId || aimingAtWall || door) && <button
         type="button"
         onTouchStart={(event) => {
           event.stopPropagation()
@@ -175,7 +178,7 @@ export function TouchControls({ theme: _theme }: { theme: GalleryTheme }) {
         onClick={() => interact()}
         className={`${styles.hudButton} pointer-events-auto absolute right-[7%] bottom-[calc(7%+7.5rem)] flex min-h-12 max-w-48 items-center justify-center px-4 text-sm active:scale-95`}
       >
-        {vinyl ? 'Elegir música' : arcade ? 'Jugar Snake' : targetId ? m.gallery.viewArtwork : m.gallery.wall.prompt}
+        {vinyl ? 'Elegir música' : arcade ? 'Jugar Snake' : targetId ? m.gallery.viewArtwork : door ? fmt(m.gallery.clubDoor.prompt, { name: door.artistName }) : m.gallery.wall.prompt}
       </button>}
     </div>
   )

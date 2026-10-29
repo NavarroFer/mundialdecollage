@@ -23,4 +23,4 @@ console.log('owner clears it            :', await as('authenticated', M, "update
 await db.exec(`update public.club_galleries set home_lat = -38, home_lng = -57.6;
  insert into public.profiles(id,name,country_code) values ('${M}','Fer Navarro','AR') on conflict (id) do update set name = excluded.name, country_code = excluded.country_code;
  insert into public.club_galleries(user_id,slug,title,host_avatar_id,status,home_lat,home_lng) values ('${O}','paused-g','P','Female_Adult_01','paused',1,1);`)
-console.log('anon lists the houses      :', await as('anon', null, 'select * from public.club_map_houses()'))
+console.log('anon lists every gallery  :', await as('anon', null, 'select * from public.club_map_houses()'))

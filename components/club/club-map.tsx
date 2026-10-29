@@ -68,7 +68,7 @@ export function ClubMap({ houses, texts, picked, onPick, initialCenter, initialZ
                 ))}
               </Geographies>
             </MapSurface>
-            {houses.map((house) => (
+            {houses.flatMap((house) => (house.coordinates ? [house as ClubHouse & { coordinates: [number, number] }] : [])).map((house) => (
               <HouseMarker
                 key={house.slug}
                 house={house}
@@ -131,7 +131,7 @@ function MapSurface({ onPick, children }: { onPick?: (coordinates: [number, numb
 }
 
 // A little house that keeps its size on screen however far the map zooms.
-function HouseMarker({ house, label, selected, own, onSelect }: { house: ClubHouse; label: string; selected?: boolean; own?: boolean; onSelect?: () => void }) {
+function HouseMarker({ house, label, selected, own, onSelect }: { house: ClubHouse & { coordinates: [number, number] }; label: string; selected?: boolean; own?: boolean; onSelect?: () => void }) {
   const { k } = useZoomPanContext()
   const fill = own || selected ? 'var(--collage-red)' : 'var(--collage-blue)'
   return (

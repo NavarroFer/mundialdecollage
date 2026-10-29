@@ -26,6 +26,7 @@ import { CollageWall, WallAim } from './wall/CollageWall'
 import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
 import type { GalleryRoomTemplate } from './world/roomsData'
+import { ClubDoor, type ClubDoorLabels } from './club/ClubDoor'
 
 export type SceneProps = {
   artworks: Artwork[]
@@ -41,6 +42,8 @@ export type SceneProps = {
   /** Desktop's Pointer Lock element (Game's shell); null on touch. */
   lockTarget: HTMLElement | null
   wall: { title: string; subtitle: string; cyrillic: boolean }
+  /** A Club gallery: the Puerta al Club in its way in. */
+  clubDoor?: ClubDoorLabels
   /** Called once, on the first frame, when everything the scene suspends on has loaded. */
   onReady: () => void
 }
@@ -51,7 +54,7 @@ export type SceneProps = {
  * mounting them behind the start screen kept the GPU and the physics busy for
  * a scene nobody could see yet.
  */
-export function Scene({ artworks, theme, template, active, controlMode, paused, isTouchDevice, lockTarget, wall, onReady }: SceneProps) {
+export function Scene({ artworks, theme, template, active, controlMode, paused, isTouchDevice, lockTarget, wall, clubDoor, onReady }: SceneProps) {
   const quality = useGraphics((s) => s.current)
   const dpr = useGraphics((s) => s.dpr)
   const [visible, setVisible] = useState(true)
@@ -77,6 +80,7 @@ export function Scene({ artworks, theme, template, active, controlMode, paused, 
           <World artworks={artworks} theme={theme} template={template} />
           <ArcadeCabinet active={active} />
           <VinylConsole active={active} />
+          {template && clubDoor && <ClubDoor template={template} active={active} labels={clubDoor} />}
           <Player active={active} artworks={artworks} />
         </Physics>
         {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}

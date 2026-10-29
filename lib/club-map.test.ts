@@ -40,6 +40,9 @@ describe('clubHouseFromRow', () => {
   it('turns the numeric text of the database into map coordinates', () => {
     const house = clubHouseFromRow({ slug: 'g', title: 'G', artist_name: 'Fer', country_code: 'AR', home_lat: '-38.0', home_lng: '-57.6', obras: 3 })
     expect(house).toMatchObject({ slug: 'g', artistName: 'Fer', countryCode: 'AR', obras: 3 })
-    expect(house.coordinates[0]).toBeCloseTo(-57.6, 1)
+    expect(house.coordinates?.[0]).toBeCloseTo(-57.6, 1)
+  })
+  it('leaves a gallery without a house off the map', () => {
+    expect(clubHouseFromRow({ slug: 'g', title: 'G', artist_name: 'Fer', country_code: null, home_lat: null, home_lng: null, obras: 0 }).coordinates).toBeNull()
   })
 })

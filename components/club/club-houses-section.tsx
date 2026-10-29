@@ -25,7 +25,7 @@ export function ClubHousesSection({ title, body, texts }: { title: string; body:
     return () => { active = false }
   }, [])
 
-  if (!houses?.length) return null
+  if (!houses?.some((house) => house.coordinates)) return null
   return (
     <section className="mt-12" aria-labelledby="club-map-title">
       <h2 id="club-map-title" className="font-display text-3xl uppercase">{title}</h2>
