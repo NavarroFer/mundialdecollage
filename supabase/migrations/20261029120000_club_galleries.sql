@@ -145,13 +145,28 @@ grant select, insert, update, delete on public.club_galleries, public.club_galle
 
 -- Public artwork queries may see a work that is hanging in an active Club
 -- gallery even when it is not the artist's selected competition entry.
-create policy "artworks: public reads active club hangings" on public.artworks
-  for select using (exists (
+--
+-- The policy asks a function that runs with its owner's rights instead of
+-- querying club_gallery_hangings itself: that table's owner policies read
+-- artworks, and Postgres refuses a policy chain that comes back to the
+-- table it started from ("infinite recursion detected in policy").
+create function public.artwork_hangs_in_active_club_gallery(p_artwork_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
     select 1
     from public.club_gallery_hangings h
     join public.club_galleries g on g.id = h.gallery_id
-    where h.artwork_id = artworks.id and g.status = 'active'
-  ));
+    where h.artwork_id = p_artwork_id and g.status = 'active'
+  )
+$$;
+
+revoke all on function public.artwork_hangs_in_active_club_gallery(uuid) from public;
+grant execute on function public.artwork_hangs_in_active_club_gallery(uuid) to anon, authenticated, service_role;
+
+create policy "artworks: public reads active club hangings" on public.artworks
+  for select using (public.artwork_hangs_in_active_club_gallery(id));
 
 -- The SQL identifiers are the stable contract shared with
 -- lib/gallery-catalog.ts. Outfit/accessory prices can be added here when the
