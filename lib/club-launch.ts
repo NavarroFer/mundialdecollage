@@ -1,10 +1,10 @@
 import { ADMIN_EMAILS } from '@/lib/admin'
 
 // The Club stays closed until the owner opens it: CLUB_OPEN=on in the
-// environment (and a redeploy). Closed, its public pages, the home banner
-// and the sitemap entry are absent and nobody can subscribe, buy coins or
-// edit; the site's admins still can, so the whole flow can be tried with real
-// accounts before launch. Galleries that already exist stay where they are,
+// environment (and a redeploy). Closed, /club opens only with its link (out
+// of search), the home banner and the sitemap entry are absent, and nobody
+// can subscribe, buy coins or edit; the site's admins still can, so the
+// whole flow can be tried with real accounts before launch. Galleries that already exist stay where they are,
 // and their owners keep editing them (canUseOwnClubGallery).
 export const isClubOpen = () => process.env.CLUB_OPEN === 'on'
 

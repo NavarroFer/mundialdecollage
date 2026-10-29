@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { Coins, DoorOpen, Palette, Users } from 'lucide-react'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
@@ -14,7 +13,13 @@ import { ClubSamplesSection } from '@/components/club/club-samples-section'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { m } = await getI18n()
-  return { title: m.clubLanding.metaTitle, description: m.clubLanding.metaDescription, alternates: { canonical: '/club' } }
+  return {
+    title: m.clubLanding.metaTitle,
+    description: m.clubLanding.metaDescription,
+    alternates: { canonical: '/club' },
+    // Closed, it is only for whoever has the link: kept out of search.
+    ...(isClubOpen() ? {} : { robots: { index: false, follow: false } }),
+  }
 }
 
 // Same order as m.clubLanding.features: room, coins, style, visitors.
@@ -23,8 +28,10 @@ const FEATURE_ICONS = [DoorOpen, Coins, Palette, Users]
 // The Club's pitch. Everyone sees the same page (its anonymous copy is built
 // ahead, lib/static-pages.ts), so it reads no session: the button goes to
 // /mi-galeria, which does, and offers whichever payment the visitor can use.
+// While the Club is closed it opens only with the link, so the founders and
+// the admins can see the map and the sample galleries before the launch:
+// the home banner and the sitemap still leave it out (lib/club-launch.ts).
 export default async function ClubPage() {
-  if (!isClubOpen()) notFound()
   const { locale, m } = await getI18n()
   const t = m.clubLanding
   const plan = clubMembershipPlanById('club-monthly')
