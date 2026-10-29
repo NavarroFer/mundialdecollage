@@ -45,7 +45,10 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
       <Shell>
         <h1 className="font-display text-3xl uppercase">{t.activeTitle}</h1>
         <p className="my-6 text-muted-foreground">{gallery.title} · {fmt(t.coins, { coins: (wallet?.balance ?? 0).toLocaleString(locale) })}</p>
-        <Link href={`/club/${gallery.slug}`} className="inline-flex min-h-11 items-center rounded-full bg-ink px-6 font-bold text-white">{t.viewGallery}</Link>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href={`/club/${gallery.slug}`} className="inline-flex min-h-11 items-center rounded-full bg-ink px-6 font-bold text-white">{t.viewGallery}</Link>
+          <Link href="/mi-galeria/editar" className="inline-flex min-h-11 items-center rounded-full border-2 border-ink px-6 font-bold">{t.editor.open}</Link>
+        </div>
         <section className="mt-10 border-t pt-8">
           <h2 className="font-display text-2xl uppercase">{t.packsTitle}</h2>
           <p className="my-3 text-sm text-muted-foreground">{t.packsBody}</p>
