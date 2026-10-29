@@ -49,7 +49,7 @@ describe('startClubMpSubscription', () => {
     expect(calls.galleryInsert).toEqual([
       { user_id: USER, subscription_id: 'sub-1', slug: 'ana-perez-7d2c0a4e', title: 'Ana Pérez', host_avatar_id: 'Female_Adult_01' },
     ])
-    expect(createPreapproval).toHaveBeenCalledWith(expect.objectContaining({ amount: 47000, payerEmail: 'ana@example.com', reference: 'suscripcion:sub-1' }))
+    expect(createPreapproval).toHaveBeenCalledWith(expect.objectContaining({ amount: 29000, payerEmail: 'ana@example.com', reference: 'suscripcion:sub-1' }))
     expect(calls.subscriptionUpdate).toEqual([{ provider_subscription_id: 'pre-1' }])
   })
 

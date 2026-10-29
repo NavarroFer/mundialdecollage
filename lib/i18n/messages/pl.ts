@@ -818,7 +818,7 @@ const pl: Messages = {
     signInTitle: 'Zaloguj się, aby zobaczyć swoją galerię',
     signInBody: 'Zaloguj się przez Google, aby dołączyć do Klubu lub otworzyć swoją galerię.',
     joinTitle: 'Twoja stała galeria 3D',
-    joinBody: 'Własna sala otwarta całą dobę, z całą Twoją serią prac, tekstami i linkiem do udostępniania. Co miesiąc dostajesz 1000 monet na jej ulepszanie.',
+    joinBody: 'Własna sala otwarta całą dobę, z całą Twoją serią prac, tekstami i linkiem do udostępniania. Co miesiąc dostajesz 600 monet na jej ulepszanie.',
     price: '{price} miesięcznie',
     join: 'Subskrybuj przez Mercado Pago',
     joinNote: 'Opłata co miesiąc. Możesz zrezygnować w dowolnej chwili w Mercado Pago.',

@@ -490,7 +490,7 @@ begin
     if club_user is null then
       insert into public.shipments(payment_id, shipping_address) values (local_payment_id, local_subscription.shipping_address);
     else
-      perform public.credit_club_coins(club_user, 1000, 'subscription_bonus', 'paypal:' || p_payment_id);
+      perform public.credit_club_coins(club_user, 600, 'subscription_bonus', 'paypal:' || p_payment_id);
       update public.club_galleries set status = 'active', updated_at = now() where user_id = club_user;
     end if;
   end if;
@@ -517,7 +517,7 @@ begin
     if club_user is null then
       insert into public.shipments(payment_id, shipping_address) values (local_payment_id, local_subscription.shipping_address);
     else
-      perform public.credit_club_coins(club_user, 1000, 'subscription_bonus', p_provider || ':' || p_payment_id);
+      perform public.credit_club_coins(club_user, 600, 'subscription_bonus', p_provider || ':' || p_payment_id);
       update public.club_galleries set status = 'active', updated_at = now() where user_id = club_user;
     end if;
   end if;

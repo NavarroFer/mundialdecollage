@@ -793,7 +793,7 @@ const id: Messages = {
     signInTitle: 'Masuk untuk melihat galeri Anda',
     signInBody: 'Masuk dengan Google untuk bergabung dengan Klub atau membuka galeri Anda.',
     joinTitle: 'Galeri 3D permanen Anda',
-    joinBody: 'Ruang milik sendiri, buka 24 jam, dengan seluruh seri karya Anda, teks Anda, dan tautan untuk dibagikan. Setiap bulan Anda mendapat 1.000 koin untuk memperbaikinya.',
+    joinBody: 'Ruang milik sendiri, buka 24 jam, dengan seluruh seri karya Anda, teks Anda, dan tautan untuk dibagikan. Setiap bulan Anda mendapat 600 koin untuk memperbaikinya.',
     price: '{price} per bulan',
     join: 'Berlangganan lewat Mercado Pago',
     joinNote: 'Ditagih setiap bulan. Anda dapat berhenti kapan saja lewat Mercado Pago.',

@@ -88,15 +88,19 @@ begin
 
   update public.club_galleries set template_id = 'classic' where id = gallery_id;
   if not public.record_subscription_payment(
-    'mercadopago', 'club-db-probe-payment', 'club-db-probe-subscription', 47000, null, 'ARS'
+    'mercadopago', 'club-db-probe-payment', 'club-db-probe-subscription', 29000, null, 'ARS'
   ) then raise exception 'First Club payment was not recorded'; end if;
   if public.record_subscription_payment(
-    'mercadopago', 'club-db-probe-payment', 'club-db-probe-subscription', 47000, null, 'ARS'
+    'mercadopago', 'club-db-probe-payment', 'club-db-probe-subscription', 29000, null, 'ARS'
   ) then raise exception 'Repeated Club payment was recorded twice'; end if;
 
   if (select count(*) from public.coin_transactions
       where user_id = actor_id and kind = 'subscription_bonus') <> 1 then
     raise exception 'Monthly bonus was not idempotent';
+  end if;
+  if (select delta from public.coin_transactions
+      where user_id = actor_id and kind = 'subscription_bonus') <> 600 then
+    raise exception 'Monthly bonus is not the 600 coins of lib/store.ts';
   end if;
   if exists (
     select 1 from public.shipments s

@@ -36,7 +36,7 @@ const storePlans = [
   ['SOCIO_PREMIUM', 'Socio Premium', '82.00', 'PHYSICAL', 'Monthly physical collage subscription'],
 ]
 const clubPlans = [
-  ['CLUB_MONTHLY', 'Club del Mundial de Collage', '47.00', 'DIGITAL', 'Monthly membership: a permanent 3D gallery and 1,000 coins a month'],
+  ['CLUB_MONTHLY', 'Club del Mundial de Collage', '29.00', 'DIGITAL', 'Monthly membership: a permanent 3D gallery and 600 coins a month'],
 ]
 const plans = process.argv[2] === 'club' ? clubPlans : storePlans
 

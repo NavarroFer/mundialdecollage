@@ -797,7 +797,7 @@ const en: Messages = {
     signInTitle: 'Sign in to see your gallery',
     signInBody: 'Sign in with Google to join the Club or open your gallery.',
     joinTitle: 'Your permanent 3D gallery',
-    joinBody: 'A room of your own, open 24 hours, with your whole series, your texts and a link to share. Every month you get 1,000 coins to improve it.',
+    joinBody: 'A room of your own, open 24 hours, with your whole series, your texts and a link to share. Every month you get 600 coins to improve it.',
     price: '{price} per month',
     join: 'Join with Mercado Pago',
     joinNote: 'Charged every month. You can cancel any time from Mercado Pago.',

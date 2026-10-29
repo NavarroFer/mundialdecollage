@@ -834,7 +834,7 @@ const es = {
     signInTitle: 'Entrá para ver tu galería',
     signInBody: 'Iniciá sesión con Google para suscribirte al Club o abrir tu galería.',
     joinTitle: 'Tu galería 3D permanente',
-    joinBody: 'Una sala propia abierta las 24 horas, con toda tu serie de obras, tus textos y un enlace para compartir. Cada mes sumás 1.000 monedas para mejorarla.',
+    joinBody: 'Una sala propia abierta las 24 horas, con toda tu serie de obras, tus textos y un enlace para compartir. Cada mes sumás 600 monedas para mejorarla.',
     price: '{price} por mes',
     join: 'Suscribirme con Mercado Pago',
     joinNote: 'Se cobra todos los meses. Podés cancelar cuando quieras desde Mercado Pago.',

@@ -61,20 +61,20 @@ export const clubMembershipPlans = [
   {
     id: 'club-monthly',
     billing: 'monthly',
-    priceUsd: 47,
-    priceArs: 47000,
+    priceUsd: 29,
+    priceArs: 29000,
     monthsCharged: 1,
     monthsIncluded: 1,
-    monthlyCoins: 1000,
+    monthlyCoins: 600,
   },
   {
     id: 'club-annual',
     billing: 'annual',
-    priceUsd: 470,
-    priceArs: 470000,
+    priceUsd: 290,
+    priceArs: 290000,
     monthsCharged: 10,
     monthsIncluded: 12,
-    monthlyCoins: 1000,
+    monthlyCoins: 600,
   },
 ] as const
 
