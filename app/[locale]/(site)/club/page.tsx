@@ -9,6 +9,7 @@ import { fmt, formatMoney } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
 import { isClubOpen } from '@/lib/club-launch'
 import { clubMembershipPlanById } from '@/lib/store'
+import { ClubHousesSection } from '@/components/club/club-houses-section'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { m } = await getI18n()
@@ -55,6 +56,12 @@ export default async function ClubPage() {
               })}
             </ul>
           </section>
+
+          <ClubHousesSection
+            title={t.mapTitle}
+            body={t.mapBody}
+            texts={{ enter: t.mapEnter, hint: t.mapHint, close: t.mapClose }}
+          />
 
           {plan && (
             <section className="mt-14 max-w-3xl -rotate-[0.4deg] rounded-3xl border-2 border-ink/10 bg-collage-blue/5 p-6 sm:p-8" aria-labelledby="club-price-title">

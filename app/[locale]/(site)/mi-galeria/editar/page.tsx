@@ -12,13 +12,14 @@ import { CLUB_MAX_OBRAS, optionState, roomCapacity, shopItems, statsSince, stats
 import { CLUB_FRAME_STYLES, CLUB_GALLERY_THEMES, CLUB_ROOM_TEMPLATES, type ClubRoomTemplate, type GalleryCatalogKind } from '@/lib/gallery-catalog'
 import { removeClubArtwork, saveGallerySettings, saveHangings, unlockItem } from './actions'
 import { ClubArtworkUpload } from './club-artwork-upload'
+import { HomePicker } from './home-picker'
 
 const inputClass = 'mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm'
 
 // The member's editor. Private (reads the session), so it is not one of
 // lib/static-pages.ts. Options the member has not unlocked are shown in the
 // shop with their price; the settings form only offers what they can use.
-export default async function EditGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; guardado?: string; desbloqueado?: string; subida?: string; quitada?: string }> }) {
+export default async function EditGalleryPage({ searchParams }: { searchParams: Promise<{ error?: string; guardado?: string; desbloqueado?: string; subida?: string; quitada?: string; casa?: string }> }) {
   if (!isSupabaseConfigured) redirect('/')
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
@@ -31,7 +32,7 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
 
   const { data: gallery } = await supabase
     .from('club_galleries')
-    .select('id, slug, title, statement, template_id, theme, default_frame_style, contact_whatsapp, contact_url, status')
+    .select('id, slug, title, statement, template_id, theme, default_frame_style, contact_whatsapp, contact_url, status, home_lat, home_lng')
     .eq('user_id', user.id)
     .maybeSingle()
   if (!canUseOwnClubGallery(user.email, gallery?.status)) notFound()
@@ -71,7 +72,7 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
   const kindName: Partial<Record<GalleryCatalogKind, string>> = { room: e.fieldRoom, theme: e.fieldTheme, frame: e.fieldFrame }
 
   const error = params.error ? e.errors[params.error as keyof typeof e.errors] ?? e.errors.unavailable : undefined
-  const notice = params.guardado ? e.saved : params.desbloqueado ? e.unlocked : params.subida ? e.uploaded : params.quitada ? e.removed : undefined
+  const notice = params.guardado ? e.saved : params.desbloqueado ? e.unlocked : params.subida ? e.uploaded : params.quitada ? e.removed : params.casa === '1' ? e.homeSaved : params.casa === '0' ? e.homeCleared : undefined
   const clubArtworks = (artworks ?? []).filter((artwork) => artwork.is_club_only)
   const needsProfile = !profile?.name?.trim() || !profile.country_code
   const metadataName = (user.user_metadata as { full_name?: string } | undefined)?.full_name?.trim() ?? ''
@@ -167,6 +168,17 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
             </div>
             <SubmitButton className="min-h-11 w-full">{e.save}</SubmitButton>
           </form>
+        </section>
+
+        <section id="casa" className="scroll-mt-6 rounded-2xl bg-card p-6 sm:p-8">
+          <h2 className="font-display text-2xl uppercase">{e.homeTitle}</h2>
+          <p className="my-3 text-sm text-muted-foreground">{e.homeBody}</p>
+          <HomePicker
+            slug={gallery.slug}
+            home={gallery.home_lat === null || gallery.home_lng === null ? null : [Number(gallery.home_lng), Number(gallery.home_lat)]}
+            texts={{ enter: m.clubLanding.mapEnter, hint: m.clubLanding.mapHint, close: m.clubLanding.mapClose, yourHouse: e.homeYours }}
+            labels={{ save: e.homeSave, clear: e.homeClear, none: e.homeNone }}
+          />
         </section>
 
         <section id="obras" className="scroll-mt-6 rounded-2xl bg-card p-6 sm:p-8">

@@ -8,6 +8,7 @@ import { canUseOwnClubGallery } from '@/lib/club-launch'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CLUB_MAX_OBRAS, fitsRoom, parseClubArtwork, parseGallerySettings, parseHangings, roomCapacity } from '@/lib/club-editor'
 import { uniqueArtworkSlug } from '@/lib/artwork-slug'
+import { parseHome } from '@/lib/club-map'
 import { getAllCountryCodes } from '@/lib/participants'
 import { slugify } from '@/lib/slug'
 import { PURCHASABLE_GALLERY_ITEMS, type ClubRoomTemplate } from '@/lib/gallery-catalog'
@@ -152,6 +153,24 @@ export async function removeClubArtwork(formData: FormData) {
   if (!data?.length) back('invalid')
   refreshClubGallery(gallery.slug)
   redirect(`${EDITOR}?quitada=1#obras`)
+}
+
+// Where the member's house sits on the Club map, or no house (an empty
+// form). Rounded here as the database will keep it (lib/club-map.ts).
+export async function saveGalleryHome(formData: FormData) {
+  const { supabase, gallery } = await member()
+  const home = parseHome(formData)
+  if (home === undefined) back('invalid')
+  const { error } = await supabase
+    .from('club_galleries')
+    .update({ home_lat: home?.lat ?? null, home_lng: home?.lng ?? null })
+    .eq('id', gallery.id)
+  if (error) {
+    console.error('saveGalleryHome: update failed', error.code, error.message)
+    back('unavailable')
+  }
+  refreshClubGallery(gallery.slug)
+  redirect(`${EDITOR}?casa=${home ? 1 : 0}#casa`)
 }
 
 export async function unlockItem(formData: FormData) {
