@@ -159,7 +159,7 @@ Riesgos a cuidar:
 
 ## Estado y pendientes
 
-Al 29 de octubre de 2026. Todo lo hecho está en commits locales, todavía sin subir a `main`.
+Al 29 de octubre de 2026 (actualizado el 30). Todo lo hecho está en commits locales, todavía sin subir a `main`.
 
 **Hecho**
 
@@ -172,11 +172,14 @@ Al 29 de octubre de 2026. Todo lo hecho está en commits locales, todavía sin s
 - [x] **Campaña:** público «Artistas sin galería del Club», plantilla `club_lanzamiento`, enlaces marcados con `?desde=mail`, freno mientras el Club está cerrado e invitación en el aviso diario «Así le fue a tu obra».
 - [x] **Gamificación ya hecha:** primera estampilla de cada galería fuera del límite de 3 cada 12 horas, y botón «Consultar al artista por esta obra» (WhatsApp o web; el enlace solo puede ser `http(s)`, también en la base de datos).
 - [x] **Mercado Pago y PayPal configurados** (plan de PayPal y variables cargadas en Vercel el 29/10). Toman efecto con el próximo deploy.
+- [x] **Galería de cortesía** (`/admin/club`, en «Galería 3D»): con el email de la cuenta, la galería queda activa sin suscripción y con monedas de regalo (`courtesy_granted_at`, monedas de tipo `gift`). Con el mismo formulario se suman más monedas; «Terminar cortesía» la pausa sin borrar nada. Un cambio de cobro de una suscripción vieja nunca pausa una cortesía. La persona tiene que haber entrado al sitio una vez con Google.
+- [x] **Acceso con el Club cerrado:** quien ya tiene una galería activa (los fundadores) entra a `/mi-galeria`, al editor y a los packs aunque falte `CLUB_OPEN`; suscribirse sigue esperando la apertura.
+- [x] **Subir obras al Club** desde el editor (hasta 30, `is_club_only`): la base las rechaza como obra postulada o principal, y quedan fuera del selector de la convocatoria, del tope de obras guardadas, de `/admin/obras`, del emparejamiento con Registro y del público «Varias obras». A quien no tiene nombre o país en su perfil se los pide antes de la primera. La galería firma las obras aunque el perfil esté oculto.
 
 **Verificado antes de subir (29/10/2026)**
 
 - Lint del proyecto completo, `tsc`, las 168 pruebas (1024 casos) y `next build` en un checkout limpio sin variables de entorno, como lo corre el CI de GitHub.
-- Las 6 migraciones nuevas (`20261029120000` a `20261029170000`) aplicadas en PGlite sobre todas las anteriores, con escenarios por rol. Están en `scripts/pglite/` (`npm install --no-save @electric-sql/pglite` y `node scripts/pglite/<script>.mjs`).
+- Las 6 migraciones nuevas (`20261029120000` a `20261029170000`; después se sumaron `20261029180000` y `20261029190000`, probadas igual con `club-courtesy.mjs` y `club-artworks.mjs`) aplicadas en PGlite sobre todas las anteriores, con escenarios por rol. Están en `scripts/pglite/` (`npm install --no-save @electric-sql/pglite` y `node scripts/pglite/<script>.mjs`).
 - `scripts/pglite/store-regression.mjs` corre el mismo escenario de la tienda antes y después de las migraciones del Club: pagos de suscripción de Mercado Pago y PayPal, envíos, «Me gusta» y estampillas dan idéntico.
 - Errores que encontraron estas pruebas y ya están corregidos: las reglas de acceso de las obras colgadas se llamaban entre sí («infinite recursion») y ningún socio podía colgar obras, y el enlace de contacto aceptaba `javascript:`.
 
@@ -187,18 +190,17 @@ Al 29 de octubre de 2026. Todo lo hecho está en commits locales, todavía sin s
 - [ ] Subir los commits a `main` en una sola tanda. Ojo: `.github/workflows/supabase-migrations.yml` aplica las migraciones en paralelo al CI, sin esperarlo; por eso todo se verifica antes (ver arriba). El deploy deja el Club cerrado.
 - [ ] Probar un cobro real con una cuenta admin (`lib/admin.ts`). No hay entorno de Preview, así que la prueba es en producción con plata real y el Club cerrado. Orden sugerido: primero un Pack Chico ($5.000) y ver que lleguen las 500 monedas; después la cuota ($29.000) y ver que la galería pase a `active` con 600 monedas; cancelar y ver que quede en `paused`.
 - [ ] Revisar con alguien de lo legal la sección del Club, sobre todo el arrepentimiento, y si hace falta un botón de baja visible.
-- [ ] Armar 2 o 3 galerías de muestra con socios fundadores (pedirles permiso).
+- [ ] Armar 2 o 3 galerías de muestra con socios fundadores (pedirles permiso), con la cortesía de `/admin/club`. Si no hay fundadores, Fer arma la suya y la de un amigo con sus obras.
 - [ ] Abrir con `CLUB_OPEN=on` y un deploy; recién ahí mandar la campaña.
 
 **Cómo retomar**
 
 - `main` local va adelante de `origin/main` con todo esto, y no hay nada nuevo del otro lado. Antes de subir, `git log origin/main..HEAD` por si otra sesión commiteó.
-- Lo siguiente es el push cuando Fer lo diga, después la prueba de cobro real, y después lo de «Falta construir», empezando por la galería de cortesía para los fundadores.
+- Lo siguiente es el push cuando Fer lo diga, después la prueba de cobro real y las galerías de muestra con la cortesía, y después lo de «Falta construir», empezando por elegir la casa en el mapa.
 - Las partes 3D (avatar anfitrión, vernissage, Puerta al Club, tablero Kraft) conviene hacerlas con Fer mirando la pantalla: las pruebas automáticas no detectan un error visual.
 
 **Falta construir**
 
-- [ ] **Galería de cortesía** para los fundadores: una acción de admin que cree la galería ya activa, sin suscripción, y le regale monedas.
 - [ ] **Elegir la casa en el mapa** (idea nueva, ver «Etapas», etapa 2): selector en el editor, dos columnas en `club_galleries` y un listado cacheado.
 - [ ] **Sección «Galerías de muestra»** en `/club`, leída de la base de datos, y una captura para la home.
 - [ ] **Gamificación en 3D**, que no se puede verificar sin mirarla: avatar anfitrión con su carta de bienvenida, sello «Estuve en el Vernissage», Puerta al Club entre galerías, tablero Kraft por galería y sello postal del artista.
