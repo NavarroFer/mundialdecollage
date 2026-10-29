@@ -922,6 +922,9 @@ const pl: Messages = {
     mapEnter: 'Wejdź do galerii',
     mapHint: 'Przeciągnij, by zwiedzać · kółko lub dwa palce, by przybliżyć',
     mapClose: 'Zamknij',
+    samplesTitle: 'Galerie do zwiedzania',
+    samplesBody: 'Tak wyglądają sale osób, które już są w Klubie. Wejdź bez rejestracji.',
+    samplesEnter: 'Wejdź do galerii',
   },
 }
 

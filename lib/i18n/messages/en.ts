@@ -901,6 +901,9 @@ const en: Messages = {
     mapEnter: 'Enter their gallery',
     mapHint: 'Drag to explore · wheel or pinch to zoom',
     mapClose: 'Close',
+    samplesTitle: 'Galleries to walk through',
+    samplesBody: 'This is what the rooms of Club members look like. Step in, no sign-up needed.',
+    samplesEnter: 'Enter the gallery',
   },
 }
 

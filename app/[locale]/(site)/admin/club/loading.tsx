@@ -6,7 +6,7 @@ export default function Loading() {
   return (
     <div>
       <AdminPageHeader eyebrow="Galería 3D" title="Galerías del Club" description={adminDescription('/admin/club')} />
-      <StatPillsSkeleton count={3} />
+      <StatPillsSkeleton count={4} />
       <TableSkeleton rows={6} cols={6} />
     </div>
   )

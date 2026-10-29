@@ -897,6 +897,9 @@ const id: Messages = {
     mapEnter: 'Masuk ke galerinya',
     mapHint: 'Seret untuk menjelajah · roda atau dua jari untuk memperbesar',
     mapClose: 'Tutup',
+    samplesTitle: 'Galeri untuk dijelajahi',
+    samplesBody: 'Beginilah ruang para anggota Klub. Masuk tanpa mendaftar.',
+    samplesEnter: 'Masuk ke galeri',
   },
 }
 

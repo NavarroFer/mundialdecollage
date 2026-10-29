@@ -938,6 +938,9 @@ const es = {
     mapEnter: 'Entrar a su galería',
     mapHint: 'Arrastrá para recorrer · rueda o dos dedos para acercar',
     mapClose: 'Cerrar',
+    samplesTitle: 'Galerías para recorrer',
+    samplesBody: 'Así se ven las salas de quienes ya están en el Club. Entrá sin registrarte.',
+    samplesEnter: 'Entrar a la galería',
   },
 }
 

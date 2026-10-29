@@ -4,7 +4,7 @@ import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { MAX_COURTESY_COINS } from '@/lib/club-courtesy'
-import { grantCourtesy, endCourtesy } from './actions'
+import { grantCourtesy, endCourtesy, setSample } from './actions'
 
 // The Club's galleries, paid or complimentary, and the form that gives a
 // founder their gallery without a subscription (lib/club-courtesy.ts).
@@ -20,6 +20,7 @@ type GalleryRow = {
   balance: number
   hung: number
   created_at: string
+  is_sample: boolean
 }
 
 const STATUS: Record<string, { label: string; className: string }> = {
@@ -73,6 +74,7 @@ export default async function ClubAdminPage({ searchParams }: { searchParams: Pr
 
       <div className="mt-6 flex flex-wrap gap-3">
         <StatPill label="Galerías activas" value={active.length} />
+        <StatPill label="En /club como muestra" value={active.filter((g) => g.is_sample).length} />
         <StatPill label="De cortesía" value={courtesies.length} />
         <StatPill label="Pagas" value={active.length - courtesies.length} />
       </div>
@@ -137,11 +139,18 @@ export default async function ClubAdminPage({ searchParams }: { searchParams: Pr
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">{g.balance.toLocaleString('es-AR')}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{g.hung}</td>
-                    <td className="px-4 py-3">
+                    <td className="space-y-2 px-4 py-3">
+                      {g.status === 'active' && (
+                        <form action={setSample}>
+                          <input type="hidden" name="id" value={g.id} />
+                          <input type="hidden" name="sample" value={g.is_sample ? '0' : '1'} />
+                          <SubmitButton size="sm" variant={g.is_sample ? 'default' : 'outline'} className="whitespace-nowrap">{g.is_sample ? 'Quitar de /club' : 'Mostrar en /club'}</SubmitButton>
+                        </form>
+                      )}
                       {g.courtesy_granted_at && (
                         <form action={endCourtesy}>
                           <input type="hidden" name="id" value={g.id} />
-                          <SubmitButton size="sm" variant="outline">Terminar cortesía</SubmitButton>
+                          <SubmitButton size="sm" variant="outline" className="whitespace-nowrap">Terminar cortesía</SubmitButton>
                         </form>
                       )}
                     </td>

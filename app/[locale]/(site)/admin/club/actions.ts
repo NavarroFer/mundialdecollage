@@ -44,3 +44,16 @@ export async function endCourtesy(formData: FormData) {
   revalidatePath(PAGE)
   redirect(`${PAGE}?listo=ended`)
 }
+
+// Shows or hides a gallery among the examples of /club.
+export async function setSample(formData: FormData) {
+  const db = await adminSession()
+  const { data: slug, error } = await db.rpc('set_club_gallery_sample', {
+    p_gallery_id: String(formData.get('id') ?? ''),
+    p_sample: formData.get('sample') === '1',
+  })
+  if (error) redirect(`${PAGE}?error=unavailable`)
+  if (typeof slug === 'string') refreshClubGallery(slug)
+  revalidatePath(PAGE)
+  redirect(PAGE)
+}

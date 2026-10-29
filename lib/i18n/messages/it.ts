@@ -900,6 +900,9 @@ const it: Messages = {
     mapEnter: 'Entra nella sua galleria',
     mapHint: 'Trascina per esplorare · rotellina o due dita per ingrandire',
     mapClose: 'Chiudi',
+    samplesTitle: 'Gallerie da visitare',
+    samplesBody: 'Ecco le sale di chi è già nel Club. Entra senza registrarti.',
+    samplesEnter: 'Entra nella galleria',
   },
 }
 

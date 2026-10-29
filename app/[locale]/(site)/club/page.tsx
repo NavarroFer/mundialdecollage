@@ -10,6 +10,7 @@ import { getI18n } from '@/lib/i18n/server'
 import { isClubOpen } from '@/lib/club-launch'
 import { clubMembershipPlanById } from '@/lib/store'
 import { ClubHousesSection } from '@/components/club/club-houses-section'
+import { ClubSamplesSection } from '@/components/club/club-samples-section'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { m } = await getI18n()
@@ -56,6 +57,8 @@ export default async function ClubPage() {
               })}
             </ul>
           </section>
+
+          <ClubSamplesSection />
 
           <ClubHousesSection
             title={t.mapTitle}

@@ -69,8 +69,10 @@ export function refreshExhibition() {
 
 // A Club member saved their gallery: drop only that gallery (and the static
 // page built from it), not every public page of the site, plus the map of
-// houses, which shows its title, place and how many obras hang there.
+// houses and the sample galleries of /club, which show its title, place,
+// cover and how many obras hang there.
 export function refreshClubGallery(slug: string) {
   revalidateTag(clubGalleryTag(slug), { expire: 0 })
   revalidateTag(publicDataTag('club-map'), { expire: 0 })
+  revalidateTag(publicDataTag('club-samples'), { expire: 0 })
 }
