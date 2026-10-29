@@ -8,7 +8,7 @@ import { getI18n } from '@/lib/i18n/server'
 import type { Messages } from '@/lib/i18n/messages/es'
 import { fmt, formatMoney } from '@/lib/i18n/format'
 import { clubMembershipPlanById, coinPacks } from '@/lib/store'
-import { canUseClub } from '@/lib/club-launch'
+import { canUseOwnClubGallery } from '@/lib/club-launch'
 import { mercadoPago } from '@/lib/payments/providers/mercadopago'
 import { payPal } from '@/lib/payments/providers/paypal'
 import { isPayPalServerConfigured } from '@/lib/payments/paypal/client'
@@ -26,9 +26,9 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
   const { locale, m } = await getI18n()
   const t = m.club
   const user = await getCurrentUser()
-  // Closed (lib/club-launch.ts): the page does not exist for anyone but the admins.
-  if (!canUseClub(user?.email)) notFound()
 
+  // Shown even while the Club is closed: a founder given a courtesy gallery
+  // signs in here.
   if (!user) {
     return (
       <Shell>
@@ -45,6 +45,9 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
     supabase.from('club_galleries').select('slug, title, status').eq('user_id', user.id).maybeSingle(),
     supabase.from('club_wallets').select('balance').eq('user_id', user.id).maybeSingle(),
   ])
+  // Closed (lib/club-launch.ts): the page does not exist for anyone but the
+  // admins and the members whose gallery is already active.
+  if (!canUseOwnClubGallery(user.email, gallery?.status)) notFound()
 
   if (gallery?.status === 'active') {
     return (

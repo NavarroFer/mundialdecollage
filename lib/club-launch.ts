@@ -4,11 +4,22 @@ import { ADMIN_EMAILS } from '@/lib/admin'
 // environment (and a redeploy). Closed, its public pages, the home banner
 // and the sitemap entry are absent and nobody can subscribe, buy coins or
 // edit; the site's admins still can, so the whole flow can be tried with real
-// accounts before launch. Galleries that already exist stay where they are.
+// accounts before launch. Galleries that already exist stay where they are,
+// and their owners keep editing them (canUseOwnClubGallery).
 export const isClubOpen = () => process.env.CLUB_OPEN === 'on'
 
 export function canUseClub(email: string | null | undefined): boolean {
   return isClubOpen() || ADMIN_EMAILS.includes(email ?? '')
+}
+
+/**
+ * Whoever already has an active gallery keeps using it while the Club is
+ * closed: their page, the editor and the coin packs. Before the launch that
+ * is a founder with a courtesy gallery (/admin/club) or an admin's test.
+ * Joining still waits for canUseClub.
+ */
+export function canUseOwnClubGallery(email: string | null | undefined, galleryStatus: string | null | undefined): boolean {
+  return canUseClub(email) || galleryStatus === 'active'
 }
 
 /**

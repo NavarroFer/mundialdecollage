@@ -64,13 +64,23 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs())
 
 describe('who can edit', () => {
-  it('keeps everyone but the admins out while the Club is closed', async () => {
+  it('keeps out everyone without an active gallery but the admins while the Club is closed', async () => {
     vi.stubEnv('CLUB_OPEN', '')
     mocks.user.value = { id: 'user-1', email: 'someone@example.com' }
-    await expect(unlockItem(form({ item: 'theme:museum' }))).rejects.toThrow('REDIRECT:/')
+    mocks.tables.club_galleries = { data: null, error: null }
+    await expect(unlockItem(form({ item: 'theme:museum' }))).rejects.toThrow(/^REDIRECT:\/$/)
+    mocks.tables.club_galleries = { data: { ...gallery, status: 'paused' }, error: null }
+    await expect(unlockItem(form({ item: 'theme:museum' }))).rejects.toThrow(/^REDIRECT:\/$/)
     expect(mocks.rpc).not.toHaveBeenCalled()
     mocks.user.value = { id: 'user-1', email: 'mundialdecollage@gmail.com' }
+    mocks.tables.club_galleries = { data: gallery, error: null }
     await expect(unlockItem(form({ item: 'theme:museum' }))).rejects.toThrow('desbloqueado=1')
+  })
+  it('lets a founder with a courtesy gallery edit it while the Club is closed', async () => {
+    vi.stubEnv('CLUB_OPEN', '')
+    mocks.user.value = { id: 'user-1', email: 'founder@example.com' }
+    await expect(saveHangings(form({ 'slot:a': '1' }))).rejects.toThrow('REDIRECT:/mi-galeria/editar?guardado=1')
+    expect(mocks.rpc).toHaveBeenCalledWith('replace_club_gallery_hangings', expect.anything())
   })
   it('sends a visitor without a session to /mi-galeria', async () => {
     mocks.user.value = null

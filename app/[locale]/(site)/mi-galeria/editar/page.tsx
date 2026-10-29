@@ -7,7 +7,7 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
-import { canUseClub } from '@/lib/club-launch'
+import { canUseOwnClubGallery } from '@/lib/club-launch'
 import { optionState, roomCapacity, shopItems, statsSince, statsTotals, type ShopItem, type StatsRow } from '@/lib/club-editor'
 import { CLUB_FRAME_STYLES, CLUB_GALLERY_THEMES, CLUB_ROOM_TEMPLATES, type ClubRoomTemplate, type GalleryCatalogKind } from '@/lib/gallery-catalog'
 import { saveGallerySettings, saveHangings, unlockItem } from './actions'
@@ -21,7 +21,6 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
   if (!isSupabaseConfigured) redirect('/')
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
-  if (!canUseClub(user.email)) notFound()
 
   const { locale, m } = await getI18n()
   const t = m.club
@@ -34,6 +33,7 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
     .select('id, slug, title, statement, template_id, theme, default_frame_style, contact_whatsapp, contact_url, status')
     .eq('user_id', user.id)
     .maybeSingle()
+  if (!canUseOwnClubGallery(user.email, gallery?.status)) notFound()
   if (!gallery || gallery.status !== 'active') redirect('/mi-galeria')
 
   const since = statsSince(30)
