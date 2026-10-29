@@ -10,15 +10,20 @@ import { useClubHostStore, type ClubHostInfo } from './host'
 
 const MAX_DISTANCE = 3.5
 
+/** Where the host stands: just inside the way in, to the right as one walks in, facing the room. */
+export function clubHostSpot(template: GalleryRoomTemplate): { spot: [number, number]; facing: number } | null {
+  const entrance = template.doorways[0]
+  if (!entrance) return null
+  const inward = entrance.center[2] > (template.bounds[1] + template.bounds[3]) / 2 ? -1 : 1
+  return { spot: [entrance.center[0] + 1.5, entrance.center[2] + inward * 1.1], facing: inward < 0 ? Math.PI - 0.35 : -0.35 }
+}
+
 // The member's avatar, standing just inside the way in and facing the room.
 // Looking at them from close by, E (or the touch button) opens their welcome
 // letter (WelcomeLetter.tsx).
 export function ClubHost({ template, theme, host, active }: { template: GalleryRoomTemplate; theme: GalleryTheme; host: ClubHostInfo; active: boolean }) {
   const ray = useRef(new Raycaster())
-  const entrance = template.doorways[0]
-  const inward = entrance && entrance.center[2] > (template.bounds[1] + template.bounds[3]) / 2 ? -1 : 1
-  const spot: [number, number] = entrance ? [entrance.center[0] + 1.9, entrance.center[2] + inward * 1.1] : [0, 0]
-  const facing = inward < 0 ? Math.PI - 0.35 : -0.35
+  const placement = clubHostSpot(template)
 
   useFrame(({ camera, scene }) => {
     let aiming = false
@@ -33,7 +38,8 @@ export function ClubHost({ template, theme, host, active }: { template: GalleryR
   })
   useEffect(() => () => useClubHostStore.setState({ aiming: false, open: false }), [])
 
-  if (!entrance) return null
+  if (!placement) return null
+  const { spot, facing } = placement
   const stand = (): Motion => ({ moving: false, facing, step: 0 })
   return (
     <group>
