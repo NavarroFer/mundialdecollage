@@ -1,5 +1,6 @@
 'use server'
 
+import { campaignBlockedByClub } from '@/lib/club-launch'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -101,6 +102,8 @@ export async function sendCampaign(audienceInput: unknown, formData: FormData) {
   if (!isMailConfigured) {
     redirect(backTo('resend_not_configured'))
   }
+  const blocked = campaignBlockedByClub(audience)
+  if (blocked) redirect(backTo(blocked))
 
   const supabase = await createClient()
 

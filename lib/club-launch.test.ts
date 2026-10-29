@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ADMIN_EMAILS } from './admin'
-import { canUseClub, isClubOpen } from './club-launch'
+import { campaignBlockedByClub, canUseClub, isClubOpen } from './club-launch'
 
 afterEach(() => vi.unstubAllEnvs())
 
@@ -26,5 +26,21 @@ describe('the Club launch switch', () => {
     vi.stubEnv('CLUB_OPEN', 'on')
     expect(canUseClub('someone@example.com')).toBe(true)
     expect(canUseClub(null)).toBe(true)
+  })
+})
+
+describe('campaignBlockedByClub', () => {
+  it('holds the Club launch mail back until the Club is open', () => {
+    vi.stubEnv('CLUB_OPEN', '')
+    expect(campaignBlockedByClub('club_prospects')).toContain('CLUB_OPEN=on')
+    vi.stubEnv('CLUB_OPEN', 'on')
+    expect(campaignBlockedByClub('club_prospects')).toBeNull()
+  })
+
+  it('never holds back any other audience', () => {
+    vi.stubEnv('CLUB_OPEN', '')
+    for (const audience of ['subscribed', 'no_artwork', 'profile_review', 'not_participating', 'multiple_artworks']) {
+      expect(campaignBlockedByClub(audience), audience).toBeNull()
+    }
   })
 })

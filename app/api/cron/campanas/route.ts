@@ -1,3 +1,4 @@
+import { campaignBlockedByClub } from '@/lib/club-launch'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isMailConfigured } from '@/lib/mail'
@@ -69,6 +70,12 @@ export const GET = cronRoute(async ({ dryRun }) => {
     if (!campaign) continue
 
     try {
+      const blocked = campaignBlockedByClub(campaign.audience)
+      if (blocked) {
+        // Back to 'scheduled' so the next run tries again once the Club is open.
+        await db.from('campaigns').update({ status: 'scheduled' }).eq('id', campaign.id)
+        throw new Error(`${blocked} Se reintenta mañana.`)
+      }
       const { recipients, error } = await campaignRecipients(db, campaign.audience)
       if (error) {
         // Back to 'scheduled' so the next run tries again.

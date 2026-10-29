@@ -10,3 +10,13 @@ export const isClubOpen = () => process.env.CLUB_OPEN === 'on'
 export function canUseClub(email: string | null | undefined): boolean {
   return isClubOpen() || ADMIN_EMAILS.includes(email ?? '')
 }
+
+/**
+ * Why a campaign cannot go out yet, or null. The Club's launch mail links to
+ * /club, which does not exist while the Club is closed.
+ */
+export function campaignBlockedByClub(audience: string): string | null {
+  return audience === 'club_prospects' && !isClubOpen()
+    ? 'El Club todavía está cerrado (falta CLUB_OPEN=on): abrilo antes de mandar esta campaña, porque el botón llevaría a una página que no existe.'
+    : null
+}
