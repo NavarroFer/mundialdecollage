@@ -18,7 +18,7 @@ Un socio recibe su galería, monedas mensuales para mejorarla, un lugar en el ma
 - **Su galería 3D:** arranca con una sala inicial de **6 a 8 obras** y los 3 temas base (*Collage*, *Jardín*, *Windows 98*), cuelga sus obras en el orden que quiera, elige cómo se ven los cuadros (marcos o clavados en la pared) y escribe los textos de sala.
 - **Monedas todos los meses:** cada cuota acreditada suma monedas a su billetera para destrabar salas más grandes (14 o 22 obras), temas nuevos, marcos, música y ropa para su avatar.
 - **Su avatar anfitrión y su ropa:** elige entre los avatares realistas, configura su ropa y accesorios (y puede comprar prendas, telas o accesorios nuevos con monedas). Cuando el artista no está conectado, su avatar recibe a las visitas en la entrada con una placa con su nombre; al acercarse y tocarlo (o apretar `E`) se abre su carta de bienvenida con la bio, el texto de sala y sus redes. Cuando entra con su cuenta, el anfitrión desaparece y pasa a manejar su avatar en vivo, con un distintivo «Artista en sala».
-- **Un lugar en el mapa** de galerías, una puerta de paso entre galerías del Club y un enlace propio para compartir.
+- **Un lugar en el mapa** de galerías, que el socio elige haciendo clic en el mapa, sin dar su dirección (ver «Etapas»), una puerta de paso entre galerías del Club y un enlace propio para compartir.
 - **Integración con el Álbum de estampillas:** sus obras pasan a ser coleccionables en el Álbum de los visitantes.
 - **Estadísticas de visitas:** cuántas personas entraron, cuánto miraron cada obra («Atención por obra»), cuántas guardaron sus obras como estampillas y cuántas fotos de recuerdo sacaron. Además, un resumen semanal en sus notificaciones (`user_notifications`): «Esta semana 42 personas recorrieron tu galería y guardaron 19 estampillas de tus obras».
 - **Presencia en vivo:** ve quién está recorriendo su galería en este momento.
@@ -83,6 +83,7 @@ El Club arranca por la galería de cada socio y la economía de monedas; el mapa
 1. **Mi galería + Monedas y Mejoras + Álbum:** sala inicial de 6–8 obras y salas destrabables con monedas (14 y 22 obras), temas de taller y museo, configuración de marcos, ropa de avatar, textos de sala, enlace propio y estadísticas de visitas.
    - Puerta 1: los primeros socios usan, personalizan y comparten su galería.
 2. **Mapa de galerías y objetos de sala:** cada galería es un punto del mapa, se pasa de una a otra, visitantes en vivo, un lugar destacado y primeros objetos decorativos en sala.
+   - **Dónde queda la «casa» de cada socio:** lo elige el propio socio haciendo clic en el mapa, sin escribir ninguna dirección. Se guarda solo una posición aproximada, redondeada a unos 10 km, nunca una dirección ni el punto exacto, y en el mapa público se dibuja con una pequeña variación fija para que dos vecinos no queden uno encima del otro. Al ser un dato de la galería, la tabla `club_galleries` suma dos columnas (latitud y longitud ya redondeadas) y los puntos salen de un listado cacheado en el CDN, no del render de la página. El selector va en el editor.
    - Puerta 2: hay galerías suficientes para llenar el mapa.
 3. **Decoración libre:** muebles y objetos en grilla libre, paredes y pisos a gusto, decoración tipo Sims.
 
@@ -156,16 +157,45 @@ Riesgos a cuidar:
 - **Visitantes en vivo:** cada galería con gente usa conexiones de Realtime. El tope de 8 avatares por galería acota los mensajes, no las conexiones.
 - **Alcance del editor:** la decoración libre tipo Sims es un proyecto en sí mismo; va en la etapa 3.
 
-## Próximos pasos
+## Estado y pendientes
 
-1. [ ] Pasar el proyecto a Vercel Pro antes de cobrar la primera cuota o vender el primer pack de monedas.
-2. [ ] Escribir y probar en PGlite la migración SQL de `club_galleries`, `club_gallery_hangings`, `club_wallets`, `coin_transactions` y `user_gallery_inventory`, más el ajuste en `record_subscription_payment`.
-3. [ ] Armar las 3 plantillas de sala (6–8 obras, 14 obras y 22 obras) en `roomsData.ts`, los estilos de marco en `Artwork.tsx` y los nuevos temas de taller/museo en `themes.ts`.
-4. [ ] Implementar la personalización de ropa/telas del avatar (`AvatarBody.tsx` + `fabrics.ts`) y el catálogo de ítems en `lib/gallery-catalog.ts`.
-5. [ ] Construir la página pública `/[locale]/(site)/club/[slug]` (cacheada en CDN) y el editor privado `/[locale]/(site)/mi-galeria`.
-6. [ ] Conectar el plan del Club y los packs de monedas en Mercado Pago y PayPal (`lib/payments/`).
-7. [ ] Lanzar la etapa 1 con un grupo chico de socios fundadores.
-8. [ ] Abrir el Club al resto con la página del Club, una sección en la landing y una campaña de mail (ver «Lanzamiento: landing y campaña de mail»).
+Al 29 de octubre de 2026. Todo lo hecho está en commits locales, todavía sin subir a `main`.
+
+**Hecho**
+
+- [x] **Base de datos del Club** (galerías, obras colgadas, billetera, monedas, inventario, estadísticas del socio y estampilla extra), probada en PGlite como cada rol.
+- [x] **Cobro:** cuota mensual de $29.000 / USD 29 por Mercado Pago y PayPal (PayPal en cuanto se cargue su plan) y packs de monedas. Con 600 monedas por mes.
+- [x] **Galería:** 3 salas, 4 temas nuevos, 4 marcos, ropa del avatar (lógica) y catálogo de precios.
+- [x] **Pantallas:** `/club` y su franja en la home, `/club/[slug]` (en el CDN), `/mi-galeria` y el editor (datos, obras colgadas, tienda de monedas y estadísticas de los últimos 30 días).
+- [x] **Interruptor `CLUB_OPEN`:** el Club arranca cerrado y los admins lo prueban en producción.
+- [x] **Términos del Club** y aviso de aceptación junto a los botones de pago.
+- [x] **Campaña:** público «Artistas sin galería del Club», plantilla `club_lanzamiento`, enlaces marcados con `?desde=mail`, freno mientras el Club está cerrado e invitación en el aviso diario «Así le fue a tu obra».
+- [x] **Gamificación ya hecha:** primera estampilla de cada galería fuera del límite de 3 cada 12 horas, y botón «Consultar al artista por esta obra» (WhatsApp o web).
+
+**Para abrir el Club (tuyo)**
+
+- [x] Pasar el proyecto a Vercel Pro.
+- [ ] Subir los commits a `main` (las migraciones se aplican solas al llegar) y esperar que pase el CI.
+- [ ] Crear el plan de PayPal (`node scripts/paypal-setup.mjs club`) y cargar `PAYPAL_PLAN_ID_CLUB_MONTHLY`.
+- [ ] Probar un cobro real en Mercado Pago con una cuenta admin: la galería pasa a `active` y la billetera tiene 600 monedas. Después cancelar y ver que queda en `paused`. Repetir con un pack.
+- [ ] Revisar con alguien de lo legal la sección del Club, sobre todo el arrepentimiento, y si hace falta un botón de baja visible.
+- [ ] Armar 2 o 3 galerías de muestra con socios fundadores (pedirles permiso).
+- [ ] Abrir con `CLUB_OPEN=on` y un deploy; recién ahí mandar la campaña.
+
+**Falta construir**
+
+- [ ] **Galería de cortesía** para los fundadores: una acción de admin que cree la galería ya activa, sin suscripción, y le regale monedas.
+- [ ] **Elegir la casa en el mapa** (idea nueva, ver «Etapas», etapa 2): selector en el editor, dos columnas en `club_galleries` y un listado cacheado.
+- [ ] **Sección «Galerías de muestra»** en `/club`, leída de la base de datos, y una captura para la home.
+- [ ] **Gamificación en 3D**, que no se puede verificar sin mirarla: avatar anfitrión con su carta de bienvenida, sello «Estuve en el Vernissage», Puerta al Club entre galerías, tablero Kraft por galería y sello postal del artista.
+- [ ] **Resumen semanal** al socio en sus notificaciones.
+- [ ] **Contar las visitas sin cuenta.** Hoy el panel mide solo a quienes tienen cuenta, porque la atención exige una; contar las otras necesita un contador agregado y cacheado.
+- [ ] **Plan anual** y el proceso mensual que acredita las 600 monedas.
+- [ ] **Ajuste trimestral del precio en pesos:** hay que actualizar cada suscripción de Mercado Pago y avisar 30 días antes.
+- [ ] **Devolución por arrepentimiento:** hoy sería manual (devolver el pago y retirar las monedas); falta una herramienta de admin.
+- [ ] **Música del Club:** discos nuevos para la consola, de dominio público o con licencia, y mover las pistas a R2.
+- [ ] **PDF de bases y términos:** volver a generarlo con la sección del Club (`scripts/build-bases-pdf.mts`).
+- [ ] **Etapa 2** (mapa de galerías, objetos de sala) y **etapa 3** (decoración libre).
 
 ## Lanzamiento: landing y campaña de mail
 
