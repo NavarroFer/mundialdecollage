@@ -17,10 +17,10 @@ Un socio recibe su galería, monedas mensuales para mejorarla, un lugar en el ma
 
 - **Su galería 3D:** arranca con una sala inicial de **6 a 8 obras** y los 3 temas base (*Collage*, *Jardín*, *Windows 98*), cuelga sus obras en el orden que quiera, elige cómo se ven los cuadros (marcos o clavados en la pared) y escribe los textos de sala.
 - **Monedas todos los meses:** cada cuota acreditada suma monedas a su billetera para destrabar salas más grandes (14 o 22 obras), temas nuevos, marcos, música y ropa para su avatar.
-- **Su avatar anfitrión y su ropa:** elige entre los avatares realistas, configura su ropa y accesorios (y puede comprar prendas, telas o accesorios nuevos con monedas). Cuando el artista no está conectado, su avatar recibe a las visitas en la entrada y muestra su texto de bienvenida; cuando entra con su cuenta, pasa a manejarlo en vivo.
+- **Su avatar anfitrión y su ropa:** elige entre los avatares realistas, configura su ropa y accesorios (y puede comprar prendas, telas o accesorios nuevos con monedas). Cuando el artista no está conectado, su avatar recibe a las visitas en la entrada con una placa con su nombre; al acercarse y tocarlo (o apretar `E`) se abre su carta de bienvenida con la bio, el texto de sala y sus redes. Cuando entra con su cuenta, el anfitrión desaparece y pasa a manejar su avatar en vivo, con un distintivo «Artista en sala».
 - **Un lugar en el mapa** de galerías, una puerta de paso entre galerías del Club y un enlace propio para compartir.
 - **Integración con el Álbum de estampillas:** sus obras pasan a ser coleccionables en el Álbum de los visitantes.
-- **Estadísticas de visitas:** cuántas personas entraron, cuánto miraron cada obra («Atención por obra»), cuántas guardaron sus obras como estampillas y cuántas fotos de recuerdo sacaron.
+- **Estadísticas de visitas:** cuántas personas entraron, cuánto miraron cada obra («Atención por obra»), cuántas guardaron sus obras como estampillas y cuántas fotos de recuerdo sacaron. Además, un resumen semanal en sus notificaciones (`user_notifications`): «Esta semana 42 personas recorrieron tu galería y guardaron 19 estampillas de tus obras».
 - **Presencia en vivo:** ve quién está recorriendo su galería en este momento.
 - **Más adelante:** decoración libre de la sala con muebles y objetos, tipo Sims.
 
@@ -42,7 +42,7 @@ Las monedas convierten la evolución de cada galería en un juego de colección 
 | **Temas con clima de taller o museo real** | *Collage*, *Jardín* y *Windows 98* | *Taller de Artista* (piso de madera manchado, mesas con recortes), *Galpón Industrial* (ladrillo y hierro), *Salón de Museo Clásico* (parquet espina de pescado, paredes bordó o verde inglés), *Callejón de Afiches* | Etapa 1 |
 | **Cómo se ven los cuadros colgados** | Marco estándar del tema | Configurable por el artista (para toda la sala o por obra): marco de madera natural, marco dorado clásico, passepartout negro, o *collage suelto pegado con cinta de papel / alfileres* sin marco | Etapa 1 |
 | **Ropa y accesorios del avatar** | Ropa por defecto del personaje elegido | Cambio de telas y colores de las prendas (`fabrics.ts`), accesorios sobre el esqueleto (`Bip01`: delantal de taller, boina, anteojos, *tote bag* del Mundial, café o tijeras en mano) y personajes exclusivos | Etapa 1 / 2 |
-| **Música y clima sonoro** | Pista general de la galería | Pistas de ambiente para `BackgroundMusic.tsx`: *Jazz de Vernissage*, *Lluvia en el Taller*, *Ambient de Museo* | Etapa 1 / 2 |
+| **Música y clima sonoro** | La consola de vinilos con la lista de dominio público (`components/gallery/vinyl/tracks.json`) | Discos nuevos para la consola: *Jazz de Vernissage*, *Lluvia en el Taller*, *Ambient de Museo*, de dominio público o con licencia y anotados en `public/music/CREDITS.md` | Etapa 1 / 2 |
 | **Objetos y muebles de sala** | Sala despejada | Etapa 2: objetos en lugares fijos (bancos de museo, plantas, alfombras, mesa de brindis). Etapa 3: decoración libre tipo Sims | Etapa 2 / 3 |
 
 Todo lo que un artista destraba con monedas queda guardado para siempre en su inventario (`user_gallery_inventory`), incluso si algún mes pausa su suscripción.
@@ -51,10 +51,10 @@ Todo lo que un artista destraba con monedas queda guardado para siempre en su in
 
 Para que ninguna galería quede vacía después del primer día, el Club se engancha con el Álbum de estampillas, el Pasaporte y el muro colectivo que ya funcionan en el sitio:
 
-- **Cupo bonus de estampillas en el Álbum:** hoy `collect_gallery_artwork_stamp` permite guardar solo **3 obras cada 12 horas** en el museo principal. Recorrer la galería de un socio del Club habilita **1 estampilla extra gratuita de esa sala** fuera del límite de las 3 generales, además de un **Sello Postal del Artista** en el `Passport.tsx` al descubrir todas sus obras.
+- **Cupo bonus de estampillas en el Álbum:** hoy `collect_gallery_artwork_stamp` permite guardar solo **3 obras cada 12 horas** en el museo principal. Recorrer la galería de un socio del Club habilita **1 estampilla extra gratuita de esa sala** fuera del límite de las 3 generales, además de un **Sello Postal del Artista** (con su nombre, su país y la fecha) en el `Passport.tsx` al descubrir todas sus obras. Cada socio tiene su propia plancha en el Álbum con las obras de su galería.
 - **Avatar anfitrión y sello «Estuve en el Vernissage»:** si un visitante entra a la galería en el mismo momento en que el artista dueño está conectado en vivo (`GalleryPresence.tsx`), ambos desbloquean el sello *«Conocí a {Artista} en vivo en su galería»*. Esto le sirve al artista para convocar inauguraciones con día y hora desde su Instagram.
 - **Tablero Kraft de visitas por galería:** cada sala puede tener su propio cuadro de papel Kraft (`CollageWall.tsx`) donde los visitantes pegan un recorte o su foto polaroid (`Souvenir.tsx`) dedicada al artista, moderado por el propio dueño de la sala.
-- **Puerta al Club (paso continuo entre salas):** en cada galería hay una puerta que lleva a la siguiente galería activa del Club, y en la Galería 3D principal del Mundial se suma un acceso destacado hacia las salas de los socios.
+- **Puerta al Club (paso continuo entre salas):** en cada galería hay una puerta con una placa que anuncia la siguiente sala («Siguiente sala: {Artista} · {País}») y lleva a otra galería activa del Club, con prioridad para las que tienen gente en vivo o que el visitante todavía no selló en su pasaporte. En la Galería 3D principal del Mundial se suma un acceso destacado hacia las salas de los socios.
 - **Botón de consulta directa:** en la ficha de cada cuadro, el socio puede activar un botón *«Consultar al artista por esta obra»* (WhatsApp o mail) para vender sin comisiones.
 
 ## Etapas
@@ -81,9 +81,10 @@ Casi todo lo que necesita la primera etapa ya existe en el sitio. Lo nuevo es pa
 | Avatares y ropa | 18 avatares realistas (`cast.ts`, `AvatarBody.tsx` con esqueleto compartido `Bip01`) y 11 telas procedurales en `fabrics.ts` + prendas en `looks.ts` | Selector de ropa/telas sobre los materiales del avatar y accesorios enganchados a los huesos de `Bip01` |
 | Álbum y monedas | `stamp-album-client.tsx`, `Passport.tsx`, `ArtworkStamp.tsx`, `ArtworkLike.tsx` | Dar monedas al dar like o sumar estampillas; cupo de 1 estampilla bonus por galería del Club; tablas `club_wallets`, `coin_transactions` y `user_gallery_inventory` |
 | Visitantes en vivo | Supabase Realtime, hasta 8 avatares a la vez (`GalleryPresence.tsx`) | Un canal por galería (`gallery:club:<slug>`) y NPC del artista cuando no está conectado |
+| Acceso y CDN | `/galeria-3d` con `force-dynamic`, porque pide sesión para entrar; `/artistas/[slug]` con copia `anon/` | `/club/[slug]` sin login para entrar, con copia `anon/` como `/artistas/[slug]`, y Google solo al interactuar |
 | Mapa | Mapa mundial del sitio (`world-map`) | Las galerías como puntos y el paso de una a otra (Etapa 2) |
 | Cobro mensual y packs | Suscripciones con Mercado Pago y planes/órdenes de PayPal (`lib/payments/`) | El plan mensual del Club (que acredita monedas y activa la galería) y los packs de monedas de compra única (`monedas:`) |
-| Estadísticas | «Atención por obra» en el panel de admin (`AttentionRecorder.tsx`) | Una vista por socio, solo de las obras de su galería |
+| Estadísticas | «Atención por obra» en el panel de admin (`AttentionRecorder.tsx`) y notificaciones (`user_notifications`) | Una vista por socio, solo de las obras de su galería, y su resumen semanal |
 
 La configuración de cada galería es un registro chico en Supabase; el dibujo sigue en el navegador del visitante, así que el costo por visita no cambia.
 
@@ -124,7 +125,8 @@ Decisiones ya definidas:
 
 Puntos operativos por confirmar antes de lanzar:
 
-- [ ] Definir la tabla exacta de precios de los packs de monedas y cuántas monedas regala cada cuota mensual y cada acción (like / estampilla).
+- [ ] Definir la tabla exacta de precios de los packs de monedas y cuántas monedas regala cada cuota mensual y cada acción (like / estampilla). Punto de partida del borrador: *Pack Chico* de 500 monedas, *Pack Mediano* de 1.500 con 15 % extra y *Pack Mecenas* de 3.500 con 30 % extra.
+- [ ] ¿El socio también gana monedas por logros de su sala (primeras 50 visitas, 10 obras guardadas en álbumes, una inauguración en vivo)?
 - [ ] ¿Cada cuánto se ajusta el precio en pesos de la suscripción en Mercado Pago?
 - [ ] ¿Hay plan anual de entrada, y con qué descuento (ej. 10 meses por 12)?
 
@@ -155,7 +157,9 @@ El sitio corre en Next.js 16 sobre Vercel, con 4 horas de CPU activa cada 30 dí
 - **Nada de `force-dynamic`, `cookies()`, `headers()` ni sesión** donde no hace falta; preferir `revalidate`.
 - **Rutas nuevas que no leen la sesión** quedan fuera del matcher de `proxy.ts`; lo controla `proxy.test.ts`.
 - **Páginas públicas** viven en `app/[locale]/(site)/`. Las listadas en `lib/static-pages.ts` (como `/galeria-3d`) tienen una copia `anon/` construida de antemano: ahí la sesión se lee solo con `getCurrentUser()` o `createClient()` (`lib/supabase/server.ts`) y el idioma con `getI18n()`. Después de `next build`, las rutas `anon` muestran ●, nunca ƒ.
-- **Archivos 3D y pesados** van al bucket público de R2 (`NEXT_PUBLIC_GALLERY_ASSETS_URL`), nunca por Vercel ni por `next/image`.
+- **`/club/[slug]` no copia a `/galeria-3d`:** la galería general usa `force-dynamic` porque pide sesión para entrar. La del Club se suma a `lib/static-pages.ts` con su copia `anon/`, como `/artistas/[slug]`, y cuando pide Google para interactuar vuelve a la misma obra con `galleryReturnPath`, como ya hacen `ArtworkStamp`, `ArtworkLike` y `ArtworkComments`.
+- **Archivos 3D y pesados** van al bucket público de R2 (`NEXT_PUBLIC_GALLERY_ASSETS_URL`), nunca por Vercel ni por `next/image`. Esto incluye los discos nuevos de la consola: hoy las 4 pistas de `public/music/` (unos 18 MB) salen por Vercel.
+- **Calidad gráfica adaptable:** los temas, marcos y objetos nuevos respetan los 4 niveles de `docs/gallery-graphics.md` (de Bajo a Ultra): mapas procedurales de 128², texturas que se liberan al cambiar de tema y nada de postprocesado sobre las obras.
 - **Datos que el cliente puede pedir después** (listas, mapa, búsqueda) salen de un endpoint cacheado en el CDN, no del render de la página.
 
 ## Dónde está cada pieza
@@ -176,6 +180,9 @@ Todo lo de la galería vive en `components/gallery/`; los cobros, en `lib/paymen
 | Preferencias del visitante | `preferences/store.ts` | En el navegador; incluye el avatar elegido |
 | Pantalla de inicio | `ui/StartScreen.tsx`, `ui/AvatarPicker.tsx` | |
 | Cobros y tienda | `lib/store.ts`, `lib/payments/` (`provider.ts`, `providers/mercadopago.ts`, `providers/paypal.ts`, `paypal/plans.ts`, `paypal/handlers.ts`, `purchases.ts`, `references.ts`), `app/[locale]/(site)/tienda/suscribirme`, `supabase/migrations/20261001150000_mercadopago_subscriptions.sql` | Un adaptador por proveedor detrás de `PaymentProvider` |
+| Música | `gallery/ui/BackgroundMusic.tsx`, `gallery/vinyl/` (`VinylConsole.tsx`, `tracks.json`), `public/music/CREDITS.md` | La consola de vinilos elige el disco; cada pista lleva su fuente y licencia |
+| Calidad gráfica | `docs/gallery-graphics.md`, `Scene.tsx`, `world/Lighting.tsx` | 4 niveles (Bajo, Medio, Alto, Ultra) con regulador por tiempos de cuadro |
+| Notificaciones | `supabase/migrations/20261005120000_notifications.sql`, `app/[locale]/(site)/notificaciones` | Base del resumen semanal al socio |
 | Mapa | `components/world-map.tsx`, `map-explorer.tsx` | |
 | Estadísticas y atención | `gallery/attention/AttentionRecorder.tsx`, `components/admin/stats/`, `supabase/migrations/20261011180000_gallery_attention.sql` | «Atención por obra» mide mirada directa (> 2s a < 5m) y apertura de ficha |
 | Textos | `lib/i18n/messages/*.ts` | 9 idiomas; `messages.test.ts` controla los marcadores como `{name}`; las claves las exige TypeScript, con `es.ts` como modelo |
@@ -186,7 +193,7 @@ Guía lista para implementar paso a paso:
 
 ### 1. Modelo de datos en Supabase
 
-- **Reutilizar `public.artworks` para las obras colgadas:** en lugar de crear una tabla paralela de obras que obligue a duplicar likes, comentarios, estampillas y medición de atención, permitir que los socios del Club suban más obras en `public.artworks` (marcadas con `is_club_only = true` cuando no son la obra que concursa en el Mundial) y referenciarlas desde `public.club_gallery_hangings (gallery_id, slot, artwork_id, frame_style, for_sale, price_label)`. Así `ArtworkLike`, `ArtworkComments`, `ArtworkStamp`, `Souvenir` y `AttentionRecorder` funcionan sin cambios.
+- **Reutilizar `public.artworks` para las obras colgadas:** en lugar de crear una tabla paralela de obras que obligue a duplicar likes, comentarios, estampillas y medición de atención, permitir que los socios del Club suban más obras en `public.artworks` (marcadas con `is_club_only = true` cuando no son la obra que concursa en el Mundial) y referenciarlas desde `public.club_gallery_hangings (gallery_id, slot, artwork_id, frame_style, for_sale, price_label)`, con `primary key (gallery_id, slot)`, `unique (gallery_id, artwork_id)` y borrado en cascada desde la galería y desde la obra. Así `ArtworkLike`, `ArtworkComments`, `ArtworkStamp`, `Souvenir` y `AttentionRecorder` funcionan sin cambios.
 - **`public.club_galleries`:**
   - `id uuid primary key`, `user_id uuid unique references auth.users(id)`
   - `subscription_id uuid references public.subscriptions(id)`
@@ -202,12 +209,13 @@ Guía lista para implementar paso a paso:
   - **RLS:** cualquiera lee las filas con `status = 'active'`; el dueño (`user_id = auth.uid()`) lee y edita la suya (una función/trigger verifica que `template_id`, `theme`, `default_frame_style` y `host_outfit` estén incluidos de base o en `user_gallery_inventory`); `service_role` actualiza `status`.
 - **Billetera e inventario (`club_wallets`, `coin_transactions`, `user_gallery_inventory`):**
   - `club_wallets (user_id primary key, balance integer not null default 0 check (balance >= 0), updated_at timestamptz)`.
-  - `coin_transactions (id uuid primary key, user_id uuid, delta integer not null, kind text, reference_id text, created_at timestamptz, unique (kind, reference_id))` para garantizar idempotencia ante reintentos de webhooks o acciones repetidas.
+  - `coin_transactions (id uuid primary key, user_id uuid, delta integer not null, kind text, reference_id text, created_at timestamptz, unique (kind, reference_id))`: un libro de movimientos que solo crece, con `kind` en `'subscription_bonus'`, `'purchase'`, `'activity'`, `'spend'` o `'refund'`. El `unique` garantiza idempotencia ante reintentos de webhooks o acciones repetidas.
   - `user_gallery_inventory (user_id uuid, item_id text, unlocked_at timestamptz, primary key (user_id, item_id))`.
   - Función RPC `spend_coins_on_item(p_item_id text)` con `pg_advisory_xact_lock` que verifica el precio en el catálogo, descuenta de `club_wallets` e inserta en `user_gallery_inventory`.
+  - El cliente solo tiene `select` sobre su billetera, sus movimientos y su inventario. Las monedas las acredita el servidor (`service_role`) al confirmarse un pago, o las funciones de like y estampilla; se gastan únicamente con `spend_coins_on_item`.
   - En `like_gallery_artwork` y `collect_gallery_artwork_stamp`, acreditar las monedas de recompensa con tope diario por cuenta para evitar abuso.
-- **Ajuste importante en `record_subscription_payment` (`20261001150000_mercadopago_subscriptions.sql` y `20260930020000_paypal_store.sql`):**
-  - Hoy `record_subscription_payment` inserta siempre una fila en `public.shipments` porque asume envío postal físico. Para el plan `'club'`, hacer `shipping_address` opcional, no insertar en `shipments`, acreditar las monedas mensuales del socio en `club_wallets` y poner `club_galleries.status = 'active'`.
+- **Ajuste importante en `record_subscription_payment` (`20261001150000_mercadopago_subscriptions.sql`) y `record_paypal_subscription_payment` (`20260930020000_paypal_store.sql`):**
+  - Hoy las dos insertan siempre una fila en `public.shipments` porque asumen envío postal físico. Para el plan `'club'`, hacer `shipping_address` opcional, no insertar en `shipments`, acreditar las monedas mensuales del socio en `club_wallets` y poner `club_galleries.status = 'active'`.
   - Para los packs de monedas sueltos, agregar el prefijo `monedas:` en `lib/payments/references.ts` y procesarlos con `rowPurchase` en `lib/payments/purchases.ts`.
 
 ### 2. Salas, cuadros, temas y ropa en el motor 3D
