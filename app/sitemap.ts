@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getSiteUrl } from '@/lib/site'
+import { isClubOpen } from '@/lib/club-launch'
 import { getFinalists } from '@/lib/finalists'
 
 // Rebuilt at most once an hour: crawlers don't need new works within the
@@ -18,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/tienda`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${siteUrl}/revista`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${siteUrl}/partners`, changeFrequency: 'monthly', priority: 0.4 },
+    ...(isClubOpen() ? [{ url: `${siteUrl}/club`, changeFrequency: 'monthly' as const, priority: 0.6 }] : []),
     { url: `${siteUrl}/taller/inscripcion`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${siteUrl}/terminos-y-condiciones`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${siteUrl}/politica-de-privacidad`, changeFrequency: 'yearly', priority: 0.3 },

@@ -1,12 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { galleryThemes, type GalleryTheme } from '@/components/gallery/themes'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
+import { canUseClub } from '@/lib/club-launch'
 import { optionState, roomCapacity, shopItems, type ShopItem } from '@/lib/club-editor'
 import { CLUB_FRAME_STYLES, CLUB_GALLERY_THEMES, CLUB_ROOM_TEMPLATES, type ClubRoomTemplate, type GalleryCatalogKind } from '@/lib/gallery-catalog'
 import { saveGallerySettings, saveHangings, unlockItem } from './actions'
@@ -20,6 +21,7 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
   if (!isSupabaseConfigured) redirect('/')
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
+  if (!canUseClub(user.email)) notFound()
 
   const { locale, m } = await getI18n()
   const t = m.club

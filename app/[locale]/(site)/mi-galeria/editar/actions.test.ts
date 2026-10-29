@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 type Result = { data: unknown; error: { code?: string; message: string } | null }
 const mocks = vi.hoisted(() => ({
-  user: { value: { id: 'user-1' } as { id: string } | null },
+  user: { value: { id: 'user-1' } as { id: string; email?: string } | null },
   tables: {} as Record<string, { data: unknown; error: { code?: string; message: string } | null }>,
   updates: [] as { table: string; values: unknown }[],
   updateResult: { value: { data: null, error: null } as { data: unknown; error: { code?: string; message: string } | null } },
@@ -49,6 +49,7 @@ const settings = { title: 'Mi muestra', statement: '', template_id: 'cabinet', t
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.stubEnv('CLUB_OPEN', 'on')
   mocks.user.value = { id: 'user-1' }
   mocks.updates.length = 0
   mocks.updateResult.value = { data: null, error: null }
@@ -60,7 +61,17 @@ beforeEach(() => {
   mocks.rpc.mockResolvedValue({ error: null })
 })
 
+afterEach(() => vi.unstubAllEnvs())
+
 describe('who can edit', () => {
+  it('keeps everyone but the admins out while the Club is closed', async () => {
+    vi.stubEnv('CLUB_OPEN', '')
+    mocks.user.value = { id: 'user-1', email: 'someone@example.com' }
+    await expect(unlockItem(form({ item: 'theme:museum' }))).rejects.toThrow('REDIRECT:/')
+    expect(mocks.rpc).not.toHaveBeenCalled()
+    mocks.user.value = { id: 'user-1', email: 'mundialdecollage@gmail.com' }
+    await expect(unlockItem(form({ item: 'theme:museum' }))).rejects.toThrow('desbloqueado=1')
+  })
   it('sends a visitor without a session to /mi-galeria', async () => {
     mocks.user.value = null
     await expect(unlockItem(form({ item: 'theme:museum' }))).rejects.toThrow('REDIRECT:/mi-galeria')

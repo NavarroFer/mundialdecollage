@@ -16,6 +16,7 @@ import { payPal } from '@/lib/payments/providers/paypal'
 import { coinPackById } from '@/lib/store'
 import type { Checkout } from '@/lib/payments/provider'
 import { getSiteUrl } from '@/lib/site'
+import { canUseClub } from '@/lib/club-launch'
 
 // «Suscribirme al Club»: the artist's gallery is created here, when they
 // start paying, and goes live with the first approved charge
@@ -25,6 +26,7 @@ import { getSiteUrl } from '@/lib/site'
 async function startMembership(provider: ClubProvider) {
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
+  if (!canUseClub(user.email)) redirect('/')
   const configured = provider === 'paypal' ? isPayPalServerConfigured : isMercadoPagoConfigured
   if (!isSupabaseConfigured || !configured || !process.env.SUPABASE_SERVICE_ROLE_KEY) redirect('/mi-galeria?error=unavailable')
 
@@ -91,6 +93,7 @@ export async function joinClubWithPayPal() {
 export async function buyCoinPack(formData: FormData) {
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
+  if (!canUseClub(user.email)) redirect('/')
   const pack = coinPackById(String(formData.get('pack') ?? ''))
   const provider = formData.get('currency') === 'USD' ? payPal : mercadoPago
   if (!pack || !user.email || !provider.isConfigured || !isSupabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) redirect('/mi-galeria?error=unavailable')

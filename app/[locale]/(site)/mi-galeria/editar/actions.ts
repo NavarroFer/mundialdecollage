@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { refreshClubGallery } from '@/lib/public-data-cache'
+import { canUseClub } from '@/lib/club-launch'
 import { fitsRoom, parseGallerySettings, parseHangings, roomCapacity } from '@/lib/club-editor'
 import { PURCHASABLE_GALLERY_ITEMS, type ClubRoomTemplate } from '@/lib/gallery-catalog'
 
@@ -20,6 +21,7 @@ async function member() {
   if (!isSupabaseConfigured) redirect('/')
   const user = await getCurrentUser()
   if (!user) redirect('/mi-galeria')
+  if (!canUseClub(user.email)) redirect('/')
   const supabase = await createClient()
   const { data: gallery } = await supabase
     .from('club_galleries')
