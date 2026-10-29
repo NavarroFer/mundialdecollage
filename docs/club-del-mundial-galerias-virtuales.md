@@ -159,7 +159,7 @@ Riesgos a cuidar:
 
 ## Estado y pendientes
 
-Al 29 de octubre de 2026 (actualizado el 30). Todo lo hecho está en commits locales, todavía sin subir a `main`.
+Al 29 de octubre de 2026 (actualizado el 30, con el mapa, las muestras, el resumen semanal y el 3D). Todo lo hecho está en commits locales, todavía sin subir a `main`.
 
 **Hecho**
 
@@ -174,6 +174,11 @@ Al 29 de octubre de 2026 (actualizado el 30). Todo lo hecho está en commits loc
 - [x] **Mercado Pago y PayPal configurados** (plan de PayPal y variables cargadas en Vercel el 29/10). Toman efecto con el próximo deploy.
 - [x] **Galería de cortesía** (`/admin/club`, en «Galería 3D»): con el email de la cuenta, la galería queda activa sin suscripción y con monedas de regalo (`courtesy_granted_at`, monedas de tipo `gift`). Con el mismo formulario se suman más monedas; «Terminar cortesía» la pausa sin borrar nada. Un cambio de cobro de una suscripción vieja nunca pausa una cortesía. La persona tiene que haber entrado al sitio una vez con Google.
 - [x] **Acceso con el Club cerrado:** quien ya tiene una galería activa (los fundadores) entra a `/mi-galeria`, al editor y a los packs aunque falte `CLUB_OPEN`; suscribirse sigue esperando la apertura.
+- [x] **Casa en el mapa y mapa del Club:** el socio toca el mapa del editor (se guarda redondeado a ~11 km) y `/club` muestra todas las casas con zoom (rueda, dos dedos, botones); cada casa abre artista, obras y «Entrar a su galería». Los datos salen de `/api/club/casas` (CDN), que también usa la Puerta al Club.
+- [x] **Galerías de muestra en `/club`:** se marcan desde `/admin/club` («Mostrar en /club»).
+- [x] **Resumen semanal** en la campanita de cada socio, los lunes (cron diario `exhibition`).
+- [x] **PDF de bases** regenerado con la sección del Club.
+- [x] **3D:** Puerta al Club con placa «Siguiente sala», anfitrión con carta de bienvenida, sello postal del artista (la base lo verifica con la atención registrada), sello «Estuve en el Vernissage» (depende de la presencia en vivo, se puede falsear) y tablero Kraft por galería, moderado por el socio desde el editor. Verificado a la vista solo en la sala Gabinete, con un build de producción local.
 - [x] **Subir obras al Club** desde el editor (hasta 30, `is_club_only`): la base las rechaza como obra postulada o principal, y quedan fuera del selector de la convocatoria, del tope de obras guardadas, de `/admin/obras`, del emparejamiento con Registro y del público «Varias obras». A quien no tiene nombre o país en su perfil se los pide antes de la primera. La galería firma las obras aunque el perfil esté oculto.
 
 **Verificado antes de subir (29/10/2026)**
@@ -201,10 +206,7 @@ Al 29 de octubre de 2026 (actualizado el 30). Todo lo hecho está en commits loc
 
 **Falta construir**
 
-- [ ] **Elegir la casa en el mapa** (idea nueva, ver «Etapas», etapa 2): selector en el editor, dos columnas en `club_galleries` y un listado cacheado.
-- [ ] **Sección «Galerías de muestra»** en `/club`, leída de la base de datos, y una captura para la home.
-- [ ] **Gamificación en 3D**, que no se puede verificar sin mirarla: avatar anfitrión con su carta de bienvenida, sello «Estuve en el Vernissage», Puerta al Club entre galerías, tablero Kraft por galería y sello postal del artista.
-- [ ] **Resumen semanal** al socio en sus notificaciones.
+- [ ] **Captura de una galería de muestra para la home**, cuando haya una armada (imagen fija en R2).
 - [ ] **Contar las visitas sin cuenta.** Hoy el panel mide solo a quienes tienen cuenta, porque la atención exige una; contar las otras necesita un contador agregado y cacheado.
 - [ ] **Plan anual** y el proceso mensual que acredita las 600 monedas.
 - [ ] **Ajuste trimestral del precio en pesos:** hay que actualizar cada suscripción de Mercado Pago y avisar 30 días antes.
