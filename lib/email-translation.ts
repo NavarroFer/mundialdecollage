@@ -4,6 +4,7 @@
 // Spanish original, so one template holds every language as a map of
 // "which text" → "translated text" per locale.
 // Pure (no server or DOM APIs): the campaign composer uses it in the browser too.
+import { tagSiteLinks } from '@/lib/mail-links'
 import { isEmailDocument, renderEmailDocumentToHtml, type EmailBlock, type EmailDocument } from '@/lib/email-blocks'
 import { getSiteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, localeForCountry, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
@@ -124,7 +125,8 @@ export const UNSUBSCRIBE_FOOTER: Record<Locale, { question: string; link: string
 export function withUnsubscribeFooter(bodyHtml: string, contactId: string, locale: Locale) {
   const unsubscribeUrl = `${getSiteUrl()}/api/unsubscribe?id=${contactId}`
   const footer = UNSUBSCRIBE_FOOTER[locale]
-  return `${bodyHtml}<hr style="margin-top:32px;border:none;border-top:1px solid #ddd" /><p style="margin-top:16px;font-size:12px;color:#888">${footer.question} <a href="${unsubscribeUrl}">${footer.link}</a>.</p>`
+  // Every bulk mail goes through here: the links to the site say where the visit comes from.
+  return `${tagSiteLinks(bodyHtml, getSiteUrl())}<hr style="margin-top:32px;border:none;border-top:1px solid #ddd" /><p style="margin-top:16px;font-size:12px;color:#888">${footer.question} <a href="${unsubscribeUrl}">${footer.link}</a>.</p>`
 }
 
 // The email as one locale receives it (memoized per locale by the caller):
