@@ -27,6 +27,9 @@ export async function sendShipmentNotice(id: string, event: 'shipped' | 'awaitin
     const p = pickupCopy(locale)
     const es = locale === 'es'
     const arrival = event === 'awaiting_pickup'
+    // Before Correo's API, the buyer gave a home address and we chose the
+    // branch by hand: only arrival at a branch they picked gets its own notice.
+    const pickedBranch = data.shipping_address?.delivery_type === 'branch'
     const deadline = data.pickup_deadline ? new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(`${data.pickup_deadline}T12:00:00Z`)) : null
     if (arrival && !deadline) {
       await db.from('shipments').update({ [column]: null }).eq('id', id).eq(column, claimedAt)
@@ -38,7 +41,7 @@ export async function sendShipmentNotice(id: string, event: 'shipped' | 'awaitin
       formatAddress(data.shipping_address, locale),
       `${es ? 'Seguimiento' : 'Tracking'}: ${data.tracking_code}`,
       'https://www.correoargentino.com.ar/formularios/e-commerce',
-      arrival ? `${es ? 'Retirá hasta el' : 'Collect by'} ${deadline}. ${p.identity}` : p.readyHelp,
+      arrival ? `${es ? 'Retirá hasta el' : 'Collect by'} ${deadline}. ${p.identity}` : pickedBranch ? p.readyHelp : p.trackingHelp,
       arrival ? (es ? 'Si no podés retirarlo, escribinos. Si vence el plazo, Correo puede devolverlo al remitente; coordinaremos las condiciones de reenvío.' : 'Contact us if you cannot collect it. After the deadline, Correo may return the parcel; contact us to arrange reshipping.') : '',
       site.email,
     ].filter(Boolean).join('\n\n')

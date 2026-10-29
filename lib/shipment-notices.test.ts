@@ -71,3 +71,13 @@ it('includes the actual branch, recipient and deadline in the arrival notice', a
   expect(mail.text).toContain('20 de octubre de 2026')
   expect(mail.text).toContain('acreditar su identidad')
 })
+
+it('sends the tracking code when we chose the branch by hand, without promising an arrival notice', async () => {
+  const row = { ...fixture(), shipping_address: { country_code: 'AR', branch_to_choose: true, address_line_1: 'Av. Colón 1234', admin_area_2: 'Mar del Plata' } }
+  mocks.db.mockReturnValue(database(row))
+  expect(await sendShipmentNotice('shipment', 'shipped')).toBe(true)
+  const mail = mocks.mail.mock.calls[0][0]
+  expect(mail.text).toContain('CP123456AR')
+  expect(mail.text).toContain('seguir el paquete')
+  expect(mail.text).not.toContain('esperá la confirmación de llegada')
+})

@@ -20,15 +20,13 @@ export async function markShipmentSent(formData: FormData) {
   const id = String(formData.get('id') ?? '')
   const tracking = String(formData.get('tracking_code') ?? '').trim()
   if (!uuid(id)) return
-  const { data: shipment } = await db.from('shipments').select('shipping_address').eq('id', id).maybeSingle()
-  if (!shipment) return
-  const pickup = shipment.shipping_address?.delivery_type === 'branch'
-  if ((pickup && !tracking) || (tracking && !/^[a-z0-9-]{5,120}$/i.test(tracking))) fail('Ingresá un código de seguimiento válido antes de marcar el envío.')
+  // Every parcel goes by Correo Argentino, and the buyer's mail carries its tracking code.
+  if (!/^[a-z0-9-]{5,120}$/i.test(tracking)) fail('Ingresá un código de seguimiento válido antes de marcar el envío.')
   const { data, error } = await db.from('shipments')
-    .update({ status: 'shipped', shipped_at: new Date().toISOString(), tracking_code: tracking || null, ...(pickup ? { carrier: 'correo_argentino' } : {}) })
+    .update({ status: 'shipped', shipped_at: new Date().toISOString(), tracking_code: tracking, carrier: 'correo_argentino' })
     .eq('id', id).in('status', ['pending', 'packed']).select('id').maybeSingle()
   if (error) fail('No pudimos guardar el despacho.')
-  if (data && pickup && !await sendShipmentNotice(id, 'shipped')) {
+  if (data && !await sendShipmentNotice(id, 'shipped')) {
     revalidatePath('/admin/tienda')
     fail('El despacho quedó guardado, pero no se pudo enviar el aviso. Podés reintentarlo desde Envíos despachados.')
   }

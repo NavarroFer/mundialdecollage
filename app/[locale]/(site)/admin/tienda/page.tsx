@@ -181,7 +181,7 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
                           <p className="text-xs font-semibold">{({ shipped: 'En camino', awaiting_pickup: 'Disponible para retirar', delivered: 'Entregado / retirado', returned: 'Devuelto al remitente' } as Record<string, string>)[s.status]}</p>
                           {s.tracking_code && <p className="text-xs text-muted-foreground">Seguimiento: {s.tracking_code}</p>}
                           {s.pickup_deadline && <p className="text-xs">Retirar hasta: {s.pickup_deadline}</p>}
-                          {s.shipping_address?.delivery_type === 'branch' && ['shipped', 'awaiting_pickup'].includes(s.status) && !(s.status === 'shipped' ? s.shipped_notice_sent_at : s.pickup_notice_sent_at) && <form action={retryShipmentNotice}>
+                          {s.tracking_code && ['shipped', 'awaiting_pickup'].includes(s.status) && !(s.status === 'shipped' ? s.shipped_notice_sent_at : s.pickup_notice_sent_at) && <form action={retryShipmentNotice}>
                             <input type="hidden" name="id" value={s.id} />
                             <SubmitButton size="sm" variant="outline">Reintentar aviso por email</SubmitButton>
                           </form>}
@@ -204,8 +204,9 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
                       ) : (
                         <form action={markShipmentSent} className="flex flex-col gap-2">
                           <input type="hidden" name="id" value={s.id} />
-                          <input name="tracking_code" aria-label="Código de seguimiento" placeholder="Seguimiento (obligatorio para retiro)" required={s.shipping_address?.delivery_type === 'branch'} maxLength={120} className="w-56 rounded-md border border-ink/15 bg-background px-2 py-1.5 text-xs" />
-                          <SubmitButton size="sm">Marcar enviado</SubmitButton>
+                          <input name="tracking_code" aria-label="Código de seguimiento" placeholder="Código de seguimiento" required maxLength={120} className="w-56 rounded-md border border-ink/15 bg-background px-2 py-1.5 text-xs" />
+                          <SubmitButton size="sm">Marcar enviado · avisar</SubmitButton>
+                          <p className="max-w-56 text-xs text-muted-foreground">Le mandamos al cliente un mail con el código de seguimiento.</p>
                         </form>
                       )}
                     </td>
