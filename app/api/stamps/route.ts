@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isStampKey, STAMP_KEYS } from '@/lib/stamps'
+import { isStampKey, STAMP_KEYS, type ClubStamp } from '@/lib/stamps'
 
 const VISIT_STAMPS = new Set(['gallery', 'world'])
 const noStore = { 'Cache-Control': 'private, no-store' }
@@ -24,10 +24,18 @@ export async function GET() {
       ? [{ slug: artwork.slug, title: artwork.title?.trim() || 'Sin título', image: artwork.image_url, artist: artwork.profiles.name, collectedAt: row.collected_at }]
       : []
   })
+  // The Club's stamps (postal and vernissage): empty rather than an error, so
+  // the album never breaks over them.
+  const { data: club } = await supabase.rpc('my_club_stamps')
+  const clubStamps: ClubStamp[] = ((club ?? []) as { slug: string; artist_name: string; country_code: string | null; kind: string; collected_at: string }[])
+    .flatMap((row) => row.kind === 'postal' || row.kind === 'vernissage'
+      ? [{ slug: row.slug, artist: row.artist_name, countryCode: row.country_code, kind: row.kind, collectedAt: row.collected_at }]
+      : [])
   return NextResponse.json({
     signedIn: true,
     unlockedStamps: (data ?? []).flatMap((row) => isStampKey(row.stamp_key) ? [row.stamp_key] : []),
     artworkStamps,
+    clubStamps,
   }, { headers: noStore })
 }
 

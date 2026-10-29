@@ -68,6 +68,7 @@ const fr: Messages = {
   },
   countdown: { days: 'jours', hours: 'heures', minutes: 'min' },
   stamps: {
+    club: { title: 'Timbres du Club', postal: 'Timbre postal', vernissage: 'J’étais au vernissage', empty: 'Parcourez les galeries du Club : ouvrez toutes les œuvres d’une salle pour gagner le timbre de son artiste.' },
     eyebrow: 'Album du Mondial', title: 'Collectionne les timbres', body: 'Chaque étape laisse une trace. Tu pourras bientôt débloquer de nouveaux succès.',
     first: { title: 'Première découpe', body: 'Envoie ton œuvre' }, gallery: { title: 'Explorateur·rice', body: 'Parcours l’exposition 3D' }, world: { title: 'Tour du monde', body: 'Découvre la communauté' },
     howItWorks: 'Comment ça marche', stepRegister: 'Inscris-toi pour commencer ton album.', stepExplore: 'Agis et découvre le Mondial.', stepCollect: 'Débloque des timbres et de nouveaux succès.', registerCta: 'M inscrire pour collectionner', locked: 'Timbre verrouillé', close: 'Fermer le tutoriel',
@@ -458,6 +459,7 @@ const fr: Messages = {
     contact: { consult: 'Contacter l\'artiste à propos de cette œuvre', message: 'Bonjour, j\'ai vu votre œuvre « {title} » dans votre galerie du Club et j\'aimerais vous poser une question.' },
     clubDoor: { next: 'Salle suivante', soon: 'Bientôt, d’autres salles', prompt: 'Aller dans la salle de {name}' },
     clubHost: { prompt: 'Lire la lettre de {name}', eyebrow: 'Lettre de bienvenue', fallback: 'Merci de passer par ma salle. Prenez votre temps : chaque œuvre a son histoire.', write: 'Lui écrire', message: 'Bonjour, j’ai parcouru votre galerie « {title} » au Club et je voulais vous écrire.' },
+    clubStamps: { postal: 'Vous avez gagné le timbre postal de {name} : il est dans votre Album.', vernissage: 'Vous avez rencontré {name} en direct dans sa galerie : timbre « J’étais au vernissage » dans votre Album.' },
     mobileMenu: { open: "Options", close: "Fermer les options", resume: "Reprendre la visite" },
     startEyebrow: 'MONDIAL DU COLLAGE · GALERIE 3D',
     startTitle: "Parcours l'exposition",

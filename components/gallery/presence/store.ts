@@ -6,6 +6,7 @@ type PresenceState = {
   count: number | null
   viewers: PresenceSummary['viewers']
   peers: PresenceSummary['peers']
+  hostHere: boolean
   setSummary: (summary: PresenceSummary | null) => void
 }
 
@@ -13,15 +14,16 @@ export const usePresenceStore = create<PresenceState>((set, get) => ({
   count: null,
   viewers: {},
   peers: [],
+  hostHere: false,
   setSummary: (summary) => {
     if (!summary) {
-      set({ count: null, viewers: {}, peers: [] })
+      set({ count: null, viewers: {}, peers: [], hostHere: false })
       return
     }
     // Keep the old array when nobody joined or left, so avatar lists don't
     // re-render on every presence sync.
     const peers = summary.peers.join() === get().peers.join() ? get().peers : summary.peers
-    set({ count: summary.count, viewers: summary.viewers, peers })
+    set({ count: summary.count, viewers: summary.viewers, peers, hostHere: summary.hostHere })
   },
 }))
 

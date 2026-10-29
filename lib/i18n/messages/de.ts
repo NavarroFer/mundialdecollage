@@ -68,6 +68,7 @@ const de: Messages = {
   },
   countdown: { days: 'Tage', hours: 'Std.', minutes: 'Min.' },
   stamps: {
+    club: { title: 'Club-Briefmarken', postal: 'Briefmarke', vernissage: 'Ich war bei der Vernissage', empty: 'Geh durch die Club-Galerien: Öffne alle Werke eines Raums, um die Briefmarke der Künstlerin oder des Künstlers zu bekommen.' },
     eyebrow: 'WM-Album', title: 'Sammle Briefmarken', body: 'Jeder Schritt hinterlässt eine Spur. Bald kannst du neue Erfolge freischalten.',
     first: { title: 'Erster Schnitt', body: 'Schick dein Werk' }, gallery: { title: 'Entdecker:in', body: 'Erkunde die 3D-Ausstellung' }, world: { title: 'Um die Welt', body: 'Entdecke die Community' },
     howItWorks: 'So funktioniert es', stepRegister: 'Melde dich an, um dein Album zu starten.', stepExplore: 'Mach mit und entdecke die WM.', stepCollect: 'Schalte Briefmarken und neue Erfolge frei.', registerCta: 'Zum Sammeln anmelden', locked: 'Gesperrte Briefmarke', close: 'Tutorial schließen',
@@ -458,6 +459,7 @@ const de: Messages = {
     contact: { consult: 'Den Künstler zu diesem Werk anfragen', message: 'Hallo, ich habe dein Werk „{title}“ in deiner Galerie im Club gesehen und würde dir gern eine Frage dazu stellen.' },
     clubDoor: { next: 'Nächster Raum', soon: 'Bald weitere Räume', prompt: 'Zum Raum von {name}' },
     clubHost: { prompt: 'Brief von {name} lesen', eyebrow: 'Willkommensbrief', fallback: 'Danke, dass du in meinem Raum vorbeischaust. Lass dir Zeit: Jedes Werk hat seine Geschichte.', write: 'Schreiben', message: 'Hallo, ich war in deiner Galerie „{title}“ im Club und wollte dir schreiben.' },
+    clubStamps: { postal: 'Du hast die Briefmarke von {name} bekommen: Sie ist in deinem Album.', vernissage: 'Du hast {name} live in der Galerie getroffen: Briefmarke „Ich war bei der Vernissage“ in deinem Album.' },
     mobileMenu: { open: "Optionen", close: "Optionen schließen", resume: "Rundgang fortsetzen" },
     startEyebrow: 'COLLAGE-WM · 3D-GALERIE',
     startTitle: 'Geh durch die Ausstellung',

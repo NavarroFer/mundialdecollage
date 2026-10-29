@@ -68,6 +68,7 @@ const pt: Messages = {
   },
   countdown: { days: 'dias', hours: 'horas', minutes: 'min' },
   stamps: {
+    club: { title: 'Selos do Clube', postal: 'Selo postal', vernissage: 'Estive no Vernissage', empty: 'Percorra as galerias do Clube: abra todas as obras de uma sala para ganhar o selo postal do artista.' },
     eyebrow: 'Álbum do Mundial', title: 'Colecione selos', body: 'Cada passo deixa uma marca. Em breve você poderá desbloquear novas conquistas.',
     first: { title: 'Primeiro recorte', body: 'Envie sua obra' }, gallery: { title: 'Explorador/a', body: 'Visite a mostra 3D' }, world: { title: 'Volta ao mundo', body: 'Conheça a comunidade' },
     howItWorks: 'Como funciona', stepRegister: 'Cadastre-se para começar seu álbum.', stepExplore: 'Faça ações e descubra o Mundial.', stepCollect: 'Desbloqueie selos e novas conquistas.', registerCta: 'Cadastrar para colecionar', locked: 'Selo bloqueado', close: 'Fechar tutorial',
@@ -458,6 +459,7 @@ const pt: Messages = {
     contact: { consult: 'Consultar o artista sobre esta obra', message: 'Olá, vi sua obra «{title}» na sua galeria do Clube do Mundial de Collage e gostaria de fazer uma consulta.' },
     clubDoor: { next: 'Próxima sala', soon: 'Em breve, mais salas', prompt: 'Ir para a sala de {name}' },
     clubHost: { prompt: 'Ler a carta de {name}', eyebrow: 'Carta de boas-vindas', fallback: 'Obrigado por passar pela minha sala. Percorra com calma: cada obra tem sua história.', write: 'Escrever', message: 'Olá, percorri sua galeria «{title}» no Clube do Mundial de Collage e queria te escrever.' },
+    clubStamps: { postal: 'Você ganhou o selo postal de {name}: já está no seu Álbum.', vernissage: 'Você conheceu {name} ao vivo na galeria: selo «Estive no Vernissage» no seu Álbum.' },
     mobileMenu: { open: "Opções", close: "Fechar opções", resume: "Voltar ao passeio" },
     startEyebrow: 'MUNDIAL DE COLAGEM · GALERIA 3D',
     startTitle: 'Percorra a exposição',

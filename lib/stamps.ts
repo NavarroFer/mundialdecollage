@@ -6,6 +6,9 @@ export function isStampKey(value: string): value is StampKey {
   return STAMP_KEYS.includes(value as StampKey)
 }
 
+/** A stamp earned in a Club gallery: its artist's postal stamp, or having met them live. */
+export type ClubStamp = { slug: string; artist: string; countryCode: string | null; kind: 'postal' | 'vernissage'; collectedAt: string }
+
 export const STAMP_UNLOCKED_EVENT = 'mundial:stamp-unlocked'
 
 // `awarded` is true only the moment a stamp is first earned; otherwise the

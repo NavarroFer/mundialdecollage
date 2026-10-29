@@ -38,6 +38,8 @@ type Connection = {
   inside: boolean
   lastPose: SentPose | null
   seq: number
+  /** This browser is the Club gallery's own member, in their room. */
+  host: boolean
 }
 
 function isPresent({ channel, joined, inside }: Connection) {
@@ -47,7 +49,7 @@ function isPresent({ channel, joined, inside }: Connection) {
 function announce(connection: Connection) {
   if (!connection.channel || !connection.joined) return
   if (isPresent(connection)) {
-    void connection.channel.track({ viewing: useInteractionStore.getState().openId })
+    void connection.channel.track({ viewing: useInteractionStore.getState().openId, ...(connection.host ? { host: true } : {}) })
     // Whoever sees us (re)appear needs our position right away.
     connection.lastPose = null
     sendPose(connection)
@@ -120,8 +122,8 @@ function openChannel(current: Connection, artworkIds: ReadonlySet<string>, topic
   }
 }
 
-export function GalleryPresence({ inside, artworks, topic = DEFAULT_TOPIC }: { inside: boolean; artworks: Artwork[]; topic?: string }) {
-  const connection = useRef<Connection>({ channel: null, key: '', joined: false, inside: false, lastPose: null, seq: 0 })
+export function GalleryPresence({ inside, artworks, topic = DEFAULT_TOPIC, host = false }: { inside: boolean; artworks: Artwork[]; topic?: string; host?: boolean }) {
+  const connection = useRef<Connection>({ channel: null, key: '', joined: false, inside: false, lastPose: null, seq: 0, host: false })
   const resolvedTopic = topic === DEFAULT_TOPIC || process.env.NODE_ENV === 'production' ? topic : `${topic}:dev`
 
   useEffect(() => {
@@ -171,6 +173,11 @@ export function GalleryPresence({ inside, artworks, topic = DEFAULT_TOPIC }: { i
     connection.current.inside = inside
     announce(connection.current)
   }, [inside])
+
+  useEffect(() => {
+    connection.current.host = host
+    announce(connection.current)
+  }, [host])
 
   return null
 }

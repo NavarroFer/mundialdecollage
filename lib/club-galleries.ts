@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { cache } from 'react'
 import type { GalleryTheme } from '@/components/gallery/themes'
 import type { ClubGalleryTemplateId } from '@/components/gallery/world/roomsData'
@@ -33,6 +34,7 @@ export type ClubGalleryHangingRow = {
 
 export type ClubGalleryRow = {
   id: string
+  user_id: string
   slug: string
   title: string
   statement: string | null
@@ -49,6 +51,11 @@ export type ClubGalleryRow = {
 
 export type ClubGallery = {
   id: string
+  /**
+   * The member's account id, hashed: lets their own browser know it is the
+   * host (ClubGame.tsx) without putting the id in the public page.
+   */
+  ownerKey: string
   slug: string
   title: string
   statement?: string
@@ -73,6 +80,11 @@ function isTheme(value: string): value is GalleryTheme {
 
 function frameStyle(value: string | null | undefined, fallback: GalleryFrameStyle): GalleryFrameStyle {
   return value && FRAME_STYLES.has(value as GalleryFrameStyle) ? value as GalleryFrameStyle : fallback
+}
+
+/** SHA-256 of the member's account id, as ClubGame.tsx computes it in the browser. */
+export function clubOwnerKey(userId: string): string {
+  return createHash('sha256').update(userId.toLowerCase()).digest('hex')
 }
 
 /** Converts a public RLS row into the serializable contract consumed by the 3D client. */
@@ -108,6 +120,7 @@ export function clubGalleryFromRow(row: ClubGalleryRow): ClubGallery | undefined
 
   return {
     id: row.id,
+    ownerKey: clubOwnerKey(row.user_id),
     slug: row.slug,
     title: row.title,
     statement: row.statement?.trim() || undefined,
@@ -128,7 +141,7 @@ const getPublicClubGallery = cachedPublicData(async (slug: string): Promise<Club
   const { data, error } = await createPublicClient()
     .from('club_galleries')
     .select(`
-      id, slug, title, statement, template_id, theme, default_frame_style,
+      id, user_id, slug, title, statement, template_id, theme, default_frame_style,
       host_avatar_id, host_outfit, music_track, contact_whatsapp, contact_url,
       club_gallery_hangings(
         slot, frame_style, for_sale, price_label,

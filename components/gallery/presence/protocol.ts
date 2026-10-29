@@ -4,7 +4,7 @@
 
 import { GALLERY_BOUNDS } from '../world/roomsData'
 
-type PresenceMeta = { viewing?: unknown }
+type PresenceMeta = { viewing?: unknown; host?: unknown }
 
 export type PresenceSummary = {
   /** Everyone inside, the viewer included once they've entered. */
@@ -13,6 +13,8 @@ export type PresenceSummary = {
   viewers: Record<string, number>
   /** Other visitors' presence keys, sorted so equal sets compare equal. */
   peers: string[]
+  /** A Club gallery's member is in their own room right now (their browser says so). */
+  hostHere: boolean
 }
 
 export function summarizePresence(
@@ -23,13 +25,15 @@ export function summarizePresence(
   const keys = Object.keys(state)
   const viewers: Record<string, number> = {}
   const peers: string[] = []
+  let hostHere = false
   for (const key of keys) {
     if (key === ownKey) continue
     peers.push(key)
+    if (state[key][0]?.host === true) hostHere = true
     const viewing = state[key][0]?.viewing
     if (typeof viewing === 'string' && artworkIds.has(viewing)) viewers[viewing] = (viewers[viewing] ?? 0) + 1
   }
-  return { count: keys.length, viewers, peers: peers.sort() }
+  return { count: keys.length, viewers, peers: peers.sort(), hostHere }
 }
 
 // Live avatars: every position goes to everyone, so messages grow with the

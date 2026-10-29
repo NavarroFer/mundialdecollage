@@ -68,6 +68,7 @@ const id: Messages = {
   },
   countdown: { days: 'hari', hours: 'jam', minutes: 'mnt' },
   stamps: {
+    club: { title: 'Prangko Klub', postal: 'Prangko pos', vernissage: 'Aku hadir di Vernissage', empty: 'Jelajahi galeri Klub: buka semua karya di satu ruang untuk mendapat prangko pos senimannya.' },
     eyebrow: 'Album Piala Dunia', title: 'Koleksi perangko', body: 'Setiap langkah meninggalkan jejak. Segera kamu dapat membuka pencapaian baru.',
     first: { title: 'Potongan pertama', body: 'Kirim karyamu' }, gallery: { title: 'Penjelajah', body: 'Jelajahi pameran 3D' }, world: { title: 'Keliling dunia', body: 'Temukan komunitas' },
     howItWorks: 'Cara kerjanya', stepRegister: 'Daftar untuk memulai album Anda.', stepExplore: 'Lakukan aksi dan temukan Piala Dunia.', stepCollect: 'Buka perangko dan pencapaian baru.', registerCta: 'Daftar untuk mengoleksi', locked: 'Perangko terkunci', close: 'Tutup tutorial',
@@ -458,6 +459,7 @@ const id: Messages = {
     contact: { consult: 'Tanya seniman tentang karya ini', message: 'Halo, saya melihat karya Anda “{title}” di galeri Klub Anda dan ingin bertanya.' },
     clubDoor: { next: 'Ruang berikutnya', soon: 'Segera, ruang lainnya', prompt: 'Ke ruang {name}' },
     clubHost: { prompt: 'Baca surat {name}', eyebrow: 'Surat sambutan', fallback: 'Terima kasih sudah mampir ke ruangku. Jelajahi dengan santai: setiap karya punya ceritanya.', write: 'Kirim pesan', message: 'Halo, saya menjelajahi galeri Anda “{title}” di Klub dan ingin menulis kepada Anda.' },
+    clubStamps: { postal: 'Kamu mendapat prangko pos {name}: sudah ada di Album.', vernissage: 'Kamu bertemu {name} langsung di galerinya: prangko «Aku hadir di Vernissage» di Album.' },
     mobileMenu: { open: "Opsi", close: "Tutup opsi", resume: "Lanjutkan menjelajah" },
     startEyebrow: 'PIALA DUNIA KOLASE · GALERI 3D',
     startTitle: 'Jelajahi pameran',

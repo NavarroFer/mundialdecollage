@@ -68,6 +68,7 @@ const pl: Messages = {
   },
   countdown: { days: 'dni', hours: 'godz.', minutes: 'min' },
   stamps: {
+    club: { title: 'Znaczki Klubu', postal: 'Znaczek pocztowy', vernissage: 'Byłem na wernisażu', empty: 'Zwiedzaj galerie Klubu: otwórz wszystkie prace w sali, by zdobyć znaczek jej artysty.' },
     eyebrow: 'Album Mistrzostw', title: 'Zbieraj znaczki', body: 'Każdy krok zostawia ślad. Wkrótce odblokujesz nowe osiągnięcia.',
     first: { title: 'Pierwsze cięcie', body: 'Wyślij swoją pracę' }, gallery: { title: 'Odkrywca', body: 'Zwiedź wystawę 3D' }, world: { title: 'Dookoła świata', body: 'Poznaj społeczność' },
     howItWorks: 'Jak to działa', stepRegister: 'Zarejestruj się, aby rozpocząć album.', stepExplore: 'Działaj i odkrywaj Mistrzostwa.', stepCollect: 'Odblokowuj znaczki i nowe osiągnięcia.', registerCta: 'Zarejestruj się, by zbierać', locked: 'Zablokowany znaczek', close: 'Zamknij samouczek',
@@ -468,6 +469,7 @@ const pl: Messages = {
     contact: { consult: 'Zapytaj artystę o tę pracę', message: 'Cześć, zobaczyłem Twoją pracę „{title}” w Twojej galerii Klubu i chciałbym o nią zapytać.' },
     clubDoor: { next: 'Następna sala', soon: 'Wkrótce więcej sal', prompt: 'Idź do sali: {name}' },
     clubHost: { prompt: 'Przeczytaj list: {name}', eyebrow: 'List powitalny', fallback: 'Dziękuję, że zajrzałeś do mojej sali. Zwiedzaj spokojnie: każda praca ma swoją historię.', write: 'Napisz', message: 'Cześć, zwiedziłem Twoją galerię „{title}” w Klubie i chciałem do Ciebie napisać.' },
+    clubStamps: { postal: 'Zdobyto znaczek pocztowy: {name}. Jest już w Albumie.', vernissage: 'Spotkano na żywo w galerii: {name}. Znaczek „Byłem na wernisażu” w Albumie.' },
     mobileMenu: { open: "Opcje", close: "Zamknij opcje", resume: "Wróć do zwiedzania" },
     startEyebrow: 'MISTRZOSTWA ŚWIATA W KOLAŻU · GALERIA 3D',
     startTitle: 'Przejdź się po wystawie',

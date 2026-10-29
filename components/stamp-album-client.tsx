@@ -7,7 +7,9 @@ import { BookOpen, CircleCheck, Compass, LockKeyhole, Scissors, Send, X } from '
 import { FadeIn } from '@/components/fade-in'
 import { useI18n } from '@/lib/i18n/client'
 import { MAP_SECTION_ID } from '@/lib/map-country-link'
-import { STAMP_UNLOCKED_EVENT, type StampUnlocked } from '@/lib/stamps'
+import { STAMP_UNLOCKED_EVENT, type ClubStamp, type StampUnlocked } from '@/lib/stamps'
+import { countryCodeToName } from '@/lib/participants'
+import { formatDayMonth } from '@/lib/i18n/format'
 import type { CollectedArtworkStamp } from '@/components/stamp-album'
 
 const TUTORIAL_KEY = 'mundial-stamps-tutorial-seen'
@@ -18,20 +20,23 @@ const stamps = [
 ] as const
 
 export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStamps, artworkStamps }: { signedIn: boolean; unlockedStamps: string[]; artworkStamps: CollectedArtworkStamp[] }) {
-  const { m } = useI18n()
+  const { locale, m } = useI18n()
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [albumOpen, setAlbumOpen] = useState(false)
   const [unlockedStamps, setUnlockedStamps] = useState(initialUnlockedStamps)
   const [collectedArtworkStamps, setCollectedArtworkStamps] = useState(artworkStamps)
+  // Read with the album's sync below, not in the page render.
+  const [clubStamps, setClubStamps] = useState<ClubStamp[]>([])
   const copy = { first: m.stamps.first, gallery: m.stamps.gallery, world: m.stamps.world }
 
   const syncStamps = useCallback(async () => {
     const response = await fetch('/api/stamps', { cache: 'no-store' })
     if (!response.ok) return
-    const data = await response.json() as { signedIn: boolean; unlockedStamps: string[]; artworkStamps: CollectedArtworkStamp[] }
+    const data = await response.json() as { signedIn: boolean; unlockedStamps: string[]; artworkStamps: CollectedArtworkStamp[]; clubStamps?: ClubStamp[] }
     if (data.signedIn) {
       setUnlockedStamps(data.unlockedStamps)
       setCollectedArtworkStamps(data.artworkStamps)
+      setClubStamps(data.clubStamps ?? [])
     }
   }, [])
 
@@ -126,6 +131,18 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
                   </Link>)}
                 </div> : <p className="mt-3 text-sm text-muted-foreground">Entrá a la galería y guardá las obras que más te gusten.</p>}
               </section>
+              {clubStamps.length > 0 && <section className="mt-9 border-t-2 border-ink pt-6">
+                <div className="flex items-baseline justify-between gap-4"><h4 className="font-display text-2xl uppercase">{m.stamps.club.title}</h4><span className="text-sm font-bold">{clubStamps.length}</span></div>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {clubStamps.map((stamp) => <Link key={`${stamp.slug}:${stamp.kind}`} href={`/club/${stamp.slug}`} className={`group relative block overflow-hidden border-2 border-dashed border-ink p-3 text-center shadow-[3px_3px_0_var(--color-ink)] transition hover:-translate-y-0.5 ${stamp.kind === 'postal' ? 'bg-collage-blue/10' : 'bg-collage-red/10'}`}>
+                    <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase opacity-70">{stamp.kind === 'postal' ? m.stamps.club.postal : m.stamps.club.vernissage}</p>
+                    <p className="mt-2 font-display text-lg leading-tight uppercase">{stamp.artist}</p>
+                    {stamp.countryCode && <p className="mt-1 text-xs font-semibold text-muted-foreground">{countryCodeToName(stamp.countryCode, locale)}</p>}
+                    <p className="mt-2 text-xs tabular-nums text-muted-foreground">{formatDayMonth(locale, stamp.collectedAt)}</p>
+                    <span className="absolute -right-5 -bottom-5 size-14 rounded-full border-2 border-current opacity-25" />
+                  </Link>)}
+                </div>
+              </section>}
             </>}
           </div>
         </div>

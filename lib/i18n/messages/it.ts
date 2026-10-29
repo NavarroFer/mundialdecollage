@@ -68,6 +68,7 @@ const it: Messages = {
   },
   countdown: { days: 'giorni', hours: 'ore', minutes: 'min' },
   stamps: {
+    club: { title: 'Francobolli del Club', postal: 'Francobollo', vernissage: 'Ero al vernissage', empty: 'Visita le gallerie del Club: apri tutte le opere di una sala per ottenere il francobollo del suo artista.' },
     eyebrow: 'Album del Mondiale', title: 'Colleziona francobolli', body: 'Ogni passo lascia un segno. Presto potrai sbloccare nuovi traguardi.',
     first: { title: 'Primo ritaglio', body: 'Invia la tua opera' }, gallery: { title: 'Esploratore', body: 'Visita la mostra 3D' }, world: { title: 'Giro del mondo', body: 'Scopri la comunità' },
     howItWorks: 'Come funziona', stepRegister: 'Registrati per iniziare il tuo album.', stepExplore: 'Agisci e scopri il Mondiale.', stepCollect: 'Sblocca francobolli e nuovi traguardi.', registerCta: 'Registrati per collezionare', locked: 'Francobollo bloccato', close: 'Chiudi il tutorial',
@@ -458,6 +459,7 @@ const it: Messages = {
     contact: { consult: 'Contatta l\'artista per questa opera', message: 'Ciao, ho visto la tua opera «{title}» nella tua galleria del Club e vorrei chiederti informazioni.' },
     clubDoor: { next: 'Prossima sala', soon: 'Presto, altre sale', prompt: 'Vai nella sala di {name}' },
     clubHost: { prompt: 'Leggi la lettera di {name}', eyebrow: 'Lettera di benvenuto', fallback: 'Grazie di essere passato nella mia sala. Visitala con calma: ogni opera ha la sua storia.', write: 'Scrivigli', message: 'Ciao, ho visitato la tua galleria «{title}» nel Club e volevo scriverti.' },
+    clubStamps: { postal: 'Hai ottenuto il francobollo di {name}: è nel tuo Album.', vernissage: 'Hai incontrato {name} dal vivo nella sua galleria: francobollo «Ero al vernissage» nel tuo Album.' },
     mobileMenu: { open: "Opzioni", close: "Chiudi opzioni", resume: "Torna al percorso" },
     startEyebrow: 'MONDIALE DI COLLAGE · GALLERIA 3D',
     startTitle: 'Visita la mostra',

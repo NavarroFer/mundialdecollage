@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { createHash } from 'node:crypto'
 import { clubGalleryFromRow, type ClubGalleryRow } from './club-galleries'
 
 const row = (overrides: Partial<ClubGalleryRow> = {}): ClubGalleryRow => ({
   id: 'gallery-a',
+  user_id: '7D2C0A4E-0000-4000-8000-000000000001',
   slug: 'ana-collage',
   title: 'La galería de Ana',
   statement: 'Una serie de recortes.',
@@ -41,6 +43,12 @@ describe('Club galleries', () => {
       artworks: [{ id: 'obra-uno', artist: 'Ana', frameStyle: 'pinned', roomId: 'club-room-01' }],
     })
     expect(gallery?.artworks[0].position).toHaveLength(3)
+  })
+
+  it('carries a hash of the member\'s account id, never the id itself', () => {
+    const gallery = clubGalleryFromRow(row())
+    expect(gallery?.ownerKey).toBe(createHash('sha256').update('7d2c0a4e-0000-4000-8000-000000000001').digest('hex'))
+    expect(JSON.stringify(gallery)).not.toMatch(/7d2c0a4e/i)
   })
 
   it('falls back to the gallery frame and drops incomplete or out-of-capacity hangings', () => {

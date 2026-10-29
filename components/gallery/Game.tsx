@@ -43,6 +43,7 @@ import type { GalleryRoomTemplate } from './world/roomsData'
 import { useClubDoorStore } from './club/store'
 import { useClubHostStore, type ClubHostInfo } from './club/host'
 import { WelcomeLetter } from './club/WelcomeLetter'
+import { ClubStamps } from './club/ClubStamps'
 import type { ClubHouse } from '@/lib/club-map'
 import { pickNextGallery, readVisitedGalleries, rememberVisitedGallery } from '@/lib/club-next-gallery'
 import { countryCodeToName } from '@/lib/participants'
@@ -82,6 +83,7 @@ export function Game({
   presenceTopic,
   clubSlug,
   clubHost,
+  clubOwner = false,
 }: {
   artworks: Artwork[]
   userId: string | null
@@ -92,6 +94,8 @@ export function Game({
   clubSlug?: string
   /** A Club gallery's host and their welcome letter. */
   clubHost?: ClubHostInfo
+  /** This browser belongs to the Club gallery's own member: they show up as its host. */
+  clubOwner?: boolean
 }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const controlMode = useGalleryPreferences((state) => state.controlMode)
@@ -380,7 +384,8 @@ export function Game({
       {userId && <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!vinylOpen && !arcadeOpen && !passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />}
       {/* The passport counts days of the museum's daily exhibition: walking a member's Club room is no such day (photos still count). */}
       {userId && <PassportRecorder userId={userId} started={hasStarted && !template} />}
-      <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} topic={presenceTopic} />
+      <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} topic={presenceTopic} host={clubOwner} />
+      {clubSlug && clubHost && <ClubStamps slug={clubSlug} artistName={clubHost.artistName} artworks={artworks} userId={userId} isOwner={clubOwner} />}
       {isTouchDevice && isActive && <TouchControls theme={theme} hostName={clubHost?.artistName} />}
       {clubHost && <WelcomeLetter host={clubHost} />}
       {/* The visit's own buttons, on the pause screen too: on a computer at

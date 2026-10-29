@@ -68,6 +68,7 @@ const en: Messages = {
   },
   countdown: { days: 'days', hours: 'hours', minutes: 'min' },
   stamps: {
+    club: { title: 'Club stamps', postal: 'Postal stamp', vernissage: 'I was at the Vernissage', empty: 'Walk through the Club galleries: open every work in a room to earn its artist’s postal stamp.' },
     eyebrow: 'World Cup album', title: 'Collect stamps', body: 'Every step leaves a mark. You will soon be able to unlock new achievements.',
     first: { title: 'First cut', body: 'Send your artwork' }, gallery: { title: 'Explorer', body: 'Tour the 3D exhibition' }, world: { title: 'Around the world', body: 'Discover the community' },
     howItWorks: 'How it works', stepRegister: 'Register to start your album.', stepExplore: 'Take actions and discover the World Cup.', stepCollect: 'Unlock stamps and new achievements.', registerCta: 'Register to collect', locked: 'Locked stamp', close: 'Close tutorial',
@@ -459,6 +460,7 @@ const en: Messages = {
     contact: { consult: 'Ask the artist about this work', message: 'Hello, I saw your work “{title}” in your World Cup Club gallery and I would like to ask you about it.' },
     clubDoor: { next: 'Next room', soon: 'More rooms soon', prompt: 'Go to {name}’s room' },
     clubHost: { prompt: 'Read {name}’s letter', eyebrow: 'Welcome letter', fallback: 'Thank you for stopping by my room. Take your time: every work has its story.', write: 'Write to them', message: 'Hello, I walked through your gallery “{title}” in the World Cup Club and wanted to write to you.' },
+    clubStamps: { postal: 'You earned {name}’s postal stamp: it’s in your Album.', vernissage: 'You met {name} live in their gallery: “I was at the Vernissage” stamp in your Album.' },
     mobileMenu: { open: "Options", close: "Close options", resume: "Continue exploring" },
     startEyebrow: 'COLLAGE WORLD CUP · 3D GALLERY',
     startTitle: 'Walk through the exhibition',
