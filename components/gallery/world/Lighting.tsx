@@ -5,11 +5,9 @@ import type { DirectionalLight } from 'three'
 import type { GalleryTheme } from '../themes'
 import { PRESETS } from '../graphics/quality'
 import { useGraphics } from '../graphics/store'
-import { rooms } from './roomsData'
+import { mainGalleryTemplate, type GalleryRoomTemplate } from './roomsData'
 
-const ROOM_CENTERS = rooms.map(({ bounds }) => (bounds[0] + bounds[2]) / 2)
-
-export function Lighting({ theme }: { theme: GalleryTheme }) {
+export function Lighting({ theme, template = mainGalleryTemplate }: { theme: GalleryTheme; template?: GalleryRoomTemplate }) {
   const quality = useGraphics((s) => s.current)
   const mobile = useGraphics((s) => s.mobile)
   const gl = useThree((s) => s.gl)
@@ -29,6 +27,11 @@ export function Lighting({ theme }: { theme: GalleryTheme }) {
   const garden = theme === 'garden'
   const retro = theme === 'windows98'
   const warm = theme === 'collage' ? '#ffe6c8' : '#fff7ee'
+  const [minX, minZ, maxX, maxZ] = template.bounds
+  const extent = Math.max(maxX - minX, maxZ - minZ) / 2 + 4
+  const roomCenters = template.rooms.map(({ bounds }) => (bounds[0] + bounds[2]) / 2)
+  const roomDepth = Math.max(0, maxZ - minZ - 3.5)
+  const lightRows = quality === 'low' ? [0] : [-roomDepth / 2, roomDepth / 2]
   return <>
     {/* Neutral sky bounce gives surfaces depth without tinting unlit artwork textures. */}
     <hemisphereLight color={garden ? '#dff6ff' : '#f3f6ff'} groundColor={garden ? '#56833f' : '#9a826b'} intensity={garden ? 1.35 : retro ? 1.2 : 0.85} />
@@ -36,10 +39,10 @@ export function Lighting({ theme }: { theme: GalleryTheme }) {
     <directionalLight ref={light} position={garden ? [-8, 12, 5] : [6, 10, 4]}
       intensity={garden ? 2.2 : retro ? 1.4 : 1.15} color={retro ? '#ffffff' : warm}
       castShadow={mapSize > 0} shadow-mapSize={[Math.max(1, mapSize), Math.max(1, mapSize)]}
-      shadow-camera-left={-22} shadow-camera-right={22} shadow-camera-top={18} shadow-camera-bottom={-18}
+      shadow-camera-left={-extent} shadow-camera-right={extent} shadow-camera-top={extent} shadow-camera-bottom={-extent}
       shadow-camera-near={0.1} shadow-camera-far={60} shadow-bias={-0.00015} shadow-normalBias={0.025}
       shadow-radius={2} />
-    {!garden && !retro && ROOM_CENTERS.flatMap((x) => (quality === 'low' ? [0] : [-3.25, 3.25]).map((z) =>
+    {!garden && !retro && roomCenters.flatMap((x) => lightRows.map((z) =>
       <pointLight key={`${x}-${z}`} position={[x, 2.85, z]} intensity={quality === 'low' ? 11 : 8} distance={quality === 'low' ? 9 : 7.5} decay={2} color={warm} />))}
   </>
 }

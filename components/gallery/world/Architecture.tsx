@@ -5,7 +5,17 @@ import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { galleryThemes, type GalleryTheme, type GalleryThemeDefinition } from '../themes'
 import { skyTexture } from './architectureTextures'
-import { DOOR_HEIGHT, DOOR_WIDTH, SKYLIGHT, WALL_HEIGHT, WALL_THICKNESS, doorways, rooms, skylightOf, walls } from './roomsData'
+import {
+  DOOR_HEIGHT,
+  DOOR_WIDTH,
+  SKYLIGHT,
+  WALL_HEIGHT,
+  WALL_THICKNESS,
+  mainGalleryTemplate,
+  skylightOf,
+  type Doorway,
+  type GalleryRoomTemplate,
+} from './roomsData'
 
 // Classical museum trim (cornice with dentils, picture rail, chair rail over
 // wainscot panels, door casings, a cap on each free-standing panel) and,
@@ -36,8 +46,8 @@ function roomSides([minX, minZ, maxX, maxZ]: [number, number, number, number]): 
 }
 
 /** The stretches of a side below door height, with each doorway and its casing cut out. */
-function lowerRuns(side: Side): [number, number, boolean, boolean][] {
-  const gaps = doorways
+function lowerRuns(side: Side, template: GalleryRoomTemplate): [number, number, boolean, boolean][] {
+  const gaps = template.doorways
     .filter((door) => door.axis === side.axis && Math.abs((side.axis === 'z' ? door.center[0] : door.center[2]) - side.at) <= INSET + 0.001)
     .map((door) => (side.axis === 'z' ? door.center[2] : door.center[0]))
     .sort((a, b) => a - b)
@@ -97,9 +107,9 @@ class Builder {
   }
 }
 
-function buildMolding() {
+function buildMolding(template: GalleryRoomTemplate) {
   const b = new Builder()
-  for (const room of rooms) {
+  for (const room of template.rooms) {
     for (const side of roomSides(room.bounds)) {
       // Cornice, bottom to top: frieze, bed molding, dentils, fillet, crown.
       b.strip(side, 3.36, 0.2, 0.025)
@@ -110,15 +120,15 @@ function buildMolding() {
       // Picture rail just above the tallest frames.
       b.strip(side, 3.08, 0.035, 0.022)
 
-      for (const [from, to, startCorner, endCorner] of lowerRuns(side)) {
+      for (const [from, to, startCorner, endCorner] of lowerRuns(side, template)) {
         b.strip(side, CHAIR_RAIL, 0.04, 0.03, from, to, [startCorner, endCorner])
         b.strip(side, CHAIR_RAIL - 0.027, 0.014, 0.019, from, to, [startCorner, endCorner])
         wainscot(b, side, from + (startCorner ? 0.06 : 0), to - (endCorner ? 0.06 : 0))
       }
     }
   }
-  for (const door of doorways) doorCasing(b, door.center)
-  for (const { position, size, freestanding } of walls) {
+  for (const door of template.doorways) doorCasing(b, door)
+  for (const { position, size, freestanding } of template.walls) {
     if (freestanding) b.box([position[0], size[1] + PANEL_CAP / 2, position[2]], [size[0] + PANEL_CAP, PANEL_CAP, size[2] + PANEL_CAP])
   }
   return b.merge()
@@ -143,19 +153,28 @@ function wainscot(b: Builder, side: Side, from: number, to: number) {
 }
 
 /** Architrave around a doorway on both faces, crowned with a small cornice. */
-function doorCasing(b: Builder, [x, , z]: Vec3) {
+function doorCasing(b: Builder, { center: [x, , z], axis }: Doorway) {
   for (const normal of [1, -1] as const) {
-    const face = x + normal * INSET
-    const out = (depth: number) => face + normal * depth / 2
     const top = DOOR_HEIGHT + CASING
-    for (const edge of [-1, 1]) b.box([out(0.035), top / 2, z + edge * (DOOR_HALF + CASING / 2)], [0.035, top, CASING])
-    b.box([out(0.035), DOOR_HEIGHT + CASING / 2, z], [0.035, CASING, DOOR_WIDTH])
-    b.box([out(0.02), top + 0.09, z], [0.02, 0.18, DOOR_WIDTH + CASING * 2 + 0.1])
-    b.box([out(0.09), top + 0.21, z], [0.09, 0.06, DOOR_WIDTH + CASING * 2 + 0.3])
+    if (axis === 'z') {
+      const face = x + normal * INSET
+      const out = (depth: number) => face + normal * depth / 2
+      for (const edge of [-1, 1]) b.box([out(0.035), top / 2, z + edge * (DOOR_HALF + CASING / 2)], [0.035, top, CASING])
+      b.box([out(0.035), DOOR_HEIGHT + CASING / 2, z], [0.035, CASING, DOOR_WIDTH])
+      b.box([out(0.02), top + 0.09, z], [0.02, 0.18, DOOR_WIDTH + CASING * 2 + 0.1])
+      b.box([out(0.09), top + 0.21, z], [0.09, 0.06, DOOR_WIDTH + CASING * 2 + 0.3])
+    } else {
+      const face = z + normal * INSET
+      const out = (depth: number) => face + normal * depth / 2
+      for (const edge of [-1, 1]) b.box([x + edge * (DOOR_HALF + CASING / 2), top / 2, out(0.035)], [CASING, top, 0.035])
+      b.box([x, DOOR_HEIGHT + CASING / 2, out(0.035)], [DOOR_WIDTH, CASING, 0.035])
+      b.box([x, top + 0.09, out(0.02)], [DOOR_WIDTH + CASING * 2 + 0.1, 0.18, 0.02])
+      b.box([x, top + 0.21, out(0.09)], [DOOR_WIDTH + CASING * 2 + 0.3, 0.06, 0.09])
+    }
   }
 }
 
-function buildSkylights() {
+function buildSkylights(template: GalleryRoomTemplate) {
   const trim = new Builder()
   const well = new Builder()
   const mullions = new Builder()
@@ -165,7 +184,7 @@ function buildSkylights() {
   const rise = SKYLIGHT.well
   const glassY = WALL_HEIGHT + rise
 
-  for (const room of rooms) {
+  for (const room of template.rooms) {
     const [x0, z0, x1, z1] = skylightOf(room)
     const [cx, cz, width, depth] = [(x0 + x1) / 2, (z0 + z1) / 2, x1 - x0, z1 - z0]
     // A deep frame around the opening, hanging just below the ceiling.
@@ -218,22 +237,22 @@ function buildSkylights() {
   return { trim: trim.merge(), well: well.merge(), mullions: mullions.merge(), glass: merged(glass), fixtures: merged(fixtures), lenses: merged(lenses) }
 }
 
-export function Architecture({ theme }: { theme: GalleryTheme }) {
+export function Architecture({ theme, template = mainGalleryTemplate }: { theme: GalleryTheme; template?: GalleryRoomTemplate }) {
   const palette = galleryThemes[theme].architecture
-  const molding = useMemo(() => buildMolding(), [])
+  const molding = useMemo(() => buildMolding(template), [template])
   if (!palette) return null
   return (
     <group>
       <mesh geometry={molding}>
         <meshStandardMaterial color={palette.molding} roughness={0.7} />
       </mesh>
-      {palette.skylight && <Skylights palette={palette} />}
+      {palette.skylight && <Skylights palette={palette} template={template} />}
     </group>
   )
 }
 
-function Skylights({ palette }: { palette: NonNullable<GalleryThemeDefinition['architecture']> }) {
-  const skylights = useMemo(() => buildSkylights(), [])
+function Skylights({ palette, template }: { palette: NonNullable<GalleryThemeDefinition['architecture']>; template: GalleryRoomTemplate }) {
+  const skylights = useMemo(() => buildSkylights(template), [template])
   const sky = useMemo(() => skyTexture(palette.sky), [palette.sky])
   useEffect(() => () => sky.dispose(), [sky])
   return (

@@ -1,5 +1,8 @@
-export const GALLERY_THEMES = ['collage', 'windows98', 'garden'] as const
+export const FREE_GALLERY_THEMES = ['collage', 'windows98', 'garden'] as const
+export const UNLOCKABLE_GALLERY_THEMES = ['atelier', 'industrial', 'museum', 'alley'] as const
+export const GALLERY_THEMES = [...FREE_GALLERY_THEMES, ...UNLOCKABLE_GALLERY_THEMES] as const
 
+export type FreeGalleryTheme = (typeof FREE_GALLERY_THEMES)[number]
 export type GalleryTheme = (typeof GALLERY_THEMES)[number]
 
 export type GalleryThemeDefinition = {
@@ -63,5 +66,44 @@ export const galleryThemes: Record<GalleryTheme, GalleryThemeDefinition> = {
     canvas: '#8fd3ff',
     room: { wall: '#fff0c7', floor: '#72ad53', ceiling: '#c9efff', trim: '#2d7b4a' },
     frame: { outer: '#28543c', mat: '#fffaf0', roughness: 0.78 },
+  },
+  atelier: {
+    id: 'atelier',
+    name: 'Taller de artista',
+    eyebrow: 'CLUB 01',
+    description: 'Madera usada, yeso cálido y el clima de un taller en plena producción.',
+    canvas: '#c8b79d',
+    room: { wall: '#d8cbb8', floor: '#74513a', ceiling: '#e7ded0', trim: '#503829' },
+    frame: { outer: '#6f4d32', mat: '#eee5d5', roughness: 0.82 },
+    architecture: { molding: '#dfd3c1', well: '#e9dfd1', mullion: '#5b4636', fixture: '#29231f', skylight: false, sky: 'daylight', planks: true },
+  },
+  industrial: {
+    id: 'industrial',
+    name: 'Galpón industrial',
+    eyebrow: 'CLUB 02',
+    description: 'Hierro oscuro, hormigón y paredes de ladrillo apagado.',
+    canvas: '#35383b',
+    room: { wall: '#806457', floor: '#55575a', ceiling: '#6b6d70', trim: '#25282b' },
+    frame: { outer: '#242629', mat: '#dedbd2', roughness: 0.55 },
+    architecture: { molding: '#4b4d50', well: '#6b6d70', mullion: '#202326', fixture: '#191b1d', skylight: false, sky: 'clouds', planks: false },
+  },
+  museum: {
+    id: 'museum',
+    name: 'Museo clásico',
+    eyebrow: 'CLUB 03',
+    description: 'Parquet, molduras y paredes verde inglés para una muestra de salón.',
+    canvas: '#27382f',
+    room: { wall: '#314c3c', floor: '#6c432e', ceiling: '#e9e1d2', trim: '#c7a86a' },
+    frame: { outer: '#b08a3e', mat: '#f5efe2', roughness: 0.32 },
+    architecture: { molding: '#d8c9ae', well: '#eee5d5', mullion: '#6e5a3a', fixture: '#30291f', skylight: true, sky: 'daylight', planks: true },
+  },
+  alley: {
+    id: 'alley',
+    name: 'Callejón de afiches',
+    eyebrow: 'CLUB 04',
+    description: 'Cemento, carteles superpuestos y luz nocturna de ciudad.',
+    canvas: '#161925',
+    room: { wall: '#55545a', floor: '#303238', ceiling: '#242631', trim: '#b94632' },
+    frame: { outer: '#1f2024', mat: '#d9d3c7', roughness: 0.7 },
   },
 }

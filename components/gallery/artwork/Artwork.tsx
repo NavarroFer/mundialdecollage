@@ -4,14 +4,12 @@ import { useMemo } from 'react'
 import { useTexture } from '@react-three/drei'
 import { SRGBColorSpace } from 'three'
 import type { Artwork as ArtworkData } from '@/data/artworks'
-import { galleryThemes, type GalleryTheme } from '../themes'
+import type { GalleryTheme } from '../themes'
 import { imageSrc } from '@/lib/image-src'
+import { framePresentation } from './frameStyles'
 
 // Modern museum framing: a slim dark frame + a white mat (passe-partout)
 // between the frame and the image, instead of one thick flat border.
-const MAT_MARGIN = 0.07
-const FRAME_BORDER = 0.045
-const FRAME_DEPTH = 0.035
 const LABEL_HEIGHT = 0.14
 const LABEL_GAP = 0.08
 
@@ -56,7 +54,8 @@ const TEXTURE_WIDTH = window.matchMedia('(pointer: coarse)').matches ? 828 : 108
 
 export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryTheme }) {
   const texture = useTexture(imageSrc(data.image, TEXTURE_WIDTH), setSrgb)
-  const frame = galleryThemes[theme].frame
+  const frameStyle = data.frameStyle ?? 'standard'
+  const frame = framePresentation(frameStyle, theme)
   const label = useMemo(() => artistLabel(data.artist, data.flagSvg), [data.artist, data.flagSvg])
   const labelTexture = useTexture(label.url, setSrgb)
 
@@ -71,30 +70,46 @@ export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryThem
       : [data.height * imageAspect, data.height]
   }, [texture, data.width, data.height])
 
-  const matWidth = renderWidth + MAT_MARGIN * 2
-  const matHeight = renderHeight + MAT_MARGIN * 2
-  const frameWidth = matWidth + FRAME_BORDER * 2
-  const frameHeight = matHeight + FRAME_BORDER * 2
+  const matWidth = renderWidth + frame.matMargin * 2
+  const matHeight = renderHeight + frame.matMargin * 2
+  const frameWidth = matWidth + frame.border * 2
+  const frameHeight = matHeight + frame.border * 2
   const labelY = -frameHeight / 2 - LABEL_GAP - LABEL_HEIGHT / 2
+  const pinned = frameStyle === 'pinned'
+  const imageZ = frame.depth + 0.006
 
   return (
     <group position={data.position} rotation={data.rotation}>
-      {/* Slim outer frame, sitting slightly proud of the wall */}
-      <mesh position={[0, 0, FRAME_DEPTH / 2]} castShadow receiveShadow>
-        <boxGeometry args={[frameWidth, frameHeight, FRAME_DEPTH]} />
-        <meshStandardMaterial color={frame.outer} roughness={frame.roughness} emissive={frame.emissive} emissiveIntensity={frame.emissive ? 0.55 : 0} />
-      </mesh>
-      {/* Mat board between the frame and the image */}
-      <mesh position={[0, 0, FRAME_DEPTH + 0.002]}>
-        <planeGeometry args={[matWidth, matHeight]} />
-        <meshStandardMaterial color={frame.mat} roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0, FRAME_DEPTH + 0.006]} userData={{ attentionArtworkId: data.id }}>
+      {!pinned && (
+        <>
+          {/* Outer frame, sitting slightly proud of the wall. */}
+          <mesh position={[0, 0, frame.depth / 2]} castShadow receiveShadow>
+            <boxGeometry args={[frameWidth, frameHeight, frame.depth]} />
+            <meshStandardMaterial color={frame.outer} roughness={frame.roughness} metalness={frame.metalness} emissive={frame.emissive} emissiveIntensity={frame.emissive ? 0.55 : 0} />
+          </mesh>
+          <mesh position={[0, 0, frame.depth + 0.002]}>
+            <planeGeometry args={[matWidth, matHeight]} />
+            <meshStandardMaterial color={frame.mat} roughness={0.9} />
+          </mesh>
+        </>
+      )}
+      <mesh position={[0, 0, imageZ]} userData={{ attentionArtworkId: data.id }} castShadow={pinned}>
         <planeGeometry args={[renderWidth, renderHeight]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
+      {pinned && ([
+        [-renderWidth / 2 + 0.035, -renderHeight / 2 + 0.035],
+        [renderWidth / 2 - 0.035, -renderHeight / 2 + 0.035],
+        [-renderWidth / 2 + 0.035, renderHeight / 2 - 0.035],
+        [renderWidth / 2 - 0.035, renderHeight / 2 - 0.035],
+      ] as Array<[number, number]>).map(([x, y], index) => (
+        <mesh key={index} position={[x, y, imageZ + 0.012]} castShadow>
+          <sphereGeometry args={[0.025, 10, 8]} />
+          <meshStandardMaterial color={index % 2 ? '#9a2f24' : '#c2a44d'} roughness={0.45} metalness={0.3} />
+        </mesh>
+      ))}
       {/* Museum-style label: always follows the frame and never covers the artwork. */}
-      <mesh position={[0, labelY, FRAME_DEPTH + 0.006]}>
+      <mesh position={[0, labelY, imageZ]}>
         <planeGeometry args={[label.width, LABEL_HEIGHT]} />
         <meshBasicMaterial map={labelTexture} toneMapped={false} />
       </mesh>
