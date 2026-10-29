@@ -12,6 +12,7 @@ export const STATIC_PAGES = [
   '/',
   '/obras/[slug]',
   '/artistas/[slug]',
+  '/club',
   '/club/[slug]',
   '/galeria-3d',
   '/onboarding',

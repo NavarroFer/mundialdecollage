@@ -10,6 +10,7 @@ import { BasesBanner } from '@/components/bases-banner'
 import { AboutSection } from '@/components/about-section'
 import { DonationSection } from '@/components/donation-section'
 import { HomeStoreSection } from '@/components/home-store-section'
+import { ClubSection } from '@/components/club-section'
 import { EditionSection } from '@/components/edition-section'
 import { ParticipantsSection } from '@/components/participants-section'
 import { MapSection } from '@/components/map-section'
@@ -48,6 +49,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           {/* Before the obras: after them it sat 8–9 phone screens down,
               past where most visitors stop scrolling. */}
           <HomeStoreSection />
+          <ClubSection />
           <ParticipantsSection />
           <MapSection />
           <JurySection />

@@ -844,6 +844,28 @@ const pt: Messages = {
       errors: { invalid: 'Confira os dados e tente de novo.', locked: 'Essa melhoria ainda não está desbloqueada.', coins: 'Você não tem moedas suficientes para isso.', room: 'Essa sala é menor que as posições que você está usando: libere essas posições primeiro.', unavailable: 'Não conseguimos salvar. Tente de novo em alguns minutos.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Clube do Mundial de Collage — sua galeria 3D permanente',
+    metaDescription: 'Uma sala 3D só sua, aberta 24 horas, com toda a sua série de obras. Assinatura mensal com moedas para melhorá-la.',
+    badge: 'Clube',
+    title: 'Sua própria galeria 3D, aberta todos os dias',
+    lead: 'Na galeria do Mundial sua obra aparece quando chega a vez dela. No Clube você tem uma sala própria e permanente, com toda a sua série, seus textos e um link para compartilhar.',
+    featuresTitle: 'O que inclui',
+    features: [
+      { title: 'Sua sala permanente', body: 'Você começa com uma sala para até 8 obras. As salas de 14 e de 22 são liberadas com moedas.' },
+      { title: 'Moedas todo mês', body: 'Cada pagamento soma {coins} moedas para temas, molduras e salas maiores. O que você libera é seu para sempre.' },
+      { title: 'Seu estilo', body: 'Escolha o clima da sala (ateliê, galpão, museu ou beco de cartazes) e como os quadros são pendurados: moldura de madeira, dourada, passe-partout ou presos com alfinetes.' },
+      { title: 'Visitas sem cadastro', body: 'Qualquer pessoa entra com o seu link, sem conta. O Google só é pedido para curtir ou guardar uma estampilha. Você pode incluir seu WhatsApp para consultas sobre as obras.' },
+    ],
+    priceTitle: 'Quanto custa',
+    price: '{ars} por mês com o Mercado Pago, ou {usd} por mês com o PayPal se você está fora da Argentina.',
+    cancel: 'Você pode cancelar quando quiser. Se pausar, sua galeria deixa de ser exibida, mas você mantém suas moedas e tudo o que liberou.',
+    cta: 'Quero minha galeria',
+    homeEyebrow: 'Clube do Mundial',
+    homeTitle: 'Sua própria galeria 3D, aberta todos os dias',
+    homeBody: 'Uma sala permanente para toda a sua série, com temas, molduras e moedas para melhorá-la.',
+    homeCta: 'Conhecer o Clube',
+  },
 }
 
 export default pt

@@ -844,6 +844,28 @@ const de: Messages = {
       errors: { invalid: 'Prüfe die Angaben und versuche es erneut.', locked: 'Dieses Upgrade ist noch nicht freigeschaltet.', coins: 'Dafür reichen deine Münzen nicht.', room: 'Dieser Raum ist kleiner als die belegten Positionen: Gib diese Positionen zuerst frei.', unavailable: 'Speichern nicht möglich. Bitte versuche es in ein paar Minuten erneut.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Club der Collage-Weltmeisterschaft — deine dauerhafte 3D-Galerie',
+    metaDescription: 'Ein eigener 3D-Raum, rund um die Uhr geöffnet, mit deiner ganzen Serie. Eine monatliche Mitgliedschaft mit Münzen zum Verbessern.',
+    badge: 'Club',
+    title: 'Deine eigene 3D-Galerie, jeden Tag geöffnet',
+    lead: 'In der Galerie der Weltmeisterschaft erscheint dein Werk, wenn es an der Reihe ist. Im Club hast du einen eigenen, dauerhaften Raum mit deiner ganzen Serie, deinen Texten und einem Link zum Teilen.',
+    featuresTitle: 'Was enthalten ist',
+    features: [
+      { title: 'Dein dauerhafter Raum', body: 'Du startest mit einem Raum für bis zu 8 Werke. Räume für 14 und 22 schaltest du mit Münzen frei.' },
+      { title: 'Jeden Monat Münzen', body: 'Jede Zahlung bringt {coins} Münzen für Themen, Rahmen und größere Räume. Was du freischaltest, gehört dir für immer.' },
+      { title: 'Dein Stil', body: 'Wähle die Stimmung des Raums (Atelier, Lagerhalle, Museum oder Plakatgasse) und wie die Bilder hängen: Holzrahmen, Gold, Passepartout oder an die Wand gepinnt.' },
+      { title: 'Besuch ohne Anmeldung', body: 'Jeder kommt mit deinem Link herein, ohne Konto. Google wird nur zum Liken oder Speichern einer Briefmarke verlangt. Du kannst dein WhatsApp für Anfragen zu einem Werk angeben.' },
+    ],
+    priceTitle: 'Was es kostet',
+    price: '{ars} pro Monat mit Mercado Pago oder {usd} pro Monat mit PayPal, wenn du außerhalb Argentiniens bist.',
+    cancel: 'Jederzeit kündbar. Wenn du pausierst, wird deine Galerie nicht mehr gezeigt, aber du behältst deine Münzen und alles, was du freigeschaltet hast.',
+    cta: 'Ich möchte meine Galerie',
+    homeEyebrow: 'Club der Weltmeisterschaft',
+    homeTitle: 'Deine eigene 3D-Galerie, jeden Tag geöffnet',
+    homeBody: 'Ein dauerhafter Raum für deine ganze Serie, mit Themen, Rahmen und Münzen zum Verbessern.',
+    homeCta: 'Den Club entdecken',
+  },
 }
 
 export default de

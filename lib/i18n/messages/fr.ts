@@ -844,6 +844,28 @@ const fr: Messages = {
       errors: { invalid: 'Vérifiez les informations et réessayez.', locked: 'Cette amélioration n\'est pas encore débloquée.', coins: 'Vous n\'avez pas assez de pièces pour cela.', room: 'Cette salle est plus petite que les positions utilisées : libérez d\'abord ces positions.', unavailable: 'Impossible d\'enregistrer. Réessayez dans quelques minutes.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Club de la Coupe du monde de collage — votre galerie 3D permanente',
+    metaDescription: 'Une salle 3D à vous, ouverte 24 heures sur 24, avec toute votre série. Un abonnement mensuel avec des pièces pour l\'améliorer.',
+    badge: 'Club',
+    title: 'Votre propre galerie 3D, ouverte tous les jours',
+    lead: 'Dans la galerie de la Coupe du monde, votre œuvre apparaît quand vient son tour. Dans le Club, vous avez une salle permanente, avec toute votre série, vos textes et un lien à partager.',
+    featuresTitle: 'Ce qui est inclus',
+    features: [
+      { title: 'Votre salle permanente', body: 'Vous commencez avec une salle de 8 œuvres au plus. Les salles de 14 et de 22 se débloquent avec des pièces.' },
+      { title: 'Des pièces chaque mois', body: 'Chaque paiement ajoute {coins} pièces pour des thèmes, des cadres et de plus grandes salles. Ce que vous débloquez est à vous pour toujours.' },
+      { title: 'Votre style', body: 'Choisissez l\'ambiance de la salle (atelier, entrepôt, musée ou ruelle d\'affiches) et l\'accrochage : cadre en bois, doré, passe-partout ou épinglé au mur.' },
+      { title: 'Visites sans inscription', body: 'Chacun entre avec votre lien, sans compte. Google n\'est demandé que pour aimer ou garder un timbre. Vous pouvez ajouter votre WhatsApp pour les demandes sur une œuvre.' },
+    ],
+    priceTitle: 'Combien ça coûte',
+    price: '{ars} par mois avec Mercado Pago, ou {usd} par mois avec PayPal si vous êtes hors d\'Argentine.',
+    cancel: 'Résiliable à tout moment. Si vous mettez en pause, votre galerie n\'est plus affichée, mais vous gardez vos pièces et tout ce que vous avez débloqué.',
+    cta: 'Je veux ma galerie',
+    homeEyebrow: 'Club de la Coupe du monde',
+    homeTitle: 'Votre propre galerie 3D, ouverte tous les jours',
+    homeBody: 'Une salle permanente pour toute votre série, avec des thèmes, des cadres et des pièces pour l\'améliorer.',
+    homeCta: 'Découvrir le Club',
+  },
 }
 
 export default fr

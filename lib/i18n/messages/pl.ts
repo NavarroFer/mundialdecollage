@@ -866,6 +866,28 @@ const pl: Messages = {
       errors: { invalid: 'Sprawdź dane i spróbuj ponownie.', locked: 'To ulepszenie nie jest jeszcze odblokowane.', coins: 'Masz za mało monet.', room: 'Ta sala jest mniejsza niż zajęte pozycje: najpierw zwolnij te pozycje.', unavailable: 'Nie udało się zapisać. Spróbuj ponownie za kilka minut.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Klub Mistrzostw Świata w Kolażu — Twoja stała galeria 3D',
+    metaDescription: 'Własna sala 3D, otwarta całą dobę, z całą Twoją serią prac. Miesięczne członkostwo z monetami na jej ulepszanie.',
+    badge: 'Klub',
+    title: 'Twoja własna galeria 3D, otwarta codziennie',
+    lead: 'W galerii Mistrzostw Twoja praca pojawia się, gdy przyjdzie jej kolej. W Klubie masz własną, stałą salę z całą serią, tekstami i linkiem do udostępniania.',
+    featuresTitle: 'Co zawiera',
+    features: [
+      { title: 'Twoja stała sala', body: 'Zaczynasz od sali na maksymalnie 8 prac. Sale na 14 i 22 prace odblokowujesz monetami.' },
+      { title: 'Monety co miesiąc', body: 'Każda płatność dodaje {coins} monet na motywy, ramy i większe sale. To, co odblokujesz, zostaje Twoje na zawsze.' },
+      { title: 'Twój styl', body: 'Wybierz klimat sali (pracownia, hala, muzeum lub zaułek plakatów) i sposób zawieszenia obrazów: drewniana rama, złota, passe-partout lub przypięte do ściany.' },
+      { title: 'Wizyty bez rejestracji', body: 'Każdy wejdzie z Twoim linkiem, bez konta. Google jest potrzebne tylko do polubienia lub zapisania znaczka. Możesz dodać WhatsApp do zapytań o prace.' },
+    ],
+    priceTitle: 'Ile kosztuje',
+    price: '{ars} miesięcznie przez Mercado Pago lub {usd} miesięcznie przez PayPal, jeśli jesteś poza Argentyną.',
+    cancel: 'Możesz zrezygnować w każdej chwili. Jeśli wstrzymasz, galeria przestaje być pokazywana, ale zachowujesz monety i wszystko, co odblokowałeś.',
+    cta: 'Chcę swoją galerię',
+    homeEyebrow: 'Klub Mistrzostw',
+    homeTitle: 'Twoja własna galeria 3D, otwarta codziennie',
+    homeBody: 'Stała sala na całą Twoją serię, z motywami, ramami i monetami na jej ulepszanie.',
+    homeCta: 'Poznaj Klub',
+  },
 }
 
 export default pl

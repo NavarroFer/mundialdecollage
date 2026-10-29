@@ -844,6 +844,28 @@ const it: Messages = {
       errors: { invalid: 'Controlla i dati e riprova.', locked: 'Questo miglioramento non è ancora sbloccato.', coins: 'Non hai abbastanza monete per questo.', room: 'Questa sala è più piccola delle posizioni che stai usando: libera prima quelle posizioni.', unavailable: 'Non siamo riusciti a salvare. Riprova tra qualche minuto.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Club del Mondiale di Collage — la tua galleria 3D permanente',
+    metaDescription: 'Una sala 3D tutta tua, aperta 24 ore su 24, con tutta la tua serie. Un abbonamento mensile con monete per migliorarla.',
+    badge: 'Club',
+    title: 'La tua galleria 3D, aperta ogni giorno',
+    lead: 'Nella galleria del Mondiale la tua opera compare quando arriva il suo turno. Nel Club hai una sala tua e permanente, con tutta la tua serie, i tuoi testi e un link da condividere.',
+    featuresTitle: 'Cosa include',
+    features: [
+      { title: 'La tua sala permanente', body: 'Inizi con una sala per un massimo di 8 opere. Le sale da 14 e da 22 si sbloccano con le monete.' },
+      { title: 'Monete ogni mese', body: 'Ogni pagamento aggiunge {coins} monete per temi, cornici e sale più grandi. Ciò che sblocchi è tuo per sempre.' },
+      { title: 'Il tuo stile', body: 'Scegli l\'atmosfera della sala (laboratorio, capannone, museo o vicolo di manifesti) e come si appendono i quadri: cornice di legno, dorata, passepartout o fissati con spilli.' },
+      { title: 'Visite senza registrazione', body: 'Chiunque entra con il tuo link, senza account. Google si chiede solo per mettere un mi piace o salvare un francobollo. Puoi aggiungere il tuo WhatsApp per le richieste su un\'opera.' },
+    ],
+    priceTitle: 'Quanto costa',
+    price: '{ars} al mese con Mercado Pago, oppure {usd} al mese con PayPal se sei fuori dall\'Argentina.',
+    cancel: 'Puoi annullare quando vuoi. Se metti in pausa, la tua galleria non viene più mostrata, ma conservi le monete e tutto ciò che hai sbloccato.',
+    cta: 'Voglio la mia galleria',
+    homeEyebrow: 'Club del Mondiale',
+    homeTitle: 'La tua galleria 3D, aperta ogni giorno',
+    homeBody: 'Una sala permanente per tutta la tua serie, con temi, cornici e monete per migliorarla.',
+    homeCta: 'Scopri il Club',
+  },
 }
 
 export default it

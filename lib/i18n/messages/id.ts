@@ -841,6 +841,28 @@ const id: Messages = {
       errors: { invalid: 'Periksa data Anda lalu coba lagi.', locked: 'Peningkatan itu belum dibuka.', coins: 'Koin Anda tidak cukup.', room: 'Ruang ini lebih kecil dari posisi yang terpakai: kosongkan posisi itu dulu.', unavailable: 'Kami tidak dapat menyimpan. Coba lagi dalam beberapa menit.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Klub Piala Dunia Kolase — galeri 3D permanen Anda',
+    metaDescription: 'Ruang 3D milik sendiri, buka 24 jam, dengan seluruh seri karya Anda. Keanggotaan bulanan dengan koin untuk memperbaikinya.',
+    badge: 'Klub',
+    title: 'Galeri 3D Anda sendiri, buka setiap hari',
+    lead: 'Di galeri Piala Dunia, karya Anda tampil saat gilirannya tiba. Di Klub, Anda punya ruang sendiri yang permanen, dengan seluruh seri, teks, dan tautan untuk dibagikan.',
+    featuresTitle: 'Yang termasuk',
+    features: [
+      { title: 'Ruang permanen Anda', body: 'Anda mulai dengan ruang untuk hingga 8 karya. Ruang untuk 14 dan 22 karya dibuka dengan koin.' },
+      { title: 'Koin setiap bulan', body: 'Setiap pembayaran menambah {coins} koin untuk tema, bingkai, dan ruang yang lebih besar. Yang Anda buka tetap milik Anda selamanya.' },
+      { title: 'Gaya Anda', body: 'Pilih suasana ruang (studio, gudang, museum, atau lorong poster) dan cara memajang lukisan: bingkai kayu, emas, passepartout, atau disematkan dengan pin.' },
+      { title: 'Pengunjung tanpa mendaftar', body: 'Siapa saja bisa masuk dengan tautan Anda, tanpa akun. Google hanya diminta untuk menyukai atau menyimpan prangko. Anda bisa menambahkan WhatsApp untuk pertanyaan tentang karya.' },
+    ],
+    priceTitle: 'Berapa biayanya',
+    price: '{ars} per bulan lewat Mercado Pago, atau {usd} per bulan lewat PayPal jika Anda berada di luar Argentina.',
+    cancel: 'Bisa berhenti kapan saja. Jika dijeda, galeri Anda tidak lagi ditampilkan, tetapi koin dan semua yang Anda buka tetap ada.',
+    cta: 'Saya mau galeri saya',
+    homeEyebrow: 'Klub Piala Dunia',
+    homeTitle: 'Galeri 3D Anda sendiri, buka setiap hari',
+    homeBody: 'Ruang permanen untuk seluruh seri Anda, dengan tema, bingkai, dan koin untuk memperbaikinya.',
+    homeCta: 'Kenali Klub',
+  },
 }
 
 export default id

@@ -845,6 +845,28 @@ const en: Messages = {
       errors: { invalid: 'Check the details and try again.', locked: 'That upgrade is not unlocked yet.', coins: 'You do not have enough coins for that.', room: 'That room is smaller than the positions you are using: free those positions first.', unavailable: 'We could not save. Please try again in a few minutes.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Collage World Cup Club — your permanent 3D gallery',
+    metaDescription: 'A 3D room of your own, open 24 hours, with your whole series. A monthly membership with coins to improve it.',
+    badge: 'Club',
+    title: 'Your own 3D gallery, open every day',
+    lead: 'In the World Cup gallery your work appears when its turn comes. In the Club you get a permanent room of your own, with your whole series, your texts and a link to share.',
+    featuresTitle: 'What\'s included',
+    features: [
+      { title: 'Your permanent room', body: 'You start with a room for up to 8 works. Rooms for 14 and 22 unlock with coins.' },
+      { title: 'Coins every month', body: 'Every payment adds {coins} coins for themes, frames and bigger rooms. What you unlock is yours for good.' },
+      { title: 'Your style', body: 'Pick the mood of the room (studio, warehouse, museum or poster alley) and how the pictures hang: wooden frame, gold, mat or pinned to the wall.' },
+      { title: 'Visitors without signing up', body: 'Anyone can walk in with your link, no account needed. Google is only asked to like or save a stamp. You can add your WhatsApp for enquiries about a work.' },
+    ],
+    priceTitle: 'What it costs',
+    price: '{ars} a month with Mercado Pago, or {usd} a month with PayPal if you are outside Argentina.',
+    cancel: 'Cancel any time. If you pause, your gallery stops being shown, but you keep your coins and everything you unlocked.',
+    cta: 'I want my gallery',
+    homeEyebrow: 'World Cup Club',
+    homeTitle: 'Your own 3D gallery, open every day',
+    homeBody: 'A permanent room for your whole series, with themes, frames and coins to improve it.',
+    homeCta: 'Discover the Club',
+  },
 }
 
 export default en

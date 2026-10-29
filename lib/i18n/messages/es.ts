@@ -882,6 +882,28 @@ const es = {
       errors: { invalid: 'Revisá los datos e intentá de nuevo.', locked: 'Esa mejora todavía no está desbloqueada.', coins: 'No te alcanzan las monedas para eso.', room: 'Esa sala es más chica que las posiciones que tenés ocupadas: liberá esas posiciones primero.', unavailable: 'No pudimos guardar. Probá de nuevo en unos minutos.' },
     },
   },
+  clubLanding: {
+    metaTitle: 'Club del Mundial de Collage — tu galería 3D permanente',
+    metaDescription: 'Una sala 3D propia, abierta las 24 horas, con toda tu serie de obras. Membresía mensual con monedas para mejorarla.',
+    badge: 'Club',
+    title: 'Tu propia galería 3D, abierta todos los días',
+    lead: 'En la galería del Mundial tu obra aparece cuando te toca el turno. En el Club tenés una sala propia y permanente, con toda tu serie, tus textos y un enlace para compartir.',
+    featuresTitle: 'Qué incluye',
+    features: [
+      { title: 'Tu sala permanente', body: 'Empezás con una sala de hasta 8 obras. Las salas de 14 y de 22 se destraban con monedas.' },
+      { title: 'Monedas todos los meses', body: 'Cada cuota suma {coins} monedas para temas, marcos y salas más grandes. Lo que destrabes es tuyo para siempre.' },
+      { title: 'Tu estilo', body: 'Elegí el clima de la sala (taller, galpón, museo o callejón de afiches) y cómo se cuelgan los cuadros: marco de madera, dorado, passepartout o pegados con alfileres.' },
+      { title: 'Visitas sin registro', body: 'Cualquiera entra con tu enlace, sin cuenta. Solo se pide Google para dar me gusta o guardar una estampilla. Podés sumar tu WhatsApp para consultas por obra.' },
+    ],
+    priceTitle: 'Cuánto cuesta',
+    price: '{ars} por mes con Mercado Pago, o {usd} por mes con PayPal si estás fuera de Argentina.',
+    cancel: 'Podés cancelar cuando quieras. Si pausás, tu galería deja de mostrarse, pero conservás tus monedas y todo lo que destrabaste.',
+    cta: 'Quiero mi galería',
+    homeEyebrow: 'Club del Mundial',
+    homeTitle: 'Tu galería 3D propia, abierta todos los días',
+    homeBody: 'Una sala permanente para toda tu serie, con temas, marcos y monedas para mejorarla.',
+    homeCta: 'Conocer el Club',
+  },
 }
 
 export type Messages = typeof es
