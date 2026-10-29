@@ -171,9 +171,10 @@ Riesgos a cuidar:
 
 Cuando los fundadores ya tienen sus galerías armadas y compartidas (Puerta 1), el Club se abre al resto con una página propia, una sección en la landing y una campaña de mail, en ese orden: así el enlace del mail lleva a algo que ya se puede recorrer.
 
+0. **Interruptor de lanzamiento (`CLUB_OPEN`, ya hecho):** el Club arranca cerrado. Mientras `CLUB_OPEN` no valga `on`, `/club`, la franja de la home y la entrada del mapa del sitio no existen, y nadie puede suscribirse, comprar monedas ni editar, salvo las cuentas de `lib/admin.ts`, que pueden probar todo el recorrido en producción con cuentas reales. Abrirlo es poner `CLUB_OPEN=on` en Vercel y hacer un deploy: va después de la prueba de cobro real, de crear el plan de PayPal y de las galerías de muestra. Las galerías ya activas siguen visibles aunque el interruptor esté apagado.
 1. **Galerías de muestra:** 2 o 3 galerías de fundadores, completas y con permiso de sus dueños, sirven de ejemplo. Como entrar no pide sesión, el enlace abre la sala directamente.
-2. **Página del Club (`/[locale]/(site)/club`):** qué recibe un socio, el precio en pesos y en dólares, las galerías de muestra y el botón para suscribirse. Es igual para todos, así que va a `lib/static-pages.ts` con su copia `anon/`; el botón lleva a la ruta de suscripción, que sí lee la sesión.
-3. **Sección en la landing (`app/[locale]/(site)/page.tsx`):** un bloque `ClubSection` cerca de `HomeStoreSection` o `MapSection`, con una captura de una galería de muestra, una frase y el enlace a la página del Club.
+2. **Página del Club (`/[locale]/(site)/club`, ya hecha):** qué recibe un socio, el precio en pesos y en dólares y el botón para suscribirse. Es igual para todos, así que está en `lib/static-pages.ts` con su copia `anon/`; el botón lleva a `/mi-galeria`, que sí lee la sesión. Falta sumarle las galerías de muestra cuando existan.
+3. **Sección en la landing (`app/[locale]/(site)/page.tsx`, ya hecha):** el bloque `ClubSection` va después de `HomeStoreSection`, con una frase y el enlace a la página del Club. Falta sumarle una captura de una galería de muestra.
    - Textos en los 9 idiomas, leídos con `getI18n()`.
    - La captura es una imagen fija en R2; nunca se dibuja por pedido.
    - Si se muestra cuántos socios hay, el número sale de la base por un endpoint cacheado en el CDN, nunca escrito a mano.
