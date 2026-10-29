@@ -6,6 +6,7 @@ import { paypalPlanId, type PaypalPlanKey } from '@/lib/payments/paypal/plans'
 import { planById, storePlanName, subscriptionPlans } from '@/lib/store'
 import { pickupCopy } from '@/lib/pickup-copy'
 import { MESSAGES } from '@/lib/i18n/messages'
+import { isClubProviderPlan } from '@/lib/club-plans'
 
 /** Mercado Pago subscriptions store their plan as "mp:<plan id>". */
 export const mpPlanId = (planId: string) => `mp:${planId}`
@@ -39,7 +40,7 @@ export function sendSubscriptionReceipt(subscriptionId: string) {
       .single()
     if (!subscription) return null
     // The receipt talks about the magazine and its shipping; a Club member gets none yet.
-    if (subscription.provider_plan_id.startsWith('mp:club-')) return null
+    if (isClubProviderPlan(subscription.provider_plan_id)) return null
     const customer = subscription.customers as unknown as { email: string; full_name: string }
     const address = subscription.shipping_address as Record<string, unknown>
     const locale = localeFromCountry(typeof address?.country_code === 'string' ? address.country_code : null)
