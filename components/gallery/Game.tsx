@@ -346,7 +346,8 @@ export function Game({
         )}
       </div>
       {userId && <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!vinylOpen && !arcadeOpen && !passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />}
-      {userId && <PassportRecorder userId={userId} started={hasStarted} />}
+      {/* The passport counts days of the museum's daily exhibition: walking a member's Club room is no such day (photos still count). */}
+      {userId && <PassportRecorder userId={userId} started={hasStarted && !template} />}
       <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} topic={presenceTopic} />
       {isTouchDevice && isActive && <TouchControls theme={theme} />}
       {/* The visit's own buttons, on the pause screen too: on a computer at

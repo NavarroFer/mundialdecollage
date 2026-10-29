@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Game } from '@/components/gallery/Game'
+import { ClubGame } from '@/components/gallery/ClubGame'
 import { clubGalleryTemplates } from '@/components/gallery/world/roomsData'
 import { getClubGalleryBySlug } from '@/lib/club-galleries'
 
@@ -27,9 +27,8 @@ export default async function ClubGalleryPage({ params }: { params: Promise<{ sl
   if (!gallery) notFound()
 
   return (
-    <Game
+    <ClubGame
       artworks={gallery.artworks}
-      userId={null}
       themeOverride={gallery.theme}
       template={clubGalleryTemplates[gallery.templateId]}
       presenceTopic={`gallery:club:${gallery.slug}`}
