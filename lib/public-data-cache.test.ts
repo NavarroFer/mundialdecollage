@@ -21,8 +21,8 @@ vi.mock('next/cache', () => ({
     for (const [key, entry] of cache.entries) if (entry.tags.includes(tag)) cache.entries.delete(key)
   },
 }))
-import { cachedPublicData, refreshArtworkData, refreshExhibition, refreshPublicData } from './public-data-cache'
-import { artworkTag, artistTag } from './public-cache-tags'
+import { cachedPublicData, refreshArtworkData, refreshClubGallery, refreshExhibition, refreshPublicData } from './public-data-cache'
+import { artworkTag, artistTag, clubGalleryTag } from './public-cache-tags'
 
 beforeEach(() => {
   cache.entries.clear()
@@ -100,5 +100,22 @@ describe('public cache invalidation', () => {
     expect(artworkTag('a')).not.toBe(artworkTag('b'))
     refreshArtworkData([])
     expect(cache.invalidate).not.toHaveBeenCalled()
+  })
+})
+
+describe('refreshClubGallery', () => {
+  it('drops the saved gallery and keeps the other galleries and the rest of the public data', async () => {
+    const readGallery = vi.fn(async (slug: string) => slug)
+    const gallery = cachedPublicData(readGallery, 'club-gallery', (slug) => [clubGalleryTag(slug)])
+    const readOther = vi.fn(async () => 'home')
+    const other = cachedPublicData(readOther, 'finalists')
+
+    await gallery('ana-1'); await gallery('luis-2'); await other()
+    refreshClubGallery('ana-1')
+    await gallery('ana-1'); await gallery('luis-2'); await other()
+
+    expect(readGallery.mock.calls).toEqual([['ana-1'], ['luis-2'], ['ana-1']])
+    expect(readOther).toHaveBeenCalledTimes(1)
+    expect(cache.invalidate).toHaveBeenCalledWith(clubGalleryTag('ana-1'), { expire: 0 })
   })
 })

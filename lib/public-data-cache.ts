@@ -1,5 +1,5 @@
 import { revalidateTag, unstable_cache } from 'next/cache'
-import { publicDataTag, artworkTag, artistTag } from '@/lib/public-cache-tags'
+import { publicDataTag, artworkTag, artistTag, clubGalleryTag } from '@/lib/public-cache-tags'
 import { isAnonymousRender } from '@/lib/render-mode'
 
 // Public, session-free data (published obras, counts, the call's state, the
@@ -65,4 +65,10 @@ export function refreshArtworkData(artworks: { slug: string | null; profile_id: 
 // rebuilt every few minutes for the rotation alone.
 export function refreshExhibition() {
   revalidateTag(publicDataTag('exhibition'), { expire: 0 })
+}
+
+// A Club member saved their gallery: drop only that gallery (and the static
+// page built from it), not every public page of the site.
+export function refreshClubGallery(slug: string) {
+  revalidateTag(clubGalleryTag(slug), { expire: 0 })
 }

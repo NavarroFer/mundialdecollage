@@ -3,6 +3,7 @@ import type { GalleryTheme } from '@/components/gallery/themes'
 import type { ClubGalleryTemplateId } from '@/components/gallery/world/roomsData'
 import { clubGallerySlots, type Artwork, type GalleryFrameStyle } from '@/data/artworks'
 import { cachedPublicData } from '@/lib/public-data-cache'
+import { clubGalleryTag } from '@/lib/public-cache-tags'
 import { flagSvg } from '@/lib/flag-svg'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -135,7 +136,7 @@ const getPublicClubGallery = cachedPublicData(async (slug: string): Promise<Club
 
   if (error) throw new Error(error.message)
   return data ? clubGalleryFromRow(data as unknown as ClubGalleryRow) : undefined
-}, 'club-gallery')
+}, 'club-gallery', (slug) => [clubGalleryTag(slug)])
 
 export const getClubGalleryBySlug = cache(getPublicClubGallery)
 
