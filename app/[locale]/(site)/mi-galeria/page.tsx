@@ -58,6 +58,7 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
         <section className="mt-10 border-t pt-8">
           <h2 className="font-display text-2xl uppercase">{t.packsTitle}</h2>
           <p className="my-3 text-sm text-muted-foreground">{t.packsBody}</p>
+          <TermsNotice t={t} />
           {monedas === 'ok' && <p role="status" className="mb-4 rounded-lg bg-muted px-3 py-2 text-sm">{t.coinsPending}</p>}
           {error && <p role="alert" className="mb-4 rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">{t.errorUnavailable}</p>}
           <ul className="space-y-3">
@@ -86,6 +87,7 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
         <p className="my-6 text-muted-foreground">{t.pendingBody}</p>
         {/* Whoever closed Mercado Pago before paying can start again: the same gallery is relinked. */}
         <JoinForms t={t} outline />
+        <TermsNotice t={t} />
       </Shell>
     )
   }
@@ -104,7 +106,17 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
       )}
       <JoinForms t={t} />
       <p className="mt-3 text-xs text-muted-foreground">{t.joinNote}</p>
+      <TermsNotice t={t} />
     </Shell>
+  )
+}
+
+function TermsNotice({ t }: { t: Messages['club'] }) {
+  const [before, after] = t.termsNotice.split('{link}')
+  return (
+    <p className="mt-3 text-xs text-muted-foreground">
+      {before}<Link href="/terminos-y-condiciones#club" className="underline">{t.termsLink}</Link>{after}
+    </p>
   )
 }
 

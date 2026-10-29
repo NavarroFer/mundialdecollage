@@ -801,6 +801,8 @@ const pt: Messages = {
     join: 'Assinar com o Mercado Pago',
     joinNote: 'Cobrado todo mês. Você pode cancelar quando quiser pelo Mercado Pago / PayPal.',
     joinPaypal: 'Assinar com o PayPal',
+    termsNotice: 'Ao continuar, você aceita os {link}, incluindo a seção do Clube (em espanhol).',
+    termsLink: 'Termos e Condições',
     pendingTitle: 'Estamos confirmando seu pagamento',
     pendingBody: 'Assim que o Mercado Pago confirmar, sua galeria é ativada e você recebe as primeiras moedas. Volte a olhar em alguns minutos.',
     activeTitle: 'Sua galeria está ativa',

@@ -801,6 +801,8 @@ const it: Messages = {
     join: 'Iscriviti con Mercado Pago',
     joinNote: 'Addebitato ogni mese. Puoi annullare in qualsiasi momento da Mercado Pago / PayPal.',
     joinPaypal: 'Iscriviti con PayPal',
+    termsNotice: 'Continuando accetti i {link}, compresa la sezione del Club (in spagnolo).',
+    termsLink: 'Termini e Condizioni',
     pendingTitle: 'Stiamo confermando il tuo pagamento',
     pendingBody: 'Appena Mercado Pago lo conferma, la tua galleria si attiva e ricevi le prime monete. Ricontrolla tra qualche minuto.',
     activeTitle: 'La tua galleria è attiva',

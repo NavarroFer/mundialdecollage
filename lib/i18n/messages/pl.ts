@@ -823,6 +823,8 @@ const pl: Messages = {
     join: 'Subskrybuj przez Mercado Pago',
     joinNote: 'Opłata co miesiąc. Możesz zrezygnować w dowolnej chwili w Mercado Pago / PayPal.',
     joinPaypal: 'Subskrybuj przez PayPal',
+    termsNotice: 'Kontynuując, akceptujesz {link}, w tym sekcję o Klubie (po hiszpańsku).',
+    termsLink: 'Regulamin',
     pendingTitle: 'Potwierdzamy Twoją płatność',
     pendingBody: 'Gdy tylko Mercado Pago ją potwierdzi, galeria zostanie aktywowana, a Ty dostaniesz pierwsze monety. Zajrzyj ponownie za kilka minut.',
     activeTitle: 'Twoja galeria jest aktywna',

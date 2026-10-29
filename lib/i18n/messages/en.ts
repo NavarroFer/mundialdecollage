@@ -802,6 +802,8 @@ const en: Messages = {
     join: 'Join with Mercado Pago',
     joinNote: 'Charged every month. You can cancel any time from Mercado Pago / PayPal.',
     joinPaypal: 'Join with PayPal',
+    termsNotice: 'By continuing you accept the {link}, including its Club section (in Spanish).',
+    termsLink: 'Terms and Conditions',
     pendingTitle: 'We\'re confirming your payment',
     pendingBody: 'As soon as Mercado Pago confirms it, your gallery goes live and you get your first coins. Check back in a few minutes.',
     activeTitle: 'Your gallery is live',

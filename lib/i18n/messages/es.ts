@@ -839,6 +839,8 @@ const es = {
     join: 'Suscribirme con Mercado Pago',
     joinNote: 'Se cobra todos los meses. Podés cancelar cuando quieras desde Mercado Pago / PayPal.',
     joinPaypal: 'Suscribirme con PayPal',
+    termsNotice: 'Al continuar aceptás los {link}, incluida su sección del Club.',
+    termsLink: 'Términos y Condiciones',
     pendingTitle: 'Estamos confirmando tu pago',
     pendingBody: 'Apenas Mercado Pago lo confirme, tu galería se activa y recibís tus primeras monedas. Volvé a mirar en unos minutos.',
     activeTitle: 'Tu galería está activa',

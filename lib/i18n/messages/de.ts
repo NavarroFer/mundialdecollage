@@ -801,6 +801,8 @@ const de: Messages = {
     join: 'Mit Mercado Pago abonnieren',
     joinNote: 'Wird jeden Monat abgebucht. Du kannst jederzeit über Mercado Pago / PayPal kündigen.',
     joinPaypal: 'Mit PayPal abonnieren',
+    termsNotice: 'Wenn du fortfährst, akzeptierst du die {link}, einschließlich ihres Club-Abschnitts (auf Spanisch).',
+    termsLink: 'Allgemeinen Geschäftsbedingungen',
     pendingTitle: 'Wir bestätigen deine Zahlung',
     pendingBody: 'Sobald Mercado Pago sie bestätigt, wird deine Galerie freigeschaltet und du erhältst deine ersten Münzen. Schau in ein paar Minuten wieder vorbei.',
     activeTitle: 'Deine Galerie ist online',

@@ -798,6 +798,8 @@ const id: Messages = {
     join: 'Berlangganan lewat Mercado Pago',
     joinNote: 'Ditagih setiap bulan. Anda dapat berhenti kapan saja lewat Mercado Pago / PayPal.',
     joinPaypal: 'Berlangganan lewat PayPal',
+    termsNotice: 'Dengan melanjutkan, Anda menerima {link}, termasuk bagian Klub (dalam bahasa Spanyol).',
+    termsLink: 'Syarat dan Ketentuan',
     pendingTitle: 'Kami sedang mengonfirmasi pembayaran Anda',
     pendingBody: 'Begitu Mercado Pago mengonfirmasi, galeri Anda aktif dan Anda mendapat koin pertama. Cek lagi dalam beberapa menit.',
     activeTitle: 'Galeri Anda sudah aktif',
