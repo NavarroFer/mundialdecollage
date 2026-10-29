@@ -30,25 +30,26 @@ export function ClubDoor({ template, active, labels }: { template: GalleryRoomTe
   useEffect(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 1024
-    canvas.height = 256
+    canvas.height = 280
     const ctx = canvas.getContext('2d')!
     ctx.fillStyle = '#efe6d2'
-    ctx.fillRect(0, 0, 1024, 256)
-    ctx.strokeStyle = '#2a211a'
-    ctx.lineWidth = 10
-    ctx.strokeRect(14, 14, 996, 228)
-    ctx.fillStyle = '#c8321f'
+    ctx.fillRect(0, 0, 1024, 280)
+    ctx.strokeStyle = '#1a140e'
+    ctx.lineWidth = 12
+    ctx.strokeRect(16, 16, 992, 248)
+    ctx.fillStyle = '#b8261a'
     ctx.textAlign = 'center'
-    ctx.font = 'bold 44px sans-serif'
-    ctx.fillText(labels.next.toUpperCase(), 512, 80)
-    ctx.fillStyle = '#20190f'
+    ctx.font = 'bold 50px sans-serif'
+    ctx.fillText(labels.next.toUpperCase(), 512, 86)
+    ctx.fillStyle = '#0f0b07'
     const name = next?.artistName ?? labels.soon
-    let size = 76
-    do { ctx.font = `bold ${size}px sans-serif`; size -= 4 } while (ctx.measureText(name).width > 940 && size > 30)
-    ctx.fillText(name, 512, 165)
+    let size = 92
+    do { ctx.font = `bold ${size}px sans-serif`; size -= 4 } while (ctx.measureText(name).width > 930 && size > 34)
+    ctx.fillText(name, 512, 182)
     if (next?.countryCode) {
-      ctx.font = '38px sans-serif'
-      ctx.fillText(labels.countryName(next.countryCode), 512, 220)
+      ctx.fillStyle = '#3b3027'
+      ctx.font = 'bold 44px sans-serif'
+      ctx.fillText(labels.countryName(next.countryCode), 512, 240)
     }
     const texture = new CanvasTexture(canvas)
     texture.colorSpace = SRGBColorSpace
@@ -91,9 +92,9 @@ export function ClubDoor({ template, active, labels }: { template: GalleryRoomTe
           </group>
         ))}
         <mesh position={[0, DOOR_HEIGHT + 0.05, Math.abs(face)]}><boxGeometry args={[DOOR_WIDTH + 0.2, 0.1, 0.05]} /><meshStandardMaterial color="#2a211a" /></mesh>
-        <mesh position={[0, DOOR_HEIGHT + 0.42, Math.abs(face) + 0.01]}>
-          <planeGeometry args={[1.8, 0.45]} />
-          <meshStandardMaterial ref={plaque} roughness={0.6} emissive="#fff6dd" emissiveIntensity={0.08} />
+        <mesh position={[0, DOOR_HEIGHT + 0.44, Math.abs(face) + 0.01]}>
+          <planeGeometry args={[2.2, 0.6]} />
+          <meshStandardMaterial ref={plaque} roughness={0.6} emissive="#fff6dd" emissiveIntensity={0.15} />
         </mesh>
       </group>
     </RigidBody>
