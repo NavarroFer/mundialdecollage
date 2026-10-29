@@ -56,7 +56,7 @@ export function MagazineForm({ priceArs, shippingAbroadArs, maxQuantity, default
       {field('name', t.name, { required: true, autoComplete: 'name', maxLength: 120, defaultValue: defaultName })}
       <div className="grid gap-4 sm:grid-cols-2">
         {field('email', t.email, { required: true, type: 'email', autoComplete: 'email', maxLength: 254, defaultValue: defaultEmail })}
-        {field('phone', t.phone, { required: true, type: 'tel', autoComplete: 'tel', maxLength: 30 })}
+        {field('phone', t.phone, { required: true, type: 'tel', autoComplete: 'tel', maxLength: 30, placeholder: '11 2345 6789' })}
       </div>
       {field('address_line_1', t.address, { required: true, autoComplete: 'address-line1', maxLength: 200 })}
       {field('address_line_2', t.apartment, { autoComplete: 'address-line2', maxLength: 100 })}

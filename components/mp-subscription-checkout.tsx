@@ -87,7 +87,7 @@ export function MpSubscriptionCheckout({ plan, flatShippingFee }: { plan: StoreP
       <div className={step === 1 ? 'space-y-3' : 'hidden'}>
         {field('name', t.name, { required: step > 0, autoComplete: 'name', maxLength: 120 })}
         {field('email', t.email, { required: step > 0, type: 'email', autoComplete: 'email', maxLength: 254 })}
-        {field('phone', t.phone, { required: step > 0, type: 'tel', autoComplete: 'tel', maxLength: 30 })}
+        {field('phone', t.phone, { required: step > 0, type: 'tel', autoComplete: 'tel', maxLength: 30, placeholder: t.phonePlaceholder })}
         <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={gift} onChange={(e) => setGift(e.target.checked)} />{p.gift}</label>
         {gift && field('recipient_name', p.recipient, { required: step > 0, autoComplete: 'shipping name', maxLength: 120 })}
         {!gift && <input type="hidden" name="recipient_name" value="" />}

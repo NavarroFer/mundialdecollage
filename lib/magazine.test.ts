@@ -26,11 +26,16 @@ describe('parseMagazineOrder', () => {
       order: {
         name: 'Ana Pérez',
         email: 'ana@example.com',
-        phone: '+54 223 555-1234',
+        phone: '+54 9 2235551234',
         quantity: 2,
         shipping: { address_line_1: 'Av. Colón 1234', address_line_2: '', city: 'Mar del Plata', province: 'Buenos Aires', postal_code: 'B7600ABC', country_code: 'AR' },
       },
     })
+  })
+
+  it('asks for an Argentine mobile with its area code in Argentina, any phone abroad', () => {
+    expect(parse({ phone: '4123-4567' })).toEqual({ ok: false, invalid: ['phone'] })
+    expect(parse({ phone: '4123-4567', country_code: 'UY' }).ok).toBe(true)
   })
 
   it('accepts a four-digit postal code', () => {

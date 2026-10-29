@@ -2,6 +2,8 @@
 // server before an order row or a Mercado Pago preference exists. Pure, so
 // it's tested on its own (lib/magazine.test.ts).
 
+import { argentineMobile } from './phone'
+
 export type MagazineShipping = {
   address_line_1: string
   address_line_2: string
@@ -29,7 +31,7 @@ export const MAGAZINE_FIELDS = ['name', 'email', 'phone', 'address_line_1', 'add
 export type MagazineField = (typeof MAGAZINE_FIELDS)[number]
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-// Digits with the usual separators; 6–20 digits covers local and +54 numbers.
+// Abroad, digits with the usual separators; in Argentina, a mobile (lib/phone.ts).
 const PHONE_PATTERN = /^\+?[\d\s().-]+$/
 // Argentine CP: 4 digits, or the CPA form like C1425ABC. Elsewhere, what
 // postal codes generally look like.
@@ -58,11 +60,12 @@ export function parseMagazineOrder(
   const phoneDigits = values.phone.replace(/\D/g, '').length
   const country = (values.country_code || 'AR').toUpperCase()
   const pickup = country === 'AR' && Boolean(values.branch_code)
+  const mobile = argentineMobile(values.phone)
   const postal = values.postal_code.replace(/\s+/g, ' ')
   const checks: Record<MagazineField, boolean> = {
     name: values.name.length >= 2 && values.name.length <= 120,
     email: values.email.length <= 254 && EMAIL_PATTERN.test(values.email),
-    phone: PHONE_PATTERN.test(values.phone) && phoneDigits >= 6 && phoneDigits <= 20,
+    phone: country === 'AR' ? mobile !== null : PHONE_PATTERN.test(values.phone) && phoneDigits >= 6 && phoneDigits <= 20,
     address_line_1: pickup || (values.address_line_1.length >= 3 && values.address_line_1.length <= 200),
     address_line_2: values.address_line_2.length <= 100,
     city: values.city.length >= 2 && values.city.length <= 100,
@@ -81,7 +84,7 @@ export function parseMagazineOrder(
     order: {
       name: values.name,
       email: values.email.toLowerCase(),
-      phone: values.phone,
+      phone: country === 'AR' ? mobile! : values.phone,
       quantity,
       shipping: {
         address_line_1: values.address_line_1,
