@@ -30,9 +30,28 @@ Las monedas convierten la evolución de cada galería en un juego de colección 
 
 ### Cómo se consiguen las monedas
 
-1. **Incluidas en la cuota mensual del Club (Camino A):** cada mes que el socio paga su membresía se le acredita una tanda de monedas en su cuenta. Mantener la suscripción activa le permite ahorrar para agrandar y vestir su galería.
-2. **Compra directa con plata (desde el día 1):** packs de monedas de pago único por Mercado Pago o PayPal (*Pack Chico*, *Pack Mediano* con bonus y *Pack Mecenas*), tanto para socios que quieren destrabar todo rápido como para usuarios que quieren vestir su avatar.
-3. **Jugando en el sitio («efecto alcancía»):** hacer acciones en el Mundial y en el Álbum —dar *Me gusta* a una obra, guardar estampillas en el Álbum, abrir fichas o completar días en el Pasaporte— regala pocas monedas. Así todos ven su contador con saldo real desde el primer día y es más fácil que compren un pack para llegar a la mejora que quieren.
+1. **Incluidas en la cuota mensual del Club (Camino A):** cada mes que el socio paga su membresía se le acreditan **1.000 monedas**. Con eso destraba un tema por mes o junta la Sala Clásica en 3 meses, así que mantener la suscripción activa conviene.
+2. **Compra directa con plata (desde el día 1):** packs de monedas de pago único por Mercado Pago o PayPal, tanto para socios que quieren destrabar todo rápido como para usuarios que quieren vestir su avatar. Una moneda equivale a unos $10 o USD 0,01:
+
+   | Pack | Monedas | Pesos | Dólares |
+   | --- | ---: | ---: | ---: |
+   | *Pack Chico* | 500 | $5.000 | USD 5 |
+   | *Pack Mediano* | 1.725 (1.500 + 15 %) | $13.000 | USD 13 |
+   | *Pack Mecenas* | 4.550 (3.500 + 30 %) | $30.000 | USD 30 |
+
+3. **Jugando en el sitio («efecto alcancía»):** dar *Me gusta* a una obra da **1 moneda** y guardar una estampilla en el Álbum da **3**, con un tope de **20 monedas por día** por cuenta. Así todos ven su contador con saldo real desde el primer día y es más fácil que compren un pack para llegar a la mejora que quieren.
+4. **Logros del socio:** cada logro de su sala da **200 monedas**, una sola vez por logro: las primeras 50 visitas, 10 obras suyas guardadas en álbumes de visitantes y su primera inauguración en vivo con visitantes en la sala.
+
+### Precios del catálogo
+
+Valores de referencia para `lib/gallery-catalog.ts`; se ajustan con el uso real.
+
+| Ítem | Monedas |
+| --- | ---: |
+| Marco o montaje (madera, dorado, passepartout, alfileres) | 300 |
+| Tema (*Taller*, *Galpón Industrial*, *Museo Clásico*, *Callejón*) | 1.200 |
+| Sala Clásica (14 obras) | 2.500 |
+| Galería Doble (22 obras) | 5.000 |
 
 ### Qué se configura y qué se compra con monedas
 
@@ -105,10 +124,10 @@ Los montos de Vercel y Supabase son aproximados y hay que confirmarlos en sus p�
 
 El cobro usa las mismas suscripciones y compras únicas que ya funcionan en la tienda: Mercado Pago en pesos y PayPal en dólares.
 
-- **Pesos (suscripción Club):** $47.000 por mes con Mercado Pago. Con inflación, ese monto pierde valor mes a mes; hay que fijar cada cuánto se ajusta y avisar al socio antes.
+- **Pesos (suscripción Club):** $47.000 por mes con Mercado Pago. El precio se ajusta **cada 3 meses**, con aviso al socio **30 días antes**.
 - **Dólares (suscripción Club):** USD 47 por mes con un plan de PayPal, para socios del exterior.
-- **Packs de monedas (compra única):** disponibles en pesos (Mercado Pago Checkout Pro) y en dólares (PayPal Orders).
-- **Plan anual:** opcional, con descuento; adelanta caja y baja las bajas.
+- **Packs de monedas (compra única):** disponibles en pesos (Mercado Pago Checkout Pro) y en dólares (PayPal Orders), con los precios de la tabla de packs.
+- **Plan anual:** se paga **10 meses y se usan 12**: $470.000 o USD 470 por año, con el precio en pesos fijo durante ese año. Las 1.000 monedas se acreditan igual mes a mes, no las 12.000 juntas, para que una devolución dentro de los 10 días de arrepentimiento no deje monedas ya gastadas.
 - **Alta:** al confirmarse el primer pago se crea la galería con la sala inicial (6–8 obras), se acreditan las monedas de bienvenida del mes y se abre el editor.
 - **Baja o pago rechazado:** la galería sale del mapa y queda en pausa (`status = 'paused'`), sin borrarse ni perder las salas, temas, ropa ni monedas compradas, para que vuelva intacta si el socio paga de nuevo.
 
@@ -122,18 +141,17 @@ Decisiones ya definidas:
 - [x] **Temas desbloqueables:** sumar temas con climas de *Taller de Artista* y *Museo Real* comprables con monedas.
 - [x] **Montaje de cuadros configurable:** el artista elige cómo se ven colgados sus cuadros (distintos marcos o pegados/clavados sin marco).
 - [x] **Ropa de avatar elegible y comprable con monedas:** personalización de prendas, telas y accesorios para el avatar.
+- [x] **Monedas de la cuota:** 1.000 por mes, también en el plan anual.
+- [x] **Packs:** Chico, Mediano y Mecenas a $5.000 / $13.000 / $30.000 o USD 5 / 13 / 30.
+- [x] **Monedas por actividad y logros:** 1 por like y 3 por estampilla, con tope de 20 por día; 200 por cada logro del socio.
+- [x] **Precio en pesos y plan anual:** ajuste cada 3 meses con 30 días de aviso; plan anual de 10 meses por 12, en pesos y en dólares.
 
-Puntos operativos por confirmar antes de lanzar:
-
-- [ ] Definir la tabla exacta de precios de los packs de monedas y cuántas monedas regala cada cuota mensual y cada acción (like / estampilla). Punto de partida del borrador: *Pack Chico* de 500 monedas, *Pack Mediano* de 1.500 con 15 % extra y *Pack Mecenas* de 3.500 con 30 % extra.
-- [ ] ¿El socio también gana monedas por logros de su sala (primeras 50 visitas, 10 obras guardadas en álbumes, una inauguración en vivo)?
-- [ ] ¿Cada cuánto se ajusta el precio en pesos de la suscripción en Mercado Pago?
-- [ ] ¿Hay plan anual de entrada, y con qué descuento (ej. 10 meses por 12)?
+Ya no quedan decisiones de producto abiertas para la etapa 1. Antes de cobrar falta lo operativo de «Próximos pasos» y los términos del Club (ver «Lanzamiento»).
 
 Riesgos a cuidar:
 
 - **Mapa vacío:** con pocas galerías, recorrer el mapa decepciona. Por eso el mapa abre en la etapa 2, cuando ya hay galerías, y en la etapa 1 se conecta una galería con otra mediante la «Puerta al Club».
-- **Equilibrio de monedas:** las monedas ganadas gratis dando like o juntando estampillas tienen que alcanzar para tentar (y tal vez comprar un accesorio chico o un marco), pero los temas de museo y las ampliaciones de sala deben requerir las monedas de la membresía o comprar un pack.
+- **Equilibrio de monedas:** las monedas ganadas gratis dando like o juntando estampillas tienen que alcanzar para tentar (y tal vez comprar un accesorio chico o un marco), pero los temas de museo y las ampliaciones de sala deben requerir las monedas de la membresía o comprar un pack. Con el tope de 20 por día, alguien muy activo junta hasta 600 por mes: un marco en 15 días, un tema en 2 meses. Si eso le quita ventas a los packs, se baja el tope antes que el precio de los ítems.
 - **Visitantes en vivo:** cada galería con gente usa conexiones de Realtime. El tope de 8 avatares por galería acota los mensajes, no las conexiones.
 - **Alcance del editor:** la decoración libre tipo Sims es un proyecto en sí mismo; va en la etapa 3.
 
@@ -230,7 +248,7 @@ Guía lista para implementar paso a paso:
   - **RLS:** cualquiera lee las filas con `status = 'active'`; el dueño (`user_id = auth.uid()`) lee y edita la suya (una función/trigger verifica que `template_id`, `theme`, `default_frame_style` y `host_outfit` estén incluidos de base o en `user_gallery_inventory`); `service_role` actualiza `status`.
 - **Billetera e inventario (`club_wallets`, `coin_transactions`, `user_gallery_inventory`):**
   - `club_wallets (user_id primary key, balance integer not null default 0 check (balance >= 0), updated_at timestamptz)`.
-  - `coin_transactions (id uuid primary key, user_id uuid, delta integer not null, kind text, reference_id text, created_at timestamptz, unique (kind, reference_id))`: un libro de movimientos que solo crece, con `kind` en `'subscription_bonus'`, `'purchase'`, `'activity'`, `'spend'` o `'refund'`. El `unique` garantiza idempotencia ante reintentos de webhooks o acciones repetidas.
+  - `coin_transactions (id uuid primary key, user_id uuid, delta integer not null, kind text, reference_id text, created_at timestamptz, unique (kind, reference_id))`: un libro de movimientos que solo crece, con `kind` en `'subscription_bonus'`, `'purchase'`, `'activity'`, `'achievement'`, `'spend'` o `'refund'`. El `unique` garantiza idempotencia ante reintentos de webhooks o acciones repetidas.
   - `user_gallery_inventory (user_id uuid, item_id text, unlocked_at timestamptz, primary key (user_id, item_id))`.
   - Función RPC `spend_coins_on_item(p_item_id text)` con `pg_advisory_xact_lock` que verifica el precio en el catálogo, descuenta de `club_wallets` e inserta en `user_gallery_inventory`.
   - El cliente solo tiene `select` sobre su billetera, sus movimientos y su inventario. Las monedas las acredita el servidor (`service_role`) al confirmarse un pago, o las funciones de like y estampilla; se gastan únicamente con `spend_coins_on_item`.
