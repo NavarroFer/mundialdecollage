@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { normalizeSearch, searchArtworks, type SearchEntry } from './artwork-search'
+import { describe, expect, it, vi } from 'vitest'
+import { buildSearchIndex, normalizeSearch, searchArtworks, searchIndex, type SearchEntry } from './artwork-search'
 
 const countries: Record<string, string> = { AR: 'Argentina', MX: 'México', ES: 'España' }
 const countryName = (code: string) => countries[code] ?? code
@@ -33,5 +33,14 @@ describe('searchArtworks', () => {
   it('no devuelve nada sin texto y respeta el límite', () => {
     expect(slugs('   ')).toEqual([])
     expect(searchArtworks(entries, 'a', countryName, 2)).toHaveLength(2)
+  })
+
+  it('returns every match from the index, and names each country only once', () => {
+    const many = Array.from({ length: 30 }, (_, n) => ({ slug: `o${n}`, title: null, name: `Ana ${n}`, countryCode: 'PE' }))
+    const name = vi.fn(() => 'Perú')
+    const index = buildSearchIndex(many, name)
+    expect(searchIndex(index, 'peru')).toHaveLength(30)
+    expect(searchIndex(index, 'ana')).toHaveLength(30)
+    expect(name).toHaveBeenCalledTimes(1)
   })
 })

@@ -233,6 +233,7 @@ const de: Messages = {
     loading: 'Werke werden geladen…',
     error: 'Die Werke konnten nicht geladen werden. Versuch es gleich noch einmal.',
     noResults: 'Keine Werke für „{query}“ gefunden.',
+    more: 'Mehr anzeigen (noch {count})',
     results: p({ one: '{count} Ergebnis', other: '{count} Ergebnisse' }),
     signUpTitle: 'Machst du beim Mundial mit?',
     signUpBody: 'Registriere dich mit Google, um dein Werk zu sehen, zu liken und zu kommentieren.',

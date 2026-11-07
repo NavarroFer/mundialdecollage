@@ -233,6 +233,7 @@ const pt: Messages = {
     loading: 'Carregando obras…',
     error: 'Não conseguimos carregar as obras. Tente de novo em instantes.',
     noResults: 'Não encontramos obras para “{query}”.',
+    more: 'Ver mais ({count} restantes)',
     results: p({ one: '{count} resultado', other: '{count} resultados' }),
     signUpTitle: 'Você participa do Mundial?',
     signUpBody: 'Cadastre-se com o Google para ver sua obra, curtir e comentar.',

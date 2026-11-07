@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
-import { searchArtworks, type ObraEntry } from '@/lib/artwork-search'
+import { buildSearchIndex, searchIndex, type ObraEntry } from '@/lib/artwork-search'
 import { loadObras } from '@/lib/obras-client'
 import { ObraLink, useOpenObra } from '@/components/obra-modal'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, plural } from '@/lib/i18n/format'
 
 type Status = 'idle' | 'loading' | 'ready' | 'error'
+
+const RESULTS_PAGE = 8
 
 const toSummary = ({ slug, title, name, countryCode, imageUrl }: ObraEntry) => ({ slug, artworkTitle: title, name, countryCode, imageUrl })
 
@@ -26,6 +28,7 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
+  const [visible, setVisible] = useState(RESULTS_PAGE)
   const rootRef = useRef<HTMLDivElement>(null)
   const listId = useId()
 
@@ -41,10 +44,12 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
     )
   }
 
-  const results = useMemo(
-    () => searchArtworks(entries, query, (code) => countryCodeToName(code, locale)),
-    [entries, query, locale],
+  const index = useMemo(
+    () => buildSearchIndex(entries, (code) => countryCodeToName(code, locale)),
+    [entries, locale],
   )
+  const matches = useMemo(() => searchIndex(index, query), [index, query])
+  const results = matches.slice(0, visible)
 
   useEffect(() => {
     if (!open) return
@@ -97,14 +102,14 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
           enterKeyHint="search"
           onTouchStart={prepare}
           onFocus={() => { prepare(); setOpen(true) }}
-          onChange={(event) => { setQuery(event.target.value); setActive(-1); setOpen(true) }}
+          onChange={(event) => { setQuery(event.target.value); setActive(-1); setVisible(RESULTS_PAGE); setOpen(true) }}
           onKeyDown={onKeyDown}
           className="h-14 w-full rounded-full border-2 border-ink bg-card pr-12 pl-13 text-base text-ink shadow-[4px_4px_0_0] shadow-ink placeholder:text-muted-foreground focus:border-collage-blue focus:shadow-collage-blue focus:outline-none sm:h-16 sm:text-lg [&::-webkit-search-cancel-button]:hidden"
         />
         {typed && (
           <button
             type="button"
-            onClick={() => { setQuery(''); setActive(-1) }}
+            onClick={() => { setQuery(''); setActive(-1); setVisible(RESULTS_PAGE) }}
             className="absolute top-1/2 right-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-ink/60 hover:text-ink"
           >
             <X className="size-5" aria-hidden="true" />
@@ -114,30 +119,41 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
       </div>
 
       <p className="sr-only" aria-live="polite">
-        {typed && status === 'ready' ? plural(locale, results.length, m.search.results) : ''}
+        {typed && status === 'ready' ? plural(locale, matches.length, m.search.results) : ''}
       </p>
 
       {open && (
         <div className="absolute inset-x-0 top-full z-40 mt-3 overflow-hidden rounded-2xl border-2 border-ink bg-card shadow-[6px_6px_0_0] shadow-ink">
           {showList ? (
-            <ul id={listId} role="listbox" aria-label={m.search.label} className="max-h-[50vh] overflow-y-auto py-2">
-              {results.map((entry, index) => (
-                <li key={entry.slug} id={`${listId}-${index}`} role="option" aria-selected={index === active}>
-                  <ObraLink
-                    obra={toSummary(entry)}
-                    tabIndex={-1}
-                    onPointerEnter={() => setActive(index)}
-                    onClick={() => setOpen(false)}
-                    className={`flex min-h-12 flex-col justify-center px-5 py-2 ${index === active ? 'bg-collage-blue/10' : ''}`}
-                  >
-                    <span className="font-semibold text-ink">{entry.title ?? m.common.untitled}</span>
-                    <span className="text-sm text-muted-foreground">
-                      <span aria-hidden>{countryCodeToFlag(entry.countryCode)}</span> {entry.name} · {countryCodeToName(entry.countryCode, locale)}
-                    </span>
-                  </ObraLink>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul id={listId} role="listbox" aria-label={m.search.label} className="max-h-[50vh] overflow-y-auto py-2">
+                {results.map((entry, index) => (
+                  <li key={entry.slug} id={`${listId}-${index}`} role="option" aria-selected={index === active}>
+                    <ObraLink
+                      obra={toSummary(entry)}
+                      tabIndex={-1}
+                      onPointerEnter={() => setActive(index)}
+                      onClick={() => setOpen(false)}
+                      className={`flex min-h-12 flex-col justify-center px-5 py-2 ${index === active ? 'bg-collage-blue/10' : ''}`}
+                    >
+                      <span className="font-semibold text-ink">{entry.title ?? m.common.untitled}</span>
+                      <span className="text-sm text-muted-foreground">
+                        <span aria-hidden>{countryCodeToFlag(entry.countryCode)}</span> {entry.name} · {countryCodeToName(entry.countryCode, locale)}
+                      </span>
+                    </ObraLink>
+                  </li>
+                ))}
+              </ul>
+              {matches.length > results.length && (
+                <button
+                  type="button"
+                  onClick={() => setVisible((current) => current + RESULTS_PAGE)}
+                  className="min-h-12 w-full border-t-2 border-ink/10 px-5 text-sm font-semibold text-collage-blue hover:bg-collage-blue/10"
+                >
+                  {fmt(m.search.more, { count: matches.length - results.length })}
+                </button>
+              )}
+            </>
           ) : (
             <p className="px-5 py-4 text-sm text-muted-foreground">
               {status === 'error' ? m.search.error

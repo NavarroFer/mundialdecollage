@@ -233,6 +233,7 @@ const en: Messages = {
     loading: 'Loading artworks…',
     error: 'We couldn’t load the artworks. Try again in a moment.',
     noResults: 'No artworks found for “{query}”.',
+    more: 'Show more ({count} left)',
     results: p({ one: '{count} result', other: '{count} results' }),
     signUpTitle: 'Taking part in the Mundial?',
     signUpBody: 'Sign up with Google to see your artwork, like and comment.',

@@ -233,6 +233,7 @@ const fr: Messages = {
     loading: 'Chargement des œuvres…',
     error: 'Impossible de charger les œuvres. Réessayez dans un instant.',
     noResults: 'Aucune œuvre trouvée pour « {query} ».',
+    more: 'Voir plus ({count} restants)',
     results: p({ one: '{count} résultat', other: '{count} résultats' }),
     signUpTitle: 'Vous participez au Mundial ?',
     signUpBody: 'Inscrivez-vous avec Google pour voir votre œuvre, aimer et commenter.',

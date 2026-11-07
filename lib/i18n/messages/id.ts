@@ -233,6 +233,7 @@ const id: Messages = {
     loading: 'Memuat karya…',
     error: 'Karya tidak dapat dimuat. Coba lagi sebentar lagi.',
     noResults: 'Tidak ada karya untuk “{query}”.',
+    more: 'Lihat lainnya ({count} tersisa)',
     results: p({ one: '{count} hasil', other: '{count} hasil' }),
     signUpTitle: 'Ikut serta di Mundial?',
     signUpBody: 'Daftar dengan Google untuk melihat karyamu, menyukai, dan berkomentar.',

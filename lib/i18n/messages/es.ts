@@ -234,6 +234,7 @@ const es = {
     loading: 'Cargando obras…',
     error: 'No pudimos cargar las obras. Probá de nuevo en un momento.',
     noResults: 'No encontramos obras para “{query}”.',
+    more: 'Ver más ({count} restantes)',
     results: p({ one: '{count} resultado', other: '{count} resultados' }),
     signUpTitle: '¿Participás del Mundial?',
     signUpBody: 'Registrate con Google para ver tu obra, darle me gusta y comentar.',
