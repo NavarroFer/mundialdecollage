@@ -70,23 +70,43 @@ function rowToFinalist(row: FinalistRow): Finalist | undefined {
   }
 }
 
+// PostgREST answers at most 1000 rows per request and says nothing about the
+// rest, so an unpaged query silently lost the oldest obras once there were
+// more. id breaks ties: bulk imports share a created_at, and without a stable
+// order a row could fall between two pages.
+const PUBLISHED_PAGE_SIZE = 1000
+
+async function loadPublishedRows(): Promise<FinalistRow[]> {
+  const db = createPublicClient()
+  const rows: FinalistRow[] = []
+  for (let from = 0; ; from += PUBLISHED_PAGE_SIZE) {
+    const { data, error } = await db.from('artworks')
+      .select(SELECT_COLUMNS)
+      .eq('is_selected', true)
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(from, from + PUBLISHED_PAGE_SIZE - 1)
+    if (error) throw new Error(error.message)
+    // `profiles!inner(...)` is a many-to-one embed (an artwork has exactly one
+    // profile), but supabase-js's select-string type inference can't know
+    // that without generated DB types and defaults to an array — the actual
+    // runtime shape from PostgREST is a single object, matching FinalistRow.
+    const page = (data ?? []) as unknown as FinalistRow[]
+    rows.push(...page)
+    if (page.length < PUBLISHED_PAGE_SIZE) return rows
+  }
+}
+
 // Every finalist with a completed, curated submission, newest first. Cached
 // across requests (lib/public-data-cache.ts) and per request, so the home's
 // flag ribbon and map share one query.
 export const getFinalists = cache(cachedPublicData(async (): Promise<Finalist[]> => {
   if (!isSupabaseConfigured) return []
 
-  const { data } = await createPublicClient()
-    .from('artworks')
-    .select(SELECT_COLUMNS)
-    .eq('is_selected', true)
-    .order('created_at', { ascending: false })
-
-  // `profiles!inner(...)` is a many-to-one embed (an artwork has exactly one
-  // profile), but supabase-js's select-string type inference can't know
-  // that without generated DB types and defaults to an array — the actual
-  // runtime shape from PostgREST is a single object, matching FinalistRow.
-  return ((data ?? []) as unknown as FinalistRow[])
+  // As before paging: with the database failing, an empty listing rather than
+  // a broken home. Never a partial one, which would look complete.
+  const rows = await loadPublishedRows().catch(() => [])
+  return rows
     .map(rowToFinalist)
     .filter((f): f is Finalist => f !== undefined)
 }, 'finalists'))
@@ -96,10 +116,7 @@ export const getFinalists = cache(cachedPublicData(async (): Promise<Finalist[]>
 // and profile completion still invalidate it through refreshPublicData().
 export const getFinalistIndex = cachedPublicData(async (): Promise<Pick<Finalist, 'slug' | 'profileId'>[]> => {
   if (!isSupabaseConfigured) return []
-  const { data, error } = await createPublicClient().from('artworks')
-    .select(SELECT_COLUMNS).eq('is_selected', true).order('created_at', { ascending: false })
-  if (error) throw new Error(error.message)
-  return ((data ?? []) as unknown as FinalistRow[])
+  return (await loadPublishedRows())
     .map(rowToFinalist)
     .filter((f): f is Finalist => f !== undefined)
     .map(({ slug, profileId }) => ({ slug, profileId }))
