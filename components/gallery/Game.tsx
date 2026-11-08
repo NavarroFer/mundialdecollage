@@ -32,6 +32,9 @@ import { loadWall, showClubBoard, useWallStore } from './wall/store'
 import { clubBoardFrame } from './club/board'
 import { useSouvenirStore } from './souvenir/store'
 import { galleryThemes, type GalleryTheme } from './themes'
+import { MAR_PRESENCE_TOPIC, venueFromSearch, type GalleryVenue } from './venue'
+import { artworksForVenue } from './world/mar/place'
+import { marGalleryTemplate } from './world/mar/layout'
 import styles from './gallery-theme.module.css'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/client'
@@ -113,7 +116,18 @@ export function Game({
   const [hasStarted, setHasStarted] = useState(false)
   const preferredTheme = useGalleryPreferences((state) => state.theme)
   const theme = themeOverride ?? preferredTheme
-  useEffect(() => { useGalleryPreferences.getState().hydrate() }, [])
+  const storedVenue = useGalleryPreferences((state) => state.venue)
+  // A Club room is its own building. MAR is a second public walk, chosen
+  // like a theme and remembered the same way. ?museo=mar opens it directly.
+  const venue: GalleryVenue = template ? 'mundial' : storedVenue
+  const placedArtworks = useMemo(() => artworksForVenue(artworks, venue), [artworks, venue])
+  const roomTemplate = template ?? (venue === 'mar' ? marGalleryTemplate : undefined)
+  useEffect(() => {
+    useGalleryPreferences.getState().hydrate()
+    if (template) return
+    const requested = venueFromSearch(window.location.search)
+    if (requested) useGalleryPreferences.getState().update({ venue: requested })
+  }, [template])
   const openId = useInteractionStore((state) => state.openId)
   useEffect(() => {
     if (openId && artworks.some((artwork) => artwork.id === openId)) useGalleryPreferences.getState().visit(openId)
@@ -129,6 +143,13 @@ export function Game({
   const [shell, setShell] = useState<HTMLDivElement | null>(null)
   const [resuming, setResuming] = useState(false)
   const [sceneReady, setSceneReady] = useState(false)
+  // Switching building remounts the scene. Drop "ready" in the same render,
+  // before the new canvas can report its first frame.
+  const readyVenue = useRef(venue)
+  if (readyVenue.current !== venue) {
+    readyVenue.current = venue
+    setSceneReady(false)
+  }
   // When the gallery opened, to measure how long the scene takes to be
   // ready to walk (GALLERY_READY_EVENTS in lib/funnel.ts).
   const openedAt = useRef(0)
@@ -378,9 +399,11 @@ export function Game({
       <div style={{ height: '100dvh', background: galleryThemes[theme].canvas }}>
         {hasStarted && (
           <Scene
-            artworks={artworks}
+            key={venue}
+            artworks={placedArtworks}
             theme={theme}
-            template={template}
+            venue={venue}
+            template={roomTemplate}
             active={isActive}
             controlMode={controlMode}
             paused={paused}
@@ -402,7 +425,7 @@ export function Game({
       {userId && <AttentionRecorder userId={userId} artworks={artworks} walking={isActive} enabled={!vinylOpen && !arcadeOpen && !passportOpen && !souvenirOpen && !wallOpen && !optionsOpen && (isActive || Boolean(openId))} />}
       {/* The passport counts days of the museum's daily exhibition: walking a member's Club room is no such day (photos still count). */}
       {userId && <PassportRecorder userId={userId} started={hasStarted && !template} />}
-      <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={artworks} topic={presenceTopic} host={clubOwner} />
+      <GalleryPresence inside={isTouchDevice ? hasStarted : isActive} artworks={placedArtworks} topic={presenceTopic ?? (venue === 'mar' ? MAR_PRESENCE_TOPIC : undefined)} host={clubOwner} />
       {clubSlug && clubHost && <ClubStamps slug={clubSlug} artistName={clubHost.artistName} artworks={artworks} userId={userId} isOwner={clubOwner} />}
       {isTouchDevice && isActive && <TouchControls theme={theme} hostName={clubHost?.artistName} />}
       {clubHost && <WelcomeLetter host={clubHost} />}
@@ -437,7 +460,7 @@ export function Game({
       </div>
       {/* On a computer the minimap stays on screen; a phone keeps it (and
           the photo button) in Opciones, so the walk has the whole screen. */}
-      {!isTouchDevice && <Minimap theme={theme} artworks={artworks} template={template} />}
+      {!isTouchDevice && <Minimap theme={theme} artworks={placedArtworks} template={roomTemplate} />}
       <div id="gallery-options" className={styles.visitMenu} hidden={!optionsOpen || !hasStarted || dialogOpen}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold">{m.gallery.mobileMenu.open}</h2>
@@ -445,9 +468,9 @@ export function Game({
         </div>
         {!isTouchDevice && <ControlChoice />}
         {isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice active={false} onResume={resumeWalk} inline />}
-        {isTouchDevice && <Minimap theme={theme} artworks={artworks} template={template} />}
+        {isTouchDevice && <Minimap theme={theme} artworks={placedArtworks} template={roomTemplate} />}
         {isTouchDevice && hasStarted && <PresenceCounter />}
-        <VisitPreferences artworks={artworks} onResume={resumeArtwork} />
+        <VisitPreferences artworks={placedArtworks} onResume={resumeArtwork} showVenue={!template} />
         <button type="button" className={styles.visitMenuButton} onClick={() => { replayTutorial(); handleEnter() }}>{m.gallery.tutorial.replay}</button>
         <button type="button" className={styles.visitMenuButton} onClick={() => handleEnter()}>{m.gallery.mobileMenu.resume}</button>
       </div>
@@ -466,7 +489,8 @@ export function Game({
       </div>}
       {menuOpen && !loading && (
         <StartScreen
-          artworks={artworks}
+          artworks={placedArtworks}
+          showVenue={!template}
           label={hasStarted ? m.gallery.resume : m.gallery.enter}
           showPresence={!hasStarted}
           hint={isTouchDevice ? m.gallery.controls.hintTap : controlMode === 'point' ? m.gallery.controls.hintClick : m.gallery.controls.hintLock}

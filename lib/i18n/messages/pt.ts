@@ -618,6 +618,13 @@ const pt: Messages = {
       change: 'Mudar tema. Tema atual: {name}',
       names: { collage: 'Dentro de uma colagem', windows98: 'Windows 98 + Paint', garden: 'Galeria jardim' },
     },
+    venues: {
+      label: 'Percurso',
+      choose: 'Escolher percurso',
+      mundial: 'Mundial de Collage',
+      mar: 'Museu MAR',
+      marNote: 'Reconstrução provisória do museu em Mar del Plata. A visita começa na praça.',
+    },
     like: {
       unavailable: 'Não conseguimos carregar as curtidas. Tente de novo em um instante.',
       saveFailed: 'Não conseguimos salvar sua curtida. Tente de novo.',

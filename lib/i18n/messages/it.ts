@@ -618,6 +618,13 @@ const it: Messages = {
       change: 'Cambia tema. Tema attuale: {name}',
       names: { collage: 'Dentro un collage', windows98: 'Windows 98 + Paint', garden: 'Galleria giardino' },
     },
+    venues: {
+      label: 'Percorso',
+      choose: 'Scegli un percorso',
+      mundial: 'Mondiale di collage',
+      mar: 'Museo MAR',
+      marNote: 'Ricostruzione provvisoria del museo a Mar del Plata. La visita inizia dalla piazza.',
+    },
     like: {
       unavailable: 'Non siamo riusciti a caricare i like. Riprova tra un momento.',
       saveFailed: 'Non siamo riusciti a salvare il tuo like. Riprova.',

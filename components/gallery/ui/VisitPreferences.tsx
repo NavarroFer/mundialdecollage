@@ -5,12 +5,14 @@ import { useI18n } from '@/lib/i18n/client'
 import { useGalleryPreferences } from '../preferences/store'
 import { GraphicsSettings } from '../graphics/GraphicsSettings'
 import { ThemePicker } from './ThemePicker'
+import { VenuePicker } from './VenuePicker'
 
-export function VisitPreferences({ artworks, onResume }: { artworks: Artwork[]; onResume?: (id: string) => void }) {
+export function VisitPreferences({ artworks, onResume, showVenue = false }: { artworks: Artwork[]; onResume?: (id: string) => void; showVenue?: boolean }) {
   const { theme, sensitivity, visited, lastArtwork, update } = useGalleryPreferences()
   const t = useI18n().m.gallery.preferences
   const last = artworks.find((artwork) => artwork.id === lastArtwork)
   return <div className="mt-3 space-y-3 text-sm">
+    {showVenue && <VenuePicker />}
     <ThemePicker theme={theme} onChange={(theme) => update({ theme })} inline />
     <label className="flex flex-wrap items-center justify-between gap-2">
       {t.sensitivity}

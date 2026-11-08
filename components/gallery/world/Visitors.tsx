@@ -55,7 +55,7 @@ export function Visitors({ theme, template = mainGalleryTemplate }: { theme: Gal
   // for live avatars).
   const realVisitors = usePresenceStore((state) => (state.count ?? 0) > MAX_LIVE_VISITORS ? 0 : state.peers.length)
   const quality = useGraphics((s) => s.current)
-  const definitions = template.id === 'main' ? VISITORS : CLUB_VISITORS[template.id]
+  const definitions = template.id === 'main' ? VISITORS : template.id === 'mar' ? [] : CLUB_VISITORS[template.id]
   const scripted = definitions.slice(0, Math.max(0, PRESETS[quality].visitors - realVisitors))
   return <group>{scripted.map((definition) => <Visitor key={definition.id} definition={definition} theme={theme} />)}</group>
 }

@@ -619,6 +619,13 @@ const en: Messages = {
       change: 'Change theme. Current theme: {name}',
       names: { collage: 'Inside a collage', windows98: 'Windows 98 + Paint', garden: 'Garden gallery' },
     },
+    venues: {
+      label: 'Walk',
+      choose: 'Choose a walk',
+      mundial: 'Collage World Cup',
+      mar: 'MAR Museum',
+      marNote: 'Provisional reconstruction of the museum in Mar del Plata. The visit starts in the plaza.',
+    },
     like: {
       unavailable: "We couldn't load the likes. Please try again in a moment.",
       saveFailed: "We couldn't save your like. Please try again.",

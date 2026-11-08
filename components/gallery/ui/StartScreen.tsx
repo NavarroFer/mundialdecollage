@@ -24,6 +24,8 @@ type StartScreenProps = {
   hint: string
   /** Show how many people are inside — only meaningful before the first entry. */
   showPresence: boolean
+  /** The public gallery can switch to Museo MAR. A Club room cannot. */
+  showVenue?: boolean
   onResume: (id: string) => void
   onEnter: () => void
 }
@@ -56,7 +58,7 @@ function useInviter(artworks: Artwork[]): string | null {
   return inviter
 }
 
-export function StartScreen({ artworks, label, hint, showPresence, onEnter, onResume }: StartScreenProps) {
+export function StartScreen({ artworks, label, hint, showPresence, showVenue = false, onEnter, onResume }: StartScreenProps) {
   const { m } = useI18n()
   const inviter = useInviter(artworks)
   // The home's look whatever the walls' theme: the themes dress the walk,
@@ -86,7 +88,7 @@ export function StartScreen({ artworks, label, hint, showPresence, onEnter, onRe
             {m.gallery.mobileMenu.open}
             <ChevronDown className="ml-auto size-5 transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
-          <VisitPreferences artworks={artworks} onResume={onResume} />
+          <VisitPreferences artworks={artworks} onResume={onResume} showVenue={showVenue} />
         </details>
         {inviter && (
           <p className="mt-4 text-sm">

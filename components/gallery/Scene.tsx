@@ -25,7 +25,9 @@ import { SouvenirCapture } from './souvenir/SouvenirCapture'
 import { CollageWall, WallAim } from './wall/CollageWall'
 import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
+import type { GalleryVenue } from './venue'
 import type { GalleryRoomTemplate } from './world/roomsData'
+import { MAR_SPAWN } from './world/mar/layout'
 import { ClubDoor, type ClubDoorLabels } from './club/ClubDoor'
 import { ClubHost } from './club/ClubHost'
 import type { ClubHostInfo } from './club/host'
@@ -33,6 +35,8 @@ import type { ClubHostInfo } from './club/host'
 export type SceneProps = {
   artworks: Artwork[]
   theme: GalleryTheme
+  /** Which building. The Collage World Cup rooms stay the default. */
+  venue?: GalleryVenue
   /** Geometry contract for a Club room; omitted for the 37-work main gallery. */
   template?: GalleryRoomTemplate
   /** The visitor is walking: keys, joystick and look drags move them. */
@@ -58,7 +62,7 @@ export type SceneProps = {
  * mounting them behind the start screen kept the GPU and the physics busy for
  * a scene nobody could see yet.
  */
-export function Scene({ artworks, theme, template, active, controlMode, paused, isTouchDevice, lockTarget, wall, clubDoor, clubHost, onReady }: SceneProps) {
+export function Scene({ artworks, theme, venue = 'mundial', template, active, controlMode, paused, isTouchDevice, lockTarget, wall, clubDoor, clubHost, onReady }: SceneProps) {
   const quality = useGraphics((s) => s.current)
   const dpr = useGraphics((s) => s.dpr)
   const [visible, setVisible] = useState(true)
@@ -76,29 +80,29 @@ export function Scene({ artworks, theme, template, active, controlMode, paused, 
         // Paused, it only draws when something asks (a resize, the souvenir
         // photo), so the last frame stays put behind the overlay.
         frameloop={paused || !visible ? 'demand' : 'always'}
-        style={{ width: '100%', height: '100%', background: galleryThemes[theme].canvas }}
+        style={{ width: '100%', height: '100%', background: venue === 'mar' ? '#8ec8ea' : galleryThemes[theme].canvas }}
       >
         <EnvironmentLight />
         <GraphicsRuntime active={active && !paused && visible} mobile={isTouchDevice} />
         <Physics paused={paused || !visible}>
-          <World artworks={artworks} theme={theme} template={template} />
-          <ArcadeCabinet active={active} />
-          <VinylConsole active={active} />
+          <World artworks={artworks} theme={theme} template={template} venue={venue} />
+          {venue !== 'mar' && <ArcadeCabinet active={active} />}
+          {venue !== 'mar' && <VinylConsole active={active} />}
           {template && clubDoor && <ClubDoor template={template} active={active} labels={clubDoor} />}
           {template && clubHost && <ClubHost template={template} theme={theme} host={clubHost} active={active} />}
-          <Player active={active} artworks={artworks} />
+          <Player active={active} artworks={artworks} spawnAt={venue === 'mar' ? MAR_SPAWN : undefined} />
         </Physics>
         {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}
         {!isTouchDevice && controlMode === 'point' && <EdgeLook active={active} />}
         <TouchLookController active={active} />
-        <PointNavigation active={active} touch={isTouchDevice} pointerLock={!isTouchDevice && controlMode === 'classic'} artworks={artworks} garden={theme === 'garden'} template={template} />
+        <PointNavigation active={active} touch={isTouchDevice} pointerLock={!isTouchDevice && controlMode === 'classic'} artworks={artworks} garden={theme === 'garden' && venue !== 'mar'} template={template} blockFurniture={venue !== 'mar'} />
         <InteractionManager artworks={artworks} />
         {isTouchDevice && <TapHintTracker artworks={artworks} />}
         <PlayerTracker />
         <AttentionRay active={active} />
         <SouvenirCapture />
-        <WallAim />
-        <CollageWall theme={theme} title={wall.title} subtitle={wall.subtitle} cyrillic={wall.cyrillic} />
+        {venue !== 'mar' && <WallAim />}
+        {venue !== 'mar' && <CollageWall theme={theme} title={wall.title} subtitle={wall.subtitle} cyrillic={wall.cyrillic} />}
         <FirstFrame onReady={onReady} />
       </Canvas>
     </KeyboardControls>

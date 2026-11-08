@@ -53,7 +53,7 @@ export const CLUB_GALLERY_TEMPLATE_IDS = ['cabinet', 'classic', 'double'] as con
 export type ClubGalleryTemplateId = (typeof CLUB_GALLERY_TEMPLATE_IDS)[number]
 
 export type GalleryRoomTemplate = {
-  id: 'main' | ClubGalleryTemplateId
+  id: 'main' | ClubGalleryTemplateId | 'mar'
   capacity: number
   bounds: Bounds
   rooms: RoomDef[]

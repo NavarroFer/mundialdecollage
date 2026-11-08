@@ -14,6 +14,7 @@ import { usePlayerTrackerStore } from '../minimap/store'
 import type { Controls } from './controls'
 import { verticalFov } from '../camera/fov'
 import { JUMP_SPEED } from './jump'
+import { playerBody } from './body'
 import { SPAWN_HEIGHT, pickSpawn, standInFront } from './spawn'
 
 const WALK_SPEED = 2.6
@@ -37,12 +38,13 @@ const focusTarget = new THREE.Vector3()
 const focusRotationMatrix = new THREE.Matrix4()
 const focusQuaternion = new THREE.Quaternion()
 
-export function Player({ active, artworks }: { active: boolean; artworks: Artwork[] }) {
+export function Player({ active, artworks, spawnAt }: { active: boolean; artworks: Artwork[]; spawnAt?: { x: number; z: number; yaw: number } }) {
   const bodyRef = useRef<RapierRigidBody>(null)
   // Picked once per visit (spawn.ts), and kept as stable arrays so a
-  // re-render never puts the body or the camera back there.
+  // re-render never puts the body or the camera back there. MAR passes a
+  // plaza start; the Collage World Cup still stands in front of an obra.
   const [spawn] = useState(() => {
-    const { x, z, yaw } = pickSpawn(artworks)
+    const { x, z, yaw } = spawnAt ?? pickSpawn(artworks)
     return { position: [x, SPAWN_HEIGHT, z] as [number, number, number], rotation: [0, yaw, 0] as [number, number, number] }
   })
   const colliderRef = useRef<RapierCollider>(null)
@@ -93,6 +95,7 @@ export function Player({ active, artworks }: { active: boolean; artworks: Artwor
 
   useFrame(({ camera }, delta) => {
     const body = bodyRef.current
+    playerBody.current = body
     if (!body) return
 
     const resumeId = useGalleryPreferences.getState().resumeArtwork

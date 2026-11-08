@@ -640,6 +640,13 @@ const pl: Messages = {
       change: 'Zmień motyw. Obecny motyw: {name}',
       names: { collage: 'Wewnątrz kolażu', windows98: 'Windows 98 + Paint', garden: 'Galeria-ogród' },
     },
+    venues: {
+      label: 'Trasa',
+      choose: 'Wybierz trasę',
+      mundial: 'Mundial kolażu',
+      mar: 'Muzeum MAR',
+      marNote: 'Wstępna rekonstrukcja muzeum w Mar del Plata. Zwiedzanie zaczyna się na placu.',
+    },
     like: {
       unavailable: 'Nie udało się wczytać polubień. Spróbuj ponownie za chwilę.',
       saveFailed: 'Nie udało się zapisać polubienia. Spróbuj ponownie.',

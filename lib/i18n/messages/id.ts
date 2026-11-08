@@ -615,6 +615,13 @@ const id: Messages = {
       change: 'Ganti tema. Tema saat ini: {name}',
       names: { collage: 'Di dalam kolase', windows98: 'Windows 98 + Paint', garden: 'Galeri taman' },
     },
+    venues: {
+      label: 'Rute',
+      choose: 'Pilih rute',
+      mundial: 'Piala Dunia Kolase',
+      mar: 'Museum MAR',
+      marNote: 'Rekonstruksi sementara museum di Mar del Plata. Kunjungan dimulai di plaza.',
+    },
     like: {
       unavailable: 'Kami tidak dapat memuat suka. Coba lagi sebentar lagi.',
       saveFailed: 'Kami tidak dapat menyimpan suka-mu. Coba lagi.',

@@ -7,9 +7,21 @@ import { Rooms } from './Rooms'
 import { galleryThemes, type GalleryTheme } from '../themes'
 import { Visitors } from './Visitors'
 import { RemoteVisitors } from './RemoteVisitors'
+import type { GalleryVenue } from '../venue'
 import { mainGalleryTemplate, type GalleryRoomTemplate } from './roomsData'
+import { MarMuseum } from './mar/MarMuseum'
 
-export function World({ artworks, theme, template = mainGalleryTemplate }: { artworks: Artwork[]; theme: GalleryTheme; template?: GalleryRoomTemplate }) {
+export function World({ artworks, theme, template = mainGalleryTemplate, venue = 'mundial' }: { artworks: Artwork[]; theme: GalleryTheme; template?: GalleryRoomTemplate; venue?: GalleryVenue }) {
+  if (venue === 'mar') {
+    return (
+      <>
+        <color attach="background" args={['#8ec8ea']} />
+        <MarMuseum />
+        <Artworks artworks={artworks} theme={theme} />
+        <RemoteVisitors theme={theme} />
+      </>
+    )
+  }
   return (
     <>
       <color attach="background" args={[galleryThemes[theme].canvas]} />
