@@ -249,6 +249,21 @@ const es = {
     loadError: 'No pudimos cargar todos los datos de esta obra.',
     openPage: 'Abrir la página de la obra',
   },
+  // Perfil del artista (/artistas/[slug]): contadores, grilla y comentarios.
+  artistProfile: {
+    statArtworks: p({ one: 'obra', other: 'obras' }),
+    statLikes: p({ one: 'me gusta', other: 'me gusta' }),
+    statComments: p({ one: 'comentario', other: 'comentarios' }),
+    tabArtworks: 'Obras',
+    tabComments: 'Comentarios',
+    tabsLabel: 'Contenido del perfil',
+    likes: p({ one: '{count} me gusta', other: '{count} me gusta' }),
+    comments: p({ one: '{count} comentario', other: '{count} comentarios' }),
+    noComments: 'Todavía nadie comentó sus obras.',
+    commentInGallery: 'Comentá en la Galería 3D',
+    onArtwork: 'en «{title}»',
+    loadError: 'No pudimos cargar los me gusta y los comentarios.',
+  },
   countrySelect: {
     placeholder: 'Elegí tu país',
     search: 'Buscar país…',

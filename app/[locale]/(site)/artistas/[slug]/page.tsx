@@ -11,7 +11,9 @@ import { fmt } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
 import { getCallState } from '@/lib/call-state'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
-import { ArtistArtworks } from './artist-artworks'
+import { imageSrc } from '@/lib/image-src'
+import { ArtistFeed } from './artist-feed'
+import { ArtistStats } from './artist-stats'
 
 // Public profiles reflect curation immediately and are never built from stale
 // data. Params are promises in this project's Next.js version.
@@ -62,7 +64,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
       <TrackView event="artist_profile_view" />
       <SiteHeader />
       <main id="top" className="min-h-screen bg-background py-12 sm:py-20">
-        <div className="mx-auto max-w-5xl px-5 sm:px-8">
+        <div className="mx-auto max-w-4xl px-4 sm:px-8">
           <Link
             href="/#participantes"
             className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-ink"
@@ -71,58 +73,73 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             {m.artwork.back}
           </Link>
 
-          <header className="mt-8 border-b-2 border-ink/10 pb-10 sm:flex sm:items-end sm:justify-between sm:gap-8">
-            <div>
+          {/* Laid out like an Instagram profile: picture, name, counters, links. */}
+          <header className="mt-8 flex flex-col items-center gap-6 pb-8 text-center sm:flex-row sm:items-center sm:gap-12 sm:text-left">
+            <div className="shrink-0 rounded-full bg-[conic-gradient(var(--collage-yellow),var(--collage-red),var(--collage-blue),var(--collage-yellow))] p-1">
+              {/* The latest obra stands in for a profile picture: artists don't upload one. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageSrc(artist.artworks[0].imageUrl, 384)}
+                alt=""
+                decoding="async"
+                fetchPriority="high"
+                className="h-28 w-28 rounded-full border-4 border-background object-cover sm:h-36 sm:w-36"
+              />
+            </div>
+
+            <div className="min-w-0">
               <p className="text-sm font-bold tracking-[0.25em] text-collage-red uppercase">
                 {m.participants.eyebrow}
               </p>
-              <h1 className="font-display mt-3 text-4xl tracking-tight text-ink uppercase sm:text-6xl">
+              <h1 className="font-display mt-2 text-4xl tracking-tight break-words text-ink uppercase sm:text-5xl">
                 {artist.name}
               </h1>
-              <p className="mt-4 flex items-center gap-2 text-lg font-semibold text-muted-foreground">
+              <p className="mt-2 flex items-center justify-center gap-2 text-lg font-semibold text-muted-foreground sm:justify-start">
                 <span aria-hidden>{countryCodeToFlag(artist.countryCode)}</span>
                 {country}
               </p>
-            </div>
 
-            {(artist.instagram || artist.website) && (
-              <div className="mt-6 flex flex-wrap gap-3 sm:mt-0 sm:justify-end">
-                {artist.instagram && (
-                  <a
-                    href={artist.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30"
-                  >
-                    <Instagram className="h-4 w-4 text-collage-red" aria-hidden />
-                    Instagram
-                    <span className="sr-only"> {m.common.opensInNewTab}</span>
-                  </a>
-                )}
-                {artist.website && (
-                  <a
-                    href={artist.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30"
-                  >
-                    <Globe className="h-4 w-4 text-collage-blue" aria-hidden />
-                    {m.common.website}
-                    <span className="sr-only"> {m.common.opensInNewTab}</span>
-                  </a>
-                )}
+              <div className="mt-5 flex justify-center sm:justify-start">
+                <ArtistStats slug={artist.slug} artworkCount={artist.artworks.length} />
               </div>
-            )}
+
+              {(artist.instagram || artist.website) && (
+                <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
+                  {artist.instagram && (
+                    <a
+                      href={artist.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30"
+                    >
+                      <Instagram className="h-4 w-4 text-collage-red" aria-hidden />
+                      Instagram
+                      <span className="sr-only"> {m.common.opensInNewTab}</span>
+                    </a>
+                  )}
+                  {artist.website && (
+                    <a
+                      href={artist.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30"
+                    >
+                      <Globe className="h-4 w-4 text-collage-blue" aria-hidden />
+                      {m.common.website}
+                      <span className="sr-only"> {m.common.opensInNewTab}</span>
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
           </header>
 
-          <section className="py-10 sm:py-14" aria-label={m.collage.label}>
-            <ArtistArtworks
-              artworks={artist.artworks}
+          <section className="pb-10 sm:pb-14" aria-label={m.collage.label}>
+            <ArtistFeed
+              slug={artist.slug}
               artistName={artist.name}
               countryCode={artist.countryCode}
-              untitled={m.common.untitled}
-              artworkBy={(title, name) => fmt(m.common.artworkBy, { title, name })}
-              techniques={m.common.techniques}
+              artworks={artist.artworks}
             />
           </section>
 

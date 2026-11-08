@@ -10,6 +10,7 @@ const CLIENT_NAMESPACES = [
   'hero',
   'stamps',
   'artwork',
+  'artistProfile',
   'collage',
   'map',
   'search',
