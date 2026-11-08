@@ -19,6 +19,7 @@ const it: Messages = {
     errorBody: 'Un ritaglio è scivolato via dal collage. Riprova; se continua a non funzionare, scrivici.',
     tryAgain: 'Riprova',
     untitled: 'Senza titolo',
+    skipToContent: 'Vai al contenuto',
     optional: '(facoltativo)',
     opensInNewTab: '(si apre in una nuova scheda)',
     save: 'Salva',

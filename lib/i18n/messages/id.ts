@@ -19,6 +19,7 @@ const id: Messages = {
     errorBody: 'Satu potongan terlepas dari kolase. Coba lagi; jika masih gagal, hubungi kami.',
     tryAgain: 'Coba lagi',
     untitled: 'Tanpa judul',
+    skipToContent: 'Lewati ke konten',
     optional: '(opsional)',
     opensInNewTab: '(terbuka di tab baru)',
     save: 'Simpan',

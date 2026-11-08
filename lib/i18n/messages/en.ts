@@ -19,6 +19,7 @@ const en: Messages = {
     errorBody: 'A cut-out slipped off the collage. Try again; if it keeps failing, write to us.',
     tryAgain: 'Try again',
     untitled: 'Untitled',
+    skipToContent: 'Skip to content',
     optional: '(optional)',
     opensInNewTab: '(opens in a new tab)',
     save: 'Save',

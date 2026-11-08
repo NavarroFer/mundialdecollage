@@ -19,6 +19,7 @@ const de: Messages = {
     errorBody: 'Ein Schnipsel ist aus der Collage gefallen. Versuch es noch einmal; wenn es weiter nicht klappt, schreib uns.',
     tryAgain: 'Noch einmal versuchen',
     untitled: 'Ohne Titel',
+    skipToContent: 'Zum Inhalt springen',
     optional: '(optional)',
     opensInNewTab: '(öffnet in einem neuen Tab)',
     save: 'Speichern',

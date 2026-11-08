@@ -19,6 +19,7 @@ const pt: Messages = {
     errorBody: 'Um recorte escapou da colagem. Tente de novo; se continuar falhando, escreva para nós.',
     tryAgain: 'Tentar de novo',
     untitled: 'Sem título',
+    skipToContent: 'Pular para o conteúdo',
     optional: '(opcional)',
     opensInNewTab: '(abre em uma nova aba)',
     save: 'Salvar',

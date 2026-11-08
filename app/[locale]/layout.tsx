@@ -1,3 +1,4 @@
+import { SkipLink } from '@/components/skip-link'
 import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import { Anton, Oswald } from 'next/font/google'
@@ -76,6 +77,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
       <body className="bg-background font-sans text-foreground antialiased">
         <ReferralCapture />
         <I18nProvider locale={locale} messages={pickClientMessages(m)}>
+          <SkipLink />
           {children}
         </I18nProvider>
         <ClarityAnalytics />

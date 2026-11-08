@@ -21,6 +21,7 @@ const es = {
     errorBody: 'Un recorte se nos salió del collage. Probá de nuevo; si sigue fallando, escribinos.',
     tryAgain: 'Probar de nuevo',
     untitled: 'Sin título',
+    skipToContent: 'Saltar al contenido',
     optional: '(opcional)',
     opensInNewTab: '(se abre en una pestaña nueva)',
     save: 'Guardar',

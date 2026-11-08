@@ -19,6 +19,7 @@ const pl: Messages = {
     errorBody: 'Jeden wycinek wypadł z kolażu. Spróbuj ponownie; jeśli błąd się powtarza, napisz do nas.',
     tryAgain: 'Spróbuj ponownie',
     untitled: 'Bez tytułu',
+    skipToContent: 'Przejdź do treści',
     optional: '(opcjonalnie)',
     opensInNewTab: '(otwiera się w nowej karcie)',
     save: 'Zapisz',

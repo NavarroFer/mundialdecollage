@@ -19,6 +19,7 @@ const fr: Messages = {
     errorBody: "Un découpage s'est détaché du collage. Réessaie ; si le problème persiste, écris-nous.",
     tryAgain: 'Réessayer',
     untitled: 'Sans titre',
+    skipToContent: 'Aller au contenu',
     optional: '(facultatif)',
     opensInNewTab: "(s'ouvre dans un nouvel onglet)",
     save: 'Enregistrer',
