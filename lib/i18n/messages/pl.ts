@@ -502,7 +502,7 @@ const pl: Messages = {
   gallery: {
     contact: { consult: 'Zapytaj artystę o tę pracę', message: 'Cześć, zobaczyłem Twoją pracę „{title}” w Twojej galerii Klubu i chciałbym o nią zapytać.' },
     clubDoor: { next: 'Następna sala', soon: 'Wkrótce więcej sal', prompt: 'Idź do sali: {name}' },
-    clubHost: { prompt: 'Przeczytaj list: {name}', eyebrow: 'List powitalny', fallback: 'Dziękuję, że zajrzałeś do mojej sali. Zwiedzaj spokojnie: każda praca ma swoją historię.', write: 'Napisz', message: 'Cześć, zwiedziłem Twoją galerię „{title}” w Klubie i chciałem do Ciebie napisać.' },
+    clubHost: { profile: 'Zobacz profil', prompt: 'Przeczytaj list: {name}', eyebrow: 'List powitalny', fallback: 'Dziękuję, że zajrzałeś do mojej sali. Zwiedzaj spokojnie: każda praca ma swoją historię.', write: 'Napisz', message: 'Cześć, zwiedziłem Twoją galerię „{title}” w Klubie i chciałem do Ciebie napisać.' },
     clubStamps: { postal: 'Zdobyto znaczek pocztowy: {name}. Jest już w Albumie.', vernissage: 'Spotkano na żywo w galerii: {name}. Znaczek „Byłem na wernisażu” w Albumie.' },
     clubBoard: { plaque: 'Księga gości', subtitle: 'Przyklej pamiątkę dla: {name}' },
     clubMap: { button: 'Mapa', title: 'Mapa Klubu', enter: 'Wejdź do galerii', hint: 'Przeciągnij, by zwiedzać · kółko lub dwa palce, by przybliżyć', close: 'Zamknij', here: 'Jesteś tutaj', empty: 'Żadna galeria nie zaznaczyła jeszcze domu na mapie.' },

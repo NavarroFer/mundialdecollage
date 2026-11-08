@@ -499,7 +499,7 @@ const es = {
   gallery: {
     contact: { consult: 'Consultar al artista por esta obra', message: 'Hola, vi tu obra «{title}» en tu galería del Club del Mundial de Collage y quisiera consultarte.' },
     clubDoor: { next: 'Siguiente sala', soon: 'Pronto, más salas', prompt: 'Ir a la sala de {name}' },
-    clubHost: { prompt: 'Leer la carta de {name}', eyebrow: 'Carta de bienvenida', fallback: 'Gracias por pasar por mi sala. Recorrela con calma: cada obra tiene su historia.', write: 'Escribirle', message: 'Hola, recorrí tu galería «{title}» en el Club del Mundial de Collage y quería escribirte.' },
+    clubHost: { profile: 'Ver su perfil', prompt: 'Leer la carta de {name}', eyebrow: 'Carta de bienvenida', fallback: 'Gracias por pasar por mi sala. Recorrela con calma: cada obra tiene su historia.', write: 'Escribirle', message: 'Hola, recorrí tu galería «{title}» en el Club del Mundial de Collage y quería escribirte.' },
     clubStamps: { postal: 'Ganaste el sello postal de {name}: ya está en tu Álbum.', vernissage: 'Conociste a {name} en vivo en su galería: sello «Estuve en el Vernissage» en tu Álbum.' },
     clubBoard: { plaque: 'Libro de visitas', subtitle: 'Pegá un recuerdo para {name}' },
     clubMap: { button: 'Mapa', title: 'El mapa del Club', enter: 'Entrar a su galería', hint: 'Arrastrá para recorrer · rueda o dos dedos para acercar', close: 'Cerrar', here: 'Estás acá', empty: 'Todavía ninguna galería eligió su casa en el mapa.' },

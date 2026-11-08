@@ -37,6 +37,7 @@ export default async function ClubGalleryPage({ params }: { params: Promise<{ sl
       clubHost={{
         avatarId: gallery.hostAvatarId,
         artistName: gallery.artistName,
+        profileHref: gallery.artistHref,
         title: gallery.title,
         statement: gallery.statement,
         contact: gallery.contactWhatsapp || gallery.contactUrl ? { whatsapp: gallery.contactWhatsapp, url: gallery.contactUrl } : undefined,

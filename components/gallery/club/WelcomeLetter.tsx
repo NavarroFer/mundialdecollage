@@ -1,6 +1,7 @@
 'use client'
 
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, UserRound } from 'lucide-react'
+import { track } from '@/lib/track'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { consultLink } from '@/lib/club-contact'
 import { fmt } from '@/lib/i18n/format'
@@ -22,12 +23,21 @@ export function WelcomeLetter({ host }: { host: ClubHostInfo }) {
         <DialogTitle className="font-display mt-2 text-3xl leading-tight uppercase">{host.title}</DialogTitle>
         <p className="mt-5 whitespace-pre-line font-serif text-lg leading-relaxed">{host.statement?.trim() || t.fallback}</p>
         <p className="mt-6 text-right font-serif text-lg italic">— {host.artistName}</p>
-        {write && (
-          <a href={write} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink px-5 text-sm font-bold">
-            <MessageCircle className="size-4" aria-hidden="true" />
-            {t.write}
-          </a>
-        )}
+        <div className="mt-6 flex flex-wrap gap-3">
+          {write && (
+            <a href={write} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink px-5 text-sm font-bold">
+              <MessageCircle className="size-4" aria-hidden="true" />
+              {t.write}
+            </a>
+          )}
+          {host.profileHref && (
+            // A new tab, so the visit to the room goes on.
+            <a href={host.profileHref} target="_blank" rel="noopener" onClick={() => track('club_host_profile_click')} className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink px-5 text-sm font-bold">
+              <UserRound className="size-4" aria-hidden="true" />
+              {t.profile}<span className="sr-only"> {m.common.opensInNewTab}</span>
+            </a>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )

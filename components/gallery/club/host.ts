@@ -6,6 +6,8 @@ export type ClubHostInfo = {
   /** A Rocketbox avatar of the cast (people/cast.ts), chosen by the member. */
   avatarId: string
   artistName: string
+  /** Their /artistas profile, linked from the welcome letter. */
+  profileHref?: string
   title: string
   statement?: string
   contact?: ClubContact

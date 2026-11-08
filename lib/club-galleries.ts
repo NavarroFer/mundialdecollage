@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { artistProfileSlug } from '@/lib/artist-slug'
 import { cache } from 'react'
 import type { GalleryTheme } from '@/components/gallery/themes'
 import type { ClubGalleryTemplateId } from '@/components/gallery/world/roomsData'
@@ -58,6 +59,8 @@ export type ClubGallery = {
   ownerKey: string
   /** The member's name as their profile has it, for the host and the door; the gallery's title without one. */
   artistName: string
+  /** The member's /artistas profile, when their profile has a name. */
+  artistHref?: string
   slug: string
   title: string
   statement?: string
@@ -97,6 +100,9 @@ export function clubGalleryFromRow(row: ClubGalleryRow, ownerName?: string | nul
   const webAddress = safeWebAddress(row.contact_url) ?? undefined
   const contact = whatsapp || webAddress ? { ...(whatsapp ? { whatsapp } : {}), ...(webAddress ? { url: webAddress } : {}) } : undefined
   const slots = clubGallerySlots[row.template_id]
+  // The profile URL carries the account id, like every /artistas link; the
+  // public profile of an active member always exists (their hung obras are public).
+  const artistHref = ownerName?.trim() ? `/artistas/${artistProfileSlug(ownerName.trim(), row.user_id)}` : undefined
   const artworks = (row.club_gallery_hangings ?? [])
     .toSorted((left, right) => left.slot - right.slot)
     .flatMap((hanging): Artwork[] => {
@@ -115,6 +121,7 @@ export function clubGalleryFromRow(row: ClubGalleryRow, ownerName?: string | nul
         image: artwork.image_url,
         description: technique || profile.name,
         frameStyle: frameStyle(hanging.frame_style, defaultFrameStyle),
+        ...(artistHref ? { artistHref } : {}),
         ...(contact ? { contact } : {}),
         ...slot,
       }]
@@ -124,6 +131,7 @@ export function clubGalleryFromRow(row: ClubGalleryRow, ownerName?: string | nul
     id: row.id,
     ownerKey: clubOwnerKey(row.user_id),
     artistName: ownerName?.trim() || row.title,
+    ...(artistHref ? { artistHref } : {}),
     slug: row.slug,
     title: row.title,
     statement: row.statement?.trim() || undefined,

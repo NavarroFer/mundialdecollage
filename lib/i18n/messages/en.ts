@@ -493,7 +493,7 @@ const en: Messages = {
   gallery: {
     contact: { consult: 'Ask the artist about this work', message: 'Hello, I saw your work “{title}” in your World Cup Club gallery and I would like to ask you about it.' },
     clubDoor: { next: 'Next room', soon: 'More rooms soon', prompt: 'Go to {name}’s room' },
-    clubHost: { prompt: 'Read {name}’s letter', eyebrow: 'Welcome letter', fallback: 'Thank you for stopping by my room. Take your time: every work has its story.', write: 'Write to them', message: 'Hello, I walked through your gallery “{title}” in the World Cup Club and wanted to write to you.' },
+    clubHost: { profile: 'See their profile', prompt: 'Read {name}’s letter', eyebrow: 'Welcome letter', fallback: 'Thank you for stopping by my room. Take your time: every work has its story.', write: 'Write to them', message: 'Hello, I walked through your gallery “{title}” in the World Cup Club and wanted to write to you.' },
     clubStamps: { postal: 'You earned {name}’s postal stamp: it’s in your Album.', vernissage: 'You met {name} live in their gallery: “I was at the Vernissage” stamp in your Album.' },
     clubBoard: { plaque: 'Guest book', subtitle: 'Paste a keepsake for {name}' },
     clubMap: { button: 'Map', title: 'The Club map', enter: 'Enter their gallery', hint: 'Drag to explore · wheel or pinch to zoom', close: 'Close', here: 'You are here', empty: 'No gallery has placed its house on the map yet.' },

@@ -62,6 +62,7 @@ export const SHARE_EVENTS = [
   { name: 'profile_link_copied', label: 'Copiaron el enlace de un perfil' },
   { name: 'profile_club_enter_click', label: 'Entraron a una galería del Club desde un perfil' },
   { name: 'profile_club_join_click', label: 'Fueron al Club desde un perfil de artista' },
+  { name: 'club_host_profile_click', label: 'Fueron de la carta del anfitrión del Club al perfil del artista' },
   { name: 'header_profile_click', label: 'Fueron a su perfil desde el saludo del encabezado' },
   { name: 'profile_bio_link_copied', label: 'Copiaron el link de su perfil para la bio' },
   { name: 'profile_qr_download', label: 'Bajaron el QR de su perfil' },

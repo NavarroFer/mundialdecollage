@@ -492,7 +492,7 @@ const de: Messages = {
   gallery: {
     contact: { consult: 'Den Künstler zu diesem Werk anfragen', message: 'Hallo, ich habe dein Werk „{title}“ in deiner Galerie im Club gesehen und würde dir gern eine Frage dazu stellen.' },
     clubDoor: { next: 'Nächster Raum', soon: 'Bald weitere Räume', prompt: 'Zum Raum von {name}' },
-    clubHost: { prompt: 'Brief von {name} lesen', eyebrow: 'Willkommensbrief', fallback: 'Danke, dass du in meinem Raum vorbeischaust. Lass dir Zeit: Jedes Werk hat seine Geschichte.', write: 'Schreiben', message: 'Hallo, ich war in deiner Galerie „{title}“ im Club und wollte dir schreiben.' },
+    clubHost: { profile: 'Profil ansehen', prompt: 'Brief von {name} lesen', eyebrow: 'Willkommensbrief', fallback: 'Danke, dass du in meinem Raum vorbeischaust. Lass dir Zeit: Jedes Werk hat seine Geschichte.', write: 'Schreiben', message: 'Hallo, ich war in deiner Galerie „{title}“ im Club und wollte dir schreiben.' },
     clubStamps: { postal: 'Du hast die Briefmarke von {name} bekommen: Sie ist in deinem Album.', vernissage: 'Du hast {name} live in der Galerie getroffen: Briefmarke „Ich war bei der Vernissage“ in deinem Album.' },
     clubBoard: { plaque: 'Gästebuch', subtitle: 'Klebe ein Andenken für {name}' },
     clubMap: { button: 'Karte', title: 'Die Club-Karte', enter: 'Galerie betreten', hint: 'Ziehen zum Erkunden · Mausrad oder zwei Finger zum Zoomen', close: 'Schließen', here: 'Du bist hier', empty: 'Noch keine Galerie hat ihr Haus auf die Karte gesetzt.' },

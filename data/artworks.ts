@@ -25,7 +25,7 @@ export type Artwork = {
   height: number
   /** Club galleries may override the room's default mounting per obra. */
   frameStyle?: GalleryFrameStyle
-  /** The artist's public profile (/artistas/…), when the obra comes from the daily exhibition. */
+  /** The artist's public profile (/artistas/…), linked from the obra's details. */
   artistHref?: string
   /** A Club member's way to be asked about the obra: their WhatsApp and/or a web address. */
   contact?: { whatsapp?: string; url?: string }

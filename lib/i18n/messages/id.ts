@@ -492,7 +492,7 @@ const id: Messages = {
   gallery: {
     contact: { consult: 'Tanya seniman tentang karya ini', message: 'Halo, saya melihat karya Anda “{title}” di galeri Klub Anda dan ingin bertanya.' },
     clubDoor: { next: 'Ruang berikutnya', soon: 'Segera, ruang lainnya', prompt: 'Ke ruang {name}' },
-    clubHost: { prompt: 'Baca surat {name}', eyebrow: 'Surat sambutan', fallback: 'Terima kasih sudah mampir ke ruangku. Jelajahi dengan santai: setiap karya punya ceritanya.', write: 'Kirim pesan', message: 'Halo, saya menjelajahi galeri Anda “{title}” di Klub dan ingin menulis kepada Anda.' },
+    clubHost: { profile: 'Lihat profilnya', prompt: 'Baca surat {name}', eyebrow: 'Surat sambutan', fallback: 'Terima kasih sudah mampir ke ruangku. Jelajahi dengan santai: setiap karya punya ceritanya.', write: 'Kirim pesan', message: 'Halo, saya menjelajahi galeri Anda “{title}” di Klub dan ingin menulis kepada Anda.' },
     clubStamps: { postal: 'Kamu mendapat prangko pos {name}: sudah ada di Album.', vernissage: 'Kamu bertemu {name} langsung di galerinya: prangko «Aku hadir di Vernissage» di Album.' },
     clubBoard: { plaque: 'Buku tamu', subtitle: 'Tempel kenangan untuk {name}' },
     clubMap: { button: 'Peta', title: 'Peta Klub', enter: 'Masuk ke galerinya', hint: 'Seret untuk menjelajah · roda atau dua jari untuk memperbesar', close: 'Tutup', here: 'Kamu di sini', empty: 'Belum ada galeri yang menaruh rumahnya di peta.' },
