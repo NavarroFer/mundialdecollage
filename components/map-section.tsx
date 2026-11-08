@@ -37,7 +37,7 @@ export async function MapSection() {
 
         <FadeIn delay={100}>
           <p className="font-display mt-5 rotate-1 text-center text-3xl tracking-tight text-ink uppercase sm:text-4xl">
-            <span className="torn-strip inline-block bg-collage-yellow px-4 py-1">
+            <span className="torn-strip inline-block bg-collage-yellow px-[0.5em] py-[0.35em]">
               {m.map.title}
             </span>
           </p>

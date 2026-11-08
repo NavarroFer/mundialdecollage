@@ -14,7 +14,7 @@ export async function AboutSection() {
 
         <FadeIn delay={100}>
           <p className="font-display mt-5 -rotate-1 text-4xl tracking-tight text-ink uppercase sm:text-5xl">
-            <span className="torn-strip inline-block bg-collage-yellow px-4 py-1">
+            <span className="torn-strip inline-block bg-collage-yellow px-[0.5em] py-[0.35em]">
               {m.about.motto}
             </span>
           </p>
