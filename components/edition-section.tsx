@@ -56,7 +56,7 @@ export async function EditionSection() {
                 ? <TrackedLink href="/onboarding" event="submit_click_edition">{m.edition.submit}</TrackedLink>
                 : <Link href="/galeria-3d">{m.closed.cta}</Link>}
             </Button>
-            <SectionLink href="/#participantes" className="text-sm font-semibold text-collage-blue underline underline-offset-4">
+            <SectionLink href="/#participantes" className="text-sm font-semibold text-ink underline underline-offset-4">
               {m.edition.discover}
             </SectionLink>
           </div>
