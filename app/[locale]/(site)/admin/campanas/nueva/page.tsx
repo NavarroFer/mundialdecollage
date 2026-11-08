@@ -10,6 +10,7 @@ import { earliestScheduleDay } from '@/lib/campaign-schedule'
 import { isTranslatorConfigured } from '@/lib/email-translator'
 import { contactLocale } from '@/lib/email-translation'
 import { LOCALES, type Locale } from '@/lib/i18n/locales'
+import { ensureSystemTemplate } from '@/lib/system-templates'
 import { audienceContacts, CAMPAIGN_AUDIENCES, parseAudience } from '@/lib/campaign-audience'
 
 // A send may first translate the email into eight languages.
@@ -44,6 +45,9 @@ export default async function NuevaCampanaPage({
 
   // Both audiences are counted so each option shows its size before it's
   // picked; the picked one is the same list sendCampaign will send to.
+  // The profile launch's template is created (or brought up to date) here, so
+  // it is in the list below without visiting /admin/plantillas first.
+  await ensureSystemTemplate(supabase, 'perfil_artista').catch((err) => console.error('ensureSystemTemplate(perfil_artista) failed:', err))
   const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, multipleArtworks, clubProspects, publicProfiles, { data: contactCountries }, domainStatus] = await Promise.all([
     supabase
       .from('templates')
