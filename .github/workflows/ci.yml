@@ -1,9 +1,14 @@
 name: CI
 
+# Production ships only from here, in order: checks → migrations → deploy.
+# vercel.json turns off Vercel's auto-deploy for main, so a red build never
+# reaches production; preview branches still deploy on their own.
 on:
   push:
     branches: [main]
   pull_request: {}
+  # Re-runs the whole chain by hand, e.g. to redeploy without a new commit.
+  workflow_dispatch: {}
 
 jobs:
   check:
@@ -32,3 +37,51 @@ jobs:
       # same "not configured yet" path CI needs — real credentials here would
       # make build-time data fetches (e.g. app/sitemap.ts) hit a fake host.
       - run: npm run build
+
+  migrate:
+    needs: check
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    # Never cancel: stopping `supabase db push` halfway can leave the schema
+    # between two migrations. A newer run waits for this one instead.
+    concurrency:
+      group: supabase-migrations
+      cancel-in-progress: false
+    uses: ./.github/workflows/supabase-migrations.yml
+    secrets: inherit
+
+  deploy:
+    needs: [check, migrate]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    # Every production deploy empties the CDN cache (Active CPU on Hobby), so
+    # when pushes pile up only the newest one ships.
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: true
+    steps:
+      # The hook deploys whatever is at the tip of main, not this run's commit.
+      # If main has moved on, that newer commit hasn't passed its own checks and
+      # migrations yet, so leave the deploy to its run.
+      - name: Check this run is still the tip of main
+        id: tip
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          tip=$(git ls-remote "https://github.com/$REPO" refs/heads/main | cut -f1)
+          if [ "$tip" != "$GITHUB_SHA" ]; then
+            echo "::notice::main is now at $tip; its own run will deploy it."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The build runs on Vercel, not here: it costs nothing there and keeps
+      # production env vars out of this public repo's logs.
+      - name: Trigger Vercel production deploy
+        if: steps.tip.outputs.skip != 'true'
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "::error::VERCEL_DEPLOY_HOOK_URL secret is missing; production was NOT deployed. Create it in Vercel → Settings → Git → Deploy Hooks and add it under GitHub → Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          curl -fsS -o /dev/null -X POST "$VERCEL_DEPLOY_HOOK_URL"

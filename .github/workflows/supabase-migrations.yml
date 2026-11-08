@@ -1,10 +1,16 @@
 name: Apply Supabase migrations
 
+# Called from ci.yml after the checks pass, so production never gets a schema
+# change from a commit whose tests failed. workflow_dispatch stays for re-running
+# a push by hand. `supabase db push` is a no-op when nothing is pending, so it is
+# safe to run before every production deploy.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "supabase/migrations/**"
+  workflow_call:
+    secrets:
+      SUPABASE_ACCESS_TOKEN:
+        required: true
+      SUPABASE_DB_PASSWORD:
+        required: true
   workflow_dispatch: {}
 
 env:
