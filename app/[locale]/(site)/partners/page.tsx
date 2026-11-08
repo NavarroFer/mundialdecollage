@@ -36,7 +36,7 @@ export default async function PartnersPage() {
 
           <section className="mt-12 max-w-3xl -rotate-[0.4deg] rounded-3xl border-2 border-ink/10 bg-collage-blue/5 p-6 sm:p-8" aria-labelledby="partners-about-title">
             <h2 id="partners-about-title" className="font-display text-2xl tracking-tight text-ink uppercase">{t.aboutTitle}</h2>
-            <p className="mt-3 text-base leading-relaxed text-foreground">{t.aboutBody}</p>
+            <p className="mt-3 max-w-[52ch] text-base leading-relaxed text-foreground">{t.aboutBody}</p>
           </section>
 
           <section className="mt-14" aria-labelledby="partners-places-title">

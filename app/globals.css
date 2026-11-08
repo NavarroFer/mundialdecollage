@@ -115,6 +115,18 @@
     @apply bg-background text-foreground;
   }
 
+  /* Headings break into even lines and paragraphs avoid a one-word last line,
+     so no copy (in any of the nine languages) ends on a lone straggler. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
   /* Tailwind's preflight draws placeholders at 50% of the text color, 3.4:1
      on paper. 64% is the same mix as --muted-foreground (5.5:1 on paper,
      4.8:1 on --muted), and staying on currentColor keeps it right inside the
