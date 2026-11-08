@@ -256,6 +256,11 @@
 }
 .map-explorer-control:hover { transform: translateY(-2px); background: var(--collage-yellow); }
 .map-explorer-control:focus-visible { outline: 2px solid var(--collage-blue); outline-offset: 4px; }
+/* Keyboard focus on a country or its dot: an ink outline the mouse never
+   sees. The shape's stroke comes inline from map-explorer.tsx, so this one
+   needs !important to win; the dot's is an SVG attribute and doesn't. */
+.map-explorer-country:focus-visible { stroke: var(--ink) !important; stroke-width: 2.25px !important; }
+.map-explorer-marker:focus-visible circle:last-child { stroke: var(--ink); stroke-width: 3px; }
 
 @keyframes stamp-confetti-fall {
   from { transform: translate(0, -8vh) rotate(0); opacity: 1; }
