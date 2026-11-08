@@ -26,6 +26,7 @@ const pt: Messages = {
     confirming: 'Confirmando…',
     sendAnother: 'Enviar outra obra',
     viewMyArtwork: 'Ver minha obra',
+    viewMyProfile: 'Ver meu perfil',
     artworkBy: '{title}, de {name}',
     instagramOf: 'Instagram de {name}',
     website: 'Site',
@@ -260,6 +261,8 @@ const pt: Messages = {
     noComments: 'Ainda ninguém comentou estas obras.',
     commentInGallery: 'Comente na Galeria 3D',
     onArtwork: 'em «{title}»',
+    previewTitle: 'Prévia:',
+    previewBody: 'seu perfil ainda não está publicado. Por enquanto só você vê.',
     loadError: 'Não conseguimos carregar as curtidas e os comentários.',
   },
   countrySelect: {

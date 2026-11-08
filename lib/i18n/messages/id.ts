@@ -26,6 +26,7 @@ const id: Messages = {
     confirming: 'Mengonfirmasi…',
     sendAnother: 'Kirim karya lain',
     viewMyArtwork: 'Lihat karyaku',
+    viewMyProfile: 'Lihat profilku',
     artworkBy: '{title}, karya {name}',
     instagramOf: 'Instagram {name}',
     website: 'Situs web',
@@ -260,6 +261,8 @@ const id: Messages = {
     noComments: 'Belum ada yang mengomentari karya-karya ini.',
     commentInGallery: 'Beri komentar di Galeri 3D',
     onArtwork: 'di «{title}»',
+    previewTitle: 'Pratinjau:',
+    previewBody: 'profilmu belum dipublikasikan. Untuk sekarang hanya kamu yang bisa melihatnya.',
     loadError: 'Kami tidak dapat memuat suka dan komentar.',
   },
   countrySelect: {

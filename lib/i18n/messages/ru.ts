@@ -26,6 +26,7 @@ const ru: Messages = {
     confirming: 'Подтверждение…',
     sendAnother: 'Отправить ещё одну работу',
     viewMyArtwork: 'Посмотреть мою работу',
+    viewMyProfile: 'Посмотреть мой профиль',
     artworkBy: '{title}, автор {name}',
     instagramOf: 'Instagram: {name}',
     website: 'Сайт',
@@ -265,6 +266,8 @@ const ru: Messages = {
     noComments: 'Пока никто не прокомментировал эти работы.',
     commentInGallery: 'Прокомментировать в 3D-галерее',
     onArtwork: 'к «{title}»',
+    previewTitle: 'Предпросмотр:',
+    previewBody: 'ваш профиль ещё не опубликован. Пока его видите только вы.',
     loadError: 'Не удалось загрузить лайки и комментарии.',
   },
   countrySelect: {

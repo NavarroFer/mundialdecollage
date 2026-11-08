@@ -26,6 +26,7 @@ const de: Messages = {
     confirming: 'Wird bestätigt…',
     sendAnother: 'Weiteres Werk einreichen',
     viewMyArtwork: 'Mein Werk ansehen',
+    viewMyProfile: 'Mein Profil ansehen',
     artworkBy: '{title} von {name}',
     instagramOf: 'Instagram von {name}',
     website: 'Website',
@@ -260,6 +261,8 @@ const de: Messages = {
     noComments: 'Noch hat niemand diese Werke kommentiert.',
     commentInGallery: 'In der 3D-Galerie kommentieren',
     onArtwork: 'zu „{title}“',
+    previewTitle: 'Vorschau:',
+    previewBody: 'Dein Profil ist noch nicht veröffentlicht. Bis dahin siehst nur du es.',
     loadError: 'Likes und Kommentare konnten nicht geladen werden.',
   },
   countrySelect: {

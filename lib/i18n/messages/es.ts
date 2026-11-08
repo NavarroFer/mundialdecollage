@@ -28,6 +28,7 @@ const es = {
     confirming: 'Confirmando…',
     sendAnother: 'Enviar otra obra',
     viewMyArtwork: 'Ver mi obra',
+    viewMyProfile: 'Ver mi perfil',
     artworkBy: '{title}, de {name}',
     instagramOf: 'Instagram de {name}',
     website: 'Sitio web',
@@ -262,6 +263,8 @@ const es = {
     noComments: 'Todavía nadie comentó sus obras.',
     commentInGallery: 'Comentá en la Galería 3D',
     onArtwork: 'en «{title}»',
+    previewTitle: 'Vista previa:',
+    previewBody: 'tu perfil todavía no está publicado. Por ahora solo lo ves vos.',
     loadError: 'No pudimos cargar los me gusta y los comentarios.',
   },
   countrySelect: {

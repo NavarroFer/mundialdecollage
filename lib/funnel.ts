@@ -169,6 +169,7 @@ export const DISCOVERY_EVENTS = [
   { name: 'artwork_participate_click', label: 'Fueron de una obra a participar' },
   { name: 'artist_profile_view', label: 'Abrieron un perfil público de artista' },
   { name: 'artist_profile_participate_click', label: 'Fueron de un perfil de artista a participar' },
+  { name: 'confirmation_profile_click', label: 'Fueron a ver su perfil al terminar de inscribirse' },
 ] as const
 
 // The store's own path, from opening /tienda to PayPal approving the

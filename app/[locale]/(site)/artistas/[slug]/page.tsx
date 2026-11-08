@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Globe, Instagram } from 'lucide-react'
+import { ArrowLeft, Eye, Globe, Instagram } from 'lucide-react'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { TrackView, TrackedLink } from '@/components/track'
 import { Button } from '@/components/ui/button'
-import { getArtistProfileBySlug } from '@/lib/artist-profiles'
+import { getArtistProfileBySlug, getOwnArtistPreview } from '@/lib/artist-profiles'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { fmt } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
 import { getCallState } from '@/lib/call-state'
@@ -22,7 +23,8 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const [artist, { locale, m }] = await Promise.all([getArtistProfileBySlug(slug), getI18n()])
-  if (!artist) return {}
+  // An unpublished profile is only its owner's preview: keep it out of search.
+  if (!artist) return { robots: { index: false, follow: false } }
 
   const firstArtwork = artist.artworks[0]
   const firstTitle = firstArtwork.title ?? m.common.untitled
@@ -54,7 +56,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ArtistPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const [artist, { locale, m }, { open: callOpen }] = await Promise.all([getArtistProfileBySlug(slug), getI18n(), getCallState()])
+  const [publicArtist, { locale, m }, { open: callOpen }] = await Promise.all([getArtistProfileBySlug(slug), getI18n(), getCallState()])
+  // Before an admin publishes it, the artist alone sees their own profile as a
+  // preview. The anon copy has no user, so it still 404s and stays static.
+  const preview = publicArtist ? undefined : await getOwnArtistPreview(slug, (await getCurrentUser())?.id)
+  const artist = publicArtist ?? preview
   if (!artist) notFound()
 
   const country = countryCodeToName(artist.countryCode, locale)
@@ -72,6 +78,13 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             <ArrowLeft className="h-4 w-4" aria-hidden />
             {m.artwork.back}
           </Link>
+
+          {preview && (
+            <p role="status" className="mt-6 flex items-start gap-3 rounded-2xl border-2 border-collage-blue/30 bg-collage-blue/5 p-4 text-sm text-ink">
+              <Eye className="mt-0.5 h-5 w-5 shrink-0 text-collage-blue" aria-hidden />
+              <span><strong className="font-semibold">{m.artistProfile.previewTitle}</strong> {m.artistProfile.previewBody}</span>
+            </p>
+          )}
 
           {/* Laid out like an Instagram profile: picture, name, counters, links. */}
           <header className="mt-8 flex flex-col items-center gap-6 pb-8 text-center sm:flex-row sm:items-center sm:gap-12 sm:text-left">

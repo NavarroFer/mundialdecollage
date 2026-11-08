@@ -4,6 +4,7 @@ import { artistTag } from '@/lib/public-cache-tags'
 import { slugify } from '@/lib/slug'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createPublicClient } from '@/lib/supabase/public'
+import { createClient } from '@/lib/supabase/server'
 
 const PROFILE_ID_SUFFIX = /([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/i
 
@@ -50,22 +51,9 @@ export function artistProfileIdFromSlug(slug: string): string | undefined {
   return PROFILE_ID_SUFFIX.exec(slug)?.[1]?.toLowerCase()
 }
 
-// The anonymous client is intentional: even when the reader is the artist,
-// this page must contain only works that the public RLS policy allows. Today
-// that is the selected work; if the policy later exposes more entered works,
-// this query starts showing all of them without changing the route.
-const getArtistProfileById = cachedPublicData(async (profileId: string): Promise<ArtistProfile | undefined> => {
-  if (!isSupabaseConfigured) return undefined
+const ARTIST_SELECT = 'slug, title, technique, image_url, profiles!inner(id, name, country_code, instagram, website)'
 
-  const { data, error } = await createPublicClient()
-    .from('artworks')
-    .select('slug, title, technique, image_url, profiles!inner(id, name, country_code, instagram, website)')
-    .eq('profile_id', profileId)
-    .is('archived_at', null)
-    .order('created_at', { ascending: false })
-
-  if (error) throw new Error(error.message)
-  const rows = (data ?? []) as unknown as ArtistArtworkRow[]
+function profileFromRows(rows: ArtistArtworkRow[]): ArtistProfile | undefined {
   const firstProfile = rows[0]?.profiles
   if (!firstProfile?.name || !firstProfile.country_code) return undefined
 
@@ -88,9 +76,46 @@ const getArtistProfileById = cachedPublicData(async (profileId: string): Promise
     website: firstProfile.website ?? undefined,
     artworks,
   }
+}
+
+// The anonymous client is intentional: even when the reader is the artist,
+// this page must contain only works that the public RLS policy allows. Today
+// that is the selected work; if the policy later exposes more entered works,
+// this query starts showing all of them without changing the route.
+const getArtistProfileById = cachedPublicData(async (profileId: string): Promise<ArtistProfile | undefined> => {
+  if (!isSupabaseConfigured) return undefined
+
+  const { data, error } = await createPublicClient()
+    .from('artworks')
+    .select(ARTIST_SELECT)
+    .eq('profile_id', profileId)
+    .is('archived_at', null)
+    .order('created_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return profileFromRows((data ?? []) as unknown as ArtistArtworkRow[])
 }, 'artist-profile', (profileId) => [artistTag(profileId)])
 
 export const getArtistProfileBySlug = cache(async (slug: string): Promise<ArtistProfile | undefined> => {
   const profileId = artistProfileIdFromSlug(slug)
   return profileId ? getArtistProfileById(profileId) : undefined
 })
+
+/**
+ * The artist's own profile before an admin publishes it, read with their
+ * session ("owner read own" policies). Only the owner gets it: anyone else
+ * still gets the 404 the public query gives. Never cached, never public.
+ */
+export async function getOwnArtistPreview(slug: string, viewerId: string | undefined): Promise<ArtistProfile | undefined> {
+  const profileId = artistProfileIdFromSlug(slug)
+  if (!isSupabaseConfigured || !profileId || !viewerId || profileId !== viewerId.toLowerCase()) return undefined
+  const { data, error } = await (await createClient())
+    .from('artworks')
+    .select(ARTIST_SELECT)
+    .eq('profile_id', profileId)
+    .is('archived_at', null)
+    .order('is_selected', { ascending: false })
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return profileFromRows((data ?? []) as unknown as ArtistArtworkRow[])
+}

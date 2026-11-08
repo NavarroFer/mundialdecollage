@@ -4,8 +4,10 @@ import { CheckCircle2 } from 'lucide-react'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { Button } from '@/components/ui/button'
+import { TrackedLink } from '@/components/track'
 import { ShareArtwork } from '@/components/share-artwork'
 import { getArtworkShareState } from '@/lib/finalists'
+import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
 import { MagazinePromo, StorePromo } from '@/components/store-promo'
 import { OnboardingSteps } from '../onboarding-steps'
@@ -19,7 +21,13 @@ export default async function ConfirmationPage() {
     .eq('profile_id', user.id).order('is_selected', { ascending: false })
     .order('created_at', { ascending: false }).limit(1).maybeSingle()
   if (!artwork) redirect('/onboarding')
-  const [{ m }, { isPublic }] = await Promise.all([getI18n(), getArtworkShareState(artwork.slug)])
+  const [{ m }, { isPublic }, { data: profile }] = await Promise.all([
+    getI18n(),
+    getArtworkShareState(artwork.slug),
+    supabase.from('profiles').select('name').eq('id', user.id).maybeSingle(),
+  ])
+  // Their profile is the next stop: public once approved, a preview until then.
+  const profileHref = profile?.name ? `/artistas/${artistProfileSlug(profile.name, user.id)}` : null
 
   return (
     <main className="bg-grain flex min-h-screen items-center justify-center px-5 py-16">
@@ -33,7 +41,10 @@ export default async function ConfirmationPage() {
           <ShareArtwork slug={artwork.slug} title={artwork.title?.trim() || m.common.untitled} name="" isPublic={isPublic} isOwn />
         </div>
         <div className="mt-5 flex flex-col gap-3">
-          <Button asChild size="lg"><Link href={`/obras/${artwork.slug}`}>{m.common.viewMyArtwork}</Link></Button>
+          {profileHref && (
+            <Button asChild size="lg"><TrackedLink href={profileHref} event="confirmation_profile_click">{m.common.viewMyProfile}</TrackedLink></Button>
+          )}
+          <Button asChild size="lg" variant={profileHref ? 'outline' : undefined}><Link href={`/obras/${artwork.slug}`}>{m.common.viewMyArtwork}</Link></Button>
           <Button asChild variant="outline"><Link href="/">{m.confirmation.backToMundial}</Link></Button>
         </div>
         {/* The two things to look forward to while the jury works. */}
