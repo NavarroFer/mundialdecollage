@@ -106,7 +106,6 @@ const es = {
   },
   edition: {
     badge: 'El Mundial ya está pasando',
-    eyebrow: 'Edición 01 · 2026',
     received: 'Recibimos',
     artworks: p({ one: 'obra!', other: 'obras!' }),
     open: 'La convocatoria está abierta',
@@ -278,13 +277,11 @@ const es = {
       'Ingresá con Google para continuar. Vamos a completar el formulario con los datos que ya tengamos de vos.',
     signInNeeds:
       'Vas a necesitar una foto de tu collage, su título, tu nombre y tu país. Lleva un par de minutos y participar con una obra es gratis.',
-    welcomeEyebrow: 'Qué bueno encontrarte acá',
     helloName: '¡Hola, {name}!',
     hello: '¡Hola!',
     welcome: '¡Bienvenido al Mundial!',
     existingBody:
       'Tu obra ya está acá. Reunimos tus datos para que no tengas que cargarlos de nuevo. Revisá que esté todo bien y confirmá cuando quieras.',
-    formEyebrow: 'Anotá tu obra',
     formTitle: 'Sumate al Mundial',
     legacyBody:
       'Encontramos tu envío y reunimos lo que ya nos compartiste. Revisá tus datos y completá solo lo que falta para confirmar tu participación.',
@@ -713,7 +710,7 @@ const es = {
     regionArNote: 'Pagás en pesos con Mercado Pago, con envío gratis: el precio es el total mensual.', regionAbroadNote: 'Pagás en dólares con PayPal. El envío internacional se cobra aparte.',
     mp: { paymentMethod: 'Cómo querés pagar', accountOption: 'Con mi cuenta de Mercado Pago', payerEmail: 'Email de tu cuenta de Mercado Pago', payerEmailHelp: 'Usá el email de la cuenta con la que vas a autorizar la suscripción.', card: { option: 'Con tarjeta', continue: 'Continuar con tarjeta', title: 'Pago mensual con tarjeta', description: 'Autorizás un cobro mensual automático. No necesitás una cuenta de Mercado Pago. Cancelá cuando quieras.', loading: 'Cargando el formulario seguro…', processing: 'Estamos procesando tu suscripción…', back: 'Volver a mis datos', loadFailed: 'No pudimos cargar el formulario de tarjeta. Volvé a tus datos y probá otra vez, o elegí tu cuenta de Mercado Pago.', connectionFailed: 'No pudimos confirmar el resultado. Revisá tu email antes de volver a intentar.', errors: { funds: 'La tarjeta no tiene fondos suficientes. Probá con otra tarjeta.', card: 'No pudimos autorizar esa tarjeta para el cobro mensual. Revisá los datos o probá con una tarjeta de crédito.', rejected: 'No pudimos iniciar la suscripción con esa tarjeta. Probá con otra tarjeta o elegí tu cuenta de Mercado Pago.' } }, subscribe: 'Suscribirme con Mercado Pago', details: 'Tus datos para el envío', name: 'Nombre y apellido', email: 'Email de contacto', phone: 'Celular (para avisos del envío)', phonePlaceholder: 'Con código de área, ej.: 11 2345 6789', address: 'Calle y número', apartment: 'Piso / depto. (opcional)', city: 'Ciudad', province: 'Provincia', postalCode: 'Código postal', submit: 'Continuar a Mercado Pago', redirect: 'Te llevamos a Mercado Pago para autorizar el cobro mensual.', cancel: 'Cancelar', errors: { invalid: 'Revisá los datos marcados.', unavailable: 'No pudimos iniciar la suscripción. Probá de nuevo en un rato.' } },
     checkout: { subscribe: 'Suscribirme con PayPal', details: 'Tus datos para el envío', firstName: 'Nombre', lastName: 'Apellido', email: 'Email', fullName: 'Nombre completo para el envío', address: 'Dirección', apartment: 'Departamento / piso (opcional)', city: 'Ciudad', state: 'Provincia / estado', postalCode: 'Código postal', countryCode: 'País', phone: 'Celular (para avisos del envío)', startFailed: 'No pudimos iniciar PayPal. Probá de nuevo.', completeFailed: 'PayPal no pudo completar la solicitud. Probá de nuevo.', cancel: 'Cancelar' },
-    thanks: { badge: 'Gracias', subscriptionTitle: 'Bienvenida al club', orderTitle: 'Recibimos tu pedido', subscriptionBody: 'Estamos confirmando tu suscripción. Te escribiremos apenas se confirme el pago.', orderBody: 'Recibimos tu pedido. Vas a recibir un mail en breve cuando se confirme el pago.', back: 'Volver a la tienda' },
+    thanks: { subscriptionTitle: 'Bienvenida al club', orderTitle: 'Recibimos tu pedido', subscriptionBody: 'Estamos confirmando tu suscripción. Te escribiremos apenas se confirme el pago.', orderBody: 'Recibimos tu pedido. Vas a recibir un mail en breve cuando se confirme el pago.', back: 'Volver a la tienda' },
   },
   growth: {
     storeEyebrowArtist: "Mientras esperás al jurado",
@@ -971,7 +968,6 @@ const es = {
   clubLanding: {
     metaTitle: 'Club del Mundial de Collage — tu galería 3D permanente',
     metaDescription: 'Una sala 3D propia, abierta las 24 horas, con toda tu serie de obras. Membresía mensual con monedas para mejorarla.',
-    badge: 'Club',
     title: 'Tu propia galería 3D, abierta todos los días',
     lead: 'En la galería del Mundial tu obra aparece cuando te toca el turno. En el Club tenés una sala propia y permanente, con toda tu serie, tus textos y un enlace para compartir.',
     featuresTitle: 'Qué incluye',

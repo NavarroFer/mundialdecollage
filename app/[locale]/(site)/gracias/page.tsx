@@ -23,7 +23,6 @@ export default async function GraciasPage({ searchParams }: { searchParams: Prom
       <main className="bg-grain min-h-[70vh] py-24 sm:py-32">
         <section className="relative mx-auto max-w-2xl px-5 text-center sm:px-8">
           <CheckCircle2 className="mx-auto h-14 w-14 text-collage-blue" aria-hidden="true" />
-          <span className="torn-strip mt-7 inline-block rotate-1 bg-collage-red px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">{t.badge}</span>
           <h1 className="font-display mt-7 text-4xl tracking-tight uppercase sm:text-5xl">
             {isSubscription ? t.subscriptionTitle : t.orderTitle}
           </h1>

@@ -104,7 +104,6 @@ const pl: Messages = {
   },
   edition: {
     badge: 'Mistrzostwa już trwają',
-    eyebrow: 'Edycja 01 · 2026',
     received: 'Otrzymaliśmy',
     artworks: p({ one: 'pracę!', few: 'prace!', many: 'prac!', other: 'pracy!' }),
     open: 'Nabór jest otwarty',
@@ -280,13 +279,11 @@ const pl: Messages = {
     signInBody: 'Zaloguj się przez Google, aby kontynuować. Uzupełnimy formularz danymi, które już o Tobie mamy.',
     signInNeeds:
       'Potrzebujesz zdjęcia swojego kolażu, jego tytułu, swojego imienia i kraju. To zajmie kilka minut, a udział z jedną pracą jest bezpłatny.',
-    welcomeEyebrow: 'Miło Cię tu widzieć',
     helloName: 'Cześć, {name}!',
     hello: 'Cześć!',
     welcome: 'Witaj na Mistrzostwach!',
     existingBody:
       'Twoja praca już tu jest. Zebraliśmy Twoje dane, żebyś nie musiał(a) ich wpisywać ponownie. Sprawdź, czy wszystko się zgadza, i potwierdź, kiedy zechcesz.',
-    formEyebrow: 'Zgłoś swoją pracę',
     formTitle: 'Dołącz do Mistrzostw',
     legacyBody:
       'Znaleźliśmy Twoje zgłoszenie i zebraliśmy to, co już nam przesłałeś(-aś). Sprawdź dane i uzupełnij tylko brakujące informacje, aby potwierdzić udział.',
@@ -954,7 +951,6 @@ const pl: Messages = {
   clubLanding: {
     metaTitle: 'Klub Mistrzostw Świata w Kolażu — Twoja stała galeria 3D',
     metaDescription: 'Własna sala 3D, otwarta całą dobę, z całą Twoją serią prac. Miesięczne członkostwo z monetami na jej ulepszanie.',
-    badge: 'Klub',
     title: 'Twoja własna galeria 3D, otwarta codziennie',
     lead: 'W galerii Mistrzostw Twoja praca pojawia się, gdy przyjdzie jej kolej. W Klubie masz własną, stałą salę z całą serią, tekstami i linkiem do udostępniania.',
     featuresTitle: 'Co zawiera',

@@ -112,8 +112,7 @@ export default async function OnboardingPage({
         <main className="bg-grain min-h-screen px-5 py-12 sm:py-16">
           <div className="mx-auto w-full max-w-lg">
             <OnboardingSteps current="details" m={m} />
-            <p className="text-center text-sm font-bold tracking-widest text-collage-blue uppercase">{m.onboarding.welcomeEyebrow}</p>
-            <h1 className="font-display mt-3 text-center text-3xl text-ink sm:text-4xl">{name ? fmt(m.onboarding.helloName, { name }) : m.onboarding.welcome}</h1>
+            <h1 className="font-display mt-8 text-center text-3xl text-ink sm:text-4xl">{name ? fmt(m.onboarding.helloName, { name }) : m.onboarding.welcome}</h1>
             <p className="mt-4 text-center text-muted-foreground">{m.onboarding.existingBody}</p>
             <ArtistConfirmation name={name} countryCode={profile?.country_code || ''} email={user.email || ''} artwork={artwork} artworkCount={artworkCount} />
           </div>
@@ -214,10 +213,7 @@ export default async function OnboardingPage({
       <div className="w-full max-w-lg">
         <InAppBrowserNotice className="mb-6" />
         <OnboardingSteps current="details" m={m} />
-        <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">
-          {hasLegacyMatch ? m.onboarding.welcomeEyebrow : m.onboarding.formEyebrow}
-        </p>
-        <h1 className="font-display mt-3 text-center text-3xl tracking-tight text-ink uppercase sm:text-4xl">
+        <h1 className="font-display mt-8 text-center text-3xl tracking-tight text-ink uppercase sm:text-4xl">
           {hasLegacyMatch
             ? suggestedName
               ? fmt(m.onboarding.helloName, { name: suggestedName })

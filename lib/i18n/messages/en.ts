@@ -104,7 +104,6 @@ const en: Messages = {
   },
   edition: {
     badge: 'The World Cup is happening',
-    eyebrow: 'Edition 01 · 2026',
     received: "We've received",
     artworks: p({ one: 'artwork!', other: 'artworks!' }),
     open: 'The open call is on',
@@ -275,13 +274,11 @@ const en: Messages = {
     signInBody: "Sign in with Google to continue. We'll fill in the form with any details we already have about you.",
     signInNeeds:
       "You'll need a photo of your collage, its title, your name and your country. It takes a couple of minutes, and taking part with one artwork is free.",
-    welcomeEyebrow: 'Great to see you here',
     helloName: 'Hi, {name}!',
     hello: 'Hi!',
     welcome: 'Welcome to the World Cup!',
     existingBody:
       "Your artwork is already here. We've gathered your details so you don't have to enter them again. Check that everything is right and confirm whenever you're ready.",
-    formEyebrow: 'Register your artwork',
     formTitle: 'Join the World Cup',
     legacyBody:
       "We found your submission and gathered what you'd already shared with us. Check your details and fill in only what's missing to confirm your participation.",
@@ -933,7 +930,6 @@ const en: Messages = {
   clubLanding: {
     metaTitle: 'Collage World Cup Club — your permanent 3D gallery',
     metaDescription: 'A 3D room of your own, open 24 hours, with your whole series. A monthly membership with coins to improve it.',
-    badge: 'Club',
     title: 'Your own 3D gallery, open every day',
     lead: 'In the World Cup gallery your work appears when its turn comes. In the Club you get a permanent room of your own, with your whole series, your texts and a link to share.',
     featuresTitle: 'What\'s included',

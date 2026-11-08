@@ -104,7 +104,6 @@ const de: Messages = {
   },
   edition: {
     badge: 'Die WM läuft',
-    eyebrow: 'Ausgabe 01 · 2026',
     received: 'Wir haben',
     artworks: p({ one: 'Werk erhalten!', other: 'Werke erhalten!' }),
     open: 'Die Ausschreibung ist offen',
@@ -275,13 +274,11 @@ const de: Messages = {
     signInBody: 'Melde dich mit Google an, um fortzufahren. Wir füllen das Formular mit den Daten aus, die wir schon von dir haben.',
     signInNeeds:
       'Du brauchst ein Foto deiner Collage, ihren Titel, deinen Namen und dein Land. Das dauert ein paar Minuten, und mit einem Werk teilzunehmen ist kostenlos.',
-    welcomeEyebrow: 'Schön, dass du da bist',
     helloName: 'Hallo, {name}!',
     hello: 'Hallo!',
     welcome: 'Willkommen bei der WM!',
     existingBody:
       'Dein Werk ist schon da. Wir haben deine Daten zusammengetragen, damit du sie nicht noch einmal eingeben musst. Prüf, ob alles stimmt, und bestätige, wann du willst.',
-    formEyebrow: 'Werk anmelden',
     formTitle: 'Mach bei der WM mit',
     legacyBody:
       'Wir haben deine Einreichung gefunden und zusammengetragen, was du uns schon geschickt hast. Prüf deine Daten und ergänze nur, was fehlt, um deine Teilnahme zu bestätigen.',
@@ -932,7 +929,6 @@ const de: Messages = {
   clubLanding: {
     metaTitle: 'Club der Collage-Weltmeisterschaft — deine dauerhafte 3D-Galerie',
     metaDescription: 'Ein eigener 3D-Raum, rund um die Uhr geöffnet, mit deiner ganzen Serie. Eine monatliche Mitgliedschaft mit Münzen zum Verbessern.',
-    badge: 'Club',
     title: 'Deine eigene 3D-Galerie, jeden Tag geöffnet',
     lead: 'In der Galerie der Weltmeisterschaft erscheint dein Werk, wenn es an der Reihe ist. Im Club hast du einen eigenen, dauerhaften Raum mit deiner ganzen Serie, deinen Texten und einem Link zum Teilen.',
     featuresTitle: 'Was enthalten ist',

@@ -104,7 +104,6 @@ const pt: Messages = {
   },
   edition: {
     badge: 'O Mundial já está acontecendo',
-    eyebrow: 'Edição 01 · 2026',
     received: 'Recebemos',
     artworks: p({ one: 'obra!', other: 'obras!' }),
     open: 'A chamada está aberta',
@@ -275,13 +274,11 @@ const pt: Messages = {
     signInBody: 'Entre com o Google para continuar. Vamos preencher o formulário com os dados que já temos de você.',
     signInNeeds:
       'Você vai precisar de uma foto do seu collage, o título, seu nome e seu país. Leva uns minutinhos e participar com uma obra é grátis.',
-    welcomeEyebrow: 'Que bom encontrar você aqui',
     helloName: 'Olá, {name}!',
     hello: 'Olá!',
     welcome: 'Boas-vindas ao Mundial!',
     existingBody:
       'Sua obra já está aqui. Reunimos seus dados para você não ter que preenchê-los de novo. Confira se está tudo certo e confirme quando quiser.',
-    formEyebrow: 'Inscreva sua obra',
     formTitle: 'Participe do Mundial',
     legacyBody:
       'Encontramos seu envio e reunimos o que você já tinha compartilhado. Confira seus dados e complete só o que falta para confirmar sua participação.',
@@ -932,7 +929,6 @@ const pt: Messages = {
   clubLanding: {
     metaTitle: 'Clube do Mundial de Collage — sua galeria 3D permanente',
     metaDescription: 'Uma sala 3D só sua, aberta 24 horas, com toda a sua série de obras. Assinatura mensal com moedas para melhorá-la.',
-    badge: 'Clube',
     title: 'Sua própria galeria 3D, aberta todos os dias',
     lead: 'Na galeria do Mundial sua obra aparece quando chega a vez dela. No Clube você tem uma sala própria e permanente, com toda a sua série, seus textos e um link para compartilhar.',
     featuresTitle: 'O que inclui',

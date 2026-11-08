@@ -104,7 +104,6 @@ const id: Messages = {
   },
   edition: {
     badge: 'Piala Dunia sedang berlangsung',
-    eyebrow: 'Edisi 01 · 2026',
     received: 'Kami menerima',
     artworks: p({ other: 'karya!' }),
     open: 'Panggilan terbuka sudah dibuka',
@@ -275,13 +274,11 @@ const id: Messages = {
     signInBody: 'Masuk dengan Google untuk melanjutkan. Kami akan mengisi formulir dengan data yang sudah kami miliki tentangmu.',
     signInNeeds:
       'Kamu akan butuh foto kolasemu, judulnya, namamu, dan negaramu. Hanya butuh beberapa menit, dan ikut dengan satu karya itu gratis.',
-    welcomeEyebrow: 'Senang bertemu denganmu di sini',
     helloName: 'Halo, {name}!',
     hello: 'Halo!',
     welcome: 'Selamat datang di Piala Dunia!',
     existingBody:
       'Karyamu sudah ada di sini. Kami sudah mengumpulkan datamu agar kamu tidak perlu mengisinya lagi. Periksa apakah semuanya benar, lalu konfirmasi kapan pun kamu siap.',
-    formEyebrow: 'Daftarkan karyamu',
     formTitle: 'Bergabung dengan Piala Dunia',
     legacyBody:
       'Kami menemukan kirimanmu dan mengumpulkan apa yang sudah kamu bagikan. Periksa datamu dan lengkapi hanya yang kurang untuk mengonfirmasi keikutsertaanmu.',
@@ -929,7 +926,6 @@ const id: Messages = {
   clubLanding: {
     metaTitle: 'Klub Piala Dunia Kolase — galeri 3D permanen Anda',
     metaDescription: 'Ruang 3D milik sendiri, buka 24 jam, dengan seluruh seri karya Anda. Keanggotaan bulanan dengan koin untuk memperbaikinya.',
-    badge: 'Klub',
     title: 'Galeri 3D Anda sendiri, buka setiap hari',
     lead: 'Di galeri Piala Dunia, karya Anda tampil saat gilirannya tiba. Di Klub, Anda punya ruang sendiri yang permanen, dengan seluruh seri, teks, dan tautan untuk dibagikan.',
     featuresTitle: 'Yang termasuk',

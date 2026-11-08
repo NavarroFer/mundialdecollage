@@ -22,14 +22,8 @@ export async function EditionSection() {
           </span>
         </FadeIn>
 
-        <FadeIn delay={100}>
-          <p className="mt-6 text-xs font-bold tracking-[0.2em] text-ink/80 uppercase sm:text-sm">
-            {m.edition.eyebrow}
-          </p>
-        </FadeIn>
-
         <FadeIn delay={150}>
-          <h2 className="font-display mt-2 flex flex-col items-center gap-2 text-ink">
+          <h2 className="font-display mt-6 flex flex-col items-center gap-2 text-ink">
             {hasSubmissions ? (
               <>
                 <span className="text-3xl uppercase sm:text-5xl">{m.edition.received}</span>

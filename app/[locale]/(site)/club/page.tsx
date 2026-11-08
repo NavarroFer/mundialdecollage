@@ -42,10 +42,7 @@ export default async function ClubPage() {
       <SiteHeader />
       <main className="bg-grain py-16 sm:py-24">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <span className="torn-strip inline-block -rotate-1 bg-collage-red px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
-            {t.badge}
-          </span>
-          <h1 className="font-display mt-7 max-w-3xl text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
+          <h1 className="font-display max-w-3xl text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">{t.lead}</p>
           <Link href="/mi-galeria" className="mt-8 inline-flex min-h-12 items-center rounded-full bg-ink px-8 font-bold text-white">{t.cta}</Link>
 

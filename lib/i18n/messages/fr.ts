@@ -104,7 +104,6 @@ const fr: Messages = {
   },
   edition: {
     badge: 'Le Mondial est lancé',
-    eyebrow: 'Édition 01 · 2026',
     received: 'Nous avons reçu',
     artworks: p({ one: 'œuvre !', other: 'œuvres !' }),
     open: "L'appel à participation est ouvert",
@@ -275,13 +274,11 @@ const fr: Messages = {
     signInBody: 'Connecte-toi avec Google pour continuer. Nous remplirons le formulaire avec les informations que nous avons déjà sur toi.',
     signInNeeds:
       "Tu auras besoin d'une photo de ton collage, de son titre, de ton nom et de ton pays. Ça prend deux minutes, et participer avec une œuvre est gratuit.",
-    welcomeEyebrow: 'Ravis de te voir ici',
     helloName: 'Salut, {name} !',
     hello: 'Salut !',
     welcome: 'Bienvenue au Mondial !',
     existingBody:
       "Ton œuvre est déjà là. Nous avons rassemblé tes informations pour que tu n'aies pas à les ressaisir. Vérifie que tout est correct et confirme quand tu veux.",
-    formEyebrow: 'Inscris ton œuvre',
     formTitle: 'Rejoins le Mondial',
     legacyBody:
       "Nous avons retrouvé ton envoi et rassemblé ce que tu nous avais déjà transmis. Vérifie tes informations et complète seulement ce qui manque pour confirmer ta participation.",
@@ -932,7 +929,6 @@ const fr: Messages = {
   clubLanding: {
     metaTitle: 'Club de la Coupe du monde de collage — votre galerie 3D permanente',
     metaDescription: 'Une salle 3D à vous, ouverte 24 heures sur 24, avec toute votre série. Un abonnement mensuel avec des pièces pour l\'améliorer.',
-    badge: 'Club',
     title: 'Votre propre galerie 3D, ouverte tous les jours',
     lead: 'Dans la galerie de la Coupe du monde, votre œuvre apparaît quand vient son tour. Dans le Club, vous avez une salle permanente, avec toute votre série, vos textes et un lien à partager.',
     featuresTitle: 'Ce qui est inclus',
