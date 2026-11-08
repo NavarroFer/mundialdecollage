@@ -13,10 +13,7 @@ export async function DonationSection() {
     <section id="donar" aria-labelledby="donate-title" className="bg-grain scroll-mt-20 border-t-2 border-ink/10 py-16 sm:py-24">
       <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 sm:px-8 md:grid-cols-[1.1fr_1fr]">
         <FadeIn>
-          <span className="torn-strip inline-block -rotate-1 bg-collage-red px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
-            {t.eyebrow}
-          </span>
-          <h2 id="donate-title" className="font-display mt-6 text-4xl tracking-tight text-ink uppercase sm:text-5xl">{t.title}</h2>
+          <h2 id="donate-title" className="font-display text-4xl tracking-tight text-ink uppercase sm:text-5xl">{t.title}</h2>
           <p className="mt-5 max-w-md text-lg text-muted-foreground">{t.body}</p>
         </FadeIn>
         <FadeIn delay={100}>

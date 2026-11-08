@@ -106,8 +106,7 @@ export async function HomeStoreSection() {
         <FadeIn>
           <div className="lg:flex lg:items-end lg:justify-between lg:gap-10">
             <div>
-              <p className="text-xs font-bold tracking-[0.2em] text-collage-red uppercase">{t.badge}</p>
-              <h2 id="home-store-title" className="font-display mt-1.5 text-2xl tracking-tight text-ink uppercase sm:text-3xl">{t.title}</h2>
+              <h2 id="home-store-title" className="font-display text-2xl tracking-tight text-ink uppercase sm:text-3xl">{t.title}</h2>
             </div>
             <p className="mt-1.5 max-w-md text-sm text-muted-foreground lg:mt-0 lg:text-right">{home.intro}</p>
           </div>

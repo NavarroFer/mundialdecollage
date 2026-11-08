@@ -120,7 +120,6 @@ const pl: Messages = {
     badges: ['Edycja międzynarodowa', 'Profesjonalne jury', 'Społeczność kolażystów'],
   },
   donate: {
-    eyebrow: 'Projekt niezależny',
     title: 'Wesprzyj, żeby to trwało',
     body: 'Mistrzostwa Świata w Kolażu to niezależny projekt, tworzony własnymi siłami. Jeśli podoba ci się to, co widzisz, każda wpłata pomaga nam utrzymać nabór, wystawę i galerię 3D.',
     galleryBody: 'To niezależny projekt. Wesprzyj, żeby to trwało.',
@@ -183,7 +182,6 @@ const pl: Messages = {
     openExplorer: 'Odkrywaj na pełnym ekranie', explorerEyebrow: 'Interaktywna mapa', explorerTitle: 'Odkrywaj Mundial', closeExplorer: 'Zamknij mapę', zoomIn: 'Powiększ mapę', zoomOut: 'Pomniejsz mapę', resetView: 'Przywróć widok świata', explorerHint: 'Przeciągnij, aby odkrywać · użyj kółka, aby przybliżyć', explorerEmptyTitle: 'Wybierz kraj', explorerEmpty: 'Przybliż mapę i wybierz kraj z pracami.', explorerCountryHint: 'Opublikowane prace tej społeczności.',
   },
   jury: {
-    eyebrow: 'Międzynarodowe jury',
     title1: 'Wkrótce',
     title2: 'międzynarodowe jury',
     body: 'Jury z międzynarodowym doświadczeniem oceni każdą nadesłaną pracę. Już wkrótce ogłosimy jego skład.',
@@ -971,7 +969,6 @@ const pl: Messages = {
     price: '{ars} miesięcznie przez Mercado Pago lub {usd} miesięcznie przez PayPal, jeśli jesteś poza Argentyną.',
     cancel: 'Możesz zrezygnować w każdej chwili. Jeśli wstrzymasz, galeria przestaje być pokazywana, ale zachowujesz monety i wszystko, co odblokowałeś.',
     cta: 'Chcę swoją galerię',
-    homeEyebrow: 'Klub Mistrzostw',
     homeTitle: 'Twoja własna galeria 3D, otwarta codziennie',
     homeBody: 'Stała sala na całą Twoją serię, z motywami, ramami i monetami na jej ulepszanie.',
     homeCta: 'Poznaj Klub',

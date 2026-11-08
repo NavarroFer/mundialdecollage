@@ -120,7 +120,6 @@ const id: Messages = {
     badges: ['Edisi internasional', 'Juri spesialis', 'Komunitas seniman kolase'],
   },
   donate: {
-    eyebrow: 'Proyek mandiri',
     title: 'Berdonasi agar terus berlangsung',
     body: 'Piala Dunia Kolase adalah proyek mandiri yang dijalankan dengan sepenuh hati. Jika kamu suka yang kamu lihat, setiap kontribusi membantu kami menjaga open call, pameran, dan galeri 3D tetap berjalan.',
     galleryBody: 'Ini proyek mandiri. Berdonasilah agar terus berlangsung.',
@@ -178,7 +177,6 @@ const id: Messages = {
     openExplorer: 'Jelajahi layar penuh', explorerEyebrow: 'Peta interaktif', explorerTitle: 'Jelajahi Piala Dunia', closeExplorer: 'Tutup penjelajah peta', zoomIn: 'Perbesar peta', zoomOut: 'Perkecil peta', resetView: 'Atur ulang tampilan dunia', explorerHint: 'Seret untuk menjelajah · gunakan roda untuk memperbesar', explorerEmptyTitle: 'Pilih negara', explorerEmpty: 'Perbesar, jelajahi peta, dan pilih negara dengan karya.', explorerCountryHint: 'Karya yang dipublikasikan dari komunitas ini.',
   },
   jury: {
-    eyebrow: 'Juri internasional',
     title1: 'Segera hadir',
     title2: 'juri internasional',
     body: 'Juri berpengalaman internasional akan menilai setiap karya yang diterima. Kami akan segera mengumumkan siapa saja anggotanya.',
@@ -946,7 +944,6 @@ const id: Messages = {
     price: '{ars} per bulan lewat Mercado Pago, atau {usd} per bulan lewat PayPal jika Anda berada di luar Argentina.',
     cancel: 'Bisa berhenti kapan saja. Jika dijeda, galeri Anda tidak lagi ditampilkan, tetapi koin dan semua yang Anda buka tetap ada.',
     cta: 'Saya mau galeri saya',
-    homeEyebrow: 'Klub Piala Dunia',
     homeTitle: 'Galeri 3D Anda sendiri, buka setiap hari',
     homeBody: 'Ruang permanen untuk seluruh seri Anda, dengan tema, bingkai, dan koin untuk memperbaikinya.',
     homeCta: 'Kenali Klub',

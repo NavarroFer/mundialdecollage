@@ -120,7 +120,6 @@ const en: Messages = {
     badges: ['International edition', 'Expert jury', 'Community of collage artists'],
   },
   donate: {
-    eyebrow: 'Self-funded project',
     title: 'Donate to keep it happening',
     body: 'The Collage World Cup is a self-funded project, made with sheer determination. If you like what you see, any contribution helps us keep the open call, the exhibition and the 3D gallery going.',
     galleryBody: "It's a self-funded project. Donate to keep it happening.",
@@ -178,7 +177,6 @@ const en: Messages = {
     openExplorer: 'Explore fullscreen', explorerEyebrow: 'Interactive map', explorerTitle: 'Explore the World Cup', closeExplorer: 'Close map explorer', zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetView: 'Reset world view', explorerHint: 'Drag to explore · use the wheel to zoom', explorerEmptyTitle: 'Choose a country', explorerEmpty: 'Zoom in, explore the map, and select a country with artworks to meet its participants.', explorerCountryHint: 'Published artworks from this community.',
   },
   jury: {
-    eyebrow: 'International jury',
     title1: 'Coming soon',
     title2: 'international jury',
     body: 'A jury with an international track record will review every artwork received. We will announce its members very soon.',
@@ -950,7 +948,6 @@ const en: Messages = {
     price: '{ars} a month with Mercado Pago, or {usd} a month with PayPal if you are outside Argentina.',
     cancel: 'Cancel any time. If you pause, your gallery stops being shown, but you keep your coins and everything you unlocked.',
     cta: 'I want my gallery',
-    homeEyebrow: 'World Cup Club',
     homeTitle: 'Your own 3D gallery, open every day',
     homeBody: 'A permanent room for your whole series, with themes, frames and coins to improve it.',
     homeCta: 'Discover the Club',

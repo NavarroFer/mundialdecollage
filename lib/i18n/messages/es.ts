@@ -122,7 +122,6 @@ const es = {
     badges: ['Edición internacional', 'Jurado especializado', 'Comunidad de collagistas'],
   },
   donate: {
-    eyebrow: 'Proyecto autogestivo',
     title: 'Doná para que siga ocurriendo',
     body: 'El Mundial de Collage es un proyecto autogestivo, hecho a pulmón. Si te gusta lo que ves, cualquier aporte nos ayuda a sostener la convocatoria, la muestra y la galería 3D.',
     galleryBody: 'Es un proyecto autogestivo. Doná para que siga ocurriendo.',
@@ -180,7 +179,6 @@ const es = {
     openExplorer: 'Explorar en pantalla completa', explorerEyebrow: 'Mapa interactivo', explorerTitle: 'Explorá el Mundial', closeExplorer: 'Cerrar explorador del mapa', zoomIn: 'Acercar mapa', zoomOut: 'Alejar mapa', resetView: 'Restablecer vista mundial', explorerHint: 'Arrastrá para recorrer · usá la rueda para acercar', explorerEmptyTitle: 'Elegí un país', explorerEmpty: 'Acercate, recorré el mapa y tocá un país con obras para descubrir a quienes participan.', explorerCountryHint: 'Obras publicadas de esta comunidad.',
   },
   jury: {
-    eyebrow: 'Jurado internacional',
     title1: 'Próximamente',
     title2: 'jurado internacional',
     body: 'Un jurado con trayectoria internacional va a evaluar cada obra recibida. Muy pronto anunciamos quiénes lo integran.',
@@ -988,7 +986,6 @@ const es = {
     price: '{ars} por mes con Mercado Pago, o {usd} por mes con PayPal si estás fuera de Argentina.',
     cancel: 'Podés cancelar cuando quieras. Si pausás, tu galería deja de mostrarse, pero conservás tus monedas y todo lo que destrabaste.',
     cta: 'Quiero mi galería',
-    homeEyebrow: 'Club del Mundial',
     homeTitle: 'Tu galería 3D propia, abierta todos los días',
     homeBody: 'Una sala permanente para toda tu serie, con temas, marcos y monedas para mejorarla.',
     homeCta: 'Conocer el Club',

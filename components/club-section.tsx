@@ -16,8 +16,7 @@ export async function ClubSection() {
       <FadeIn>
         <div className="rounded-3xl border-2 border-ink/10 bg-collage-blue/5 p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8">
           <div>
-            <p className="text-xs font-bold tracking-[0.2em] text-collage-red uppercase">{t.homeEyebrow}</p>
-            <h2 id="club-home-title" className="font-display mt-2 text-2xl tracking-tight text-ink uppercase sm:text-3xl">{t.homeTitle}</h2>
+            <h2 id="club-home-title" className="font-display text-2xl tracking-tight text-ink uppercase sm:text-3xl">{t.homeTitle}</h2>
             <p className="mt-2 text-sm text-muted-foreground sm:text-base">{t.homeBody}</p>
           </div>
           <Link href="/club" className="mt-5 inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full bg-ink px-6 font-bold text-white sm:mt-0">

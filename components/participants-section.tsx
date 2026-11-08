@@ -16,10 +16,7 @@ export async function ParticipantsSection() {
     <section id="participantes" className="border-t-2 border-ink/10 bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-4xl px-5 sm:px-8">
         <FadeIn>
-          <p className="text-center text-sm font-bold tracking-[0.25em] text-collage-red uppercase">
-            {m.participants.eyebrow}
-          </p>
-          <h2 className="font-display mt-3 text-center text-3xl tracking-tight uppercase sm:text-4xl">
+          <h2 className="font-display text-center text-3xl tracking-tight uppercase sm:text-4xl">
             {m.participants.title}
           </h2>
         </FadeIn>

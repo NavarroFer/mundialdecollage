@@ -120,7 +120,6 @@ const de: Messages = {
     badges: ['Internationale Ausgabe', 'Fachjury', 'Community von Collagist:innen'],
   },
   donate: {
-    eyebrow: 'Selbstorganisiertes Projekt',
     title: 'Spende, damit es weitergeht',
     body: 'Die Collage-WM ist ein selbstorganisiertes Projekt, getragen von viel Herzblut. Wenn dir gefällt, was du siehst, hilft uns jeder Beitrag, den Aufruf, die Ausstellung und die 3D-Galerie am Laufen zu halten.',
     galleryBody: 'Ein selbstorganisiertes Projekt. Spende, damit es weitergeht.',
@@ -178,7 +177,6 @@ const de: Messages = {
     openExplorer: 'Vollbild erkunden', explorerEyebrow: 'Interaktive Karte', explorerTitle: 'Die Weltmeisterschaft erkunden', closeExplorer: 'Kartenansicht schließen', zoomIn: 'Karte vergrößern', zoomOut: 'Karte verkleinern', resetView: 'Weltansicht zurücksetzen', explorerHint: 'Zum Erkunden ziehen · mit dem Rad zoomen', explorerEmptyTitle: 'Land auswählen', explorerEmpty: 'Vergrößere die Karte und wähle ein Land mit Werken.', explorerCountryHint: 'Veröffentlichte Werke dieser Gemeinschaft.',
   },
   jury: {
-    eyebrow: 'Internationale Jury',
     title1: 'Demnächst',
     title2: 'internationale Jury',
     body: 'Eine international erfahrene Jury bewertet jedes eingereichte Werk. Wer dazugehört, geben wir sehr bald bekannt.',
@@ -949,7 +947,6 @@ const de: Messages = {
     price: '{ars} pro Monat mit Mercado Pago oder {usd} pro Monat mit PayPal, wenn du außerhalb Argentiniens bist.',
     cancel: 'Jederzeit kündbar. Wenn du pausierst, wird deine Galerie nicht mehr gezeigt, aber du behältst deine Münzen und alles, was du freigeschaltet hast.',
     cta: 'Ich möchte meine Galerie',
-    homeEyebrow: 'Club der Weltmeisterschaft',
     homeTitle: 'Deine eigene 3D-Galerie, jeden Tag geöffnet',
     homeBody: 'Ein dauerhafter Raum für deine ganze Serie, mit Themen, Rahmen und Münzen zum Verbessern.',
     homeCta: 'Den Club entdecken',
