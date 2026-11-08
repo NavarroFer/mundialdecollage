@@ -264,6 +264,10 @@ const en: Messages = {
     onArtwork: 'on “{title}”',
     previewTitle: 'Preview:',
     previewBody: 'your profile isn’t published yet. For now only you can see it.',
+    bioTitle: 'Link for your bio',
+    bioBody: 'Paste it in your Instagram bio, or print the QR code so people can find you.',
+    bioQr: 'Download QR',
+    bioQrAlt: 'QR code that leads to your profile',
     loadError: 'We couldn’t load the likes and comments.',
   },
   countrySelect: {

@@ -264,6 +264,10 @@ const id: Messages = {
     onArtwork: 'di «{title}»',
     previewTitle: 'Pratinjau:',
     previewBody: 'profilmu belum dipublikasikan. Untuk sekarang hanya kamu yang bisa melihatnya.',
+    bioTitle: 'Tautan untuk bio',
+    bioBody: 'Tempel di bio Instagram-mu, atau cetak kode QR-nya agar orang bisa menemukanmu.',
+    bioQr: 'Unduh QR',
+    bioQrAlt: 'Kode QR menuju profilmu',
     loadError: 'Kami tidak dapat memuat suka dan komentar.',
   },
   countrySelect: {

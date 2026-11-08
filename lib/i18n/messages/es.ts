@@ -266,6 +266,10 @@ const es = {
     onArtwork: 'en «{title}»',
     previewTitle: 'Vista previa:',
     previewBody: 'tu perfil todavía no está publicado. Por ahora solo lo ves vos.',
+    bioTitle: 'Link para tu bio',
+    bioBody: 'Pegalo en la bio de tu Instagram o imprimí el código QR para que te encuentren.',
+    bioQr: 'Descargar QR',
+    bioQrAlt: 'Código QR que lleva a tu perfil',
     loadError: 'No pudimos cargar los me gusta y los comentarios.',
   },
   countrySelect: {

@@ -269,6 +269,10 @@ const ru: Messages = {
     onArtwork: 'к «{title}»',
     previewTitle: 'Предпросмотр:',
     previewBody: 'ваш профиль ещё не опубликован. Пока его видите только вы.',
+    bioTitle: 'Ссылка для био',
+    bioBody: 'Вставьте её в био Instagram или распечатайте QR-код, чтобы вас находили.',
+    bioQr: 'Скачать QR',
+    bioQrAlt: 'QR-код, ведущий на ваш профиль',
     loadError: 'Не удалось загрузить лайки и комментарии.',
   },
   countrySelect: {

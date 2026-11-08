@@ -16,6 +16,7 @@ import { imageSrc } from '@/lib/image-src'
 import { ArtistFeed } from './artist-feed'
 import { ArtistStats } from './artist-stats'
 import { ShareProfile } from './share-profile'
+import { BioLink } from './bio-link'
 
 // Public profiles reflect curation immediately and are never built from stale
 // data. Params are promises in this project's Next.js version.
@@ -65,6 +66,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
   const preview = publicArtist ? undefined : await getOwnArtistPreview(slug, viewer?.id)
   const artist = publicArtist ?? preview
   if (!artist) notFound()
+  const isOwn = Boolean(viewer && artistProfileIdFromSlug(artist.slug) === viewer.id.toLowerCase())
 
   const country = countryCodeToName(artist.countryCode, locale)
 
@@ -161,13 +163,9 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
 
           {/* An unpublished profile's link would 404 for everyone else. */}
           {!preview && (
-            <section className="pb-10 sm:pb-14">
-              <ShareProfile
-                slug={artist.slug}
-                name={artist.name}
-                artworkSlug={artist.artworks[0].slug}
-                isOwn={viewer ? artistProfileIdFromSlug(artist.slug) === viewer.id.toLowerCase() : false}
-              />
+            <section className="flex flex-col gap-5 pb-10 sm:pb-14">
+              <ShareProfile slug={artist.slug} name={artist.name} artworkSlug={artist.artworks[0].slug} isOwn={isOwn} />
+              {isOwn && <BioLink slug={artist.slug} />}
             </section>
           )}
 

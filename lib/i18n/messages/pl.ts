@@ -269,6 +269,10 @@ const pl: Messages = {
     onArtwork: 'do „{title}”',
     previewTitle: 'Podgląd:',
     previewBody: 'Twój profil nie jest jeszcze opublikowany. Na razie widzisz go tylko Ty.',
+    bioTitle: 'Link do bio',
+    bioBody: 'Wklej go do bio na Instagramie albo wydrukuj kod QR, żeby łatwo Cię znaleźć.',
+    bioQr: 'Pobierz kod QR',
+    bioQrAlt: 'Kod QR prowadzący do Twojego profilu',
     loadError: 'Nie udało się wczytać polubień i komentarzy.',
   },
   countrySelect: {

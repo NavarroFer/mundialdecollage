@@ -264,6 +264,10 @@ const pt: Messages = {
     onArtwork: 'em «{title}»',
     previewTitle: 'Prévia:',
     previewBody: 'seu perfil ainda não está publicado. Por enquanto só você vê.',
+    bioTitle: 'Link para sua bio',
+    bioBody: 'Cole na bio do seu Instagram ou imprima o QR code para que te encontrem.',
+    bioQr: 'Baixar QR',
+    bioQrAlt: 'QR code que leva ao seu perfil',
     loadError: 'Não conseguimos carregar as curtidas e os comentários.',
   },
   countrySelect: {

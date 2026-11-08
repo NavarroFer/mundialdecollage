@@ -4,6 +4,7 @@ import { Boxes, CheckCircle2, ShieldCheck, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { SignOutButton } from '@/components/auth/sign-out-button'
+import { artistProfileSlug } from '@/lib/artist-slug'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
@@ -42,26 +43,38 @@ async function AuthSlot() {
   // Admins never submit an artwork, so skip the extra profile lookup for
   // them entirely (same as app/onboarding/page.tsx).
   let isParticipating = false
+  let profileHref: string | null = null
   if (!isAdmin) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('onboarded_at')
+      .select('onboarded_at, name')
       .eq('id', user.id)
       .maybeSingle()
     isParticipating = Boolean(profile?.onboarded_at)
+    // A participating artist's greeting leads to their own profile.
+    if (isParticipating && profile?.name) profileHref = `/artistas/${artistProfileSlug(profile.name, user.id)}`
   }
+  const greeting = (
+    <>
+      {firstName ? fmt(m.header.helloName, { name: firstName }) : m.header.hello}
+      {isParticipating && (
+        <CheckCircle2
+          className="h-4 w-4 text-collage-blue"
+          aria-label={m.header.participating}
+        />
+      )}
+    </>
+  )
 
   return (
     <div className="hidden items-center gap-3 sm:flex">
-      <span className="flex items-center gap-1.5 text-sm font-medium text-ink/70">
-        {firstName ? fmt(m.header.helloName, { name: firstName }) : m.header.hello}
-        {isParticipating && (
-          <CheckCircle2
-            className="h-4 w-4 text-collage-blue"
-            aria-label={m.header.participating}
-          />
-        )}
-      </span>
+      {profileHref ? (
+        <TrackedLink href={profileHref} prefetch={false} event="header_profile_click" title={m.common.viewMyProfile} className="flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-ink/70 underline-offset-4 hover:text-ink hover:underline">
+          {greeting}
+        </TrackedLink>
+      ) : (
+        <span className="flex items-center gap-1.5 text-sm font-medium text-ink/70">{greeting}</span>
+      )}
       {isAdmin && (
         <Link href="/admin/estadisticas">
           <Button size="sm" variant="outline" className="gap-1.5">
