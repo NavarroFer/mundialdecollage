@@ -268,6 +268,10 @@ const de: Messages = {
     bioBody: 'Füge ihn in deine Instagram-Bio ein oder drucke den QR-Code aus, damit man dich findet.',
     bioQr: 'QR herunterladen',
     bioQrAlt: 'QR-Code, der zu deinem Profil führt',
+    clubBody: 'Besuche den dauerhaften 3D-Raum von {name} im Club der Weltmeisterschaft, mit der ganzen Serie.',
+    clubOwnBody: 'Dein dauerhafter 3D-Raum, jeden Tag geöffnet. Teile ihn zusammen mit deinem Profil.',
+    clubOwnCta: 'Meine Galerie betreten',
+    clubInvite: 'Machst du Collagen? Hol dir deine eigene 3D-Galerie im Club der Weltmeisterschaft.',
     loadError: 'Likes und Kommentare konnten nicht geladen werden.',
   },
   countrySelect: {

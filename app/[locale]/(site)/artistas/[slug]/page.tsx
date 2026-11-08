@@ -17,6 +17,8 @@ import { ArtistFeed } from './artist-feed'
 import { ArtistStats } from './artist-stats'
 import { ShareProfile } from './share-profile'
 import { BioLink } from './bio-link'
+import { ClubOnProfile } from './club-on-profile'
+import { isClubOpen } from '@/lib/club-launch'
 
 // Public profiles reflect curation immediately and are never built from stale
 // data. Params are promises in this project's Next.js version.
@@ -66,6 +68,13 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
   const preview = publicArtist ? undefined : await getOwnArtistPreview(slug, viewer?.id)
   const artist = publicArtist ?? preview
   if (!artist) notFound()
+  const clubTexts = {
+    eyebrow: m.clubLanding.homeEyebrow,
+    title: m.clubLanding.homeTitle,
+    body: m.clubLanding.homeBody,
+    cta: m.clubLanding.homeCta,
+    enter: m.clubLanding.mapEnter,
+  }
   const isOwn = Boolean(viewer && artistProfileIdFromSlug(artist.slug) === viewer.id.toLowerCase())
 
   const country = countryCodeToName(artist.countryCode, locale)
@@ -152,6 +161,10 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             </div>
           </header>
 
+          <div className="empty:hidden pb-8">
+            <ClubOnProfile slug={artist.slug} name={artist.name} isOwn={isOwn} clubOpen={isClubOpen()} show="gallery" texts={clubTexts} />
+          </div>
+
           <section className="pb-10 sm:pb-14" aria-label={m.collage.label}>
             <ArtistFeed
               slug={artist.slug}
@@ -166,6 +179,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             <section className="flex flex-col gap-5 pb-10 sm:pb-14">
               <ShareProfile slug={artist.slug} name={artist.name} artworkSlug={artist.artworks[0].slug} isOwn={isOwn} />
               {isOwn && <BioLink slug={artist.slug} />}
+              <ClubOnProfile slug={artist.slug} name={artist.name} isOwn={isOwn} clubOpen={isClubOpen()} show="invite" texts={clubTexts} />
             </section>
           )}
 

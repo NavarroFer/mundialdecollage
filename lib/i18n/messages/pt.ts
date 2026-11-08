@@ -268,6 +268,10 @@ const pt: Messages = {
     bioBody: 'Cole na bio do seu Instagram ou imprima o QR code para que te encontrem.',
     bioQr: 'Baixar QR',
     bioQrAlt: 'QR code que leva ao seu perfil',
+    clubBody: 'Percorra a sala 3D permanente de {name} no Clube do Mundial, com toda a sua série.',
+    clubOwnBody: 'Sua sala 3D permanente, aberta todos os dias. Compartilhe junto com seu perfil.',
+    clubOwnCta: 'Entrar na minha galeria',
+    clubInvite: 'Você faz colagem? Tenha sua própria galeria 3D no Clube do Mundial.',
     loadError: 'Não conseguimos carregar as curtidas e os comentários.',
   },
   countrySelect: {

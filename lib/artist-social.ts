@@ -26,6 +26,13 @@ export type ArtistSocial = {
   totals: { likes: number; comments: number }
   /** Newest first, at most ARTIST_COMMENTS_SHOWN. */
   comments: ArtistSocialComment[]
+  /**
+   * The artist's Club gallery while it's active, so the profile can lead to
+   * it. Here rather than in the page: a gallery starts or stops with a
+   * payment, which nothing in the app hears, and this answer is at most
+   * 10 minutes old while the profile's static copy can be a day old.
+   */
+  club?: { slug: string; title: string } | null
 }
 
 type ArtworkRef = { id: string; slug: string }
@@ -58,6 +65,22 @@ export function buildArtistSocial(artworks: ArtworkRef[], counts: Counts[], comm
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, ARTIST_COMMENTS_SHOWN),
   }
+}
+
+// Active galleries are public (RLS "club galleries: public reads active").
+async function activeClubGallery(profileId: string): Promise<ArtistSocial['club']> {
+  const { data, error } = await createPublicClient()
+    .from('club_galleries')
+    .select('slug, title')
+    .eq('user_id', profileId)
+    .eq('status', 'active')
+    .maybeSingle()
+  // The likes and comments still matter without it.
+  if (error) {
+    console.error('artist social: club gallery read failed', error.message)
+    return null
+  }
+  return data ? { slug: data.slug, title: data.title } : null
 }
 
 export async function getArtistSocial(slug: string): Promise<ArtistSocial | undefined> {
@@ -96,5 +119,5 @@ export async function getArtistSocial(slug: string): Promise<ArtistSocial | unde
       .limit(ARTIST_COMMENTS_SHOWN),
   ])
   if (latest.error) throw new Error(latest.error.message)
-  return buildArtistSocial(artworks, counts, (latest.data ?? []) as CommentRow[])
+  return { ...buildArtistSocial(artworks, counts, (latest.data ?? []) as CommentRow[]), club: await activeClubGallery(profileId) }
 }

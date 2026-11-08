@@ -268,6 +268,10 @@ const id: Messages = {
     bioBody: 'Tempel di bio Instagram-mu, atau cetak kode QR-nya agar orang bisa menemukanmu.',
     bioQr: 'Unduh QR',
     bioQrAlt: 'Kode QR menuju profilmu',
+    clubBody: 'Jelajahi ruang 3D permanen milik {name} di Klub Piala Dunia, dengan seluruh serinya.',
+    clubOwnBody: 'Ruang 3D permanenmu, buka setiap hari. Bagikan bersama profilmu.',
+    clubOwnCta: 'Masuk ke galeriku',
+    clubInvite: 'Kamu membuat kolase? Punyai galeri 3D sendiri di Klub Piala Dunia.',
     loadError: 'Kami tidak dapat memuat suka dan komentar.',
   },
   countrySelect: {

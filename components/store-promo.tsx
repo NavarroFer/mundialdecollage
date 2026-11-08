@@ -4,7 +4,7 @@ import type { FunnelEvent } from '@/lib/funnel'
 import type { Messages } from '@/lib/i18n/messages'
 import { cn } from '@/lib/utils'
 
-function PromoCard({ href, event, icon: Icon, eyebrow, title, body, cta, className }: {
+export function PromoCard({ href, event, icon: Icon, eyebrow, title, body, cta, className }: {
   href: string
   event: FunnelEvent
   icon: typeof PackageOpen

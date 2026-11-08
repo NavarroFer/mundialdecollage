@@ -273,6 +273,10 @@ const pl: Messages = {
     bioBody: 'Wklej go do bio na Instagramie albo wydrukuj kod QR, żeby łatwo Cię znaleźć.',
     bioQr: 'Pobierz kod QR',
     bioQrAlt: 'Kod QR prowadzący do Twojego profilu',
+    clubBody: 'Zwiedź stałą salę 3D {name} w Klubie Mistrzostw, z całą serią prac.',
+    clubOwnBody: 'Twoja stała sala 3D, otwarta codziennie. Udostępnij ją razem z profilem.',
+    clubOwnCta: 'Wejdź do mojej galerii',
+    clubInvite: 'Tworzysz kolaże? Załóż własną galerię 3D w Klubie Mistrzostw.',
     loadError: 'Nie udało się wczytać polubień i komentarzy.',
   },
   countrySelect: {

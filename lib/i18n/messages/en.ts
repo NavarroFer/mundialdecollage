@@ -268,6 +268,10 @@ const en: Messages = {
     bioBody: 'Paste it in your Instagram bio, or print the QR code so people can find you.',
     bioQr: 'Download QR',
     bioQrAlt: 'QR code that leads to your profile',
+    clubBody: 'Walk through {name}’s permanent 3D room in the World Cup Club, with their whole series.',
+    clubOwnBody: 'Your permanent 3D room, open every day. Share it along with your profile.',
+    clubOwnCta: 'Enter my gallery',
+    clubInvite: 'Do you make collage? Get your own 3D gallery in the World Cup Club.',
     loadError: 'We couldn’t load the likes and comments.',
   },
   countrySelect: {
