@@ -39,6 +39,7 @@ export function ArtistFeed({
   const id = useId()
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ artworks: null, comments: null })
   const t = m.artistProfile
+  const single = artworks.length === 1
 
   const summary = (artwork: ArtistProfileArtwork) => ({
     slug: artwork.slug, artworkTitle: artwork.title, name: artistName, countryCode, imageUrl: artwork.imageUrl,
@@ -87,7 +88,8 @@ export function ArtistFeed({
       </div>
 
       <div role="tabpanel" id={`${id}-artworks`} aria-labelledby={`${id}-artworks-tab`} hidden={tab !== 'artworks'} className="pt-4">
-        <ul className="grid grid-cols-3 gap-1 sm:gap-2">
+        {/* A single obra fills the column, like an open post; more go in the grid. */}
+        <ul className={single ? 'mx-auto max-w-xl' : 'grid grid-cols-3 gap-1 sm:gap-2'}>
           {artworks.map((artwork) => (
             <li key={artwork.slug}>
               <ArtworkTile
@@ -95,7 +97,21 @@ export function ArtistFeed({
                 obra={summary(artwork)}
                 alt={fmt(m.common.artworkBy, { title: artwork.title ?? m.common.untitled, name: artistName })}
                 counts={social === undefined ? undefined : social?.artworks[artwork.slug] ?? null}
+                large={single}
               />
+              {/* The open post's caption: what the grid leaves to the popup. */}
+              {single && (
+                <div className="mt-4">
+                  {artwork.technique && (
+                    <p className="text-xs font-bold tracking-[0.2em] text-collage-red uppercase">
+                      {m.common.techniques[artwork.technique] ?? artwork.technique}
+                    </p>
+                  )}
+                  <h2 className="font-display mt-1 text-2xl tracking-tight text-ink uppercase">
+                    {artwork.title ?? m.common.untitled}
+                  </h2>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -114,12 +130,15 @@ function ArtworkTile({
   obra,
   alt,
   counts,
+  large,
 }: {
   artwork: ArtistProfileArtwork
   obra: ArtworkSummary
   alt: string
   /** undefined while loading, null if it couldn't. */
   counts: { likes: number; comments: number } | null | undefined
+  /** The artist's only obra, shown across the whole column. */
+  large: boolean
 }) {
   const { locale, m } = useI18n()
   const t = m.artistProfile
@@ -131,11 +150,11 @@ function ArtworkTile({
   const figures = counts && (
     <>
       <span className="inline-flex items-center gap-1">
-        <Heart className="h-4 w-4 fill-current" aria-hidden />
+        <Heart className="h-[1.1em] w-[1.1em] fill-current" aria-hidden />
         {formatNumber(locale, counts.likes)}
       </span>
       <span className="inline-flex items-center gap-1">
-        <MessageCircle className="h-4 w-4 fill-current" aria-hidden />
+        <MessageCircle className="h-[1.1em] w-[1.1em] fill-current" aria-hidden />
         {formatNumber(locale, counts.comments)}
       </span>
     </>
@@ -144,12 +163,12 @@ function ArtworkTile({
   return (
     <ObraLink
       obra={obra}
-      className="group relative block aspect-square overflow-hidden rounded-md bg-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-collage-blue/40"
+      className={`group relative block aspect-square overflow-hidden ${large ? 'rounded-2xl' : 'rounded-md'} bg-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-collage-blue/40`}
     >
       <img
-        src={imageSrc(artwork.imageUrl, 640)}
-        srcSet={imageSrcSet(artwork.imageUrl, 640)}
-        sizes="(min-width: 1024px) 300px, calc((100vw - 40px) / 3)"
+        src={imageSrc(artwork.imageUrl, large ? 828 : 640)}
+        srcSet={imageSrcSet(artwork.imageUrl, large ? 1200 : 640)}
+        sizes={large ? '(min-width: 640px) 576px, calc(100vw - 32px)' : '(min-width: 1024px) 300px, calc((100vw - 40px) / 3)'}
         loading="lazy"
         decoding="async"
         alt={alt}
@@ -161,14 +180,14 @@ function ArtworkTile({
           {/* Phones and tablets: always in view, small, at the bottom. */}
           <span
             aria-hidden
-            className="absolute inset-x-0 bottom-0 flex gap-3 bg-gradient-to-t from-ink/75 to-transparent px-2 pt-6 pb-1.5 text-xs font-bold text-white pointer-fine:hidden"
+            className={`absolute inset-x-0 bottom-0 flex gap-3 bg-gradient-to-t from-ink/75 to-transparent px-2 font-bold text-white pointer-fine:hidden ${large ? 'gap-4 px-4 pt-10 pb-3 text-base' : 'pt-6 pb-1.5 text-xs'}`}
           >
             {figures}
           </span>
           {/* With a mouse: centred over the obra on hover, as on Instagram. */}
           <span
             aria-hidden
-            className="absolute inset-0 hidden items-center justify-center gap-6 bg-ink/45 text-lg font-bold text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none pointer-fine:flex"
+            className={`absolute inset-0 hidden items-center justify-center gap-6 bg-ink/45 ${large ? 'text-2xl' : 'text-lg'} font-bold text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none pointer-fine:flex`}
           >
             {figures}
           </span>
