@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Copy, Download, Link2 } from 'lucide-react'
 import { track } from '@/lib/track'
 import { useI18n } from '@/lib/i18n/client'
@@ -11,24 +11,28 @@ const pill =
 // Only the profile's owner sees this: the link to paste in an Instagram bio
 // and a QR code to print or post. The QR is drawn here in the browser, with
 // the library loaded on demand, so neither costs the server anything.
+const noopSubscribe = () => () => {}
+
 export function BioLink({ slug }: { slug: string }) {
   const { m } = useI18n()
   const t = m.artistProfile
-  const [url, setUrl] = useState('')
+  // The origin only exists in the browser: empty on the server render, then
+  // read once on the client without a state update inside an effect.
+  const origin = useSyncExternalStore(noopSubscribe, () => window.location.origin, () => '')
+  const url = origin ? `${origin}/artistas/${slug}` : ''
   const [qr, setQr] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
 
   useEffect(() => {
-    const link = `${window.location.origin}/artistas/${slug}`
-    setUrl(link)
+    if (!url) return
     let cancelled = false
     import('qrcode')
-      .then((QRCode) => QRCode.toDataURL(link, { width: 1024, margin: 2, errorCorrectionLevel: 'M' }))
+      .then((QRCode) => QRCode.toDataURL(url, { width: 1024, margin: 2, errorCorrectionLevel: 'M' }))
       .then((data) => { if (!cancelled) setQr(data) })
       .catch(() => { /* The link still works without its QR. */ })
     return () => { cancelled = true }
-  }, [slug])
+  }, [url])
 
   async function copy() {
     setCopied(false)
