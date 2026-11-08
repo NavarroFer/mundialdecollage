@@ -248,7 +248,6 @@ const en: Messages = {
     likes: p({ one: '{count} like', other: '{count} likes' }),
     comments: p({ one: '{count} comment', other: '{count} comments' }),
     noComments: 'No one has commented on these artworks yet.',
-    commentInGallery: 'Comment in the 3D Gallery',
     onArtwork: 'on “{title}”',
     previewTitle: 'Preview:',
     previewBody: 'your profile isn’t published yet. For now only you can see it.',

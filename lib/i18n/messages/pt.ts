@@ -248,7 +248,6 @@ const pt: Messages = {
     likes: p({ one: '{count} curtida', other: '{count} curtidas' }),
     comments: p({ one: '{count} comentário', other: '{count} comentários' }),
     noComments: 'Ainda ninguém comentou estas obras.',
-    commentInGallery: 'Comente na Galeria 3D',
     onArtwork: 'em «{title}»',
     previewTitle: 'Prévia:',
     previewBody: 'seu perfil ainda não está publicado. Por enquanto só você vê.',

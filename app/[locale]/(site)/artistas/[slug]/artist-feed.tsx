@@ -3,17 +3,16 @@
 /* Supabase Storage URLs vary by environment and are not restricted to one Next Image host. */
 /* eslint-disable @next/next/no-img-element */
 
-import { useId, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { Grid3x3, Heart, MessageCircle } from 'lucide-react'
-import Link from 'next/link'
-import { ObraLink } from '@/components/obra-modal'
+import { ObraLink, useOpenObra } from '@/components/obra-modal'
 import type { ArtistProfileArtwork } from '@/lib/artist-profiles'
 import type { ArtistSocial } from '@/lib/artist-social'
 import type { ArtworkSummary } from '@/lib/finalists'
-import { galleryArtworkPath } from '@/lib/gallery-return'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, formatDayMonth, formatNumber, plural } from '@/lib/i18n/format'
 import { imageSrc, imageSrcSet } from '@/lib/image-src'
+import { armProfileReturn, OBRA_LIKED_EVENT, readProfileReturn, withoutReturnParams } from '@/lib/profile-return'
 import { useArtistSocial } from './use-artist-social'
 
 type Tab = 'artworks' | 'comments'
@@ -21,7 +20,8 @@ const TABS: Tab[] = ['artworks', 'comments']
 
 // The artist's obras as an Instagram profile shows posts: a square grid with
 // each obra's likes and comments, and next to it a tab with the latest
-// comments their obras received. Clicking an obra opens it in the popup.
+// comments their obras received. Clicking an obra opens it in the popup,
+// where anyone can like it and comment (components/obra-social.tsx).
 export function ArtistFeed({
   slug,
   artistName,
@@ -35,11 +35,39 @@ export function ArtistFeed({
 }) {
   const { m } = useI18n()
   const social = useArtistSocial(slug)
+  const openObra = useOpenObra()
   const [tab, setTab] = useState<Tab>('artworks')
+  // Likes given in this visit, on top of the cached totals (which refresh
+  // every few minutes): the visitor sees theirs counted right away.
+  const [liked, setLiked] = useState<Record<string, number>>({})
   const id = useId()
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ artworks: null, comments: null })
   const t = m.artistProfile
   const single = artworks.length === 1
+
+  useEffect(() => {
+    const onLiked = (event: Event) => {
+      const likedSlug = (event as CustomEvent<{ slug: string }>).detail.slug
+      setLiked((current) => ({ ...current, [likedSlug]: (current[likedSlug] ?? 0) + 1 }))
+    }
+    window.addEventListener(OBRA_LIKED_EVENT, onLiked)
+    return () => window.removeEventListener(OBRA_LIKED_EVENT, onLiked)
+  }, [])
+
+  // Back from Google after liking or commenting here: reopen that obra, where
+  // the action finishes. The address is read in the browser (this page is
+  // static) and cleaned so a reload doesn't repeat it.
+  useEffect(() => {
+    const back = readProfileReturn(window.location.search)
+    if (!back) return
+    const artwork = artworks.find((candidate) => candidate.slug === back.slug)
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${withoutReturnParams(window.location.search)}${window.location.hash}`)
+    if (!artwork || !openObra) return
+    armProfileReturn(back)
+    openObra({ slug: artwork.slug, artworkTitle: artwork.title, name: artistName, countryCode, imageUrl: artwork.imageUrl }, { interactive: true })
+    // Once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const summary = (artwork: ArtistProfileArtwork) => ({
     slug: artwork.slug, artworkTitle: artwork.title, name: artistName, countryCode, imageUrl: artwork.imageUrl,
@@ -96,7 +124,7 @@ export function ArtistFeed({
                 artwork={artwork}
                 obra={summary(artwork)}
                 alt={fmt(m.common.artworkBy, { title: artwork.title ?? m.common.untitled, name: artistName })}
-                counts={social === undefined ? undefined : social?.artworks[artwork.slug] ?? null}
+                counts={withLikes(social === undefined ? undefined : social?.artworks[artwork.slug] ?? null, liked[artwork.slug])}
                 large={single}
               />
               {/* The open post's caption: what the grid leaves to the popup. */}
@@ -123,6 +151,10 @@ export function ArtistFeed({
       </div>
     </div>
   )
+}
+
+function withLikes(counts: { likes: number; comments: number } | null | undefined, extra = 0) {
+  return counts && extra > 0 ? { ...counts, likes: counts.likes + extra } : counts
 }
 
 function ArtworkTile({
@@ -163,6 +195,7 @@ function ArtworkTile({
   return (
     <ObraLink
       obra={obra}
+      interactive
       className={`group relative block aspect-square overflow-hidden ${large ? 'rounded-2xl' : 'rounded-md'} bg-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-collage-blue/40`}
     >
       <img
@@ -231,13 +264,13 @@ function Comments({
       <div className="py-8 text-center">
         <MessageCircle className="mx-auto h-10 w-10 text-ink/30" aria-hidden />
         <p className="mt-3 text-lg text-muted-foreground">{t.noComments}</p>
-        <Link
-          href={galleryArtworkPath(artworks[0].slug)}
-          prefetch={false}
+        <ObraLink
+          obra={summary(artworks[0])}
+          interactive
           className="mt-5 inline-flex min-h-12 items-center rounded-full border-2 border-ink/15 bg-card px-5 py-2 text-base font-semibold text-ink hover:border-ink/30"
         >
-          {t.commentInGallery}
-        </Link>
+          {m.gallery.comments.action}
+        </ObraLink>
       </div>
     )
   }
@@ -249,7 +282,7 @@ function Comments({
         const title = artwork.title ?? m.common.untitled
         return (
           <li key={comment.id} className="flex gap-3 py-4 first:pt-0">
-            <ObraLink obra={summary(artwork)} className="shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-collage-blue/40 rounded-md">
+            <ObraLink obra={summary(artwork)} interactive className="shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-collage-blue/40 rounded-md">
               <img
                 src={imageSrc(artwork.imageUrl, 128)}
                 alt={title}

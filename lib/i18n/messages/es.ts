@@ -250,7 +250,6 @@ const es = {
     likes: p({ one: '{count} me gusta', other: '{count} me gusta' }),
     comments: p({ one: '{count} comentario', other: '{count} comentarios' }),
     noComments: 'Todavía nadie comentó sus obras.',
-    commentInGallery: 'Comentá en la Galería 3D',
     onArtwork: 'en «{title}»',
     previewTitle: 'Vista previa:',
     previewBody: 'tu perfil todavía no está publicado. Por ahora solo lo ves vos.',

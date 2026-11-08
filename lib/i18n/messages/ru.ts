@@ -253,7 +253,6 @@ const ru: Messages = {
     likes: p({ one: '{count} лайк', few: '{count} лайка', many: '{count} лайков', other: '{count} лайка' }),
     comments: p({ one: '{count} комментарий', few: '{count} комментария', many: '{count} комментариев', other: '{count} комментария' }),
     noComments: 'Пока никто не прокомментировал эти работы.',
-    commentInGallery: 'Прокомментировать в 3D-галерее',
     onArtwork: 'к «{title}»',
     previewTitle: 'Предпросмотр:',
     previewBody: 'ваш профиль ещё не опубликован. Пока его видите только вы.',

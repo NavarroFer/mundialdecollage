@@ -248,7 +248,6 @@ const it: Messages = {
     likes: p({ one: '{count} mi piace', other: '{count} mi piace' }),
     comments: p({ one: '{count} commento', other: '{count} commenti' }),
     noComments: 'Nessuno ha ancora commentato queste opere.',
-    commentInGallery: 'Commenta nella Galleria 3D',
     onArtwork: 'su «{title}»',
     previewTitle: 'Anteprima:',
     previewBody: 'il tuo profilo non è ancora pubblicato. Per ora lo vedi solo tu.',

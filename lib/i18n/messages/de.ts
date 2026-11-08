@@ -248,7 +248,6 @@ const de: Messages = {
     likes: p({ one: '{count} Like', other: '{count} Likes' }),
     comments: p({ one: '{count} Kommentar', other: '{count} Kommentare' }),
     noComments: 'Noch hat niemand diese Werke kommentiert.',
-    commentInGallery: 'In der 3D-Galerie kommentieren',
     onArtwork: 'zu „{title}“',
     previewTitle: 'Vorschau:',
     previewBody: 'Dein Profil ist noch nicht veröffentlicht. Bis dahin siehst nur du es.',
