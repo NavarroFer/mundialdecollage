@@ -95,7 +95,7 @@ export default async function PlantillasPage({
           it goes out, and a search by name or subject. */}
       <section className="mt-8 rounded-2xl border-2 border-ink/10 bg-card" aria-label="Filtrar plantillas">
         <div className="px-3 pt-3 pb-2 sm:px-4">
-          <p className="mb-1.5 text-[0.65rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">Público</p>
+          <p className="mb-1.5 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">Público</p>
           <nav className="flex flex-wrap gap-1 rounded-2xl border-2 border-ink/10 bg-background p-1">
             <Link href={href({ publico: null })} className={pill(!publico)}>Todas <span className="opacity-70">{audienceCount(null)}</span></Link>
             {TEMPLATE_AUDIENCES.map((a) => (
@@ -108,7 +108,7 @@ export default async function PlantillasPage({
         </div>
         <div className="flex flex-wrap items-end gap-x-6 gap-y-3 border-t-2 border-ink/10 px-3 py-3 sm:px-4">
           <div>
-            <p className="mb-1.5 text-[0.65rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">Envío</p>
+            <p className="mb-1.5 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">Envío</p>
             <nav className="flex flex-wrap rounded-full border-2 border-ink/10 bg-background p-0.5">
               <Link href={href({ envio: null })} className={pill(!sending)}>Todas <span className="opacity-70">{sendingCount(null)}</span></Link>
               <Link href={href({ envio: 'automatica' })} className={pill(sending === 'automatica')} title="Las manda el sitio solo">Automáticas <span className="opacity-70">{sendingCount('automatica')}</span></Link>

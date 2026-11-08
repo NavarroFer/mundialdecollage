@@ -332,14 +332,14 @@ function RealActions({
                 <SubmitButton
                   size="sm"
                   variant={sibling.isSelected ? 'primary' : 'outline'}
-                  className="h-auto px-1.5 py-0.5 text-[0.6rem]"
+                  className="h-auto px-1.5 py-0.5 text-xs"
                   pendingLabel="…"
                 >
                   {sibling.isSelected ? 'Elegida' : 'Usar'}
                 </SubmitButton>
               </form>
               {sibling.isEntered && !sibling.isSelected && (
-                <span className="text-[0.6rem] font-semibold text-collage-blue">Postulada</span>
+                <span className="text-xs font-semibold text-collage-blue">Postulada</span>
               )}
               <form action={deleteArtwork}>
                 <input type="hidden" name="id" value={sibling.id} />
@@ -456,7 +456,7 @@ function LegacyActions({
                 <SubmitButton
                   size="sm"
                   variant={sibling.selected ? 'primary' : 'outline'}
-                  className="h-auto px-1.5 py-0.5 text-[0.6rem]"
+                  className="h-auto px-1.5 py-0.5 text-xs"
                   pendingLabel="…"
                 >
                   {sibling.selected ? 'Elegida' : 'Usar'}

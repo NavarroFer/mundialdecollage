@@ -65,7 +65,7 @@ export function LegacyImageUpload({ id }: { id: string }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1.5">
       <label
-        className={`inline-flex items-center gap-1 text-[0.65rem] font-semibold text-collage-blue hover:underline ${
+        className={`inline-flex items-center gap-1 text-xs font-semibold text-collage-blue hover:underline ${
           busy ? 'pointer-events-none opacity-60' : 'cursor-pointer'
         }`}
       >
@@ -73,7 +73,7 @@ export function LegacyImageUpload({ id }: { id: string }) {
         Subir imagen
         <input type="file" accept="image/*" className="hidden" disabled={busy} onChange={handleChange} />
       </label>
-      {error && <span className="text-[0.65rem] font-semibold text-collage-red">{error}</span>}
+      {error && <span className="text-xs font-semibold text-collage-red">{error}</span>}
     </span>
   )
 }

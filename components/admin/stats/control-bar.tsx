@@ -117,7 +117,7 @@ export function StatsControlBar({ periods, periodDays, browsers, browser }: {
 function FilterGroup({ title, note, children }: { title: string; note: string; children: ReactNode }) {
   return (
     <div>
-      <p className="text-[10px] font-bold tracking-[0.18em] text-muted-foreground uppercase">{title}</p>
+      <p className="text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">{title}</p>
       <div className="mt-2">{children}</div>
       <p className="mt-1.5 text-xs text-muted-foreground">{note}</p>
     </div>

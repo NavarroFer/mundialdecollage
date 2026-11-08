@@ -170,7 +170,7 @@ function Headline({ spec, value, lead }: { spec: MetricSpec; value: number; lead
   const amount = <Amount parts={spec.parts(value)} className={lead ? 'text-6xl' : 'text-3xl'} />
   const Icon = spec.icon
   if (!Icon) {
-    return <>{amount}<span className="text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">{spec.label}</span></>
+    return <>{amount}<span className="text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">{spec.label}</span></>
   }
   return (
     <span className="flex items-center gap-2">
@@ -215,7 +215,7 @@ function AttentionTable({ rows }: { rows: AttentionRow[] }) {
     <div className={mode === 'slide' ? 'overflow-hidden' : 'max-h-96 overflow-auto rounded-xl border border-ink/10'}>
       <table className="w-full text-left text-sm">
         <thead className="sticky top-0 bg-card">
-          <tr>{head.map(({ key, label }, index) => <th key={key} scope="col" className={`border-b-2 border-ink/10 px-3 py-2 text-[10px] font-bold tracking-[0.12em] whitespace-nowrap text-muted-foreground uppercase ${index ? 'text-right' : ''}`}>{label}</th>)}</tr>
+          <tr>{head.map(({ key, label }, index) => <th key={key} scope="col" className={`border-b-2 border-ink/10 px-3 py-2 text-xs font-bold tracking-[0.12em] whitespace-nowrap text-muted-foreground uppercase ${index ? 'text-right' : ''}`}>{label}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((row) => (

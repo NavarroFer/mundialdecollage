@@ -269,7 +269,7 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
           >
             <SlidersHorizontal className="h-4 w-4" />
             Más filtros
-            {secondaryCount > 0 && <span className="rounded-full bg-collage-blue px-2 py-0.5 text-[0.65rem] text-primary-foreground">{secondaryCount}</span>}
+            {secondaryCount > 0 && <span className="rounded-full bg-collage-blue px-2 py-0.5 text-xs text-primary-foreground">{secondaryCount}</span>}
             <ChevronDown className={cn('h-4 w-4 transition-transform', filtersOpen && 'rotate-180')} />
           </button>
         </div>
@@ -395,7 +395,7 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
 
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[1.2fr_1.65fr_1fr]">
               <fieldset className="rounded-xl border border-ink/10 bg-background/70 p-2.5">
-                <legend className="px-1 text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Técnica</legend>
+                <legend className="px-1 text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">Técnica</legend>
                 <select
                   value=""
                   disabled={isPending}
@@ -410,7 +410,7 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
               </fieldset>
 
               <fieldset className="rounded-xl border border-ink/10 bg-background/70 p-2.5 sm:col-span-2 lg:col-span-1">
-                <legend className="px-1 text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Revisión</legend>
+                <legend className="px-1 text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">Revisión</legend>
                 <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
@@ -440,7 +440,7 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
               </fieldset>
 
               <fieldset className="rounded-xl border border-ink/10 bg-background/70 p-2.5">
-                <legend className="px-1 text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Publicación</legend>
+                <legend className="px-1 text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">Publicación</legend>
                 <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
@@ -492,7 +492,7 @@ function Segmented<T extends string>({ label, value, onChange, options }: {
 }) {
   return (
     <div role="group" aria-label={label}>
-      <p className="mb-1 text-[0.65rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">{label}</p>
+      <p className="mb-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">{label}</p>
       <div className="flex flex-wrap rounded-full border-2 border-ink/10 bg-background p-0.5">
         {options.map((option) => (
           <button
@@ -522,7 +522,7 @@ function FilterSelect({ label, value, onChange, children }: {
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[0.65rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">{label}</span>
+      <span className="mb-1 block text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}

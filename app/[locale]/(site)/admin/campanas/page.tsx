@@ -276,7 +276,7 @@ function CampaignCard({ campaign: c }: { campaign: CampaignRow }) {
           title={date.toLocaleDateString('es-AR', { ...dayFormat, dateStyle: 'full' })}
         >
           <span className="font-display text-2xl">{day}</span>
-          <span className="mt-0.5 text-[10px] font-bold tracking-wider uppercase">{month}</span>
+          <span className="mt-0.5 text-xs font-bold tracking-wider uppercase">{month}</span>
         </div>
 
         <div className="min-w-0 flex-1">

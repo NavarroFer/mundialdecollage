@@ -244,7 +244,7 @@ export default async function ObrasPage({
                   <p className="truncate text-sm font-semibold text-ink">
                     {row.name ?? 'Sin nombre'}
                     {row.promoted && (
-                      <span className="ml-1.5 rounded-full bg-collage-blue/15 px-2 py-0.5 text-[0.65rem] font-semibold text-collage-blue">
+                      <span className="ml-1.5 rounded-full bg-collage-blue/15 px-2 py-0.5 text-xs font-semibold text-collage-blue">
                         Confirmada
                       </span>
                     )}

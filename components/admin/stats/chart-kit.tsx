@@ -75,9 +75,9 @@ export function FigureBlock({ figure, large = false }: { figure: ChartFigure; la
   return (
     <span className={cn('block shrink-0 text-right', !large && 'max-w-44')}>
       <strong className={cn('font-display block leading-none tracking-tight text-ink', large ? 'text-6xl' : 'text-4xl')}>{figure.value}</strong>
-      <span className="mt-1.5 block text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">{figure.label}</span>
+      <span className="mt-1.5 block text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">{figure.label}</span>
       {figure.details?.length ? (
-        <span className="mt-1.5 flex flex-wrap justify-end gap-x-3 gap-y-1 text-[11px] font-semibold text-muted-foreground">
+        <span className="mt-1.5 flex flex-wrap justify-end gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
           {figure.details.map((detail, index) => (
             <span key={index} className="inline-flex items-center gap-1">{detail.series === 'recent' && <SeriesKey color={SERIES.recent} />}{detail.label}</span>
           ))}

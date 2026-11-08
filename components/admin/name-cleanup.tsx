@@ -93,7 +93,7 @@ export function NameCleanup({ items }: { items: NameCleanupItem[] }) {
                 {item.before}
               </span>
               <span className="min-w-0 flex-1 truncate font-semibold text-ink">{item.after}</span>
-              <span className="shrink-0 rounded-full bg-ink/5 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="shrink-0 rounded-full bg-ink/5 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {item.table === 'profiles' ? 'Registrado' : 'Precargado'}
               </span>
             </label>

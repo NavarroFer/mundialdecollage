@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               />
               <span className="font-display text-lg leading-none tracking-wide text-ink">
                 PANEL
-                <span className="block text-[0.6rem] font-sans font-semibold tracking-[0.25em] text-muted-foreground">
+                <span className="block text-xs font-sans font-semibold tracking-[0.2em] text-muted-foreground">
                   ADMINISTRACIÓN
                 </span>
               </span>

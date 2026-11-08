@@ -111,7 +111,7 @@ export function CaptureDialog({
             </DialogPrimitive.Close>
           </div>
           <div className="flex flex-wrap items-center gap-2 border-b border-paper/15 px-4 py-2.5">
-            <span className="mr-1 text-[10px] font-bold tracking-[0.18em] text-paper/60 uppercase">Mostrar</span>
+            <span className="mr-1 text-xs font-bold tracking-[0.18em] text-paper/60 uppercase">Mostrar</span>
             <ToolbarToggle tone="dark" icon={PanelTop} pressed={prefs.header} onPressedChange={(header) => setCapture({ header })}>Título</ToolbarToggle>
             <ToolbarToggle tone="dark" icon={Text} pressed={view.notes} onPressedChange={onNotesChange}>Notas</ToolbarToggle>
             <ToolbarToggle tone="dark" icon={PanelBottom} pressed={prefs.footer} onPressedChange={(footer) => setCapture({ footer })}>Fuente</ToolbarToggle>

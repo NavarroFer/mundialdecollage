@@ -215,7 +215,7 @@ export function EmailBlockEditor({
 
       <details className="rounded-xl border-2 border-dashed border-ink/15 p-3">
         <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">Ver HTML generado</summary>
-        <pre className="mt-2 max-h-64 overflow-auto rounded-lg bg-ink/5 p-2 text-[10px] whitespace-pre-wrap text-muted-foreground">
+        <pre className="mt-2 max-h-64 overflow-auto rounded-lg bg-ink/5 p-2 text-xs whitespace-pre-wrap text-muted-foreground">
           {html}
         </pre>
       </details>

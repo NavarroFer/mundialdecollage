@@ -109,7 +109,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
                           {j.country_code && <><span aria-hidden>{countryCodeToFlag(j.country_code)} </span>{countryCodeToName(j.country_code)}</>}
                         </p>
                       ) : (
-                        <p><span className="rounded-full bg-collage-yellow px-2 py-0.5 text-[0.65rem] font-bold text-ink">Falta país y cargo</span></p>
+                        <p><span className="rounded-full bg-collage-yellow px-2 py-0.5 text-xs font-bold text-ink">Falta país y cargo</span></p>
                       )}
                       {j.bio_short && <p className="mt-1 line-clamp-2 max-w-md text-xs text-muted-foreground">{j.bio_short}</p>}
                       <p className="text-muted-foreground">{j.email}</p>
@@ -163,7 +163,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
 
         <div className="mt-4 flex flex-wrap items-start gap-x-8 gap-y-3 rounded-2xl border-2 border-ink/10 bg-card px-4 py-3">
           <div>
-            <p className="text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Ordenar por</p>
+            <p className="text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">Ordenar por</p>
             <nav aria-label="Orden del ranking" className="mt-1.5 inline-flex rounded-full bg-muted p-1">
               {(['promedio', 'normalizado'] as const).map((option) => (
                 <Link
@@ -179,7 +179,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
             <p className="mt-1.5 max-w-xs text-xs text-muted-foreground">Normalizado compensa a quien puntúa más alto o más bajo que el resto.</p>
           </div>
           <div>
-            <p className="text-[0.65rem] font-bold tracking-[0.16em] text-muted-foreground uppercase">Mostrar</p>
+            <p className="text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">Mostrar</p>
             <nav aria-label="Filtro del ranking" className="mt-1.5 inline-flex flex-wrap rounded-full bg-muted p-1">
               <Link
                 href={rankingHref(mode, false)}
@@ -214,7 +214,7 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-2">
                     <p className="truncate font-semibold text-ink"><span className="mr-1.5 text-muted-foreground">#{item.number}</span>{item.title?.trim() || 'Sin título'}</p>
-                    {item.disputed && <span className="shrink-0 rounded-full bg-collage-yellow px-2 py-0.5 text-[0.65rem] font-bold text-ink">Para discutir</span>}
+                    {item.disputed && <span className="shrink-0 rounded-full bg-collage-yellow px-2 py-0.5 text-xs font-bold text-ink">Para discutir</span>}
                   </div>
                   <p className="truncate text-sm text-muted-foreground">
                     {item.countryCode && <span aria-hidden>{countryCodeToFlag(item.countryCode)} </span>}

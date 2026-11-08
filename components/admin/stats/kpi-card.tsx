@@ -17,7 +17,7 @@ export function KpiCard({ label, value, context, recent, series, highlight = fal
 }) {
   return (
     <div className={cn('flex min-w-0 flex-col rounded-3xl border-2 p-4 sm:p-6', highlight ? 'border-ink bg-ink text-paper' : 'border-ink/10 bg-card text-ink')}>
-      <p className={cn('text-[10px] font-bold tracking-[0.16em] uppercase sm:text-xs sm:tracking-[0.18em]', highlight ? 'text-paper/70' : 'text-muted-foreground')}>{label}</p>
+      <p className={cn('text-xs font-bold tracking-[0.16em] uppercase sm:tracking-[0.18em]', highlight ? 'text-paper/70' : 'text-muted-foreground')}>{label}</p>
       <div className="mt-auto flex items-end justify-between gap-3 pt-4 sm:pt-5">
         <p className="font-display text-4xl leading-none tracking-tight tabular-nums sm:text-5xl">{value}</p>
         {series && series.length > 1 && <Sparkbars values={series} className={cn('mb-1 hidden sm:block', highlight ? 'text-paper' : 'text-collage-blue')} />}
