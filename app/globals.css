@@ -250,6 +250,15 @@
   animation: float-slow 7s ease-in-out infinite;
 }
 
+/* The float never stops on its own, so it goes for reduced motion; the
+   element keeps its tilt (--rot) and just sits still. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow {
+    animation: none;
+    transform: rotate(var(--rot, 0deg));
+  }
+}
+
 .map-explorer-control {
   display: inline-flex;
   width: 2.75rem;
