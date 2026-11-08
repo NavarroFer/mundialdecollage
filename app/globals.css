@@ -114,6 +114,15 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Tailwind's preflight draws placeholders at 50% of the text color, 3.4:1
+     on paper. 64% is the same mix as --muted-foreground (5.5:1 on paper,
+     4.8:1 on --muted), and staying on currentColor keeps it right inside the
+     gallery's dark themes too. A placeholder: utility still wins. */
+  input::placeholder,
+  textarea::placeholder {
+    color: color-mix(in srgb, currentColor 64%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
