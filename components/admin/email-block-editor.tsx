@@ -531,9 +531,13 @@ function ImageBlockFields({
           </label>
         </div>
         {error && <p className="mt-1 text-xs text-collage-red">{error}</p>}
+        {/* Text, not type="url", like the button's link: the profile mail puts
+            a per-artist tag here ({{obra_imagen}}), which the browser's URL
+            validation would refuse, blocking the whole send. */}
         <input
-          type="url"
-          placeholder="…o pegá una URL de imagen"
+          type="text"
+          inputMode="url"
+          placeholder="…o pegá una URL de imagen o {{obra_imagen}}"
           value={block.url}
           onChange={(e) => onChange({ url: e.target.value })}
           className={`${inputClass} text-xs`}
@@ -547,8 +551,9 @@ function ImageBlockFields({
         <div>
           <label className={labelClass}>Link (opcional)</label>
           <input
-            type="url"
-            placeholder="https://…"
+            type="text"
+            inputMode="url"
+            placeholder="https://… o {{perfil_url}}"
             value={block.link}
             onChange={(e) => onChange({ link: e.target.value })}
             className={inputClass}
