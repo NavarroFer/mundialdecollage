@@ -14,6 +14,12 @@ export type ProfileReturn = { slug: string; intent: ProfileIntent }
 const INTENTS: ProfileIntent[] = ['like', 'comment']
 export const RETURN_PARAMS = ['obra', 'accion'] as const
 
+/**
+ * Fired on window when a like is saved, so the profile's grid can count it
+ * right away instead of waiting for its cached totals to refresh.
+ */
+export const OBRA_LIKED_EVENT = 'mdc:obra-liked'
+
 /** `artistHref` is the profile's own path (/artistas/<slug>). */
 export function profileReturnPath(artistHref: string, { slug, intent }: ProfileReturn): string {
   return `${artistHref}?${new URLSearchParams({ obra: slug, accion: intent })}`

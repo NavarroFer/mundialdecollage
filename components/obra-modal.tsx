@@ -17,6 +17,9 @@ import { toSummary } from '@/lib/obra-detail'
 // The history entry of an obra open in the popup carries the card it was
 // opened from; Back and Forward land on it (popstate) and show it again.
 const ENTRY_KEY = 'obraPopup'
+// Whether the popup shows likes and comments (an artist's profile opens it
+// that way). Kept in the entry so Back and Forward restore it as it was.
+const SOCIAL_KEY = 'obraPopupSocial'
 
 function popupEntry(): ArtworkSummary | undefined {
   return window.history.state?.[ENTRY_KEY] ?? undefined
@@ -35,7 +38,16 @@ const ObraPopup = dynamic(() => loadPopup().then((module) => module.ObraPopup), 
   loading: () => <div className="fixed inset-0 z-50 bg-ink/70" aria-hidden="true" />,
 })
 
-const OpenObraContext = createContext<((obra: ArtworkSummary) => void) | null>(null)
+type OpenOptions = {
+  /**
+   * Show likes and comments in the popup. Off by default: they read the
+   * visitor's session on the server, which only the places that offer them
+   * (an artist's profile) should pay for.
+   */
+  interactive?: boolean
+}
+
+const OpenObraContext = createContext<((obra: ArtworkSummary, options?: OpenOptions) => void) | null>(null)
 
 // Opens an obra in the popup; null outside ObraModalProvider.
 export function useOpenObra() {
@@ -45,6 +57,7 @@ export function useOpenObra() {
 export function ObraModalProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [obra, setObra] = useState<ArtworkSummary | null>(null)
+  const [interactive, setInteractive] = useState(false)
   const [seenPathname, setSeenPathname] = useState(pathname)
   const returnFocus = useRef<HTMLElement | null>(null)
 
@@ -58,13 +71,17 @@ export function ObraModalProvider({ children }: { children: ReactNode }) {
     // Reloading keeps the entry's state but shows the full page: forget the
     // popup so going Back and Forward again doesn't open it over that page.
     if (isObraPopupEntry()) window.history.replaceState({ ...window.history.state, [ENTRY_KEY]: undefined }, '')
-    const onPopState = (event: PopStateEvent) => setObra(event.state?.[ENTRY_KEY] ?? null)
+    const onPopState = (event: PopStateEvent) => {
+      setObra(event.state?.[ENTRY_KEY] ?? null)
+      setInteractive(Boolean(event.state?.[SOCIAL_KEY]))
+    }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  const open = useCallback((next: ArtworkSummary) => {
-    const entry = { [ENTRY_KEY]: toSummary(next) }
+  const open = useCallback((next: ArtworkSummary, options?: OpenOptions) => {
+    const social = Boolean(options?.interactive)
+    const entry = { [ENTRY_KEY]: toSummary(next), [SOCIAL_KEY]: social }
     const href = `/obras/${next.slug}`
     // Another obra chosen inside the popup takes this one's place, so Back
     // always returns to the list in one step.
@@ -75,6 +92,7 @@ export function ObraModalProvider({ children }: { children: ReactNode }) {
       window.history.pushState(entry, '', href)
     }
     setObra(next)
+    setInteractive(social)
   }, [])
 
   const close = useCallback(() => {
@@ -85,7 +103,7 @@ export function ObraModalProvider({ children }: { children: ReactNode }) {
   return (
     <OpenObraContext.Provider value={open}>
       {children}
-      {obra && <ObraPopup obra={obra} onClose={close} returnFocus={returnFocus} />}
+      {obra && <ObraPopup obra={obra} interactive={interactive} onClose={close} returnFocus={returnFocus} />}
     </OpenObraContext.Provider>
   )
 }
@@ -94,11 +112,12 @@ export function ObraModalProvider({ children }: { children: ReactNode }) {
 // window (middle click, Ctrl/Cmd+click) still goes to the full page.
 export function ObraLink({
   obra,
+  interactive = false,
   onClick,
   onPointerEnter,
   onFocus,
   ...props
-}: Omit<React.ComponentProps<typeof Link>, 'href' | 'prefetch'> & { obra: ArtworkSummary }) {
+}: Omit<React.ComponentProps<typeof Link>, 'href' | 'prefetch'> & { obra: ArtworkSummary } & OpenOptions) {
   const open = useOpenObra()
   return (
     <Link
@@ -114,7 +133,7 @@ export function ObraLink({
         onClick?.(event)
         if (!open || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
         event.preventDefault()
-        open(obra)
+        open(obra, { interactive })
       }}
     />
   )

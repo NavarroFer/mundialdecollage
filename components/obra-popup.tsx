@@ -14,6 +14,7 @@ import { StorePromo } from '@/components/store-promo'
 import { SurpriseArtwork } from '@/components/surprise-artwork'
 import { TrackView, TrackedLink } from '@/components/track'
 import { ObraLink } from '@/components/obra-modal'
+import { ObraSocial } from '@/components/obra-social'
 import type { ArtworkSummary } from '@/lib/finalists'
 import type { ObraDetail } from '@/lib/obra-detail'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
@@ -52,10 +53,13 @@ const closeButton =
 // country) shows at once; the rest arrives from app/api/obras/[slug].
 export function ObraPopup({
   obra,
+  interactive = false,
   onClose,
   returnFocus,
 }: {
   obra: ArtworkSummary
+  /** Likes and comments, for the places that offer them (an artist's profile). */
+  interactive?: boolean
   onClose: () => void
   returnFocus: RefObject<HTMLElement | null>
 }) {
@@ -167,6 +171,9 @@ export function ObraPopup({
             <div className="mt-10">
               <ShareArtwork slug={obra.slug} title={title} name={obra.name} isPublic isOwn={false} />
             </div>
+
+            {/* key: another obra chosen inside the popup starts its own likes and comments. */}
+            {interactive && detail && <ObraSocial key={obra.slug} slug={obra.slug} artistHref={detail.artistHref} />}
           </div>
 
           {detail === undefined && (
@@ -203,7 +210,7 @@ export function ObraPopup({
                 {detail.related.map((artwork) => {
                   const artworkTitle = artwork.artworkTitle ?? m.common.untitled
                   return (
-                    <ObraLink key={artwork.slug} obra={artwork} className="group overflow-hidden rounded-2xl border-2 border-ink/10 bg-card">
+                    <ObraLink key={artwork.slug} obra={artwork} interactive={interactive} className="group overflow-hidden rounded-2xl border-2 border-ink/10 bg-card">
                       <img
                         src={imageSrc(artwork.imageUrl, 640)}
                         alt={fmt(m.common.artworkBy, { title: artworkTitle, name: artwork.name })}
@@ -240,6 +247,7 @@ export function ObraPopup({
                   <ObraLink
                     key={artwork.slug}
                     obra={artwork}
+                    interactive={interactive}
                     onClick={() => track('artwork_next_click')}
                     className="group flex min-h-28 items-center gap-4 overflow-hidden rounded-2xl border-2 border-ink/10 bg-card text-ink hover:border-collage-blue"
                   >
