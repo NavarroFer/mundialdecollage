@@ -40,7 +40,7 @@ export function Countdown() {
             <span className="font-display text-2xl leading-none text-collage-blue tabular-nums sm:text-3xl">
               {String(time[u]).padStart(2, '0')}
             </span>
-            <span className="mt-1 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {m.countdown[u]}
             </span>
           </div>

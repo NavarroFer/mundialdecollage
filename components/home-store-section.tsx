@@ -129,7 +129,7 @@ export async function HomeStoreSection() {
                       <span className="text-muted-foreground">{home.from} </span>
                       <span className="font-bold">{price.ars}</span> {t.perMonth}
                     </p>
-                    <FreeShippingBadge label={t.freeShipping} className="px-2 py-0.5 text-[0.65rem]" />
+                    <FreeShippingBadge label={t.freeShipping} className="px-2 py-0.5 text-xs" />
                   </div>
                   <p className="text-xs text-muted-foreground">{fmt(home.abroad, { price: price.usd })}</p>
                 </div>

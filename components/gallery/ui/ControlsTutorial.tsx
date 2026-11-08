@@ -101,7 +101,7 @@ function Tutorial({ active, scheme, touch, replay }: { active: boolean; scheme: 
 
   return (
     <aside className={`${styles.hudPanel} ${styles.learningCard}`} aria-label={t.label}>
-      <div className="flex items-center justify-between gap-3 text-[0.68rem] font-extrabold tracking-[0.14em] uppercase">
+      <div className="flex items-center justify-between gap-3 text-xs font-extrabold tracking-[0.14em] uppercase">
         <span>{t.label} · {fmt(t.progress, { current: step ? LEARN_STEPS.indexOf(step) + 1 : LEARN_STEPS.length, total: LEARN_STEPS.length })}</span>
         {step && <button type="button" className="min-h-8 px-1 underline opacity-80 hover:opacity-100" onClick={skip}>{t.skip}</button>}
       </div>

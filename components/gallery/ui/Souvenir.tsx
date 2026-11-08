@@ -151,7 +151,7 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
         >
           <Camera className="h-5 w-5" aria-hidden="true" />
           {/* While walking the mouse is captured, so on a computer the key is the way in. */}
-          {!isTouchDevice && <kbd aria-hidden="true" className="absolute -right-1.5 -bottom-1.5 rounded bg-ink px-1 text-[0.6rem] leading-4 font-bold text-paper">F</kbd>}
+          {!isTouchDevice && <kbd aria-hidden="true" className="absolute -right-1.5 -bottom-1.5 rounded bg-ink px-1 text-xs leading-4 font-bold text-paper">F</kbd>}
           {inline && <span>{t.button}</span>}
         </button>
       )}

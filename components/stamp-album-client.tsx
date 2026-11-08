@@ -135,7 +135,7 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
                 <div className="flex items-baseline justify-between gap-4"><h4 className="font-display text-2xl uppercase">{m.stamps.club.title}</h4><span className="text-sm font-bold">{clubStamps.length}</span></div>
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {clubStamps.map((stamp) => <Link key={`${stamp.slug}:${stamp.kind}`} href={`/club/${stamp.slug}`} className={`group relative block overflow-hidden border-2 border-dashed border-ink p-3 text-center shadow-[3px_3px_0_var(--color-ink)] transition hover:-translate-y-0.5 ${stamp.kind === 'postal' ? 'bg-collage-blue/10' : 'bg-collage-red/10'}`}>
-                    <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase opacity-70">{stamp.kind === 'postal' ? m.stamps.club.postal : m.stamps.club.vernissage}</p>
+                    <p className="text-xs font-bold tracking-[0.2em] uppercase opacity-70">{stamp.kind === 'postal' ? m.stamps.club.postal : m.stamps.club.vernissage}</p>
                     <p className="mt-2 font-display text-lg leading-tight uppercase">{stamp.artist}</p>
                     {stamp.countryCode && <p className="mt-1 text-xs font-semibold text-muted-foreground">{countryCodeToName(stamp.countryCode, locale)}</p>}
                     <p className="mt-2 text-xs tabular-nums text-muted-foreground">{formatDayMonth(locale, stamp.collectedAt)}</p>
