@@ -23,7 +23,7 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 | Facade panel | 2.4 × 1.2 m | Joints are visible; no dimension is readable |
 | Cobble module | 1.5 m | The paving pattern, not a counted paver |
 | Wall thickness | 0.28 m | Reads as a solid concrete wall at eye height |
-| Entrance clear width | 5.2 m | A bank of doors, wider than a single leaf. The photographed steps are omitted: the floor is flush so the walk does not stop on a lip |
+| Entrance clear width | 5.2 m | Still the walkable door bank. Concrete returns now stop about 1.6 m from each jamb, so the slot reads like the frontal photo. Steps stay flush so the walk does not catch a lip |
 | Door head | 3.2 m | Glass continues above the doors to the hall ceiling |
 | Hall, floor to ceiling | 9.0 m | The interior photo is about two stories |
 | Mezzanine walk surface | 4.45 m | About halfway up that photo |

@@ -7,7 +7,7 @@
 import { hang, type GallerySlot, type Hanging } from '@/data/artworks'
 import type { GalleryRoomTemplate, WallSegment } from '../roomsData'
 
-export type MarKind = 'concrete' | 'deck' | 'white' | 'glass' | 'seat' | 'table' | 'curb' | 'trunk'
+export type MarKind = 'concrete' | 'deck' | 'white' | 'glass' | 'mullion' | 'seat' | 'table' | 'curb' | 'trunk' | 'distant'
 
 export type MarBox = {
   id: string
@@ -22,6 +22,8 @@ export type MarBox = {
   path?: boolean
   /** False for a walk-map obstacle that is not a physical wall (the escalator lane). */
   solid?: boolean
+  /** False hides a walk-map-only box (the escalator lane). */
+  visual?: boolean
   freestanding?: true
 }
 
@@ -91,7 +93,7 @@ function box(
   maxY: number,
   maxZ: number,
   kind: MarKind,
-  extra: Partial<Pick<MarBox, 'path' | 'solid' | 'freestanding'>> = {},
+  extra: Partial<Pick<MarBox, 'path' | 'solid' | 'visual' | 'freestanding'>> = {},
 ): MarBox {
   return { id, minX, maxX, minY, maxY, minZ, maxZ, kind, ...extra }
 }
@@ -104,6 +106,31 @@ function wallX(id: string, x0: number, x1: number, z: number, y1: number, kind: 
 /** A wall running along Z, centered on x. */
 function wallZ(id: string, z0: number, z1: number, x: number, y1: number, kind: MarKind = 'concrete', thickness: number = T): MarBox {
   return box(id, x - thickness / 2, 0, z0, x + thickness / 2, y1, z1, kind)
+}
+
+const seeThrough = { path: false as const, solid: false as const }
+
+/** Dark frames on a run of glass along X. Not colliders: the glass wall already stops the walk. */
+function mullionsX(id: string, x0: number, x1: number, z: number, y0: number, y1: number, spacing = 1.2): MarBox[] {
+  const bars: MarBox[] = [
+    box(`${id}-top`, x0, y1 - 0.06, z - 0.05, x1, y1, z + 0.05, 'mullion', seeThrough),
+  ]
+  let i = 0
+  for (let x = x0; x <= x1 + 0.01; x += spacing) {
+    bars.push(box(`${id}-${i++}`, x - 0.028, y0, z - 0.04, x + 0.028, y1, z + 0.04, 'mullion', seeThrough))
+  }
+  return bars
+}
+
+function mullionsZ(id: string, z0: number, z1: number, x: number, y0: number, y1: number, spacing = 1.2): MarBox[] {
+  const bars: MarBox[] = [
+    box(`${id}-top`, x - 0.05, y1 - 0.06, z0, x + 0.05, y1, z1, 'mullion', seeThrough),
+  ]
+  let i = 0
+  for (let z = z0; z <= z1 + 0.01; z += spacing) {
+    bars.push(box(`${id}-${i++}`, x - 0.04, y0, z - 0.028, x + 0.04, y1, z + 0.028, 'mullion', seeThrough))
+  }
+  return bars
 }
 
 const H = MAR.hallHeight
@@ -132,16 +159,16 @@ export const marBoxes: MarBox[] = [
   wallX('mar-west-n', -30, -12, -12, WEST_H),
   wallX('mar-west-s-glass', -30, -12, 8, 3.4, 'glass'),
   box('mar-west-s-up', -30, 3.4, 8 - T / 2, -12, WEST_H, 8 + T / 2, 'concrete'),
-  // Upper floor cantilever toward the plaza, above head height.
-  box('mar-west-cantilever', -26, 5.6, 8, -14, WEST_H, 12.2, 'concrete'),
+  // Upper floor reaches toward the entrance slot. Above head height, so the plaza stays open.
+  box('mar-west-cantilever', -26, 5.6, 8, -4.6, WEST_H, 12.2, 'concrete'),
 
   // East exhibition room.
   wallX('mar-east-n', 14, 32, -18, EAST_H),
   wallX('mar-east-s', 14, 32, -8, EAST_H),
   wallZ('mar-east-e', -18, -8, 32, EAST_H),
 
-  // Right-hand concrete volume on the plaza, with the MAR letters on its south face.
-  box('mar-east-mass', 8, 0, 0.15, 28, EAST_H, 5.6, 'concrete'),
+  // Right-hand concrete volume, set back from the left cantilever and close to the door.
+  box('mar-east-mass', 4.6, 0, 0.15, 28, EAST_H, 5.6, 'concrete'),
 
   // Auditorium block north of the hall.
   wallX('mar-aud-n', -8, 16, -38, AUD_H),
@@ -154,23 +181,30 @@ export const marBoxes: MarBox[] = [
   box('mar-seat-e', 11.3, 0, -36.2, 14.6, 0.55, -23.6, 'seat'),
   box('mar-stage', -6.2, 0, -37.7, 14.6, 0.62, -36.2, 'seat'),
 
-  // South glass of the hall: sea and plaza beyond, with the entrance cut out.
-  wallX('mar-hall-s-w', -12, MAR_DOORS.entrance.x0, 0, H, 'glass', 0.08),
-  wallX('mar-hall-s-e', MAR_DOORS.entrance.x1, 8.05, 0, H, 'glass', 0.08),
+  // South wall of the hall. The photo frames a short glass slot between concrete, not a long glazed front.
+  wallX('mar-hall-s-concrete-w', -12, -4.2, 0, H),
+  wallX('mar-hall-s-glass-w', -4.2, MAR_DOORS.entrance.x0, 0, H, 'glass', 0.08),
+  wallX('mar-hall-s-glass-e', MAR_DOORS.entrance.x1, 4.4, 0, H, 'glass', 0.08),
+  wallX('mar-hall-s-concrete-e', 4.4, 8.2, 0, H),
   box('mar-hall-s-transom', MAR_DOORS.entrance.x0, MAR.doorHeight, -0.04, MAR_DOORS.entrance.x1, H, 0.04, 'glass'),
   // East window of the hall, toward the trees. A sill, not a door.
   box('mar-hall-window-e', 14 - 0.04, 0.35, -7.8, 14 + 0.04, 8.2, -0.2, 'glass'),
+  ...mullionsX('mar-mullion-door-w', -4.2, MAR_DOORS.entrance.x0, 0.06, 0, H, 1.15),
+  ...mullionsX('mar-mullion-door-e', MAR_DOORS.entrance.x1, 4.4, 0.06, 0, H, 1.15),
+  ...mullionsX('mar-mullion-transom', MAR_DOORS.entrance.x0, MAR_DOORS.entrance.x1, 0.06, MAR.doorHeight, H, 1.3),
+  ...mullionsX('mar-mullion-west-glass', -30, -12, 8.08, 0, 3.4, 1.25),
+  ...mullionsZ('mar-mullion-hall-e', -7.8, -0.2, 14.08, 0.35, 8.2, 1.25),
 
   // Temporary white partitions. They are a typical exhibition fit-out, not a copy of a particular show.
   wallZ('mar-west-p1', -7, 2, -21, MAR.partitionHeight, 'white', MAR.partition),
   wallX('mar-east-p1', 20, 28.5, -13, MAR.partitionHeight, 'white', MAR.partition),
 
   // Mezzanine deck and glass balustrade around the void. Above the walk, so the ground floor stays open.
-  box('mar-bridge', -6, MAR.mezzanine - 0.25, -13.2, 6.5, MAR.mezzanine, -8.2, 'deck'),
+  box('mar-bridge', -10, MAR.mezzanine - 0.25, -13.2, 6.5, MAR.mezzanine, -8.2, 'deck'),
   box('mar-landing', 6.5, MAR.mezzanine - 0.25, -17.5, 13.86, MAR.mezzanine, -8.2, 'deck'),
-  box('mar-rail-bridge-w', -6.08, MAR.mezzanine, -13.2, -5.96, MAR.mezzanine + 1.1, -8.2, 'glass'),
-  box('mar-rail-bridge-n', -6, MAR.mezzanine, -13.28, 6.5, MAR.mezzanine + 1.1, -13.16, 'glass'),
-  box('mar-rail-bridge-s', -6, MAR.mezzanine, -8.28, 6.5, MAR.mezzanine + 1.1, -8.16, 'glass'),
+  box('mar-rail-bridge-w', -10.08, MAR.mezzanine, -13.2, -9.96, MAR.mezzanine + 1.1, -8.2, 'glass'),
+  box('mar-rail-bridge-n', -10, MAR.mezzanine, -13.28, 6.5, MAR.mezzanine + 1.1, -13.16, 'glass'),
+  box('mar-rail-bridge-s', -10, MAR.mezzanine, -8.28, 6.5, MAR.mezzanine + 1.1, -8.16, 'glass'),
   box('mar-rail-land-w', 6.46, MAR.mezzanine, -17.5, 6.58, MAR.mezzanine + 1.1, -13.2, 'glass'),
   box('mar-rail-land-n', 6.5, MAR.mezzanine, -17.58, 13.86, MAR.mezzanine + 1.1, -17.46, 'glass'),
   box('mar-rail-land-s-w', 6.5, MAR.mezzanine, -8.28, 7.25, MAR.mezzanine + 1.1, -8.16, 'glass'),
@@ -181,7 +215,7 @@ export const marBoxes: MarBox[] = [
   box('mar-esc-rail-m', 8.95, 0, -7.5, 9.12, 1.15, -1.7, 'concrete'),
   box('mar-esc-rail-e', 10.65, 0, -7.5, 10.9, 1.15, -1.7, 'concrete'),
   // Click-to-walk goes around the lanes; walking onto them still climbs.
-  box('mar-esc-lane', 7.15, 0, -8.25, 10.9, 1.2, -1.1, 'concrete', { path: true, solid: false }),
+  box('mar-esc-lane', 7.15, 0, -8.25, 10.9, 1.2, -1.1, 'concrete', { path: true, solid: false, visual: false }),
 
   // Shallow basin on the side plaza.
   wallX('mar-pool-n', -27.6, -16.4, 12.15, 0.42, 'concrete', 0.35),
@@ -204,6 +238,11 @@ export const marBoxes: MarBox[] = [
   box('mar-tree-c', 5.8, 0, 26.8, 6.2, 2.4, 27.2, 'trunk'),
   box('mar-tree-d', 21.8, 0, 25.8, 22.2, 2.4, 26.2, 'trunk'),
   box('mar-tree-e', 33.8, 0, 22.8, 34.2, 2.4, 23.2, 'trunk'),
+
+  // Low houses beyond the grass, as in the side-facade photo. Outside the curb, not part of the museum.
+  box('mar-house-a', -10, 0, 34.2, 1.5, 3.1, 39.5, 'distant', seeThrough),
+  box('mar-house-b', 6, 0, 35, 15, 4.2, 40.5, 'distant', seeThrough),
+  box('mar-house-c', 20, 0, 34.4, 29, 2.5, 38.8, 'distant', seeThrough),
 
   // Edge of the modeled site, not a wall of the museum. Low enough to see over, high enough that a hop stays inside.
   wallX('mar-curb-s', -36, 40, 32, 0.7, 'curb', 0.4),

@@ -65,7 +65,7 @@ function useBoxGeometries(boxes: MarBox[], tile: boolean) {
 }
 
 function KindMeshes({ kind, material, tile = false, cast = true }: { kind: MarKind; material: THREE.Material; tile?: boolean; cast?: boolean }) {
-  const boxes = useMemo(() => marBoxes.filter((item) => item.kind === kind && item.solid !== false), [kind])
+  const boxes = useMemo(() => marBoxes.filter((item) => item.kind === kind && item.visual !== false), [kind])
   const geometries = useBoxGeometries(boxes, tile)
   return geometries.map((geometry, index) => (
     <mesh key={boxes[index].id} geometry={geometry} position={marCenter(boxes[index])} material={material} castShadow={cast} receiveShadow />
@@ -94,9 +94,9 @@ function MarLights() {
       <ambientLight intensity={0.32} color="#fffaf4" />
       <directionalLight
         ref={light}
-        position={[24, 40, 28]}
-        intensity={1.65}
-        color="#fff3e2"
+        position={[6, 32, 40]}
+        intensity={1.9}
+        color="#fff6e8"
         castShadow={mapSize > 0}
         shadow-mapSize={[Math.max(1, mapSize), Math.max(1, mapSize)]}
         shadow-camera-left={-46}
@@ -216,6 +216,8 @@ export function MarMuseum() {
       deck: new THREE.MeshStandardMaterial({ color: '#b7b3ac', roughness: 0.78 }),
       white: new THREE.MeshStandardMaterial({ color: '#f4f3ef', roughness: 0.9 }),
       glass: new THREE.MeshStandardMaterial({ color: '#c5d7e4', transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12, side: THREE.DoubleSide, depthWrite: false }),
+      mullion: new THREE.MeshStandardMaterial({ color: '#1c1e21', roughness: 0.45, metalness: 0.35 }),
+      distant: new THREE.MeshStandardMaterial({ color: '#d5cfc4', roughness: 0.9 }),
       seat: new THREE.MeshStandardMaterial({ color: '#6d5348', roughness: 0.86 }),
       table: new THREE.MeshStandardMaterial({ color: '#8d9294', roughness: 0.55, metalness: 0.2 }),
       curb: new THREE.MeshStandardMaterial({ color: '#9aa07a', roughness: 0.95 }),
@@ -269,6 +271,8 @@ export function MarMuseum() {
       <KindMeshes kind="deck" material={materials.deck} />
       <KindMeshes kind="white" material={materials.white} />
       <KindMeshes kind="glass" material={materials.glass} cast={false} />
+      <KindMeshes kind="mullion" material={materials.mullion} cast={false} />
+      <KindMeshes kind="distant" material={materials.distant} cast={false} />
       <KindMeshes kind="seat" material={materials.seat} />
       <KindMeshes kind="table" material={materials.table} />
       <KindMeshes kind="curb" material={materials.curb} />

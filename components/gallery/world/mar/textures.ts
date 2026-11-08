@@ -25,19 +25,20 @@ export function concreteTexture() {
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = size
   const context = canvas.getContext('2d')!
-  context.fillStyle = '#c9c4ba'
-  context.fillRect(0, 0, size, size)
   const random = seeded(11)
-  for (let i = 0; i < 90; i++) {
-    context.fillStyle = `rgba(80, 76, 70, ${0.025 + random() * 0.06})`
-    context.fillRect(random() * size, random() * size, 6 + random() * 36, 6 + random() * 22)
+  // Each tile is one panel. The shade shifts a little so a wall is not one flat colour.
+  const tone = 188 + Math.floor(random() * 18)
+  context.fillStyle = `rgb(${tone}, ${tone - 4}, ${tone - 10})`
+  context.fillRect(0, 0, size, size)
+  for (let i = 0; i < 70; i++) {
+    context.fillStyle = `rgba(70, 66, 60, ${0.03 + random() * 0.07})`
+    context.fillRect(random() * size, random() * size, 8 + random() * 40, 6 + random() * 24)
   }
-  context.strokeStyle = '#8f8b83'
-  context.lineWidth = 7
-  context.strokeRect(3, 3, size - 6, size - 6)
-  context.strokeStyle = 'rgba(255, 252, 246, 0.35)'
-  context.lineWidth = 2
-  context.strokeRect(8, 8, size - 16, size - 16)
+  context.fillStyle = '#6f6b64'
+  context.fillRect(0, 0, size, 10)
+  context.fillRect(0, 0, 10, size)
+  context.fillStyle = 'rgba(255, 252, 246, 0.28)'
+  context.fillRect(10, 10, size - 20, 3)
   return canvasTexture(canvas)
 }
 
@@ -47,17 +48,18 @@ export function cobbleTexture() {
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = size
   const context = canvas.getContext('2d')!
-  context.fillStyle = '#b3aea6'
+  context.fillStyle = '#8d8880'
   context.fillRect(0, 0, size, size)
   const random = seeded(5)
-  const cols = 4
-  const rows = 5
+  const cols = 5
+  const rows = 6
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      const shade = 150 + Math.floor(random() * 40)
-      context.fillStyle = `rgb(${shade}, ${shade - 4}, ${shade - 10})`
-      const ox = (y % 2) * (size / cols / 2)
-      context.fillRect(ox + (x * size) / cols + 2, (y * size) / rows + 2, size / cols - 4, size / rows - 5)
+      const shade = 138 + Math.floor(random() * 48)
+      context.fillStyle = `rgb(${shade}, ${shade - 3}, ${shade - 9})`
+      const ox = ((y % 2) * size) / cols / 2
+      const jitter = (random() - 0.5) * 6
+      context.fillRect(ox + (x * size) / cols + 3 + jitter, (y * size) / rows + 3, size / cols - 7, size / rows - 7)
     }
   }
   return canvasTexture(canvas)
