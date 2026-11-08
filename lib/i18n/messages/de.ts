@@ -30,7 +30,6 @@ const de: Messages = {
     artworkBy: '{title} von {name}',
     instagramOf: 'Instagram von {name}',
     website: 'Website',
-    carousel: { label: 'Kunstwerk-Karussell', previous: 'Vorheriges Kunstwerk', next: 'Nächstes Kunstwerk', slides: 'Kunstwerke' },
     techniques: { Analógica: 'Analog', Mixta: 'Mischtechnik', Digital: 'Digital' },
   },
   language: {
@@ -188,15 +187,6 @@ const de: Messages = {
     showBody: 'Alle von der Jury ausgewählten Werke sind Teil der offiziellen Ausstellung.',
     magazineTitle: 'Magazin — Collage, 1. Ausgabe',
     magazineBody: 'Die 30 besten Werke erscheinen in der ersten Ausgabe des Magazins der Collage-WM.',
-  },
-  workshop: {
-    badge: 'Collage-Workshop',
-    slogan: 'Trainier für die WM',
-    body: 'Ein praktischer Workshop, damit dein Werk vor Ende der Ausschreibung fertig ist – oder fast.',
-    date: 'Anfang Oktober',
-    price: 'Preis folgt',
-    join: 'Ich will mich anmelden',
-    note: 'Begrenzte Plätze – Anmeldung mit Online-Zahlung (Anzahlung oder Gesamtbetrag).',
   },
   footer: {
     followUs: 'Folge uns',

@@ -30,7 +30,6 @@ const it: Messages = {
     artworkBy: '{title}, di {name}',
     instagramOf: 'Instagram di {name}',
     website: 'Sito web',
-    carousel: { label: 'Carosello delle opere', previous: 'Opera precedente', next: 'Opera successiva', slides: 'Opere' },
     techniques: { Analógica: 'Analogica', Mixta: 'Mista', Digital: 'Digitale' },
   },
   language: {
@@ -188,15 +187,6 @@ const it: Messages = {
     showBody: 'Tutte le opere selezionate dalla giuria entrano nella mostra ufficiale.',
     magazineTitle: 'Rivista — 1ª edizione di Collage',
     magazineBody: 'Le 30 opere migliori saranno pubblicate nel primo numero della rivista del Mondiale di Collage.',
-  },
-  workshop: {
-    badge: 'Laboratorio di collage',
-    slogan: 'Allenati per il Mondiale',
-    body: "Un laboratorio pratico per arrivare con l'opera pronta — o quasi — prima della chiusura dell'open call.",
-    date: 'Inizio di ottobre',
-    price: 'Prezzo da confermare',
-    join: 'Voglio iscrivermi',
-    note: 'Posti limitati — iscrizione con pagamento online (acconto o totale).',
   },
   footer: {
     followUs: 'Seguici',

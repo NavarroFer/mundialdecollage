@@ -30,7 +30,6 @@ const pt: Messages = {
     artworkBy: '{title}, de {name}',
     instagramOf: 'Instagram de {name}',
     website: 'Site',
-    carousel: { label: 'Carrossel de obras', previous: 'Obra anterior', next: 'Próxima obra', slides: 'Obras' },
     techniques: { Analógica: 'Analógica', Mixta: 'Mista', Digital: 'Digital' },
   },
   language: {
@@ -188,15 +187,6 @@ const pt: Messages = {
     showBody: 'Todas as obras selecionadas pelo júri fazem parte da mostra oficial.',
     magazineTitle: 'Revista — 1ª edição de Colagem',
     magazineBody: 'As 30 melhores obras serão publicadas na primeira edição da revista do Mundial de Colagem.',
-  },
-  workshop: {
-    badge: 'Oficina de colagem',
-    slogan: 'Comece a treinar para o Mundial',
-    body: 'Uma oficina prática para chegar com a obra pronta — ou quase — antes do fim da chamada.',
-    date: 'Início de outubro',
-    price: 'Preço a confirmar',
-    join: 'Quero me inscrever',
-    note: 'Vagas limitadas — inscrição com pagamento online (sinal ou valor total).',
   },
   footer: {
     followUs: 'Siga a gente',

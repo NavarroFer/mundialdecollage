@@ -30,7 +30,6 @@ const pl: Messages = {
     artworkBy: '{title}, autor: {name}',
     instagramOf: 'Instagram: {name}',
     website: 'Strona internetowa',
-    carousel: { label: 'Karuzela prac', previous: 'Poprzednia praca', next: 'Następna praca', slides: 'Prace' },
     techniques: { Analógica: 'Analogowa', Mixta: 'Mieszana', Digital: 'Cyfrowa' },
   },
   language: {
@@ -193,15 +192,6 @@ const pl: Messages = {
     showBody: 'Wszystkie prace wybrane przez jury trafią na oficjalną wystawę.',
     magazineTitle: 'Magazyn „Kolaż”, 1. wydanie',
     magazineBody: '30 najlepszych prac zostanie opublikowanych w pierwszym wydaniu magazynu Mistrzostw Świata w Kolażu.',
-  },
-  workshop: {
-    badge: 'Warsztaty kolażu',
-    slogan: 'Trenuj przed Mistrzostwami',
-    body: 'Praktyczne warsztaty, żeby Twoja praca była gotowa — albo prawie — przed końcem naboru.',
-    date: 'Początek października',
-    price: 'Cena do potwierdzenia',
-    join: 'Chcę się zapisać',
-    note: 'Liczba miejsc ograniczona — zapisy z płatnością online (zaliczka lub całość).',
   },
   footer: {
     followUs: 'Obserwuj nas',

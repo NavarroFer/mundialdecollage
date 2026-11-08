@@ -32,7 +32,6 @@ const es = {
     artworkBy: '{title}, de {name}',
     instagramOf: 'Instagram de {name}',
     website: 'Sitio web',
-    carousel: { label: 'Carrusel de obras', previous: 'Obra anterior', next: 'Obra siguiente', slides: 'Obras' },
     techniques: { Analógica: 'Analógica', Mixta: 'Mixta', Digital: 'Digital' } as Record<string, string>,
   },
   language: {
@@ -190,15 +189,6 @@ const es = {
     showBody: 'Todas las obras seleccionadas por el jurado forman parte de la muestra oficial.',
     magazineTitle: 'Revista — 1ª edición de Collage',
     magazineBody: 'Las mejores 30 obras se publican en la primera edición de la revista del Mundial de Collage.',
-  },
-  workshop: {
-    badge: 'Taller de collage',
-    slogan: 'Ponete a practicar para el mundial',
-    body: 'Un taller práctico para llegar con obra lista — o casi — antes del cierre de la convocatoria.',
-    date: 'Primeros días de octubre',
-    price: 'Precio a confirmar',
-    join: 'Quiero anotarme',
-    note: 'Cupos limitados — inscripción con pago online (seña o total).',
   },
   footer: {
     followUs: 'Seguinos',

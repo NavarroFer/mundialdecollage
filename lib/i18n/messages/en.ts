@@ -30,7 +30,6 @@ const en: Messages = {
     artworkBy: '{title}, by {name}',
     instagramOf: "{name}'s Instagram",
     website: 'Website',
-    carousel: { label: 'Artwork carousel', previous: 'Previous artwork', next: 'Next artwork', slides: 'Artworks' },
     techniques: { Analógica: 'Analog', Mixta: 'Mixed media', Digital: 'Digital' },
   },
   language: {
@@ -188,15 +187,6 @@ const en: Messages = {
     showBody: 'Every artwork selected by the jury becomes part of the official exhibition.',
     magazineTitle: 'Magazine — 1st Collage Edition',
     magazineBody: 'The best 30 artworks will be published in the first edition of the Collage World Cup magazine.',
-  },
-  workshop: {
-    badge: 'Collage workshop',
-    slogan: 'Get some practice in for the World Cup',
-    body: 'A hands-on workshop to have your artwork ready — or nearly — before the open call closes.',
-    date: 'Early October',
-    price: 'Price to be confirmed',
-    join: 'I want to sign up',
-    note: 'Limited places — registration with online payment (deposit or full amount).',
   },
   footer: {
     followUs: 'Follow us',

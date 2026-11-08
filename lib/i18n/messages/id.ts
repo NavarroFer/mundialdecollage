@@ -30,7 +30,6 @@ const id: Messages = {
     artworkBy: '{title}, karya {name}',
     instagramOf: 'Instagram {name}',
     website: 'Situs web',
-    carousel: { label: 'Karusel karya', previous: 'Karya sebelumnya', next: 'Karya berikutnya', slides: 'Karya' },
     techniques: { Analógica: 'Analog', Mixta: 'Campuran', Digital: 'Digital' },
   },
   language: {
@@ -188,15 +187,6 @@ const id: Messages = {
     showBody: 'Semua karya yang dipilih juri menjadi bagian dari pameran resmi.',
     magazineTitle: 'Majalah — Kolase Edisi Pertama',
     magazineBody: '30 karya terbaik akan diterbitkan di edisi pertama majalah Piala Dunia Kolase.',
-  },
-  workshop: {
-    badge: 'Lokakarya kolase',
-    slogan: 'Mulai berlatih untuk Piala Dunia',
-    body: 'Lokakarya praktis agar karyamu siap — atau hampir siap — sebelum panggilan terbuka ditutup.',
-    date: 'Awal Oktober',
-    price: 'Harga menyusul',
-    join: 'Aku mau mendaftar',
-    note: 'Tempat terbatas — pendaftaran dengan pembayaran online (uang muka atau penuh).',
   },
   footer: {
     followUs: 'Ikuti kami',
