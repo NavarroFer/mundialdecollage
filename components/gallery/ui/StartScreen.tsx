@@ -14,6 +14,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { AvatarPicker } from './AvatarPicker'
 import { VisitPreferences } from './VisitPreferences'
 import { PresenceNote } from './PresenceCounter'
+import type { GalleryVenue } from '../venue'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
 
@@ -24,6 +25,10 @@ type StartScreenProps = {
   hint: string
   /** Show how many people are inside — only meaningful before the first entry. */
   showPresence: boolean
+  /** The public gallery can switch to Museo MAR. A Club room cannot. */
+  showVenue?: boolean
+  venue?: GalleryVenue
+  onVenue?: (venue: GalleryVenue) => void
   onResume: (id: string) => void
   onEnter: () => void
 }
@@ -56,7 +61,7 @@ function useInviter(artworks: Artwork[]): string | null {
   return inviter
 }
 
-export function StartScreen({ artworks, label, hint, showPresence, onEnter, onResume }: StartScreenProps) {
+export function StartScreen({ artworks, label, hint, showPresence, showVenue = false, venue, onVenue, onEnter, onResume }: StartScreenProps) {
   const { m } = useI18n()
   const inviter = useInviter(artworks)
   // The home's look whatever the walls' theme: the themes dress the walk,
@@ -86,7 +91,7 @@ export function StartScreen({ artworks, label, hint, showPresence, onEnter, onRe
             {m.gallery.mobileMenu.open}
             <ChevronDown className="ml-auto size-5 transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
-          <VisitPreferences artworks={artworks} onResume={onResume} />
+          <VisitPreferences artworks={artworks} onResume={onResume} showVenue={showVenue} venue={venue} onVenue={onVenue} />
         </details>
         {inviter && (
           <p className="mt-4 text-sm">

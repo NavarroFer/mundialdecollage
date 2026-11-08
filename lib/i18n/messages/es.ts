@@ -624,6 +624,13 @@ const es = {
       change: 'Cambiar tema. Tema actual: {name}',
       names: { collage: 'Adentro de un collage', windows98: 'Windows 98 + Paint', garden: 'Galería jardín' },
     },
+    venues: {
+      label: 'Recorrido',
+      choose: 'Elegir recorrido',
+      mundial: 'Mundial de Collage',
+      mar: 'Museo MAR',
+      marNote: 'Reconstrucción provisional del museo en Mar del Plata. La visita empieza en la plaza.',
+    },
     like: {
       unavailable: 'No pudimos cargar los likes. Intentá de nuevo en un momento.',
       saveFailed: 'No pudimos guardar tu like. Intentá de nuevo.',

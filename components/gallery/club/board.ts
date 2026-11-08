@@ -13,7 +13,7 @@ const BOARDS: Record<ClubGalleryTemplateId, Pick<WallFrame, 'center' | 'yaw' | '
 
 /** The board of a Club room; null for the museum. */
 export function clubBoardFrame(template: GalleryRoomTemplate): WallFrame | null {
-  if (template.id === 'main') return null
+  if (template.id === 'main' || template.id === 'mar') return null
   const bottom = 0.6
   const height = 1.0
   return {

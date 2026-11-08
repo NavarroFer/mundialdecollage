@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { venueFromPath, venueFromSearch } from '../venue'
 import { parsePreferences, useGalleryPreferences } from './store'
 
 afterEach(() => { vi.unstubAllGlobals(); useGalleryPreferences.setState(parsePreferences(null)) })
@@ -9,7 +10,20 @@ describe('gallery preferences', () => {
       expect(parsePreferences(raw)).toMatchObject({ theme: 'collage', sensitivity: 1, visited: [], muted: false })
     }
   })
+  it('opens MAR from the address and ignores any other building name', () => {
+    expect(venueFromSearch('')).toBeNull()
+    expect(venueFromSearch('?museo=mar')).toBe('mar')
+    expect(venueFromSearch('museo=mundial')).toBe('mundial')
+    expect(venueFromSearch('?museo=louvre')).toBeNull()
+    expect(venueFromPath('/museomar')).toBe('mar')
+    expect(venueFromPath('/museomar/')).toBe('mar')
+    expect(venueFromPath('/es/museomar')).toBe('mar')
+    expect(venueFromPath('/galeria-3d')).toBeNull()
+  })
   it('walks by clicks unless the visitor chose the keyboard or joystick', () => {
+    expect(parsePreferences(null).venue).toBe('mundial')
+    expect(parsePreferences('{"venue":"mar"}').venue).toBe('mar')
+    expect(parsePreferences('{"venue":"louvre"}').venue).toBe('mundial')
     expect(parsePreferences(null).controlMode).toBe('point')
     expect(parsePreferences('{"controlMode":"classic"}').controlMode).toBe('classic')
     expect(parsePreferences('{"controlMode":"teleport"}').controlMode).toBe('point')

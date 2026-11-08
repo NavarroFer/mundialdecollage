@@ -618,6 +618,13 @@ const fr: Messages = {
       change: 'Changer de thème. Thème actuel : {name}',
       names: { collage: "À l'intérieur d'un collage", windows98: 'Windows 98 + Paint', garden: 'Galerie jardin' },
     },
+    venues: {
+      label: 'Parcours',
+      choose: 'Choisir un parcours',
+      mundial: 'Mondial du collage',
+      mar: 'Musée MAR',
+      marNote: 'Reconstruction provisoire du musée à Mar del Plata. La visite commence sur la place.',
+    },
     like: {
       unavailable: "Nous n'avons pas pu charger les j'aime. Réessaie dans un instant.",
       saveFailed: "Nous n'avons pas pu enregistrer ton j'aime. Réessaie.",
