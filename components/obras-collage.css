@@ -57,7 +57,7 @@
 .obras-collage__item:nth-child(10n) { --shift-x: -12px; --shift-y: -24px; --tilt: 7deg; }
 
 .obras-collage--entering .obras-collage__item {
-  animation: obra-scatter-in 420ms cubic-bezier(.2, .85, .3, 1.15) backwards;
+  animation: obra-scatter-in 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   animation-delay: var(--entrance-delay, 0ms);
 }
 
