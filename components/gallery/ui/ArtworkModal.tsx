@@ -119,7 +119,14 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
         </div>
         <header className="flex min-w-0 shrink-0 flex-col gap-2">
           <DialogTitle className="font-display text-3xl leading-tight text-ink">{artwork.title}</DialogTitle>
-          <p className="text-base font-semibold">{artwork.artist} · {artwork.year}</p>
+          <p className="text-base font-semibold">
+            {artwork.artistHref ? (
+              // A new tab, so visiting the profile doesn't end the walk.
+              <a href={artwork.artistHref} target="_blank" rel="noopener" onClick={() => track('gallery_artist_profile_click')} className="underline decoration-2 underline-offset-4 hover:text-collage-blue">
+                {artwork.artist}<span className="sr-only"> {m.common.opensInNewTab}</span>
+              </a>
+            ) : artwork.artist} · {artwork.year}
+          </p>
           <p className="text-sm leading-relaxed opacity-80">{artwork.description}</p>
           <ArtworkViewers artworkId={artwork.id} />
         </header>

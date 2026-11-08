@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { site } from '@/lib/site'
 import { flagSvg } from '@/lib/flag-svg'
 import { gallerySlots, type Artwork } from '@/data/artworks'
+import { artistProfileSlug } from '@/lib/artist-slug'
 import { MESSAGES } from '@/lib/i18n/messages'
 import { fmt } from '@/lib/i18n/format'
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
@@ -98,6 +99,7 @@ export async function getGalleryArtworks(locale: Locale = DEFAULT_LOCALE): Promi
       id: finalist.slug,
       title: finalist.artworkTitle ?? MESSAGES[locale].common.untitled,
       artist: finalist.name,
+      artistHref: `/artistas/${artistProfileSlug(finalist.name, finalist.profileId)}`,
       countryCode: finalist.countryCode,
       flagSvg: flagSvg(finalist.countryCode),
       year: EDITION_YEAR,
