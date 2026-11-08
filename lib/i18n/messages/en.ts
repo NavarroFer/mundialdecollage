@@ -797,7 +797,6 @@ const en: Messages = {
   partners: {
     metaTitle: "Partners — Collage World Cup",
     metaDescription: "Bookshops, publishers and brands: be featured in the 3D gallery, the printed magazine and the website of the International Collage World Cup. Write to us to learn about our proposals.",
-    badge: "Partners",
     title: "Your brand at the Collage World Cup",
     intro: "We are looking for bookshops, publishers, stationery and art supply brands, and any brand that wants to be seen by artists from all over the world.",
     aboutTitle: "A self-managed project",

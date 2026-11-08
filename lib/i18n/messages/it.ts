@@ -796,7 +796,6 @@ const it: Messages = {
   partners: {
     metaTitle: "Partner — Mondiale di Collage",
     metaDescription: "Librerie, case editrici e marchi: fatevi vedere nella galleria 3D, nella rivista stampata e nel sito del Mondiale Internazionale di Collage. Scriveteci per conoscere le proposte.",
-    badge: "Partner",
     title: "Il tuo marchio al Mondiale di Collage",
     intro: "Cerchiamo librerie, case editrici, marchi di cartoleria e di materiali artistici, e marchi che vogliono farsi vedere da artisti di tutto il mondo.",
     aboutTitle: "Un progetto autogestito",

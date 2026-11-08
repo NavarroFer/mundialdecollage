@@ -50,10 +50,7 @@ export default async function MagazinePage() {
       <main className="bg-grain py-16 sm:py-24">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
           <section>
-            <span className="torn-strip inline-block -rotate-1 bg-collage-red px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
-              {t.badge}
-            </span>
-            <h1 className="font-display mt-7 text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
+            <h1 className="font-display text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
             <p className="mt-5 max-w-xl text-lg text-muted-foreground">{t.intro}</p>
             <ul className="mt-8 space-y-3">
               {t.points.map((point) => (
@@ -83,6 +80,7 @@ export default async function MagazinePage() {
                 <h2 id="magazine-order-title" className="font-display mt-4 text-2xl tracking-tight text-ink uppercase">{t.formTitle}</h2>
                 <p className="mt-2">
                   <span className="text-3xl font-bold tracking-tight">{ars(priceArs)}</span>{' '}
+                  <span className="mr-1 inline-block rounded-full bg-collage-red px-2.5 py-0.5 align-[0.35em] text-xs font-bold text-primary-foreground">{t.badge}</span>{' '}
                   <span className="text-sm text-muted-foreground">{t.perCopy} · {t.priceLabel}</span>
                 </p>
                 <div className="mt-6">

@@ -796,7 +796,6 @@ const pt: Messages = {
   partners: {
     metaTitle: "Parceiros — Mundial de Colagem",
     metaDescription: "Livrarias, editoras e marcas: apareçam na galeria 3D, na revista impressa e no site do Mundial Internacional de Colagem. Escreva para conhecer as propostas.",
-    badge: "Parceiros",
     title: "Sua marca no Mundial de Colagem",
     intro: "Buscamos livrarias, editoras, marcas de papelaria e de materiais de arte, e marcas que queiram ser vistas por artistas do mundo todo.",
     aboutTitle: "Um projeto autogestionado",

@@ -50,10 +50,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
         <section className="bg-grain relative overflow-hidden border-b-2 border-ink/10 py-10 sm:py-14">
           <Scissors className="absolute -left-7 top-8 h-36 w-36 -rotate-24 text-collage-red/15" strokeWidth={1} />
           <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
-            <span className="torn-strip inline-block -rotate-1 bg-collage-red px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase">
-              {t.badge}
-            </span>
-            <h1 className="font-display mt-5 text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
+            <h1 className="font-display text-4xl tracking-tight text-ink uppercase sm:text-6xl">{t.title}</h1>
             <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
               {t.intro}
             </p>
@@ -85,8 +82,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
           </div>
           <h2 id="plans-title" className="sr-only">{t.plansLabel}</h2>
           <div id="recortes" className="mb-8 scroll-mt-24">
-            <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.cutoutsEyebrow}</p>
-            <h2 className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-5xl">{copy.cutoutsTitle}</h2>
+            <h2 className="font-display text-3xl tracking-tight uppercase sm:text-5xl">{copy.cutoutsTitle}</h2>
             <p className="mt-4 max-w-2xl text-muted-foreground">{copy.cutoutsBody}</p>
             {/* What sets the packs apart: who picks every scrap. */}
             <p className="torn-strip mt-6 flex w-full -rotate-1 items-start gap-2.5 bg-collage-yellow px-4 py-3 font-semibold text-ink sm:px-5 sm:text-lg lg:-rotate-[0.5deg]">
@@ -160,8 +156,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
             className="my-14 h-auto w-full rounded-2xl border-2 border-ink/10 shadow-sm"
           />
           <section id="membresia" aria-labelledby="membership-title" className="scroll-mt-24">
-            <p className="text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{copy.membershipEyebrow}</p>
-            <h2 id="membership-title" className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-5xl">{copy.membershipTitle}</h2>
+            <h2 id="membership-title" className="font-display text-3xl tracking-tight uppercase sm:text-5xl">{copy.membershipTitle}</h2>
             <p className="mt-4 mb-8 max-w-2xl text-muted-foreground">{copy.membershipBody}</p>
           <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
             {subscriptionPlans.map((plan) => {
@@ -222,8 +217,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
         </section>
 
         <section className="mx-auto max-w-3xl px-5 py-16 sm:px-8 sm:py-20" aria-labelledby="faq-title">
-          <span className="text-xs font-bold tracking-[0.2em] text-collage-red uppercase">{t.faqEyebrow}</span>
-          <h2 id="faq-title" className="font-display mt-3 text-3xl tracking-tight uppercase sm:text-4xl">{t.faqTitle}</h2>
+          <h2 id="faq-title" className="font-display text-3xl tracking-tight uppercase sm:text-4xl">{t.faqTitle}</h2>
           <div className="mt-8 divide-y-2 divide-ink/10 border-y-2 border-ink/10">
             {t.faq.map(({ q, a }) => <details key={q} className="group py-5"><summary className="cursor-pointer list-none pr-8 text-base font-bold marker:hidden">{q}</summary><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{a}</p></details>)}
           </div>

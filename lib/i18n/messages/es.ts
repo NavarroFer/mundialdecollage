@@ -685,13 +685,13 @@ const es = {
   // Realidad aumentada: /ar/[slug] y las tarjetas para imprimir (lib/ar/print-cards.tsx).
   store: {
     pickup: pickupCopy('es'),
-    badge: 'La tienda del Mundial', title: 'Papel por correo', intro: 'Sumate a la membresía del Mundial o elegí tus recortes vintage para hacer collage. Dos formas de recibir inspiración y materiales para crear.', productsAlt: 'Kit de collage Mundial de Collage con sobres de recortes Botánica, Ciudad y Abstracto y un set de postales collage', plansLabel: 'Planes de suscripción', popular: 'El más elegido', perMonth: '/ mes', freeShipping: 'Envío gratis', comingSoon: 'Suscripciones próximamente', cancelAnytime: 'Cancelá cuando quieras.', moreTitle: 'Enterate de las novedades', moreBody: 'Dejanos tu mail para recibir novedades de la tienda y del Mundial.', back: 'Volver al Mundial de Collage', faqEyebrow: 'Para tener en cuenta', faqTitle: 'Preguntas frecuentes',
+    badge: 'La tienda del Mundial', title: 'Papel por correo', intro: 'Sumate a la membresía del Mundial o elegí tus recortes vintage para hacer collage. Dos formas de recibir inspiración y materiales para crear.', productsAlt: 'Kit de collage Mundial de Collage con sobres de recortes Botánica, Ciudad y Abstracto y un set de postales collage', plansLabel: 'Planes de suscripción', popular: 'El más elegido', perMonth: '/ mes', freeShipping: 'Envío gratis', comingSoon: 'Suscripciones próximamente', cancelAnytime: 'Cancelá cuando quieras.', moreTitle: 'Enterate de las novedades', moreBody: 'Dejanos tu mail para recibir novedades de la tienda y del Mundial.', back: 'Volver al Mundial de Collage', faqTitle: 'Preguntas frecuentes',
     notifyPlan: 'Avisame cuando abra', notifyPlanBody: 'Te escribimos apenas puedas suscribirte a este plan.',
     faq: [{ q: '¿A dónde envían?', a: 'En Argentina retirás en la sucursal de Correo Argentino que elijas y pagás en pesos con Mercado Pago. También enviamos al exterior, con pago en dólares por PayPal.' }, { q: '¿Qué trae cada pack de recortes?', a: '50, 100 o 200 recortes vintage, según el pack que elijas, seleccionados y curados por Fersos y Te hace falta collage. Todos incluyen stickers.' }, { q: '¿El envío está incluido?', a: 'En Argentina, sí: el envío es gratis y el precio publicado es el total que pagás cada mes. Para el exterior, coordinamos el envío aparte.' }, { q: '¿Cómo cancelo?', a: 'Podés cancelar cuando quieras: en Argentina desde «Suscripciones» en tu cuenta de Mercado Pago, y desde el exterior en la configuración de tu suscripción de PayPal. La cancelación se aplica a los próximos cobros mensuales.' }],
     subscriptions: {
       cutoutsNav: 'Elegir mis recortes',
-      membershipNav: 'Conocer la membresía', membershipEyebrow: '02 / Membresía', membershipTitle: 'Club del Mundial', membershipBody: 'Cuadernos, láminas, fanzines y stickers: elegí tu edición mensual del Mundial.',
-      cutoutsEyebrow: '01 / Para crear', cutoutsTitle: 'Tu próxima obra empieza acá.',
+      membershipNav: 'Conocer la membresía', membershipTitle: 'Club del Mundial', membershipBody: 'Cuadernos, láminas, fanzines y stickers: elegí tu edición mensual del Mundial.',
+      cutoutsTitle: 'Tu próxima obra empieza acá.',
       cutoutsBody: 'Suscripción mensual de recortes vintage para hacer collage. Tres tamaños de pack, todos con stickers.',
       // {curators}: the organizers' names, linked to their Instagram (lib/site.ts).
       curated: 'Recortes vintage, seleccionados y curados por {curators}.',
@@ -835,7 +835,6 @@ const es = {
   partners: {
     metaTitle: "Partners — Mundial de Collage",
     metaDescription: "Librerías, editoriales y marcas: aparecé en la galería 3D, la revista impresa y el sitio del Mundial Internacional de Collage. Escribinos para conocer las propuestas.",
-    badge: "Partners",
     title: "Tu marca en el Mundial de Collage",
     intro: "Buscamos librerías, editoriales, marcas de papelería y de materiales de arte, y marcas que quieran ser vistas por artistas de todo el mundo.",
     aboutTitle: "Un proyecto autogestivo",

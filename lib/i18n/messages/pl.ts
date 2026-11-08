@@ -818,7 +818,6 @@ const pl: Messages = {
   partners: {
     metaTitle: "Partnerzy — Mistrzostwa Świata w Kolażu",
     metaDescription: "Księgarnie, wydawnictwa i marki: pojawcie się w galerii 3D, drukowanym magazynie i na stronie Międzynarodowych Mistrzostw Świata w Kolażu. Napiszcie do nas, aby poznać nasze propozycje.",
-    badge: "Partnerzy",
     title: "Twoja marka na Mistrzostwach Świata w Kolażu",
     intro: "Szukamy księgarni, wydawnictw, marek papierniczych i plastycznych oraz marek, które chcą być widoczne dla artystów z całego świata.",
     aboutTitle: "Projekt oddolny",

@@ -796,7 +796,6 @@ const de: Messages = {
   partners: {
     metaTitle: "Partner — Collage-WM",
     metaDescription: "Buchhandlungen, Verlage und Marken: Seid sichtbar in der 3D-Galerie, im gedruckten Magazin und auf der Website der Internationalen Collage-WM. Schreibt uns, um unsere Angebote kennenzulernen.",
-    badge: "Partner",
     title: "Deine Marke bei der Collage-WM",
     intro: "Wir suchen Buchhandlungen, Verlage, Marken für Papier- und Künstlerbedarf und alle Marken, die von Künstlerinnen und Künstlern aus aller Welt gesehen werden wollen.",
     aboutTitle: "Ein selbstorganisiertes Projekt",

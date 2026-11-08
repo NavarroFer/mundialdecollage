@@ -793,7 +793,6 @@ const id: Messages = {
   partners: {
     metaTitle: "Mitra — Piala Dunia Kolase",
     metaDescription: "Toko buku, penerbit, dan merek: tampil di galeri 3D, majalah cetak, dan situs Piala Dunia Kolase Internasional. Tulis kepada kami untuk mengetahui penawaran kami.",
-    badge: "Mitra",
     title: "Merek Anda di Piala Dunia Kolase",
     intro: "Kami mencari toko buku, penerbit, merek alat tulis dan perlengkapan seni, serta merek yang ingin dilihat oleh seniman dari seluruh dunia.",
     aboutTitle: "Proyek swakelola",
