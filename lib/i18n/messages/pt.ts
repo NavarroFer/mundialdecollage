@@ -413,6 +413,10 @@ const pt: Messages = {
     },
   },
   share: {
+    profileHeading: 'Compartilhe seu perfil',
+    profileHeadingOther: 'Compartilhe este perfil',
+    profileTextOwn: 'Veja meu perfil no Mundial Internacional de Collage. Participe também, é grátis!',
+    profileText: 'Veja o perfil de {name} no Mundial Internacional de Collage.',
     copyLink: 'Copiar link',
     copyFailed: 'Não foi possível copiar o link. Tente pelo WhatsApp.',
     heading: 'Conte que você está participando',

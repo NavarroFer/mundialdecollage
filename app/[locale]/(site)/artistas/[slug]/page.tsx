@@ -6,7 +6,7 @@ import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { TrackView, TrackedLink } from '@/components/track'
 import { Button } from '@/components/ui/button'
-import { getArtistProfileBySlug, getOwnArtistPreview } from '@/lib/artist-profiles'
+import { artistProfileIdFromSlug, getArtistProfileBySlug, getOwnArtistPreview } from '@/lib/artist-profiles'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { fmt } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
@@ -15,6 +15,7 @@ import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { imageSrc } from '@/lib/image-src'
 import { ArtistFeed } from './artist-feed'
 import { ArtistStats } from './artist-stats'
+import { ShareProfile } from './share-profile'
 
 // Public profiles reflect curation immediately and are never built from stale
 // data. Params are promises in this project's Next.js version.
@@ -59,7 +60,9 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
   const [publicArtist, { locale, m }, { open: callOpen }] = await Promise.all([getArtistProfileBySlug(slug), getI18n(), getCallState()])
   // Before an admin publishes it, the artist alone sees their own profile as a
   // preview. The anon copy has no user, so it still 404s and stays static.
-  const preview = publicArtist ? undefined : await getOwnArtistPreview(slug, (await getCurrentUser())?.id)
+  // getCurrentUser() is null in the anon copy, so that one stays static.
+  const viewer = await getCurrentUser()
+  const preview = publicArtist ? undefined : await getOwnArtistPreview(slug, viewer?.id)
   const artist = publicArtist ?? preview
   if (!artist) notFound()
 
@@ -155,6 +158,18 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
               artworks={artist.artworks}
             />
           </section>
+
+          {/* An unpublished profile's link would 404 for everyone else. */}
+          {!preview && (
+            <section className="pb-10 sm:pb-14">
+              <ShareProfile
+                slug={artist.slug}
+                name={artist.name}
+                artworkSlug={artist.artworks[0].slug}
+                isOwn={viewer ? artistProfileIdFromSlug(artist.slug) === viewer.id.toLowerCase() : false}
+              />
+            </section>
+          )}
 
           {/* Inviting to participate only while the call is open. */}
           {callOpen && <section className="rounded-3xl border-2 border-ink/10 bg-paper p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-10">

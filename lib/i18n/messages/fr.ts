@@ -413,6 +413,10 @@ const fr: Messages = {
     },
   },
   share: {
+    profileHeading: 'Partage ton profil',
+    profileHeadingOther: 'Partage ce profil',
+    profileTextOwn: 'Découvre mon profil au Mondial International du Collage. Participe toi aussi, c’est gratuit !',
+    profileText: 'Découvre le profil de {name} au Mondial International du Collage.',
     copyLink: 'Copier le lien',
     copyFailed: 'Impossible de copier le lien. Essayez WhatsApp.',
     heading: 'Dis que tu participes',

@@ -413,6 +413,10 @@ const id: Messages = {
     },
   },
   share: {
+    profileHeading: 'Bagikan profilmu',
+    profileHeadingOther: 'Bagikan profil ini',
+    profileTextOwn: 'Lihat profilku di Piala Dunia Kolase Internasional. Ayo ikut juga, gratis!',
+    profileText: 'Lihat profil {name} di Piala Dunia Kolase Internasional.',
     copyLink: 'Salin tautan',
     copyFailed: 'Tautan tidak dapat disalin. Coba WhatsApp.',
     heading: 'Ceritakan bahwa kamu ikut serta',

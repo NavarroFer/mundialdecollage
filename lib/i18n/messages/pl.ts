@@ -418,6 +418,10 @@ const pl: Messages = {
     },
   },
   share: {
+    profileHeading: 'Udostępnij swój profil',
+    profileHeadingOther: 'Udostępnij ten profil',
+    profileTextOwn: 'Zobacz mój profil na Międzynarodowych Mistrzostwach Świata w Kolażu. Dołącz i Ty, to nic nie kosztuje!',
+    profileText: 'Zobacz profil {name} na Międzynarodowych Mistrzostwach Świata w Kolażu.',
     copyLink: 'Kopiuj link',
     copyFailed: 'Nie udało się skopiować linku. Spróbuj przez WhatsApp.',
     heading: 'Pochwal się, że bierzesz udział',

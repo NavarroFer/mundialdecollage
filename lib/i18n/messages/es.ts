@@ -419,6 +419,10 @@ const es = {
     } as Record<string, string>,
   },
   share: {
+    profileHeading: 'Compartí tu perfil',
+    profileHeadingOther: 'Compartí este perfil',
+    profileTextOwn: 'Mirá mi perfil en el Mundial Internacional de Collage. ¡Sumate vos también, es gratis!',
+    profileText: 'Mirá el perfil de {name} en el Mundial Internacional de Collage.',
     copyLink: 'Copiar enlace',
     copyFailed: 'No pudimos copiar el enlace. Probá con WhatsApp.',
     heading: 'Contá que participás',
