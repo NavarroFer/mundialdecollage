@@ -18,7 +18,14 @@ const nextConfig = {
   allowedDevOrigins: ['*.trycloudflare.com'],
   // The old participants directory; the home's search replaced it.
   async redirects() {
-    return [{ source: '/participantes', destination: '/#participantes', permanent: true }]
+    return [
+      { source: '/participantes', destination: '/#participantes', permanent: true },
+      // The edition archive will return once there is a curated selection;
+      // until then old links lead back to the live artwork mosaic. A config
+      // redirect is answered before any Function runs, unlike a page that
+      // calls redirect() (which cost an invocation per visit).
+      { source: '/edicion-2026', destination: '/#participantes', permanent: false },
+    ]
   },
   images: {
     // Not Vercel's optimization endpoint, which returns 402 once its image
