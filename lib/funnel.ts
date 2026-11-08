@@ -168,6 +168,7 @@ export const DISCOVERY_EVENTS = [
   { name: 'artwork_artist_profile_click', label: 'Fueron de una obra al perfil de su artista' },
   { name: 'artwork_participate_click', label: 'Fueron de una obra a participar' },
   { name: 'artist_profile_view', label: 'Abrieron un perfil público de artista' },
+  { name: 'search_artist_profile_click', label: 'Fueron del buscador al perfil de un artista' },
   { name: 'artist_profile_participate_click', label: 'Fueron de un perfil de artista a participar' },
   { name: 'confirmation_profile_click', label: 'Fueron a ver su perfil al terminar de inscribirse' },
 ] as const

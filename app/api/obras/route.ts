@@ -11,12 +11,13 @@ import type { ObraEntry } from '@/lib/artwork-search'
 export const revalidate = 3600
 
 export async function GET() {
-  const entries: ObraEntry[] = (await getFinalists()).map(({ slug, artworkTitle, name, countryCode, imageUrl }) => ({
+  const entries: ObraEntry[] = (await getFinalists()).map(({ slug, artworkTitle, name, countryCode, imageUrl, profileId }) => ({
     slug,
     title: artworkTitle,
     name,
     countryCode,
     imageUrl,
+    profileId,
   }))
   return NextResponse.json(entries)
 }

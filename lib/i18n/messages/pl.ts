@@ -232,6 +232,7 @@ const pl: Messages = {
     writeUs: 'Napisz do nas',
   },
   search: {
+    artistProfile: 'Profil artysty',
     label: 'Szukaj prac',
     clear: 'Wyczyść wyszukiwanie',
     placeholder: 'Szukaj pracy, artysty lub kraju',

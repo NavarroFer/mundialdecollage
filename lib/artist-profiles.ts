@@ -1,12 +1,10 @@
 import { cache } from 'react'
 import { cachedPublicData } from '@/lib/public-data-cache'
 import { artistTag } from '@/lib/public-cache-tags'
-import { slugify } from '@/lib/slug'
+import { artistProfileIdFromSlug, artistProfileSlug } from '@/lib/artist-slug'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createPublicClient } from '@/lib/supabase/public'
 import { createClient } from '@/lib/supabase/server'
-
-const PROFILE_ID_SUFFIX = /([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/i
 
 export type ArtistProfileArtwork = {
   slug: string
@@ -38,18 +36,7 @@ type ArtistArtworkRow = {
   } | null
 }
 
-/**
- * Builds a collision-free artist URL from fields that already exist. Keeping
- * the full profile id makes the route stable if the display name changes and
- * avoids adding a public-slug migration before launch.
- */
-export function artistProfileSlug(name: string, profileId: string): string {
-  return `${slugify(name) || 'artista'}-${profileId.toLowerCase()}`
-}
-
-export function artistProfileIdFromSlug(slug: string): string | undefined {
-  return PROFILE_ID_SUFFIX.exec(slug)?.[1]?.toLowerCase()
-}
+export { artistProfileSlug, artistProfileIdFromSlug } from '@/lib/artist-slug'
 
 const ARTIST_SELECT = 'slug, title, technique, image_url, profiles!inner(id, name, country_code, instagram, website)'
 

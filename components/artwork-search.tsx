@@ -2,10 +2,13 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, X } from 'lucide-react'
+import { Search, UserRound, X } from 'lucide-react'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
-import { buildSearchIndex, searchIndex, type ObraEntry } from '@/lib/artwork-search'
+import { buildSearchIndex, searchArtists, searchIndex, type ArtistMatch, type ObraEntry } from '@/lib/artwork-search'
+import { artistProfileSlug } from '@/lib/artist-slug'
+import { TrackedLink } from '@/components/track'
+import { track } from '@/lib/track'
 import { loadObras } from '@/lib/obras-client'
 import { ObraLink, useOpenObra } from '@/components/obra-modal'
 import { useI18n } from '@/lib/i18n/client'
@@ -14,6 +17,8 @@ import { fmt, plural } from '@/lib/i18n/format'
 type Status = 'idle' | 'loading' | 'ready' | 'error'
 
 const RESULTS_PAGE = 8
+
+const artistHref = (artist: ArtistMatch) => `/artistas/${artistProfileSlug(artist.name, artist.profileId)}`
 
 const toSummary = ({ slug, title, name, countryCode, imageUrl }: ObraEntry) => ({ slug, artworkTitle: title, name, countryCode, imageUrl })
 
@@ -50,6 +55,10 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
   )
   const matches = useMemo(() => searchIndex(index, query), [index, query])
   const results = matches.slice(0, visible)
+  // Artists whose name matches go first, as links to their profile; the
+  // keyboard walks them and then the obras as one list.
+  const artists = useMemo(() => searchArtists(index, query), [index, query])
+  const optionCount = artists.length + results.length
 
   useEffect(() => {
     if (!open) return
@@ -65,14 +74,21 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
       setOpen(false)
       return
     }
-    if (!results.length) return
+    if (!optionCount) return
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault()
       setOpen(true)
       const step = event.key === 'ArrowDown' ? 1 : -1
-      setActive((current) => (current + step + results.length) % results.length)
+      setActive((current) => (current + step + optionCount) % optionCount)
     } else if (event.key === 'Enter') {
-      const chosen = results[Math.max(active, 0)]
+      const position = Math.max(active, 0)
+      if (position < artists.length) {
+        setOpen(false)
+        track('search_artist_profile_click')
+        router.push(artistHref(artists[position]))
+        return
+      }
+      const chosen = results[position - artists.length]
       if (!chosen) return
       setOpen(false)
       if (openObra) openObra(toSummary(chosen))
@@ -81,7 +97,7 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
   }
 
   const typed = query.trim().length > 0
-  const showList = typed && status === 'ready' && results.length > 0
+  const showList = typed && status === 'ready' && optionCount > 0
 
   return (
     <div ref={rootRef} className="relative mx-auto w-full max-w-xl text-left" onPointerEnter={prepare}>
@@ -127,7 +143,30 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
           {showList ? (
             <>
               <ul id={listId} role="listbox" aria-label={m.search.label} className="max-h-[50vh] overflow-y-auto py-2">
-                {results.map((entry, index) => (
+                {artists.map((artist, index) => (
+                  <li key={artist.profileId} id={`${listId}-${index}`} role="option" aria-selected={index === active}>
+                    <TrackedLink
+                      href={artistHref(artist)}
+                      prefetch={false}
+                      event="search_artist_profile_click"
+                      tabIndex={-1}
+                      onPointerEnter={() => setActive(index)}
+                      onClick={() => setOpen(false)}
+                      className={`flex min-h-12 items-center gap-3 px-5 py-2 ${index === active ? 'bg-collage-blue/10' : ''}`}
+                    >
+                      <UserRound className="size-5 shrink-0 text-collage-red" aria-hidden="true" />
+                      <span className="flex min-w-0 flex-col">
+                        <span className="font-semibold text-ink">{artist.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          <span aria-hidden>{countryCodeToFlag(artist.countryCode)}</span> {m.search.artistProfile} · {artist.artworks} {plural(locale, artist.artworks, m.artistProfile.statArtworks)}
+                        </span>
+                      </span>
+                    </TrackedLink>
+                  </li>
+                ))}
+                {results.map((entry, resultIndex) => {
+                  const index = artists.length + resultIndex
+                  return (
                   <li key={entry.slug} id={`${listId}-${index}`} role="option" aria-selected={index === active}>
                     <ObraLink
                       obra={toSummary(entry)}
@@ -142,7 +181,8 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
                       </span>
                     </ObraLink>
                   </li>
-                ))}
+                  )
+                })}
               </ul>
               {matches.length > results.length && (
                 <button

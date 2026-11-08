@@ -227,6 +227,7 @@ const pt: Messages = {
     writeUs: 'Escreva para nós',
   },
   search: {
+    artistProfile: 'Perfil de artista',
     label: 'Buscar obras',
     clear: 'Limpar busca',
     placeholder: 'Busque uma obra, artista ou país',

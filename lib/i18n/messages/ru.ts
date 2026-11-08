@@ -232,6 +232,7 @@ const ru: Messages = {
     writeUs: 'Написать нам',
   },
   search: {
+    artistProfile: 'Профиль художника',
     label: 'Поиск работ',
     clear: 'Очистить поиск',
     placeholder: 'Найдите работу, автора или страну',

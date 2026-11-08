@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { buildSearchIndex, normalizeSearch, searchArtworks, searchIndex, type SearchEntry } from './artwork-search'
+import { buildSearchIndex, normalizeSearch, searchArtists, searchArtworks, searchIndex, type SearchEntry } from './artwork-search'
 
 const countries: Record<string, string> = { AR: 'Argentina', MX: 'México', ES: 'España' }
 const countryName = (code: string) => countries[code] ?? code
@@ -42,5 +42,33 @@ describe('searchArtworks', () => {
     expect(searchIndex(index, 'peru')).toHaveLength(30)
     expect(searchIndex(index, 'ana')).toHaveLength(30)
     expect(name).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('searchArtists', () => {
+  const withProfiles: SearchEntry[] = [
+    { slug: 'gilda', title: 'Gilda', name: 'Alejandro Restagno', countryCode: 'AR', profileId: 'p1' },
+    { slug: 'gilda-2', title: 'Otra', name: 'Alejandro Restagno', countryCode: 'AR', profileId: 'p1' },
+    { slug: 'dona', title: 'Dona', name: 'Alejandra Moschini', countryCode: 'ES', profileId: 'p2' },
+    { slug: 'mia', title: 'Alejandro en la luna', name: 'Iván Estrada', countryCode: 'MX', profileId: 'p3' },
+    { slug: 'sin', title: 'Sin perfil', name: 'Alejo Nadie', countryCode: 'AR' },
+  ]
+  const index = buildSearchIndex(withProfiles, countryName)
+
+  it('finds each artist once, counting their obras, by name only', () => {
+    expect(searchArtists(index, 'alejandro')).toEqual([
+      { profileId: 'p1', name: 'Alejandro Restagno', countryCode: 'AR', artworks: 2 },
+    ])
+  })
+
+  it('ranks a name starting with the query first and caps the list', () => {
+    expect(searchArtists(index, 'ale').map((a) => a.profileId)).toEqual(['p1', 'p2'])
+    expect(searchArtists(index, 'a', 1)).toHaveLength(1)
+  })
+
+  it('ignores countries, titles and entries without a profile', () => {
+    expect(searchArtists(index, 'argentina')).toEqual([])
+    expect(searchArtists(index, 'luna')).toEqual([])
+    expect(searchArtists(index, 'alejo')).toEqual([])
   })
 })

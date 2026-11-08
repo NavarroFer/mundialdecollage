@@ -227,6 +227,7 @@ const id: Messages = {
     writeUs: 'Hubungi kami',
   },
   search: {
+    artistProfile: 'Profil seniman',
     label: 'Cari karya',
     clear: 'Hapus pencarian',
     placeholder: 'Cari karya, seniman, atau negara',

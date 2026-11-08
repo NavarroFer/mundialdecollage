@@ -7,6 +7,8 @@ export type SearchEntry = {
   title: string | null
   name: string
   countryCode: string
+  // The artist's profile, to offer it as a result of its own (searchArtists).
+  profileId?: string
 }
 
 // What /api/obras serves: the search's fields plus the photo, which the
@@ -60,6 +62,29 @@ export function searchIndex<Entry>(index: IndexedEntry<Entry>[], query: string):
   return ranked
     .sort((a, b) => a.score - b.score)
     .map(({ entry }) => entry)
+}
+
+export type ArtistMatch = { profileId: string; name: string; countryCode: string; artworks: number }
+
+// The artists whose name holds every word typed, each once, for the rows that
+// lead to their profile above the obras. Same ranking as searchIndex: a name
+// starting with the query first.
+export function searchArtists<Entry extends SearchEntry>(index: IndexedEntry<Entry>[], query: string, limit = 3): ArtistMatch[] {
+  const words = normalizeSearch(query).split(/\s+/).filter(Boolean)
+  if (!words.length) return []
+  const whole = words.join(' ')
+  const found = new Map<string, ArtistMatch & { score: number }>()
+  for (const { entry, name } of index) {
+    if (!entry.profileId || !words.every((word) => name.includes(word))) continue
+    const known = found.get(entry.profileId)
+    if (known) { known.artworks += 1; continue }
+    const score = name.startsWith(whole) ? 0 : ` ${name}`.includes(` ${whole}`) ? 1 : 2
+    found.set(entry.profileId, { profileId: entry.profileId, name: entry.name, countryCode: entry.countryCode, artworks: 1, score })
+  }
+  return [...found.values()]
+    .sort((a, b) => a.score - b.score)
+    .slice(0, limit)
+    .map(({ score: _score, ...match }) => match)
 }
 
 export function searchArtworks<Entry extends SearchEntry>(

@@ -228,6 +228,7 @@ const es = {
     writeUs: 'Escribinos',
   },
   search: {
+    artistProfile: 'Perfil de artista',
     label: 'Buscar obras',
     clear: 'Borrar búsqueda',
     placeholder: 'Buscá una obra, artista o país',

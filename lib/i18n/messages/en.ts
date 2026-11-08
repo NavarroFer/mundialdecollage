@@ -227,6 +227,7 @@ const en: Messages = {
     writeUs: 'Write to us',
   },
   search: {
+    artistProfile: 'Artist profile',
     label: 'Search artworks',
     clear: 'Clear search',
     placeholder: 'Search an artwork, artist or country',
