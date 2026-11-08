@@ -9,7 +9,9 @@ import { ShareArtwork } from '@/components/share-artwork'
 import { getArtworkShareState } from '@/lib/finalists'
 import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
-import { MagazinePromo, StorePromo } from '@/components/store-promo'
+import { MagazinePromo, PromoCard, StorePromo } from '@/components/store-promo'
+import { isClubOpen } from '@/lib/club-launch'
+import { Building2 } from 'lucide-react'
 import { OnboardingSteps } from '../onboarding-steps'
 
 export default async function ConfirmationPage() {
@@ -47,8 +49,20 @@ export default async function ConfirmationPage() {
           <Button asChild size="lg" variant={profileHref ? 'outline' : undefined}><Link href={`/obras/${artwork.slug}`}>{m.common.viewMyArtwork}</Link></Button>
           <Button asChild variant="outline"><Link href="/">{m.confirmation.backToMundial}</Link></Button>
         </div>
-        {/* The two things to look forward to while the jury works. */}
+        {/* What to look forward to while the jury works, the Club first: a
+            room of their own is the next step after a profile. */}
         <div className="mt-8 space-y-3">
+          {isClubOpen() && (
+            <PromoCard
+              href="/club"
+              event="club_click_confirmation"
+              icon={Building2}
+              eyebrow={m.clubLanding.homeEyebrow}
+              title={m.clubLanding.homeTitle}
+              body={m.clubLanding.homeBody}
+              cta={m.clubLanding.homeCta}
+            />
+          )}
           <StorePromo m={m} event="store_click_confirmation" forArtist />
           <MagazinePromo m={m} event="magazine_click_confirmation" />
         </div>
