@@ -115,6 +115,34 @@ const COUNTDOWN_DESCRIPTION =
 // the payment is confirmed. Transactional: no unsubscribe link.
 const RECEIPT_DESCRIPTION = 'Se envía sola apenas se confirma el pago. '
 
+// «Tu perfil ya está online»: one idea, read in this order. The title says
+// what happened, the artist's own obra and numbers show it (read at send
+// time, lib/artist-profile-mail.ts; the image is cached by app/api/img), and
+// a single button leads to their profile. Sharing and the Club come after,
+// quieter. In the admin preview the tags show a sample (email-blocks.ts).
+const PROFILE_OBRA_TAG = '{{obra_imagen}}'
+
+function profileLaunchDocument(siteUrl: string): EmailDocument {
+  return { blocks: [
+    { id: nextBlockId(), type: 'image', url: `${siteUrl}/logo.png`, alt: 'Mundial de Collage', link: siteUrl, widthPct: 28 },
+    { id: nextBlockId(), type: 'spacer', size: 'sm' },
+    { id: nextBlockId(), type: 'heading', text: '{{nombre}}, tu perfil ya está online', align: 'left', size: 'lg' },
+    { id: nextBlockId(), type: 'text', text: 'Una página con tus obras, los me gusta y los comentarios que reciben. Así se ve hoy:', align: 'left' },
+    { id: nextBlockId(), type: 'image', url: PROFILE_OBRA_TAG, alt: '{{obra_titulo}}', link: '{{perfil_url}}', widthPct: 100 },
+    { id: nextBlockId(), type: 'heading', text: '{{obra_titulo}}', align: 'left', size: 'sm' },
+    { id: nextBlockId(), type: 'text', text: 'Obras: {{perfil_obras}}   ·   Me gusta: {{perfil_likes}}   ·   Comentarios: {{perfil_comentarios}}', align: 'left' },
+    { id: nextBlockId(), type: 'button', text: 'Ver mi perfil', url: '{{perfil_url}}', align: 'left', color: 'red' },
+    { id: nextBlockId(), type: 'spacer', size: 'sm' },
+    { id: nextBlockId(), type: 'heading', text: 'Llevalo a tu Instagram', align: 'left', size: 'sm' },
+    { id: nextBlockId(), type: 'text', text: 'Pegá este link en tu bio, o mandáselo a quien quieras que vea tu obra:\n{{perfil_url}}', align: 'left' },
+    { id: nextBlockId(), type: 'divider' },
+    { id: nextBlockId(), type: 'heading', text: '¿Querés una sala solo para tu obra?', align: 'left', size: 'sm' },
+    { id: nextBlockId(), type: 'text', text: 'En el Club del Mundial tenés tu propia galería 3D, abierta todos los días, con toda tu serie y un link para compartir. Tu perfil lleva a tu galería, y tu galería a tu perfil.', align: 'left' },
+    { id: nextBlockId(), type: 'button', text: 'Conocer el Club', url: `${siteUrl}/club`, align: 'left', color: 'ink' },
+    ...footer(),
+  ] }
+}
+
 export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinition> = {
   elegir_obra: {
     name: 'Artistas: elegir una obra para participar',
@@ -136,21 +164,8 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
     name: 'Artistas: tu perfil ya está online',
     audiences: ['artistas'],
     subject: '{{nombre}}, tu perfil de artista ya está online',
-    description: 'Para la audiencia «Artistas con perfil público». Cierra invitando al Club. {{perfil_url}} es el link al perfil de cada artista (sus obras, los me gusta y los comentarios de la Galería 3D). Sin esa audiencia, {{perfil_url}} queda vacío: no la mandes a otra.',
-    createDocument: (siteUrl) => ({ blocks: [
-      logo(siteUrl),
-      { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}},', align: 'left', size: 'md' },
-      { id: nextBlockId(), type: 'text', text: 'Ya tenés tu propio perfil en el Mundial Internacional de Collage: tus obras, los me gusta y los comentarios que te dejan en la Galería 3D, todo en una página.', align: 'left' },
-      { id: nextBlockId(), type: 'button', text: 'Ver mi perfil', url: '{{perfil_url}}', align: 'left', color: 'red' },
-      { id: nextBlockId(), type: 'text', text: 'Compartilo: poné el link en la bio de tu Instagram, mandáselo a tu gente y subilo a tus historias. Cada visita, cada me gusta y cada comentario hacen que tu obra llegue más lejos.', align: 'left' },
-      { id: nextBlockId(), type: 'text', text: '{{perfil_url}}', align: 'left' },
-      { id: nextBlockId(), type: 'button', text: 'Recorrer la Galería 3D', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'blue' },
-      { id: nextBlockId(), type: 'divider' },
-      { id: nextBlockId(), type: 'heading', text: '¿Querés una sala solo para tu obra?', align: 'left', size: 'sm' },
-      { id: nextBlockId(), type: 'text', text: 'En el Club del Mundial tenés tu propia galería 3D, abierta todos los días, con toda tu serie, tus textos y un link para compartir. Tu perfil lleva a tu galería, y tu galería a tu perfil.', align: 'left' },
-      { id: nextBlockId(), type: 'button', text: 'Conocer el Club', url: `${siteUrl}/club`, align: 'left', color: 'red' },
-      ...footer(),
-    ] }),
+    description: 'Para la audiencia «Artistas con perfil público». Muestra la obra, los me gusta y los comentarios de cada artista, y un solo botón: «Ver mi perfil». Cierra invitando al Club. {{perfil_url}} es el link al perfil de cada artista. Sin esa audiencia, {{perfil_url}} queda vacío: no la mandes a otra.',
+    createDocument: profileLaunchDocument,
   },
   bienvenida_hincha: {
     name: 'Bienvenida: gracias por apoyar a un artista',
@@ -502,6 +517,23 @@ export async function ensureSystemTemplate(db: SupabaseClient, key: SystemTempla
     // profile-review tags existed. Once personalized (or manually edited),
     // the stored version remains the source of truth like every template.
     if (key === 'confirmar_datos' && existing.body_html.includes('nombre, país y título de obra')) {
+      const definition = SYSTEM_TEMPLATES[key]
+      const doc = definition.createDocument(getSiteUrl())
+      const { data: upgraded } = await db.from('templates').update({
+        name: definition.name,
+        subject: definition.subject,
+        body_json: doc,
+        body_html: renderEmailDocumentToHtml(doc),
+        translations: {},
+        translations_source: null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', existing.id).select(COLUMNS).single()
+      if (upgraded) return upgraded as StoredTemplate
+    }
+    // The first draft of the profile launch didn't show the artist's own obra.
+    // Replace it once; a version that already does (or was edited since)
+    // stays as it is.
+    if (key === 'perfil_artista' && !existing.body_html.includes(PROFILE_OBRA_TAG)) {
       const definition = SYSTEM_TEMPLATES[key]
       const doc = definition.createDocument(getSiteUrl())
       const { data: upgraded } = await db.from('templates').update({

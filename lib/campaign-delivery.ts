@@ -12,8 +12,11 @@ import type { Locale } from '@/lib/i18n/locales'
 import { countryCodeToName } from '@/lib/participants'
 import type { ProfileReviewData } from '@/lib/campaign-audience'
 import { getSiteUrl } from '@/lib/site'
+import { artistProfileIdFromSlug } from '@/lib/artist-slug'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { profileMailData, type ProfileMailData } from '@/lib/artist-profile-mail'
 
-export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string }
+export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string; profileMail?: ProfileMailData }
 
 export type DeliverableCampaign = {
   id: string
@@ -42,6 +45,18 @@ export async function campaignRecipients(
   ])
   if (error) return { recipients: [], error }
 
+  // «Tu perfil ya está online» shows each artist's own obra and totals: read
+  // for the whole audience at once, only when sending that audience.
+  let profileMail = new Map<string, ProfileMailData>()
+  if (parseAudience(audienceInput) === 'public_profiles') {
+    const profileIds = contacts.flatMap((contact) => (contact.profileSlug ? [artistProfileIdFromSlug(contact.profileSlug)] : [])).filter((id): id is string => Boolean(id))
+    try {
+      profileMail = await profileMailData(createAdminClient(), profileIds)
+    } catch (profileError) {
+      return { recipients: [], error: `No se pudieron leer las obras de los perfiles: ${profileError instanceof Error ? profileError.message : 'error desconocido'}` }
+    }
+  }
+
   const countryByContact = new Map(
     ((contactCountries ?? []) as { contact_id: string; country_code: string | null }[]).map((row) => [
       row.contact_id,
@@ -49,7 +64,10 @@ export async function campaignRecipients(
     ]),
   )
   return {
-    recipients: contacts.map((contact) => ({ ...contact, locale: contactLocale(countryByContact.get(contact.id)) })),
+    recipients: contacts.map((contact) => {
+      const profileId = contact.profileSlug ? artistProfileIdFromSlug(contact.profileSlug) : undefined
+      return { ...contact, locale: contactLocale(countryByContact.get(contact.id)), profileMail: profileId ? profileMail.get(profileId) : undefined }
+    }),
     error: null,
   }
 }
@@ -156,5 +174,10 @@ export function campaignRecipientValues(contact: CampaignRecipient): Record<stri
     obra_dato: review?.artworkTitle || 'Sin título',
     datos_faltantes: missing.length ? missing.join(', ') : 'Sólo falta tu confirmación',
     perfil_url: contact.profileSlug ? `${getSiteUrl()}/artistas/${contact.profileSlug}` : undefined,
+    obra_imagen: contact.profileMail?.imageUrl,
+    obra_titulo: contact.profileMail ? contact.profileMail.title?.trim() || 'Sin título' : undefined,
+    perfil_obras: contact.profileMail ? String(contact.profileMail.obras) : undefined,
+    perfil_likes: contact.profileMail ? String(contact.profileMail.likes) : undefined,
+    perfil_comentarios: contact.profileMail ? String(contact.profileMail.comments) : undefined,
   }
 }
