@@ -8,10 +8,11 @@ import { createClient } from '@/lib/supabase/client'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { useI18n } from '@/lib/i18n/client'
 import { track } from '@/lib/track'
+import type { GalleryVenue } from './venue'
 import { Game } from './Game'
 
 /** The server only provides artworks after verifying a user. */
-export function GalleryAccess({ artworks, userId }: { artworks: Artwork[]; userId: string }) {
+export function GalleryAccess({ artworks, userId, initialVenue }: { artworks: Artwork[]; userId: string; initialVenue?: GalleryVenue }) {
   const [signedIn, setSignedIn] = useState(true)
   useEffect(() => {
     const { data } = createClient().auth.onAuthStateChange((_event, session) => {
@@ -19,11 +20,11 @@ export function GalleryAccess({ artworks, userId }: { artworks: Artwork[]; userI
     })
     return () => data.subscription.unsubscribe()
   }, [userId])
-  return signedIn ? <Game artworks={artworks} userId={userId} /> : <GallerySignIn />
+  return signedIn ? <Game artworks={artworks} userId={userId} initialVenue={initialVenue} /> : <GallerySignIn />
 }
 
 export function GallerySignIn() {
-  const { locale, m } = useI18n()
+  const { m } = useI18n()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   useEffect(() => { track('gallery_view') }, [])
@@ -33,7 +34,7 @@ export function GallerySignIn() {
     setFailed(false)
     try {
       if (!isSupabaseConfigured) throw new Error('unavailable')
-      const next = `/${locale}/galeria-3d${window.location.search}`
+      const next = `${window.location.pathname}${window.location.search}`
       const client = createClient()
       // A cached anonymous entry can still be open in a tab after login.
       const { data: { user } } = await client.auth.getUser()

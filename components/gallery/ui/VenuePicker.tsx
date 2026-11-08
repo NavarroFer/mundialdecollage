@@ -4,7 +4,6 @@ import { Check } from 'lucide-react'
 import { GALLERY_VENUES, type GalleryVenue } from '../venue'
 import styles from '../gallery-theme.module.css'
 import { useI18n } from '@/lib/i18n/client'
-import { useGalleryPreferences } from '../preferences/store'
 
 const swatches: Record<GalleryVenue, string> = {
   mundial: 'linear-gradient(90deg, #e8dcc4 0 55%, #d84b38 55% 78%, #487a65 78%)',
@@ -12,9 +11,7 @@ const swatches: Record<GalleryVenue, string> = {
 }
 
 /** The same radio list as the theme picker, for which building you walk. */
-export function VenuePicker() {
-  const venue = useGalleryPreferences((state) => state.venue)
-  const update = useGalleryPreferences((state) => state.update)
+export function VenuePicker({ venue, onChange }: { venue: GalleryVenue; onChange: (venue: GalleryVenue) => void }) {
   const t = useI18n().m.gallery.venues
   return (
     <div className={styles.themeMenu} role="radiogroup" aria-label={t.label}>
@@ -23,7 +20,7 @@ export function VenuePicker() {
         const selected = id === venue
         return (
           <button key={id} type="button" role="radio" aria-checked={selected}
-            onClick={() => update({ venue: id })} className={styles.themeMenuOption}>
+            onClick={() => onChange(id)} className={styles.themeMenuOption}>
             <span className={styles.themeMenuSwatch} style={{ background: swatches[id] }} />
             <span>{t[id]}</span>
             {selected && <Check size={14} aria-hidden="true" />}

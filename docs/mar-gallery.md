@@ -1,6 +1,6 @@
 # Museo MAR — provisional walk
 
-Checkpoint: the building, the picker, the walk map and the tests below are in the tree. A headed browser confirmed the Collage World Cup rooms still open and that MAR appears in the same list. Copying the WebGL frame out of that session did not finish, so the screenshots of the plaza and the hall are still outstanding. Dimensions remain provisional.
+Open it at `/museomar`. That address starts in MAR. `/galeria-3d` stays the Collage World Cup unless the address also says `?museo=mar` or `?museo=mundial`. Dimensions remain provisional. A local browser session drew the MAR plan on the minimap; the 3D pixels themselves stayed blank in that machine's software WebGL, so the frames are not proof of the picture.
 
 A second public building in the 3D gallery, chosen next to the theme list (or with `?museo=mar`). The Collage World Cup rooms are unchanged. This is a first reconstruction from the plan, the three sections, the published sheet and the site photographs. It is not a measured survey. Every metre below is an estimate and lives in `components/gallery/world/mar/layout.ts`, so a later photo with one known dimension can move a wall without hunting through the meshes.
 

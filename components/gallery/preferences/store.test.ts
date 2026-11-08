@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { venueFromSearch } from '../venue'
+import { venueFromPath, venueFromSearch } from '../venue'
 import { parsePreferences, useGalleryPreferences } from './store'
 
 afterEach(() => { vi.unstubAllGlobals(); useGalleryPreferences.setState(parsePreferences(null)) })
@@ -15,6 +15,10 @@ describe('gallery preferences', () => {
     expect(venueFromSearch('?museo=mar')).toBe('mar')
     expect(venueFromSearch('museo=mundial')).toBe('mundial')
     expect(venueFromSearch('?museo=louvre')).toBeNull()
+    expect(venueFromPath('/museomar')).toBe('mar')
+    expect(venueFromPath('/museomar/')).toBe('mar')
+    expect(venueFromPath('/es/museomar')).toBe('mar')
+    expect(venueFromPath('/galeria-3d')).toBeNull()
   })
   it('walks by clicks unless the visitor chose the keyboard or joystick', () => {
     expect(parsePreferences(null).venue).toBe('mundial')

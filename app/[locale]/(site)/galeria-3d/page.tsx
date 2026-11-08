@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getGalleryArtworks } from '@/lib/gallery-artworks'
 import { getI18n } from '@/lib/i18n/server'
 import { StampVisit } from '@/components/stamp-visit'
+import type { GalleryVenue } from '@/components/gallery/venue'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { m } = await getI18n()
@@ -14,10 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
 // The same daily selection as the homepage — see lib/gallery-artworks.ts.
 export const dynamic = 'force-dynamic'
 
-export default async function Galeria3DPage() {
+export default async function Galeria3DPage({ venue }: { venue?: GalleryVenue } = {}) {
   const { locale } = await getI18n()
   const user = isSupabaseConfigured ? await getCurrentUser() : null
   if (!user) return <GallerySignIn />
   const artworks = await getGalleryArtworks(locale)
-  return <><StampVisit stamp="gallery" /><GalleryAccess artworks={artworks} userId={user.id} /></>
+  return <><StampVisit stamp="gallery" /><GalleryAccess artworks={artworks} userId={user.id} initialVenue={venue} /></>
 }

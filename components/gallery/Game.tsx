@@ -32,7 +32,7 @@ import { loadWall, showClubBoard, useWallStore } from './wall/store'
 import { clubBoardFrame } from './club/board'
 import { useSouvenirStore } from './souvenir/store'
 import { galleryThemes, type GalleryTheme } from './themes'
-import { MAR_PRESENCE_TOPIC, venueFromSearch, type GalleryVenue } from './venue'
+import { MAR_PRESENCE_TOPIC, venueFromPath, venueFromSearch, type GalleryVenue } from './venue'
 import { artworksForVenue } from './world/mar/place'
 import { marGalleryTemplate } from './world/mar/layout'
 import styles from './gallery-theme.module.css'
@@ -89,6 +89,7 @@ export function Game({
   clubSlug,
   clubHost,
   clubOwner = false,
+  initialVenue,
 }: {
   artworks: Artwork[]
   userId: string | null
@@ -101,6 +102,8 @@ export function Game({
   clubHost?: ClubHostInfo
   /** This browser belongs to the Club gallery's own member: they show up as its host. */
   clubOwner?: boolean
+  /** Set by /museomar. Does not replace a saved choice on /galeria-3d. */
+  initialVenue?: GalleryVenue
 }) {
   const isTouchDevice = useSyncExternalStore(noopSubscribe, getIsTouchDevice, getServerSnapshot)
   const controlMode = useGalleryPreferences((state) => state.controlMode)
@@ -117,14 +120,21 @@ export function Game({
   const preferredTheme = useGalleryPreferences((state) => state.theme)
   const theme = themeOverride ?? preferredTheme
   const storedVenue = useGalleryPreferences((state) => state.venue)
-  // A Club room is its own building. MAR is a second public walk, chosen
-  // like a theme and remembered the same way. ?museo=mar opens it directly.
-  const venue: GalleryVenue = template ? 'mundial' : storedVenue
+  // /museomar and ?museo= choose the building for this visit. The picker can replace that.
+  const routeVenue = useSyncExternalStore(
+    noopSubscribe,
+    () => venueFromSearch(window.location.search) ?? venueFromPath(window.location.pathname) ?? initialVenue ?? null,
+    () => initialVenue ?? null,
+  )
+  const [pickedVenue, setPickedVenue] = useState<GalleryVenue | null>(null)
+  // A Club room is its own building. The Collage World Cup stays the default.
+  const venue: GalleryVenue = template ? 'mundial' : (pickedVenue ?? routeVenue ?? storedVenue)
   const placedArtworks = useMemo(() => artworksForVenue(artworks, venue), [artworks, venue])
   const roomTemplate = template ?? (venue === 'mar' ? marGalleryTemplate : undefined)
   useEffect(() => {
     useGalleryPreferences.getState().hydrate()
     if (template) return
+    // Remember an explicit query. The /museomar path is only a door, not a saved preference.
     const requested = venueFromSearch(window.location.search)
     if (requested) useGalleryPreferences.getState().update({ venue: requested })
   }, [template])
@@ -470,7 +480,7 @@ export function Game({
         {isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice active={false} onResume={resumeWalk} inline />}
         {isTouchDevice && <Minimap theme={theme} artworks={placedArtworks} template={roomTemplate} />}
         {isTouchDevice && hasStarted && <PresenceCounter />}
-        <VisitPreferences artworks={placedArtworks} onResume={resumeArtwork} showVenue={!template} />
+        <VisitPreferences artworks={placedArtworks} onResume={resumeArtwork} showVenue={!template} venue={venue} onVenue={(next) => { setPickedVenue(next); useGalleryPreferences.getState().update({ venue: next }) }} />
         <button type="button" className={styles.visitMenuButton} onClick={() => { replayTutorial(); handleEnter() }}>{m.gallery.tutorial.replay}</button>
         <button type="button" className={styles.visitMenuButton} onClick={() => handleEnter()}>{m.gallery.mobileMenu.resume}</button>
       </div>
@@ -491,6 +501,8 @@ export function Game({
         <StartScreen
           artworks={placedArtworks}
           showVenue={!template}
+          venue={venue}
+          onVenue={(next) => { setPickedVenue(next); useGalleryPreferences.getState().update({ venue: next }) }}
           label={hasStarted ? m.gallery.resume : m.gallery.enter}
           showPresence={!hasStarted}
           hint={isTouchDevice ? m.gallery.controls.hintTap : controlMode === 'point' ? m.gallery.controls.hintClick : m.gallery.controls.hintLock}
