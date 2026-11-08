@@ -25,7 +25,7 @@ export function PromoCard({ href, event, icon: Icon, eyebrow, title, body, cta, 
     >
       <Icon className="size-10 shrink-0 text-collage-red" aria-hidden="true" />
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-bold tracking-[0.16em] text-collage-red uppercase">{eyebrow}</span>
+        <span className="block text-xs font-bold tracking-[0.16em] text-collage-red-ink uppercase">{eyebrow}</span>
         <span className="font-display mt-1 block text-xl tracking-tight text-ink uppercase">{title}</span>
         <span className="mt-1 block text-sm text-muted-foreground">{body}</span>
         <span className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-collage-blue underline-offset-4 group-hover:underline">
