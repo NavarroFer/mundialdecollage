@@ -117,7 +117,10 @@ function MarLights() {
   )
 }
 
-/** Walks the escalator by lifting the body along the slope. The deck has no solid, so nothing blocks the way up. */
+/**
+ * Walks the escalator by lifting the body along the slope. The deck has no solid, so nothing blocks the way up.
+ * No priority argument: a positive one tells R3F this hook renders the frame itself, and the canvas stays blank.
+ */
 function EscalatorRide() {
   useFrame(() => {
     const body = playerBody.current
@@ -128,7 +131,7 @@ function EscalatorRide() {
     body.setTranslation({ x: position.x, y: height + SPAWN_HEIGHT, z: position.z }, true)
     const velocity = body.linvel()
     body.setLinvel({ x: velocity.x, y: 0, z: velocity.z }, true)
-  }, 1)
+  })
   return null
 }
 
