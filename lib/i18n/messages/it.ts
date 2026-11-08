@@ -946,6 +946,7 @@ const it: Messages = {
     price: '{ars} al mese con Mercado Pago, oppure {usd} al mese con PayPal se sei fuori dall\'Argentina.',
     cancel: 'Puoi annullare quando vuoi. Se metti in pausa, la tua galleria non viene più mostrata, ma conservi le monete e tutto ciò che hai sbloccato.',
     cta: 'Voglio la mia galleria',
+    homeEyebrow: 'Club del Mondiale',
     homeTitle: 'La tua galleria 3D, aperta ogni giorno',
     homeBody: 'Una sala permanente per tutta la tua serie, con temi, cornici e monete per migliorarla.',
     homeCta: 'Scopri il Club',

@@ -947,6 +947,7 @@ const en: Messages = {
     price: '{ars} a month with Mercado Pago, or {usd} a month with PayPal if you are outside Argentina.',
     cancel: 'Cancel any time. If you pause, your gallery stops being shown, but you keep your coins and everything you unlocked.',
     cta: 'I want my gallery',
+    homeEyebrow: 'World Cup Club',
     homeTitle: 'Your own 3D gallery, open every day',
     homeBody: 'A permanent room for your whole series, with themes, frames and coins to improve it.',
     homeCta: 'Discover the Club',

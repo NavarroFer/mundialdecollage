@@ -946,6 +946,7 @@ const fr: Messages = {
     price: '{ars} par mois avec Mercado Pago, ou {usd} par mois avec PayPal si vous êtes hors d\'Argentine.',
     cancel: 'Résiliable à tout moment. Si vous mettez en pause, votre galerie n\'est plus affichée, mais vous gardez vos pièces et tout ce que vous avez débloqué.',
     cta: 'Je veux ma galerie',
+    homeEyebrow: 'Club de la Coupe du monde',
     homeTitle: 'Votre propre galerie 3D, ouverte tous les jours',
     homeBody: 'Une salle permanente pour toute votre série, avec des thèmes, des cadres et des pièces pour l\'améliorer.',
     homeCta: 'Découvrir le Club',

@@ -943,6 +943,7 @@ const id: Messages = {
     price: '{ars} per bulan lewat Mercado Pago, atau {usd} per bulan lewat PayPal jika Anda berada di luar Argentina.',
     cancel: 'Bisa berhenti kapan saja. Jika dijeda, galeri Anda tidak lagi ditampilkan, tetapi koin dan semua yang Anda buka tetap ada.',
     cta: 'Saya mau galeri saya',
+    homeEyebrow: 'Klub Piala Dunia',
     homeTitle: 'Galeri 3D Anda sendiri, buka setiap hari',
     homeBody: 'Ruang permanen untuk seluruh seri Anda, dengan tema, bingkai, dan koin untuk memperbaikinya.',
     homeCta: 'Kenali Klub',

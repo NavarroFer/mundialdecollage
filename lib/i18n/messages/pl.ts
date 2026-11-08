@@ -968,6 +968,7 @@ const pl: Messages = {
     price: '{ars} miesięcznie przez Mercado Pago lub {usd} miesięcznie przez PayPal, jeśli jesteś poza Argentyną.',
     cancel: 'Możesz zrezygnować w każdej chwili. Jeśli wstrzymasz, galeria przestaje być pokazywana, ale zachowujesz monety i wszystko, co odblokowałeś.',
     cta: 'Chcę swoją galerię',
+    homeEyebrow: 'Klub Mistrzostw',
     homeTitle: 'Twoja własna galeria 3D, otwarta codziennie',
     homeBody: 'Stała sala na całą Twoją serię, z motywami, ramami i monetami na jej ulepszanie.',
     homeCta: 'Poznaj Klub',

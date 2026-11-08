@@ -946,6 +946,7 @@ const de: Messages = {
     price: '{ars} pro Monat mit Mercado Pago oder {usd} pro Monat mit PayPal, wenn du außerhalb Argentiniens bist.',
     cancel: 'Jederzeit kündbar. Wenn du pausierst, wird deine Galerie nicht mehr gezeigt, aber du behältst deine Münzen und alles, was du freigeschaltet hast.',
     cta: 'Ich möchte meine Galerie',
+    homeEyebrow: 'Club der Weltmeisterschaft',
     homeTitle: 'Deine eigene 3D-Galerie, jeden Tag geöffnet',
     homeBody: 'Ein dauerhafter Raum für deine ganze Serie, mit Themen, Rahmen und Münzen zum Verbessern.',
     homeCta: 'Den Club entdecken',

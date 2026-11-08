@@ -985,6 +985,7 @@ const es = {
     price: '{ars} por mes con Mercado Pago, o {usd} por mes con PayPal si estás fuera de Argentina.',
     cancel: 'Podés cancelar cuando quieras. Si pausás, tu galería deja de mostrarse, pero conservás tus monedas y todo lo que destrabaste.',
     cta: 'Quiero mi galería',
+    homeEyebrow: 'Club del Mundial',
     homeTitle: 'Tu galería 3D propia, abierta todos los días',
     homeBody: 'Una sala permanente para toda tu serie, con temas, marcos y monedas para mejorarla.',
     homeCta: 'Conocer el Club',
