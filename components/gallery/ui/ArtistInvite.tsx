@@ -26,7 +26,7 @@ export function ArtistInvite({ onDismiss, onAccept }: { onDismiss: () => void; o
 
   return (
     <section ref={ref} aria-labelledby={titleId}
-      className="animate-in fade-in space-y-3 rounded-xl border border-l-4 border-ink/15 border-l-[color:var(--gallery-accent)] p-4 duration-300 motion-reduce:animate-none">
+      className="animate-in fade-in space-y-3 rounded-xl border-2 border-[color:color-mix(in_srgb,var(--gallery-accent)_55%,transparent)] bg-[color:color-mix(in_srgb,var(--gallery-accent)_8%,transparent)] p-4 duration-300 motion-reduce:animate-none">
       <h3 id={titleId} className="text-base font-bold text-ink">{t.title}</h3>
       <p className="text-sm">{t.body}</p>
       <Link href="/onboarding" onClick={() => { track('artist_invite_click'); onAccept() }}
