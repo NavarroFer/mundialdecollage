@@ -105,6 +105,7 @@ const AUDIENCE_STYLE: Record<CampaignAudience, { dot: string; tag: string }> = {
   multiple_artworks: { dot: 'bg-collage-blue', tag: 'border-collage-blue/30 bg-collage-blue/5 text-collage-blue' },
   club_prospects: { dot: 'bg-collage-red', tag: 'border-collage-red/30 bg-collage-red/5 text-collage-red' },
   profile_review: { dot: 'bg-ink', tag: 'border-ink/20 bg-ink/5 text-ink' },
+  public_profiles: { dot: 'bg-collage-yellow', tag: 'border-collage-yellow/40 bg-collage-yellow/5 text-collage-yellow' },
 }
 
 type CampaignRow = {

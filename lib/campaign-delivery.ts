@@ -11,8 +11,9 @@ import { audienceContacts, parseAudience } from '@/lib/campaign-audience'
 import type { Locale } from '@/lib/i18n/locales'
 import { countryCodeToName } from '@/lib/participants'
 import type { ProfileReviewData } from '@/lib/campaign-audience'
+import { getSiteUrl } from '@/lib/site'
 
-export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData; artworkTitles?: Array<string | null> }
+export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string }
 
 export type DeliverableCampaign = {
   id: string
@@ -154,5 +155,6 @@ export function campaignRecipientValues(contact: CampaignRecipient): Record<stri
     pais_dato: review?.countryCode ? countryCodeToName(review.countryCode, contact.locale) : 'Sin completar',
     obra_dato: review?.artworkTitle || 'Sin título',
     datos_faltantes: missing.length ? missing.join(', ') : 'Sólo falta tu confirmación',
+    perfil_url: contact.profileSlug ? `${getSiteUrl()}/artistas/${contact.profileSlug}` : undefined,
   }
 }

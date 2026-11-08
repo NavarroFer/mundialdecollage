@@ -21,7 +21,7 @@ import { isClubOpen } from '@/lib/club-launch'
 import { clubMembershipPlanById } from '@/lib/store'
 import type { TemplateAudience } from '@/lib/template-audiences'
 
-export type SystemTemplateKey = 'elegir_obra' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento'
+export type SystemTemplateKey = 'elegir_obra' | 'perfil_artista' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
@@ -129,6 +129,22 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
       { id: nextBlockId(), type: 'text', text: 'Para participar gratis en el concurso tenés que elegir una sola obra. Registrate en la página con el mismo correo al que recibís este mail; así vas a encontrar tus obras y podrás confirmar cuál querés presentar. Si ya tenés una cuenta, iniciá sesión.', align: 'left' },
       { id: nextBlockId(), type: 'button', text: 'Registrarme y elegir mi obra', url: `${siteUrl}/onboarding`, align: 'left', color: 'red' },
       { id: nextBlockId(), type: 'text', text: 'Tenés hasta el 15 de noviembre de 2026 para confirmar tu elección. ¡Faltan diez días para el cierre!', align: 'left' },
+      ...footer(),
+    ] }),
+  },
+  perfil_artista: {
+    name: 'Artistas: tu perfil ya está online',
+    audiences: ['artistas'],
+    subject: '{{nombre}}, tu perfil de artista ya está online',
+    description: 'Para la audiencia «Artistas con perfil público». {{perfil_url}} es el link al perfil de cada artista (sus obras, los me gusta y los comentarios de la Galería 3D). Sin esa audiencia, {{perfil_url}} queda vacío: no la mandes a otra.',
+    createDocument: (siteUrl) => ({ blocks: [
+      logo(siteUrl),
+      { id: nextBlockId(), type: 'heading', text: 'Hola {{nombre}},', align: 'left', size: 'md' },
+      { id: nextBlockId(), type: 'text', text: 'Ya tenés tu propio perfil en el Mundial Internacional de Collage: tus obras, los me gusta y los comentarios que te dejan en la Galería 3D, todo en una página.', align: 'left' },
+      { id: nextBlockId(), type: 'button', text: 'Ver mi perfil', url: '{{perfil_url}}', align: 'left', color: 'red' },
+      { id: nextBlockId(), type: 'text', text: 'Compartilo: poné el link en la bio de tu Instagram, mandáselo a tu gente y subilo a tus historias. Cada visita, cada me gusta y cada comentario hacen que tu obra llegue más lejos.', align: 'left' },
+      { id: nextBlockId(), type: 'text', text: '{{perfil_url}}', align: 'left' },
+      { id: nextBlockId(), type: 'button', text: 'Recorrer la Galería 3D', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'blue' },
       ...footer(),
     ] }),
   },

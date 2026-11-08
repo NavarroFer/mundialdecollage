@@ -4,6 +4,7 @@
 // wins, whatever audience is picked.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ADMIN_EMAILS } from '@/lib/admin'
+import { artistProfileSlug } from '@/lib/artist-profiles'
 
 export const CAMPAIGN_AUDIENCES = [
   { value: 'subscribed', label: 'Todos los suscriptos', description: 'Todos los contactos que no se dieron de baja.' },
@@ -31,6 +32,12 @@ export const CAMPAIGN_AUDIENCES = [
     description: 'Suscriptos que participaron con una obra y todavía no tienen una galería del Club (sin admins).',
   },
   { value: 'multiple_artworks', label: 'Varias obras por elegir', description: 'Artistas con varias obras cargadas y participación publicada que todavía no eligieron cuál participa gratis.' },
+  {
+    value: 'public_profiles',
+    label: 'Artistas con perfil público',
+    // Each one gets {{perfil_url}}, the link to their own /artistas page.
+    description: 'Artistas suscriptos con su perfil publicado. Cada uno recibe el link a su propio perfil en {{perfil_url}}.',
+  },
   {
     value: 'profile_review',
     label: 'Datos por confirmar',
@@ -100,7 +107,7 @@ export function contactsClubProspects<T extends { email: string }>(
 export async function audienceContacts(
   supabase: SupabaseClient,
   audience: CampaignAudience,
-): Promise<{ contacts: Array<{ id: string; email: string; name: string | null; review?: ProfileReviewData; artworkTitles?: Array<string | null> }>; error: string | null }> {
+): Promise<{ contacts: Array<{ id: string; email: string; name: string | null; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string }>; error: string | null }> {
   const { data: subscribed, error } = await supabase.from('contacts').select('id, email, name').eq('subscribed', true)
   if (error) return { contacts: [], error: error.message }
   if (audience === 'subscribed') return { contacts: subscribed ?? [], error: null }
@@ -117,6 +124,24 @@ export async function audienceContacts(
       contacts: (subscribed ?? []).flatMap((contact) => {
         const artworkTitles = titlesByContact.get(contact.id)
         return artworkTitles && !admins.has(normalize(contact.email)) ? [{ ...contact, artworkTitles }] : []
+      }),
+      error: null,
+    }
+  }
+
+  if (audience === 'public_profiles') {
+    const { data, error: profilesError } = await supabase.rpc('public_profile_contacts')
+    if (profilesError) return { contacts: [], error: profilesError.message }
+    const byContact = new Map(
+      ((data ?? []) as { contact_id: string; profile_id: string; artist_name: string }[])
+        .map((row) => [row.contact_id, row]),
+    )
+    const admins = new Set(ADMIN_EMAILS.map(normalize))
+    return {
+      contacts: (subscribed ?? []).flatMap((contact) => {
+        const row = byContact.get(contact.id)
+        if (!row || admins.has(normalize(contact.email))) return []
+        return [{ ...contact, name: contact.name || row.artist_name, profileSlug: artistProfileSlug(row.artist_name, row.profile_id) }]
       }),
       error: null,
     }

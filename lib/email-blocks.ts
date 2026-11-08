@@ -132,6 +132,7 @@ const PREVIEW_TAG_VALUES: Record<string, string> = {
   likes_total: '84',
   comentarios: '“Qué hermosa composición.” — Julieta',
   link_obra: `${getSiteUrl()}/galeria-3d?obra=ejemplo`,
+  perfil_url: `${getSiteUrl()}/artistas/ejemplo`,
   link_pdf: `${getSiteUrl()}/obras/ejemplo/certificado?formato=pdf`,
   link_imagen: `${getSiteUrl()}/obras/ejemplo/certificado?formato=imagen`,
   email: 'camila.fernandez@example.com',
