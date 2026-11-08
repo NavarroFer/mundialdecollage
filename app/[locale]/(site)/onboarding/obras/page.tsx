@@ -113,7 +113,7 @@ export default async function EntriesPage({
         <p className="mx-auto mt-3 max-w-lg text-center text-muted-foreground">{intro}</p>
 
         {error && (
-          <p role="alert" className="mt-6 rounded-lg bg-collage-red/10 px-3 py-2 text-center text-sm font-medium text-collage-red">
+          <p role="alert" className="mt-6 rounded-lg bg-collage-red/10 px-3 py-2 text-center text-sm font-medium text-collage-red-ink">
             {fmt(error, { limit })}
           </p>
         )}
@@ -124,7 +124,7 @@ export default async function EntriesPage({
           </p>
         )}
         {params.pago === 'error' && !hasPaid && (
-          <p role="alert" className="mt-6 rounded-lg bg-collage-red/10 px-3 py-2 text-center text-sm font-medium text-collage-red">
+          <p role="alert" className="mt-6 rounded-lg bg-collage-red/10 px-3 py-2 text-center text-sm font-medium text-collage-red-ink">
             {m.entries.paymentFailed}
           </p>
         )}

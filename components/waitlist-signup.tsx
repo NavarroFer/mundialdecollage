@@ -51,7 +51,7 @@ export function WaitlistSignup({ source, className, title, body, compact = false
         </Button>
       </div>
       {state !== 'idle' && <p role="alert" className="mt-2 text-sm text-collage-red">{t.waitlistErrors[state]}</p>}
-      <p className="mt-2 text-xs text-muted-foreground/80">{t.waitlistPrivacy}</p>
+      <p className="mt-2 text-xs text-muted-foreground">{t.waitlistPrivacy}</p>
     </form>
   )
 }

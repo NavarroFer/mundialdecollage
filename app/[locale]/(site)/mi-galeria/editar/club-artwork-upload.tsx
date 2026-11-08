@@ -110,7 +110,7 @@ export function ClubArtworkUpload({ userId, locale, needsProfile, defaultName, t
           {TECHNIQUES.map((technique) => <option key={technique} value={technique}>{texts.techniques[technique] ?? technique}</option>)}
         </select>
       </div>
-      {error && <p role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">{error}</p>}
+      {error && <p role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red-ink">{error}</p>}
       <Button type="submit" disabled={busy} className="min-h-11 w-full">
         {busy ? <><Loader2 className="h-4 w-4 animate-spin" />{texts.uploading}</> : texts.upload}
       </Button>

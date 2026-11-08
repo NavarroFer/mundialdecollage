@@ -82,7 +82,7 @@ export function ArtistConfirmation({ name, countryCode, email, artwork, artworkC
           <p className="mt-1 text-xs text-muted-foreground">{m.confirmation.emailUse}</p>
         </div>
         <TermsCheckbox id="accept_terms_confirmation" />
-        {error && <p role="alert" className="rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{m.confirmation.errors[error] ?? error}</p>}
+        {error && <p role="alert" className="rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red-ink">{m.confirmation.errors[error] ?? error}</p>}
         <Button type="submit" size="lg" disabled={pending} className="h-auto min-h-14 w-full whitespace-normal px-4 py-3 text-center">
           {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
           {pending ? m.common.confirming : m.confirmation.confirm}

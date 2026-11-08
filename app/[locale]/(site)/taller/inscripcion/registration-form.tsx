@@ -39,7 +39,7 @@ export function RegistrationForm({
       className="mt-8 space-y-5 rounded-2xl border-2 border-ink/10 bg-card p-7"
     >
       {error && errorMessages[error] && (
-        <p className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
+        <p className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red-ink">
           {errorMessages[error]}
         </p>
       )}

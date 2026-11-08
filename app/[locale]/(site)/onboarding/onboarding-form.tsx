@@ -318,7 +318,7 @@ export function OnboardingForm({
       )}
 
       {displayError && (
-        <p ref={alertRef} role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
+        <p ref={alertRef} role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red-ink">
           {displayError}
         </p>
       )}

@@ -396,7 +396,7 @@ export default async function EditGalleryPage({ searchParams }: { searchParams: 
           </div>
         </header>
 
-        {error && <p role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-center text-sm font-medium text-collage-red">{error}</p>}
+        {error && <p role="alert" className="rounded-lg bg-collage-red/10 px-3 py-2 text-center text-sm font-medium text-collage-red-ink">{error}</p>}
         {notice && <p role="status" className="flex items-center justify-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm"><Check className="h-4 w-4" />{notice}</p>}
 
         <EditorTabs label={e.title} tabs={[

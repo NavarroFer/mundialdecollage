@@ -91,7 +91,7 @@ export function MagazineForm({ priceArs, shippingAbroadArs, maxQuantity, default
         </p>
       </div>
 
-      {state.error && <p role="alert" className="rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{t.errors[state.error]}</p>}
+      {state.error && <p role="alert" className="rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red-ink">{t.errors[state.error]}</p>}
       <Button type="submit" size="lg" variant="primary" disabled={pending} className="h-auto min-h-14 w-full whitespace-normal py-3">
         {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
         {t.submit}

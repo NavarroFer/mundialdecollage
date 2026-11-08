@@ -63,7 +63,7 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
           <p className="my-3 text-sm text-muted-foreground">{t.packsBody}</p>
           <TermsNotice t={t} />
           {monedas === 'ok' && <p role="status" className="mb-4 rounded-lg bg-muted px-3 py-2 text-sm">{t.coinsPending}</p>}
-          {error && <p role="alert" className="mb-4 rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">{t.errorUnavailable}</p>}
+          {error && <p role="alert" className="mb-4 rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red-ink">{t.errorUnavailable}</p>}
           <ul className="space-y-3">
             {coinPacks.map((pack) => (
               <li key={pack.id} className="rounded-xl border p-4 text-left">
@@ -103,7 +103,7 @@ export default async function MyGalleryPage({ searchParams }: { searchParams: Pr
       <p className="my-4 text-muted-foreground">{t.joinBody}</p>
       {plan && <p className="font-display text-2xl">{fmt(t.price, { price: formatMoney(locale, plan.priceArs, 'ARS') })}{paypalAvailable && <span className="text-muted-foreground"> · {fmt(t.price, { price: formatMoney(locale, plan.priceUsd, 'USD') })}</span>}</p>}
       {error && (
-        <p role="alert" className="mt-6 rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red">
+        <p role="alert" className="mt-6 rounded-lg bg-collage-red/10 px-3 py-2 text-sm font-medium text-collage-red-ink">
           {error === 'invalid' ? t.errorInvalid : t.errorUnavailable}
         </p>
       )}

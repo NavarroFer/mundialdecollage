@@ -29,11 +29,16 @@
   --destructive-foreground: var(--paper);
   /* Not in the guide (UI-only details) — derived from the two base colors
      instead of invented hex, so they stay tied to the brand values above.
-     60% ink in --muted-foreground (not 55%) is deliberate: it's the minimum
-     that clears WCAG AA (4.79:1) for the ~50 files that use it as real body
-     text, not just decoration. */
+     64% ink in --muted-foreground is deliberate: the ~50 files that use it
+     as real body text also put it on the --muted bands, not just on paper.
+     60% cleared AA on paper (4.77:1) but fell to 4.2:1 on --muted; 64% gives
+     5.5:1 on paper and 4.8:1 on --muted. */
   --muted: color-mix(in srgb, var(--ink) 6%, var(--paper));
-  --muted-foreground: color-mix(in srgb, var(--ink) 60%, var(--paper));
+  --muted-foreground: color-mix(in srgb, var(--ink) 64%, var(--paper));
+  /* Brand red for small text. The red as is reads 4.6:1 on paper but only
+     4.1:1 on --muted and 4.0:1 on its own 10% tint (the error boxes); 15%
+     ink brings those to 5.1:1 and 5.0:1 and still reads as the same red. */
+  --collage-red-ink: color-mix(in srgb, var(--ink) 15%, var(--collage-red));
   --border: color-mix(in srgb, var(--ink) 12%, var(--paper));
   --input: color-mix(in srgb, var(--ink) 12%, var(--paper));
   --ring: var(--collage-blue);
@@ -79,6 +84,7 @@
   --color-ink: var(--ink);
   --color-collage-blue: var(--collage-blue);
   --color-collage-red: var(--collage-red);
+  --color-collage-red-ink: var(--collage-red-ink);
   --color-collage-yellow: var(--collage-yellow);
   --color-free-shipping: var(--free-shipping);
   --color-chart-1: var(--chart-1);

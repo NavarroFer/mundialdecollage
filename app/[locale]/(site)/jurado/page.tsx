@@ -58,7 +58,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
     const firstTime = !juror.profile_completed_at
     return (
       <Shell title="Tu ficha de jurado">
-        {error && <p role="alert" className="mb-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{error}</p>}
+        {error && <p role="alert" className="mb-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red-ink">{error}</p>}
         <p className="text-muted-foreground">
           {firstTime
             ? <>Hola{juror.name ? `, ${juror.name}` : ''}, gracias por sumarte al jurado del Mundial de Collage. Antes de ver las obras, contanos quién sos: con estos datos te presentamos como parte del jurado.{juror.country_code || juror.job_title ? ' Revisá lo que ya cargamos y completá el resto.' : ''}</>
@@ -91,7 +91,7 @@ export default async function JuradoPage({ searchParams }: { searchParams: Promi
 
   // Shown in both views: how long is left, or that voting closed.
   const deadlineBanner = deadline && (
-    <p role={closed ? 'status' : undefined} className={`mb-4 rounded-xl border-2 px-4 py-3 text-sm font-semibold ${closed ? 'border-collage-red/30 bg-collage-red/10 text-collage-red' : 'border-collage-blue/20 bg-collage-blue/5 text-ink'}`}>
+    <p role={closed ? 'status' : undefined} className={`mb-4 rounded-xl border-2 px-4 py-3 text-sm font-semibold ${closed ? 'border-collage-red/30 bg-collage-red/10 text-collage-red-ink' : 'border-collage-blue/20 bg-collage-blue/5 text-ink'}`}>
       {closed ? `La votación cerró el ${deadline}. Tus puntajes quedaron guardados y ya no se pueden cambiar.` : `Tenés tiempo hasta el ${deadline}.`}
     </p>
   )
