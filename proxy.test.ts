@@ -90,8 +90,23 @@ describe('proxy', () => {
 
   it('renders pages without an anonymous copy per request', async () => {
     expect(await served('/onboarding/obras')).toBe('/es/onboarding/obras')
-    expect(await served('/tienda')).toBe('/es/tienda')
     expect(await served('/admin')).toBe('/es/admin')
+  })
+
+  it('serves the store from the copy for the visitor\'s region', async () => {
+    expect(await served('/tienda')).toBe('/es/anon/tienda')
+    expect(await served('/tienda', { 'x-vercel-ip-country': 'AR' })).toBe('/es/anon/tienda')
+    expect(await served('/tienda', { 'x-vercel-ip-country': 'BR' })).toBe('/pt/anon/tienda/exterior')
+    expect(await served('/tienda?envio=exterior')).toBe('/es/anon/tienda/exterior?envio=exterior')
+    expect(await served('/tienda?envio=ar', { 'x-vercel-ip-country': 'BR' })).toBe('/pt/anon/tienda?envio=ar')
+    expect(await served('/es/tienda?envio=exterior')).toBe('/es/anon/tienda/exterior?envio=exterior')
+    expect(await served('/tienda', { cookie: `${REFERRAL_COOKIE}=una-obra`, 'x-vercel-ip-country': 'AR' })).toBe('/es/anon/tienda')
+  })
+
+  it('renders the store per request for a session or a ?desde= link', async () => {
+    expect(await served('/tienda', { cookie: 'sb-abc-auth-token=x' })).toBe('/es/tienda')
+    expect(await served('/tienda?desde=mail')).toBe('/es/tienda?desde=mail')
+    expect(await served('/es/tienda?desde=mail')).toBeNull()
   })
 
   it('leaves a localized URL as it is', async () => {

@@ -7,6 +7,8 @@
 // To add one: a page that reads no searchParams, cookies or headers beyond
 // what renderAsAnonymous() answers (session, referral) and the locale. Give
 // it an anon/ copy like the others; lib/static-pages.test.ts checks both.
+// /tienda has two (anon/tienda for pesos, anon/tienda/exterior for dollars):
+// proxy.ts chooses between them.
 // Plain module (no `@/` imports): proxy.ts loads it.
 export const STATIC_PAGES = [
   '/',
@@ -18,6 +20,7 @@ export const STATIC_PAGES = [
   '/onboarding',
   '/partners',
   '/revista',
+  '/tienda',
   '/politica-de-privacidad',
   '/terminos-y-condiciones',
   '/donar/gracias',

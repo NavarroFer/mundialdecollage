@@ -23,6 +23,18 @@ function hasSupabaseSession(request: NextRequest) {
   return request.cookies.getAll().some(({ name }) => name.startsWith('sb-'))
 }
 
+// The store sells in pesos in Argentina and in dollars anywhere else, so it
+// has two anonymous copies. ?envio=ar|exterior picks one; without it the
+// visitor's country decides, and Argentina when it's unknown (the same rule
+// as app/[locale]/(site)/tienda/page.tsx).
+function storeIsAbroad(request: NextRequest) {
+  const envio = request.nextUrl.searchParams.get('envio')
+  if (envio === 'ar') return false
+  if (envio === 'exterior') return true
+  const country = request.headers.get('x-vercel-ip-country')
+  return Boolean(country) && country !== 'AR'
+}
+
 // Where a page request is served from: every page lives under /<locale>/,
 // and the public ones also have an anonymous copy under /<locale>/anon/
 // that's built ahead and served from the CDN (lib/static-pages.ts). That
@@ -47,11 +59,15 @@ function pageTarget(request: NextRequest): URL | null {
   // cookie for attribution without disabling their CDN cache for 30 days.
   const showsInvite = pagePath === '/' || /^\/obras\/[^/]+\/?$/.test(pagePath)
   const referral = parseReferral(searchParams.get('ref')) ?? parseReferral(request.cookies.get(REFERRAL_COOKIE)?.value)
-  const personal = hasSupabaseSession(request) || (showsInvite && referral !== null)
+  // The daily «Así le fue a tu obra» mail links to /tienda?desde=mail, which
+  // the page itself reads to measure it; a prebuilt copy can't.
+  const store = pagePath.replace(/\/$/, '') === '/tienda'
+  const personal = hasSupabaseSession(request) || (showsInvite && referral !== null) || (store && searchParams.has('desde'))
   if (localized && personal) return null
   const path = pagePath === '/' ? '' : pagePath
   const url = request.nextUrl.clone()
-  url.pathname = !personal && isStaticPage(pagePath) ? `/${locale}/anon${path}` : `/${locale}${path}`
+  const anonymousPath = store && storeIsAbroad(request) ? '/tienda/exterior' : path
+  url.pathname = !personal && isStaticPage(pagePath) ? `/${locale}/anon${anonymousPath}` : `/${locale}${path}`
   return url
 }
 
