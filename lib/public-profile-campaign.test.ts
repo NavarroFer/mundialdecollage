@@ -4,6 +4,7 @@ import { personalizeHtmlWithValues, renderEmailDocumentToHtml } from '@/lib/emai
 import { SYSTEM_TEMPLATES } from '@/lib/system-templates'
 import { getSiteUrl } from '@/lib/site'
 import { leadArtwork, mailImageUrl } from '@/lib/artist-profile-mail'
+import { campaignBlockedByTags } from '@/lib/campaign-audience'
 
 describe('artist profile campaign', () => {
   const slug = 'ana-perez-11111111-1111-1111-1111-111111111111'
@@ -82,3 +83,18 @@ describe('the obra a profile mail leads with', () => {
     }
   })
 })
+
+describe('sending the profile mail to the wrong audience', () => {
+  const html = renderEmailDocumentToHtml(SYSTEM_TEMPLATES.perfil_artista.createDocument('https://example.com'))
+
+  it('is refused for everyone but the artists with a public profile', () => {
+    expect(campaignBlockedByTags('subscribed', html)).toMatch(/Artistas con perfil público/)
+    expect(campaignBlockedByTags('no_artwork', html)).not.toBeNull()
+    expect(campaignBlockedByTags('public_profiles', html)).toBeNull()
+  })
+
+  it('leaves any other mail alone', () => {
+    expect(campaignBlockedByTags('subscribed', '<p>Hola {{nombre}}</p>')).toBeNull()
+  })
+})
+

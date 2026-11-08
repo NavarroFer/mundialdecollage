@@ -22,7 +22,7 @@ import {
   type TranslatedLocale,
 } from '@/lib/email-translation'
 import { isTranslatorConfigured, translateEmailTexts } from '@/lib/email-translator'
-import { parseAudience } from '@/lib/campaign-audience'
+import { campaignBlockedByTags, parseAudience } from '@/lib/campaign-audience'
 import { campaignRecipientValues, campaignRecipients, deliverCampaign } from '@/lib/campaign-delivery'
 import { parseScheduleDay } from '@/lib/campaign-schedule'
 import { DEFAULT_LOCALE, isLocale, TRANSLATED_LOCALES, type Locale } from '@/lib/i18n/locales'
@@ -102,7 +102,7 @@ export async function sendCampaign(audienceInput: unknown, formData: FormData) {
   if (!isMailConfigured) {
     redirect(backTo('resend_not_configured'))
   }
-  const blocked = campaignBlockedByClub(audience)
+  const blocked = campaignBlockedByClub(audience) ?? campaignBlockedByTags(audience, bodyHtml)
   if (blocked) redirect(backTo(blocked))
 
   const supabase = await createClient()
@@ -163,6 +163,8 @@ export async function scheduleCampaign(audienceInput: unknown, formData: FormDat
   if (!scheduledFor) {
     redirect(backTo('invalid_schedule'))
   }
+  const blocked = campaignBlockedByTags(audience, bodyHtml)
+  if (blocked) redirect(backTo(blocked))
 
   const supabase = await createClient()
   const { translations, errors: translationErrors } = await translationsForSend(supabase, {

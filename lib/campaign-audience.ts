@@ -205,3 +205,13 @@ type ProfileReviewRow = {
   artwork_title: string | null
   missing_fields: string[] | null
 }
+
+// {{perfil_url}} and the obra tags only have a value for «Artistas con perfil
+// público»; anyone else would get a dash where the link and the image go.
+// Refuses the send instead of mailing a broken mail.
+export function campaignBlockedByTags(audience: string, bodyHtml: string): string | null {
+  return audience !== 'public_profiles' && /\{\{\s*(perfil_url|obra_imagen)\s*\}\}/i.test(bodyHtml)
+    ? 'Este mail usa el link y la obra de cada artista ({{perfil_url}}, {{obra_imagen}}), que solo existen en el público «Artistas con perfil público». Elegí ese público antes de enviarlo: con otro, la gente recibiría el mail sin link ni imagen.'
+    : null
+}
+
