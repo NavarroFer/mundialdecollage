@@ -34,7 +34,7 @@ jobs:
       # Newer CLIs target the local stack by default; --remote points at the
       # project linked above.
       - name: Apply pending migrations
-        run: supabase db push --remote
+        run: supabase db push --remote --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
