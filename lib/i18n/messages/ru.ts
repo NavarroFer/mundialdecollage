@@ -49,6 +49,9 @@ const ru: Messages = {
     helloName: 'Здравствуйте, {name}',
     participating: 'Вы уже участвуете',
     adminPanel: 'Админ-панель',
+    club: 'Клуб',
+    account: 'Меню аккаунта',
+    myGallery: 'Моя галерея Клуба',
   },
   auth: {
     signIn: 'Войти через Google',

@@ -1,16 +1,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Boxes, CheckCircle2, ShieldCheck, Store } from 'lucide-react'
+import { Boxes, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
-import { SignOutButton } from '@/components/auth/sign-out-button'
+import { AccountMenu } from '@/components/account-menu'
 import { artistProfileSlug } from '@/lib/artist-slug'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { getI18n } from '@/lib/i18n/server'
-import { fmt } from '@/lib/i18n/format'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { TrackedLink } from '@/components/track'
 import { SiteHeaderMotion } from '@/components/site-header-motion'
@@ -20,72 +18,54 @@ import { NotificationsSlot } from '@/components/notifications/notifications-slot
 import { MobileTabBar } from '@/components/mobile-tab-bar'
 import { TermsPromptSlot } from '@/components/terms-prompt-slot'
 
-async function AuthSlot() {
+async function AccountSlot() {
   if (!isSupabaseConfigured) return null
 
   const { m } = await getI18n()
-  const supabase = await createClient()
+  const labels = {
+    account: m.header.account,
+    hello: m.header.hello,
+    myGallery: m.header.myGallery,
+    shop: m.header.shop,
+    adminPanel: m.header.adminPanel,
+  }
+
   const user = await getCurrentUser()
+  if (!user) return <AccountMenu labels={labels} signedIn={false} />
 
-  // Hidden on phones, where «Participar» needs the room — it leads to the
-  // same Google sign-in through /onboarding anyway.
-  if (!user) {
-    return (
-      <div className="hidden sm:block">
-        <GoogleSignInButton compact />
-      </div>
-    )
-  }
-
-  const firstName = (user.user_metadata?.full_name as string | undefined)?.split(' ')[0]
   const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
+  const fullName = user.user_metadata?.full_name as string | undefined
 
-  // Admins never submit an artwork, so skip the extra profile lookup for
-  // them entirely (same as app/onboarding/page.tsx).
-  let isParticipating = false
-  let profileHref: string | null = null
+  // Admins never submit an artwork, so skip the profile lookups for them
+  // entirely (same as app/onboarding/page.tsx).
+  let name = fullName?.split(' ')[0]
+  let profileHref: string | undefined
+  let thumbUrl: string | undefined
   if (!isAdmin) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarded_at, name')
-      .eq('id', user.id)
-      .maybeSingle()
-    isParticipating = Boolean(profile?.onboarded_at)
-    // A participating artist's greeting leads to their own profile.
-    if (isParticipating && profile?.name) profileHref = `/artistas/${artistProfileSlug(profile.name, user.id)}`
+    const supabase = await createClient()
+    const [{ data: profile }, { data: artwork }] = await Promise.all([
+      supabase.from('profiles').select('onboarded_at, name').eq('id', user.id).maybeSingle(),
+      // Their own session reads their own obras (owner policy): the selected one first.
+      supabase
+        .from('artworks')
+        .select('image_url')
+        .eq('profile_id', user.id)
+        .is('archived_at', null)
+        .not('image_url', 'is', null)
+        .order('is_selected', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ])
+    if (profile?.name) name = profile.name.split(' ')[0]
+    // A participating artist gets their profile and the thumbnail of their obra.
+    if (profile?.onboarded_at && profile.name) {
+      profileHref = `/artistas/${artistProfileSlug(profile.name, user.id)}`
+      thumbUrl = artwork?.image_url ?? undefined
+    }
   }
-  const greeting = (
-    <>
-      {firstName ? fmt(m.header.helloName, { name: firstName }) : m.header.hello}
-      {isParticipating && (
-        <CheckCircle2
-          className="h-4 w-4 text-collage-blue"
-          aria-label={m.header.participating}
-        />
-      )}
-    </>
-  )
 
-  return (
-    <div className="hidden items-center gap-3 sm:flex">
-      {profileHref ? (
-        <TrackedLink href={profileHref} prefetch={false} event="header_profile_click" title={m.common.viewMyProfile} className="flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-ink/70 underline-offset-4 hover:text-ink hover:underline">
-          {greeting}
-        </TrackedLink>
-      ) : (
-        <span className="flex items-center gap-1.5 text-sm font-medium text-ink/70">{greeting}</span>
-      )}
-      {isAdmin && (
-        <Link href="/admin/estadisticas">
-          <Button size="sm" variant="outline" className="gap-1.5">
-            <ShieldCheck className="h-4 w-4" />
-            {m.header.adminPanel}
-          </Button>
-        </Link>
-      )}
-      <SignOutButton />
-    </div>
-  )
+  return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} />
 }
 
 export async function SiteHeader() {
@@ -125,22 +105,24 @@ export async function SiteHeader() {
               {m.header.gallery3d}
               <span className="sr-only"> {m.common.opensInNewTab}</span>
             </Link>
+            
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
             <LanguageSwitcher className="px-2" />
             <NotificationsSlot />
-            <AuthSlot />
             <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
               <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
                 {callOpen ? m.header.participate : m.closed.headerCta}
               </TrackedLink>
             </Button>
+            <AccountSlot />
           </div>
 
-          {/* Phones keep only the bell up here: the rest lives in MobileTabBar. */}
-          <div className="flex items-center gap-2 lg:hidden">
+          {/* Phones: the bell and the avatar up here; the sections live in MobileTabBar. */}
+          <div className="flex items-center gap-1 lg:hidden">
             <NotificationsSlot />
+            <AccountSlot />
           </div>
         </div>
       </SiteHeaderMotion>

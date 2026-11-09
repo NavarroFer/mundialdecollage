@@ -51,6 +51,9 @@ const es = {
     helloName: 'Hola, {name}',
     participating: 'Ya estás participando',
     adminPanel: 'Panel admin',
+    club: 'Club',
+    account: 'Menú de cuenta',
+    myGallery: 'Mi galería del Club',
   },
   auth: {
     signIn: 'Ingresar con Google',

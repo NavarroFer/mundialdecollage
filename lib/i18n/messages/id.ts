@@ -49,6 +49,9 @@ const id: Messages = {
     helloName: 'Halo, {name}',
     participating: 'Kamu sudah ikut serta',
     adminPanel: 'Panel admin',
+    club: 'Club',
+    account: 'Menu akun',
+    myGallery: 'Galeri Club saya',
   },
   auth: {
     signIn: 'Masuk dengan Google',

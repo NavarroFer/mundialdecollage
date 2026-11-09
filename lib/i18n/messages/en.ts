@@ -49,6 +49,9 @@ const en: Messages = {
     helloName: 'Hi, {name}',
     participating: "You're taking part",
     adminPanel: 'Admin panel',
+    club: 'Club',
+    account: 'Account menu',
+    myGallery: 'My Club gallery',
   },
   auth: {
     signIn: 'Sign in with Google',

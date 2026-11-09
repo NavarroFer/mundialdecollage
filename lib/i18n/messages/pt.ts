@@ -49,6 +49,9 @@ const pt: Messages = {
     helloName: 'Olá, {name}',
     participating: 'Você já está participando',
     adminPanel: 'Painel admin',
+    club: 'Clube',
+    account: 'Menu da conta',
+    myGallery: 'Minha galeria do Clube',
   },
   auth: {
     signIn: 'Entrar com Google',
