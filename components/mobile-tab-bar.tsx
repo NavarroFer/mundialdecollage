@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { Boxes, Eye, House, Plus, Store, Users, type LucideIcon } from 'lucide-react'
+import { Boxes, DoorOpen, Eye, House, Plus, Users, type LucideIcon } from 'lucide-react'
 import { SectionLink } from '@/components/section-link'
 import { track } from '@/lib/track'
 import type { FunnelEvent } from '@/lib/funnel'
@@ -14,13 +14,13 @@ export type MobileTabBarLabels = {
   home: string
   participants: string
   participate: string
-  shop: string
+  club: string
   gallery3d: string
   opensInNewTab: string
 }
 
 type Tab = {
-  key: 'home' | 'participants' | 'participate' | 'shop' | 'gallery'
+  key: 'home' | 'participants' | 'participate' | 'gallery' | 'club'
   href: string
   label: string
   icon: LucideIcon
@@ -37,7 +37,7 @@ const DRAG_SLOP = 8
 
 function activeTab(pathname: string, participantsInView: boolean): Tab['key'] | null {
   if (pathname === '/') return participantsInView ? 'participants' : 'home'
-  if (pathname.startsWith('/tienda')) return 'shop'
+  if (pathname.startsWith('/club') || pathname.startsWith('/mi-galeria')) return 'club'
   if (pathname.startsWith('/onboarding')) return 'participate'
   return null
 }
@@ -66,8 +66,8 @@ export function MobileTabBar({ callOpen, labels }: { callOpen: boolean; labels: 
     callOpen
       ? { key: 'participate', href: '/onboarding', label: labels.participate, icon: Plus, event: 'submit_click_tabbar' }
       : { key: 'participate', href: '/galeria-3d', label: labels.participate, icon: Eye, event: 'submit_click_tabbar' },
-    { key: 'shop', href: '/tienda', label: labels.shop, icon: Store, event: 'store_click_tabbar' },
     { key: 'gallery', href: '/galeria-3d', label: labels.gallery3d, icon: Boxes, event: 'gallery_click_tabbar', newTab: true },
+    { key: 'club', href: '/club', label: labels.club, icon: DoorOpen },
   ]
 
   const activeKey = activeTab(pathname, participantsInView)

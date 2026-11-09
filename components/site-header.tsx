@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Boxes, Store } from 'lucide-react'
+import { Boxes, DoorOpen, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AccountMenu } from '@/components/account-menu'
 import { artistProfileSlug } from '@/lib/artist-slug'
@@ -105,7 +105,10 @@ export async function SiteHeader() {
               {m.header.gallery3d}
               <span className="sr-only"> {m.common.opensInNewTab}</span>
             </Link>
-            
+            <Link href="/club" className="flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-ink/70 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
+              <DoorOpen className="h-4 w-4" aria-hidden="true" />
+              {m.header.club}
+            </Link>
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
@@ -134,8 +137,8 @@ export async function SiteHeader() {
           home: m.header.home,
           participants: m.header.participants,
           participate: callOpen ? m.header.participate : m.closed.headerCta,
-          shop: m.header.shop,
           gallery3d: m.header.gallery3d,
+          club: m.header.club,
           opensInNewTab: m.common.opensInNewTab,
         }}
       />
