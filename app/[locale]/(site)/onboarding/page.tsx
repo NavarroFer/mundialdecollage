@@ -87,7 +87,7 @@ export default async function OnboardingPage({
   // on /onboarding/obras before anything else. See lib/entries.ts.
   const { data: artworks, error: artworksError } = await supabase
     .from('artworks')
-    .select('id, title, image_url')
+    .select('id, title, image_url, technique')
     .eq('profile_id', user.id)
     .eq('is_club_only', false)
     .is('archived_at', null)
@@ -114,7 +114,7 @@ export default async function OnboardingPage({
             <OnboardingSteps current="details" m={m} />
             <h1 className="font-display mt-8 text-center text-3xl text-ink sm:text-4xl">{name ? fmt(m.onboarding.helloName, { name }) : m.onboarding.welcome}</h1>
             <p className="mt-4 text-center text-muted-foreground">{m.onboarding.existingBody}</p>
-            <ArtistConfirmation name={name} countryCode={profile?.country_code || ''} email={user.email || ''} artwork={artwork} artworkCount={artworkCount} />
+            <ArtistConfirmation name={name} countryCode={profile?.country_code || ''} email={user.email || ''} instagram={profile?.instagram} website={profile?.website} artwork={artwork} artworkCount={artworkCount} />
           </div>
         </main>
       )

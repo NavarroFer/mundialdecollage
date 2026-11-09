@@ -8,39 +8,15 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { slugify } from '@/lib/slug'
 import { uniqueArtworkSlug } from '@/lib/artwork-slug'
-import { getAllCountryCodes } from '@/lib/participants'
+import { getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { trackServer, trackSignupSource } from '@/lib/track-server'
 import { recordReferral } from '@/lib/referral-server'
 import { site } from '@/lib/site'
 import { refreshPublicData } from '@/lib/public-data-cache'
 import { recordTermsAcceptance } from '@/lib/terms-acceptance'
-
-// Stored as a full URL (rendered straight into an <a href> on /obras/[slug]),
-// so this also doubles as XSS defense — only ever accept http(s), never
-// javascript: or other schemes.
-function normalizeWebsite(value: string): string | null {
-  if (!value) return null
-  try {
-    const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null
-  } catch {
-    return null
-  }
-}
-
-// The form asks for a handle ("@tu.usuario"), not a URL, but it's rendered
-// the same way as website — build the real profile URL here so both the
-// link target and the XSS defense live in one place.
-function normalizeInstagram(value: string): string | null {
-  if (!value) return null
-  const handle = value
-    .trim()
-    .replace(/^@/, '')
-    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
-    .replace(/\/.*$/, '')
-  return /^[a-zA-Z0-9._]{1,30}$/.test(handle) ? `https://instagram.com/${handle}` : null
-}
+import { normalizeInstagram, normalizeWebsite } from '@/lib/profile-links'
+import { cleanInstagramInput, cleanWebsiteInput } from '@/lib/onboarding-input'
 
 // The checkbox in TermsCheckbox. Checked again here: the form's `required`
 // is only a convenience.
@@ -238,7 +214,7 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return 'session'
 
-  const name = String(formData.get('name') ?? '').trim()
+  const name = String(formData.get('name') ?? '').trim().replace(/\s+/g, ' ').slice(0, 120)
   const countryCode = String(formData.get('country_code') ?? '').trim().toUpperCase()
   const artworkId = String(formData.get('artwork_id') ?? '')
   const title = String(formData.get('title') ?? '').trim().slice(0, 200)
@@ -247,24 +223,55 @@ export async function confirmArtistDetails(_previous: string, formData: FormData
   }
   if (!title) return 'missing_title'
   if (!acceptedTerms(formData)) return 'terms_required'
+
+  // Links and técnica are corrected here too. A form that doesn't send them
+  // leaves what is stored untouched.
+  const profileChanges: Record<string, unknown> = { name, country_code: countryCode }
+  if (formData.has('instagram')) {
+    const input = cleanInstagramInput(String(formData.get('instagram')))
+    const instagram = input ? normalizeInstagram(input) : null
+    if (input === null || (input && !instagram)) return 'invalid_instagram'
+    profileChanges.instagram = instagram
+  }
+  if (formData.has('website')) {
+    const input = cleanWebsiteInput(String(formData.get('website')))
+    const website = input ? normalizeWebsite(input) : null
+    if (input === null || (input && !website)) return 'invalid_website'
+    profileChanges.website = website
+  }
+  const techniqueInput = formData.has('technique') ? String(formData.get('technique')).trim() : undefined
+  if (techniqueInput && !(TECHNIQUES as readonly string[]).includes(techniqueInput)) return 'save_failed'
+
   const { data: artwork, error: artworkError } = await supabase.from('artworks')
-    .select('id, slug, title').eq('id', artworkId).eq('profile_id', user.id).maybeSingle()
+    .select('id, slug, title, technique').eq('id', artworkId).eq('profile_id', user.id).maybeSingle()
   if (artworkError || !artwork) return 'not_found'
   if (!(await recordTermsAcceptance(supabase, user.id))) return 'save_failed'
 
   // artworks has no UPDATE grant for artists; the select above already
   // proved this obra is theirs. A title written here is never replaced by
   // the Registro sync (it only follows titles that still match the sheet).
-  if (title !== artwork.title) {
-    const { error: titleError } = await createAdminClient().from('artworks')
-      .update({ title }).eq('id', artwork.id).eq('profile_id', user.id)
-    if (titleError) return 'save_failed'
+  const artworkChanges: Record<string, unknown> = {}
+  if (title !== artwork.title) artworkChanges.title = title
+  if (techniqueInput !== undefined && (techniqueInput || null) !== (artwork.technique ?? null)) artworkChanges.technique = techniqueInput || null
+  const admin = createAdminClient()
+  if (Object.keys(artworkChanges).length > 0) {
+    const { error: artworkUpdateError } = await admin.from('artworks')
+      .update(artworkChanges).eq('id', artwork.id).eq('profile_id', user.id)
+    if (artworkUpdateError) return 'save_failed'
   }
 
   const { data: profile, error: profileError } = await supabase.from('profiles')
-    .update({ name, country_code: countryCode, details_confirmed_at: new Date().toISOString() })
+    .update({ ...profileChanges, details_confirmed_at: new Date().toISOString() })
     .eq('id', user.id).select('id').maybeSingle()
   if (profileError || !profile) return 'save_failed'
+
+  // The mailing list's copy of the name is the one newsletters greet with
+  // (the misspelled one that arrived with the Registro): fix it too.
+  // Best-effort, and a person who never subscribed has no row.
+  if (user.email) {
+    const { error: contactError } = await admin.from('contacts').update({ name }).eq('email', user.email.trim().toLowerCase())
+    if (contactError) console.error('confirmArtistDetails: contact name update failed', user.id, contactError)
+  }
 
   refreshPublicData()
   revalidatePath('/')

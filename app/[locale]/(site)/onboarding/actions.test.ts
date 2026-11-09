@@ -75,6 +75,32 @@ describe('artist confirmation', () => {
     expect(mocks.adminFrom).not.toHaveBeenCalled()
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/obras/ana-collage')
   })
+  it('also saves links and técnica, and fixes the name in the mailing list', async () => {
+    const artwork = query({ id: 'artwork-1', slug: 'ana-collage', title: 'Raíces', technique: null })
+    const profile = query({ id: 'artist-1' })
+    const admin = query(null)
+    mocks.from.mockImplementation(withTerms(table => table === 'artworks' ? artwork : profile))
+    mocks.adminFrom.mockReturnValue(admin)
+    mocks.getUser.mockResolvedValue({ data: { user: { id: 'artist-1', email: 'Ana@Example.com' } } })
+    const form = details()
+    form.set('instagram', '@ana.collage')
+    form.set('website', 'anacollage.com')
+    form.set('technique', 'Mixta')
+    await expect(confirmArtistDetails('', form)).rejects.toThrow('redirect:/onboarding/confirmado')
+    expect(profile.update).toHaveBeenCalledWith({
+      name: 'Ana Collage', country_code: 'AR', instagram: 'https://instagram.com/ana.collage', website: 'https://anacollage.com/', details_confirmed_at: expect.any(String),
+    })
+    expect(mocks.adminFrom).toHaveBeenCalledWith('artworks')
+    expect(admin.update).toHaveBeenCalledWith({ technique: 'Mixta' })
+    expect(admin.update).toHaveBeenCalledWith({ name: 'Ana Collage' })
+    expect(admin.eq).toHaveBeenCalledWith('email', 'ana@example.com')
+  })
+  it('refuses a bad link before saving anything', async () => {
+    const form = details()
+    form.set('website', 'javascript:alert(1)')
+    expect(await confirmArtistDetails('', form)).toBe('invalid_website')
+    expect(mocks.from).not.toHaveBeenCalled()
+  })
   it('requires accepting the terms before saving anything', async () => {
     const form = details()
     form.delete('accept_terms')
