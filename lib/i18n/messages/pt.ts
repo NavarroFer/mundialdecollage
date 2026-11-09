@@ -52,6 +52,7 @@ const pt: Messages = {
     club: 'Clube',
     account: 'Menu da conta',
     myGallery: 'Minha galeria do Clube',
+    editProfile: 'Editar meus dados',
   },
   auth: {
     signIn: 'Entrar com Google',
@@ -363,6 +364,25 @@ const pt: Messages = {
     doneBody: 'Seus dados foram salvos e temos sua obra. Você já concluiu esta etapa.',
     doneNext: 'A equipe do Mundial cuida da seleção e da publicação. Enquanto isso, você pode revisar sua obra e continuar explorando.',
     backToMundial: 'Voltar ao Mundial',
+  },
+  // «Mis datos» (/mi-perfil): where an artist corrects their own details.
+  profileEditor: {
+    title: 'Meus dados',
+    intro: 'Corrija o que quiser: seu nome, seu país, seus links e os dados de cada obra. As mudanças aparecem na hora no seu perfil e nos e-mails que enviamos.',
+    saved: 'Pronto, salvamos suas alterações.',
+    you: 'Seus dados',
+    nameHint: 'É assim que seu nome aparece no site e nos e-mails.',
+    emailFixed: 'Seu e-mail é o da sua conta Google e não pode ser alterado. Ele não aparece no seu perfil público.',
+    obras: 'Suas obras',
+    noObras: 'Você ainda não tem obras enviadas.',
+    save: 'Salvar alterações',
+    errors: {
+      missing_fields: 'Preencha seu nome e escolha seu país.',
+      invalid_instagram: 'Esse usuário do Instagram não parece válido — tente só o @usuario.',
+      invalid_website: 'Esse site não parece um endereço válido (por exemplo: meusite.com).',
+      missing_title: 'Cada obra precisa de um título.',
+      save_failed: 'Não conseguimos salvar as alterações. Tente de novo.',
+    } as Record<string, string>,
   },
   entries: {
     signInTitle: 'Suas obras',

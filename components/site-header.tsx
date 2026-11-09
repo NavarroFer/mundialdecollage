@@ -26,6 +26,7 @@ async function AccountSlot() {
     account: m.header.account,
     hello: m.header.hello,
     myGallery: m.header.myGallery,
+    editProfile: m.header.editProfile,
     shop: m.header.shop,
     adminPanel: m.header.adminPanel,
   }

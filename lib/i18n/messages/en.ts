@@ -52,6 +52,7 @@ const en: Messages = {
     club: 'Club',
     account: 'Account menu',
     myGallery: 'My Club gallery',
+    editProfile: 'Edit my details',
   },
   auth: {
     signIn: 'Sign in with Google',
@@ -364,6 +365,25 @@ const en: Messages = {
     doneNext:
       'The World Cup team takes care of selection and publication. In the meantime, you can review your artwork and keep exploring.',
     backToMundial: 'Back to the World Cup',
+  },
+  // «Mis datos» (/mi-perfil): where an artist corrects their own details.
+  profileEditor: {
+    title: 'My details',
+    intro: 'Fix anything you like: your name, your country, your links and each artwork’s details. Changes show right away on your profile and in the emails we send you.',
+    saved: 'Done, your changes are saved.',
+    you: 'Your details',
+    nameHint: 'This is how your name appears on the site and in emails.',
+    emailFixed: 'Your email is your Google account’s and can’t be changed. It isn’t shown on your public profile.',
+    obras: 'Your artworks',
+    noObras: 'You don’t have any artworks yet.',
+    save: 'Save changes',
+    errors: {
+      missing_fields: 'Fill in your name and pick your country.',
+      invalid_instagram: 'That Instagram username doesn’t look valid — just try the @username.',
+      invalid_website: 'That website doesn’t look like a valid address (for example: mysite.com).',
+      missing_title: 'Each artwork needs a title.',
+      save_failed: 'We couldn’t save your changes. Please try again.',
+    } as Record<string, string>,
   },
   entries: {
     signInTitle: 'Your artworks',

@@ -52,6 +52,7 @@ const pl: Messages = {
     club: 'Klub',
     account: 'Menu konta',
     myGallery: 'Moja galeria w Klubie',
+    editProfile: 'Edytuj moje dane',
   },
   auth: {
     signIn: 'Zaloguj się przez Google',
@@ -368,6 +369,25 @@ const pl: Messages = {
     doneBody: 'Twoje dane zostały zapisane, a Twoja praca jest u nas. Ten krok masz za sobą.',
     doneNext: 'Zespół Mistrzostw zajmuje się wyborem i publikacją. W międzyczasie możesz obejrzeć swoją pracę i dalej odkrywać stronę.',
     backToMundial: 'Wróć do Mistrzostw',
+  },
+  // «Mis datos» (/mi-perfil): where an artist corrects their own details.
+  profileEditor: {
+    title: 'Moje dane',
+    intro: 'Popraw, co chcesz: imię, kraj, linki i dane każdej pracy. Zmiany od razu widać w Twoim profilu i w mailach, które do Ciebie wysyłamy.',
+    saved: 'Gotowe, zapisaliśmy zmiany.',
+    you: 'Twoje dane',
+    nameHint: 'Tak Twoje imię wyświetla się na stronie i w mailach.',
+    emailFixed: 'Twój e-mail to e-mail konta Google i nie można go zmienić. Nie jest widoczny w Twoim publicznym profilu.',
+    obras: 'Twoje prace',
+    noObras: 'Nie masz jeszcze żadnych prac.',
+    save: 'Zapisz zmiany',
+    errors: {
+      missing_fields: 'Wpisz imię i wybierz kraj.',
+      invalid_instagram: 'Ta nazwa użytkownika Instagrama wygląda na nieprawidłową — spróbuj samego @nazwa.',
+      invalid_website: 'Ta strona nie wygląda na poprawny adres (np. mojastrona.com).',
+      missing_title: 'Każda praca potrzebuje tytułu.',
+      save_failed: 'Nie udało się zapisać zmian. Spróbuj ponownie.',
+    } as Record<string, string>,
   },
   entries: {
     signInTitle: 'Twoje prace',

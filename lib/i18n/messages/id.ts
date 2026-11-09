@@ -52,6 +52,7 @@ const id: Messages = {
     club: 'Club',
     account: 'Menu akun',
     myGallery: 'Galeri Club saya',
+    editProfile: 'Ubah data saya',
   },
   auth: {
     signIn: 'Masuk dengan Google',
@@ -363,6 +364,25 @@ const id: Messages = {
     doneBody: 'Datamu sudah tersimpan dan karyamu sudah kami terima. Kamu sudah menyelesaikan langkah ini.',
     doneNext: 'Tim Piala Dunia akan mengurus seleksi dan publikasi. Sementara itu, kamu bisa melihat karyamu dan terus menjelajah.',
     backToMundial: 'Kembali ke Piala Dunia',
+  },
+  // «Mis datos» (/mi-perfil): where an artist corrects their own details.
+  profileEditor: {
+    title: 'Data saya',
+    intro: 'Perbaiki apa pun yang kamu mau: nama, negara, tautan, dan data tiap karya. Perubahan langsung terlihat di profilmu dan di email yang kami kirim.',
+    saved: 'Selesai, perubahanmu sudah disimpan.',
+    you: 'Datamu',
+    nameHint: 'Begini namamu tampil di situs dan di email.',
+    emailFixed: 'Emailmu adalah email akun Google-mu dan tidak bisa diubah. Email tidak ditampilkan di profil publikmu.',
+    obras: 'Karyamu',
+    noObras: 'Kamu belum punya karya.',
+    save: 'Simpan perubahan',
+    errors: {
+      missing_fields: 'Isi namamu dan pilih negaramu.',
+      invalid_instagram: 'Username Instagram itu tampaknya tidak valid — coba hanya @username.',
+      invalid_website: 'Situs web itu tampaknya bukan alamat yang valid (misalnya: situsku.com).',
+      missing_title: 'Setiap karya butuh judul.',
+      save_failed: 'Kami tidak bisa menyimpan perubahan. Coba lagi.',
+    } as Record<string, string>,
   },
   entries: {
     signInTitle: 'Karyamu',

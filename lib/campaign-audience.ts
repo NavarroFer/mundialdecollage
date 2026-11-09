@@ -141,7 +141,8 @@ export async function audienceContacts(
       contacts: (subscribed ?? []).flatMap((contact) => {
         const row = byContact.get(contact.id)
         if (!row || admins.has(normalize(contact.email))) return []
-        return [{ ...contact, name: contact.name || row.artist_name, profileSlug: artistProfileSlug(row.artist_name, row.profile_id) }]
+        // The profile's name first: it's the one the artist can correct themselves.
+        return [{ ...contact, name: row.artist_name || contact.name, profileSlug: artistProfileSlug(row.artist_name, row.profile_id) }]
       }),
       error: null,
     }

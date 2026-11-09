@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState } from 'react'
-import { DoorOpen, LogOut, ShieldCheck, Store, User } from 'lucide-react'
+import { DoorOpen, LogOut, PencilLine, ShieldCheck, Store, User } from 'lucide-react'
 import { GoogleIcon, useGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useI18n } from '@/lib/i18n/client'
@@ -15,6 +15,7 @@ export type AccountMenuLabels = {
   account: string
   hello: string
   myGallery: string
+  editProfile: string
   shop: string
   adminPanel: string
 }
@@ -130,6 +131,12 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
                 </div>
               </div>
               <div className="my-1 h-px bg-ink/10" />
+              {profileHref && (
+                <Link href="/mi-perfil" prefetch={false} onClick={close} className={ITEM}>
+                  <PencilLine className="h-5 w-5 text-ink/70" aria-hidden="true" />
+                  {labels.editProfile}
+                </Link>
+              )}
               <Link href="/mi-galeria" prefetch={false} onClick={close} className={ITEM}>
                 <DoorOpen className="h-5 w-5 text-ink/70" aria-hidden="true" />
                 {labels.myGallery}
