@@ -13,6 +13,7 @@ import {
   provinciaLogoTexture,
   tactileTexture,
 } from './decals'
+import { standeeTexture } from './interiorDecals'
 import { louvreTexture } from './textures'
 
 // Everything printed, painted or fitted on the faces of the volumes: the mark
@@ -25,6 +26,8 @@ const STAND_INS: Record<string, () => THREE.Texture> = {
   'door-b': bancoPanelTexture,
   'door-c': maquinasPosterTexture,
   vinyl: noeBannerTexture,
+  'standee-a': standeeTexture,
+  'standee-b': standeeTexture,
 }
 
 function useBannerTextures(banners: MarBanner[]) {
@@ -43,12 +46,37 @@ function useBannerTextures(banners: MarBanner[]) {
 
 function Banners() {
   const textures = useBannerTextures(MAR_BANNERS)
-  return MAR_BANNERS.map((banner, index) => (
-    <mesh key={banner.id} position={banner.center}>
-      <planeGeometry args={[banner.width, banner.height]} />
-      <meshStandardMaterial map={textures[index]} color={textures[index] ? '#ffffff' : '#f4f3ef'} roughness={0.55} polygonOffset polygonOffsetFactor={-1} />
-    </mesh>
-  ))
+  return MAR_BANNERS.map((banner, index) => {
+    const map = textures[index]
+    const material = (
+      <meshStandardMaterial map={map} color={map ? '#ffffff' : '#f4f3ef'} roughness={0.55} polygonOffset polygonOffsetFactor={-1} />
+    )
+    if (banner.standee) {
+      // A roll-up on its base: printed both sides, a steel foot, a pole behind.
+      return (
+        <group key={banner.id} position={[banner.center[0], 0, banner.center[2]]} rotation={[0, banner.yaw ?? 0, 0]}>
+          <mesh position={[0, banner.center[1] + 0.05, 0]}>
+            <planeGeometry args={[banner.width, banner.height]} />
+            {material}
+          </mesh>
+          <mesh position={[0, banner.center[1] + 0.05, -0.004]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[banner.width, banner.height]} />
+            <meshStandardMaterial color="#e9eef0" roughness={0.6} />
+          </mesh>
+          <mesh position={[0, 0.04, 0]}>
+            <boxGeometry args={[banner.width + 0.1, 0.07, 0.16]} />
+            <meshStandardMaterial color="#b9bdc0" roughness={0.4} metalness={0.3} />
+          </mesh>
+        </group>
+      )
+    }
+    return (
+      <mesh key={banner.id} position={banner.center} rotation={[0, banner.yaw ?? 0, 0]}>
+        <planeGeometry args={[banner.width, banner.height]} />
+        {material}
+      </mesh>
+    )
+  })
 }
 
 /** A flat decal: a plane on a face, lit like the wall it is on. */

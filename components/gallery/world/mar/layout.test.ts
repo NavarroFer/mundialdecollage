@@ -144,9 +144,9 @@ describe('MAR facade', () => {
   })
 
   it('keeps every banner on a wall it fits, so a picture can be swapped in without moving anything', () => {
-    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual(['door-a', 'door-b', 'door-c', 'vinyl'])
-    for (const banner of MAR_BANNERS) {
-      expect(banner.image).toBeUndefined()
+    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual(['door-a', 'door-b', 'door-c', 'vinyl', 'standee-a', 'standee-b'])
+    for (const banner of MAR_BANNERS) expect(banner.image).toBeUndefined()
+    for (const banner of MAR_BANNERS.filter((item) => !item.standee)) {
       expect(banner.width).toBeGreaterThan(0.5)
       expect(banner.center[1] - banner.height / 2).toBeGreaterThanOrEqual(0)
       expect(banner.center[1] + banner.height / 2).toBeLessThanOrEqual(MAR.soffit - 0.5 + 0.1 + 0.4)

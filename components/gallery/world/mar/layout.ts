@@ -16,6 +16,10 @@ export type MarKind =
   | 'interior'
   | 'mullion'
   | 'steel'
+  | 'black'
+  | 'board'
+  | 'louvre'
+  | 'blueglass'
   | 'platform'
   | 'granite'
   | 'void'
@@ -74,6 +78,8 @@ export const MAR = {
   /** How thick a temporary exhibition partition reads. */
   partition: 0.12,
   partitionHeight: 3.05,
+  /** The black wall of the Laboratorio, taller than the white fit-out partitions. */
+  labHeight: 4.2,
 } as const
 
 const T = MAR.wall
@@ -81,6 +87,10 @@ const T = MAR.wall
 /** The sea lion sculpture's platform on the plaza, in front of the vinyl-faced volume. */
 export const LOBO = { x0: 7.6, x1: 21.8, z0: 8.4, z1: 14.8, height: 0.35, /** Where the sculpture's head stands, on the slab. */ head: { x: 10.8, z: 11.6 } } as const
 
+/** The shop in the west room (Tienda FIND): footprint of its fascia. */
+export const SHOP = { x0: -19.4, x1: -15, z0: 2.7, z1: 7.7 } as const
+/** Café tables in the west room, centres on the floor. */
+export const CAFE_TABLES: Array<[number, number]> = [[-25.8, 4.1], [-22.9, 4.1], [-25.8, 6.5], [-22.9, 6.5]]
 /** The sunken stair beside the vent housing: a hole in the paving, walled off. */
 export const STAIR = { x0: 20, x1: 22.6, z0: 3.4, z1: 7.6, depth: 2.7 } as const
 
@@ -91,8 +101,12 @@ export const STAIR = { x0: 20, x1: 22.6, z0: 3.4, z1: 7.6, depth: 2.7 } as const
  */
 export type MarBanner = {
   id: string
-  /** Centre of the print, metres. It faces +Z, toward the plaza. */
+  /** Centre of the print, metres. It faces +Z, toward the plaza, unless \`yaw\` turns it. */
   center: [number, number, number]
+  /** Turn about the vertical, radians. 0 faces +Z; Math.PI / 2 faces +X. */
+  yaw?: number
+  /** A roll-up banner on its own stand, printed on both sides, rather than a print on a wall. */
+  standee?: boolean
   width: number
   height: number
   /** Picture to print. Leave unset for the stand-in. */
@@ -106,6 +120,9 @@ export const MAR_BANNERS: MarBanner[] = [
   { id: 'door-c', center: [-7.3, 1.85, 0.08], width: 1.7, height: 3.2 },
   // The long vinyl at the foot of the volume right of the slot.
   { id: 'vinyl', center: [14.15, 1.78, 2.02], width: 11.1, height: 2.8 },
+  // Roll-up banners in the hall, either side of the door as you come in.
+  { id: 'standee-a', center: [-8.3, 1.05, -3.4], width: 0.85, height: 2, standee: true },
+  { id: 'standee-b', center: [-7.2, 1.05, -3.4], width: 0.85, height: 2, standee: true },
 ]
 
 export const MAR_DOORS = {
@@ -326,8 +343,29 @@ export const marBoxes: MarBox[] = [
   ...mullionsX('mar-mullion-west-glass', -30, -12, 8.08, 0, SOFFIT, 1.25),
   ...mullionsZ('mar-mullion-hall-e', -7.8, -0.2, 14.08, 0.35, 8.2, 1.25),
 
+  // --- Ground floor dressing, from the interior photographs. Everything here keeps clear of the
+  // strips in front of hung walls (about 2.5 m), so every obra can still be walked up to.
+  // Over the door to the west room: a louvred band under the concrete.
+  box('mar-west-louvre', -12.14, 3.4, -3.45, -11.86, 5.2, -0.35, 'louvre', seeThrough),
+  box('mar-west-lintel', -12.14, 5.2, -3.45, -11.86, H, -0.35, 'concrete', seeThrough),
+  // The blue glass box in the hall's west corner, and the reception counter beside it.
+  box('mar-blue-box', -11.8, 0, -9.4, -9.6, 4.2, -6.8, 'blueglass'),
+  box('mar-reception', -11.7, 0, -5.9, -9.7, 1.1, -4, 'black'),
+  // A marble-topped table in front of the poster glass; visual only, its legs are drawn in Interior.tsx.
+  box('mar-hall-table', -8.9, 0, -2.3, -6.5, 0.8, -1.4, 'table', { visual: false }),
+  // The shop: a fascia hung from the ceiling, a black counter on two sides and a board-formed backdrop.
+  box('mar-shop-counter-w', SHOP.x0, 0, SHOP.z0 + 0.3, SHOP.x0 + 0.7, 1.1, SHOP.z1 - 0.3, 'black'),
+  box('mar-shop-counter-n', SHOP.x0, 0, SHOP.z0 + 0.3, SHOP.x1 - 0.2, 1.1, SHOP.z0 + 1, 'black'),
+  box('mar-shop-backdrop', SHOP.x1 - 0.2, 0, SHOP.z0 + 1, SHOP.x1, 3.4, SHOP.z1 - 0.3, 'board'),
+  box('mar-shop-fascia-n', SHOP.x0 - 0.2, 3, SHOP.z0, SHOP.x1 + 0.1, 4.3, SHOP.z0 + 0.1, 'black', seeThrough),
+  box('mar-shop-fascia-w', SHOP.x0 - 0.2, 3, SHOP.z0, SHOP.x0 - 0.1, 4.3, SHOP.z1, 'black', seeThrough),
+  // Café: a table's footprint each; the chairs are drawn but not collidable.
+  ...CAFE_TABLES.map(([x, z], index) => box(`mar-cafe-table-${index}`, x - 0.65, 0, z - 0.4, x + 0.65, 0.76, z + 0.4, 'table', { visual: false })),
+  // La Isla, the children's corner at the glass: a carpet and a bench, kept off the wall's viewing strip.
+  box('mar-isla-bench', -29.4, 0, 5.7, -27.2, 0.32, 6.1, 'seat', { visual: false }),
+
   // Temporary white partitions. They are a typical exhibition fit-out, not a copy of a particular show.
-  wallZ('mar-west-p1', -7, 2, -21, MAR.partitionHeight, 'white', MAR.partition),
+  wallZ('mar-west-p1', -7, 2, -21, MAR.labHeight, 'black', 0.16),
   wallX('mar-east-p1', 20, 28.5, -13, MAR.partitionHeight, 'white', MAR.partition),
 
   // Mezzanine deck and glass balustrade around the void. Above the walk, so the ground floor stays open.
@@ -342,9 +380,9 @@ export const marBoxes: MarBox[] = [
   box('mar-rail-land-s-e', 10.8, MAR.mezzanine, -8.28, 13.86, MAR.mezzanine + 1.1, -8.16, 'glass'),
 
   // Escalator side rails. The lanes themselves are open so you can walk on.
-  box('mar-esc-rail-w', 7.15, 0, -7.5, 7.4, 1.15, -1.7, 'concrete'),
-  box('mar-esc-rail-m', 8.95, 0, -7.5, 9.12, 1.15, -1.7, 'concrete'),
-  box('mar-esc-rail-e', 10.65, 0, -7.5, 10.9, 1.15, -1.7, 'concrete'),
+  box('mar-esc-rail-w', 7.15, 0, -7.5, 7.4, 1.15, -1.7, 'concrete', { visual: false }),
+  box('mar-esc-rail-m', 8.95, 0, -7.5, 9.12, 1.15, -1.7, 'concrete', { visual: false }),
+  box('mar-esc-rail-e', 10.65, 0, -7.5, 10.9, 1.15, -1.7, 'concrete', { visual: false }),
   // Click-to-walk goes around the lanes; walking onto them still climbs.
   box('mar-esc-lane', 7.15, 0, -8.25, 10.9, 1.2, -1.1, 'concrete', { path: true, solid: false, visual: false }),
 
@@ -422,7 +460,7 @@ export const marFloors = [
   { id: 'cobble', kind: 'cobble' as const, x0: -36, x1: 40, z0: STAIR.z1, z1: 23 },
   { id: 'grass', kind: 'grass' as const, x0: -36, x1: 40, z0: 23, z1: 32 },
   { id: 'hall', kind: 'polish' as const, x0: -11.84, x1: 13.84, z0: -19.84, z1: 0.2 },
-  { id: 'west', kind: 'gallery' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },
+  { id: 'west', kind: 'polish' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },
   { id: 'east', kind: 'dark' as const, x0: 14.16, x1: 31.84, z0: -17.84, z1: -8.16 },
   { id: 'auditorium', kind: 'auditorium' as const, x0: -7.84, x1: 15.84, z0: -37.84, z1: -20.16 },
 ]

@@ -28,9 +28,22 @@ Facade fidelity was reworked from a second set of photographs (plaza, entrance, 
 
 The concrete is board-formed: panels 2.4 × 1.2 m, rows not aligned, each panel its own shade, hairline joints, pin holes and water streaks. One texture repeat covers 4 × 4 panels.
 
+## Ground floor, from the interior photographs
+
+The obras hang on the **upper floor** in the real museum. Nothing of that floor is modelled yet; until it is, the daily obras stay hung on the ground-floor walls (hall north walls, west room, east room) so the gallery still works, and the dressing below keeps clear of the 2.5 m in front of every hung wall. When the upper floor arrives, the hangings move there and the café and shop can use the whole room.
+
+- **Floor:** dark polished concrete, glossy; a drain grate along the hall's north wall.
+- **Hall:** deep concrete beams with a glowing skylight between them (the sun throws their shadows on the walls); stainless escalators with glass balustrades and black handrails that follow the slope; a blue glass box and a black reception counter by the west corner; a marble table on gold legs; a fire hose cabinet; two roll-up banners by the door.
+- **West room = café, shop and lab:** expanded-metal ceiling in white frames with fluorescent tubes and two crystal chandeliers; four café tables with wire chairs; **Tienda FINDE** (lettered black fascia, black counters, board-formed backdrop, shelves and goods); the **Espacio Laboratorio** as a 4.2 m black wall with white lettering (the same wall the partition's four obras hang on); La Isla as a carpet, a pale blue bench and surfboards at the SW glass corner; a track with spots on the north wall; a louvred band over the door to the hall.
+- Where each thing stands is an arrangement chosen to fit the hanging strips, not read off a plan.
+
+### The flag in the hall
+
+The tall cloth hanging in the hall (pink patchwork in the photographs) is printed with a **mosaic of every published obra**. `HallFlag.tsx` reads `/api/obras` (the CDN-cached list the homepage search uses) and draws each obra's 96 px thumbnail from `/api/img` into one canvas, a few at a time, so the cloth fills in as they arrive. It starts from the day's obras and widens to all of them; cells beyond the last obra keep the patchwork. At most 600 are drawn (`MOSAIC_LIMIT`, sampled evenly past that). The grid logic is pure and tested in `mosaic.ts`. No new server work: the list and the 96 px thumbnails are already CDN-cached.
+
 ## Banners are slots
 
-Posters and vinyl are `MAR_BANNERS` in `layout.ts`: a centre, a width and a height on the wall, and an optional `image`. Without `image` a stand-in drawn in `decals.ts` shows (the exhibition posters and the Noé vinyl in the photographs). To print a Collage World Cup banner, put the file under `public/` and set `image: '/mar/banner-a.jpg'` on that slot. Nothing else needs to move. Keep the picture's aspect ratio equal to the slot's width ÷ height or it stretches.
+Posters and vinyl are `MAR_BANNERS` in `layout.ts`: a centre, a width and a height on the wall, and an optional `image`. Without `image` a stand-in drawn in `decals.ts` shows (the exhibition posters and the Noé vinyl in the photographs). The two roll-up banners in the hall (`standee-a`, `standee-b`) are slots too. To print a Collage World Cup banner, put the file under `public/` and set `image: '/mar/banner-a.jpg'` on that slot. Nothing else needs to move. Keep the picture's aspect ratio equal to the slot's width ÷ height or it stretches.
 
 ## Estimated dimensions
 

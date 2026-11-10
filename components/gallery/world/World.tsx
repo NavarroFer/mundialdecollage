@@ -16,7 +16,7 @@ export function World({ artworks, theme, template = mainGalleryTemplate, venue =
     return (
       <>
         <color attach="background" args={['#8ec8ea']} />
-        <MarMuseum />
+        <MarMuseum obraImages={artworks.map((artwork) => artwork.image)} />
         <Artworks artworks={artworks} theme={theme} />
         <RemoteVisitors theme={theme} />
       </>

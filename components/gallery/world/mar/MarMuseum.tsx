@@ -22,6 +22,9 @@ import {
   type MarKind,
 } from './layout'
 import { Facade } from './Facade'
+import { HallFlag } from './HallFlag'
+import { Interior } from './Interior'
+import { boardTexture, slatTexture } from './interiorDecals'
 import { SeaLion } from './SeaLion'
 import { CONCRETE_TILE, cobbleTexture, concreteTexture, escalatorTexture } from './textures'
 
@@ -55,18 +58,21 @@ function tiledPlane(width: number, depth: number, tile: number) {
   return geometry
 }
 
-function useBoxGeometries(boxes: MarBox[], tile: boolean) {
+function useBoxGeometries(boxes: MarBox[], tile: boolean | [number, number]) {
   const geometries = useMemo(() => boxes.map((item) => {
     const size = marSize(item)
     const geometry = new THREE.BoxGeometry(size[0], size[1], size[2])
-    if (tile) tileBox(geometry, size, MAR.panel.width * CONCRETE_TILE.columns, MAR.panel.height * CONCRETE_TILE.rows)
+    if (tile) {
+      const [tileX, tileY] = Array.isArray(tile) ? tile : [MAR.panel.width * CONCRETE_TILE.columns, MAR.panel.height * CONCRETE_TILE.rows]
+      tileBox(geometry, size, tileX, tileY)
+    }
     return geometry
   }), [boxes, tile])
   useEffect(() => () => geometries.forEach((geometry) => geometry.dispose()), [geometries])
   return geometries
 }
 
-function KindMeshes({ kind, material, tile = false, cast = true }: { kind: MarKind; material: THREE.Material; tile?: boolean; cast?: boolean }) {
+function KindMeshes({ kind, material, tile = false, cast = true }: { kind: MarKind; material: THREE.Material; tile?: boolean | [number, number]; cast?: boolean }) {
   const boxes = useMemo(() => marBoxes.filter((item) => item.kind === kind && item.visual !== false), [kind])
   const geometries = useBoxGeometries(boxes, tile)
   return geometries.map((geometry, index) => (
@@ -196,7 +202,7 @@ function Floors({ materials }: { materials: Record<(typeof marFloors)[number]['k
   return geometries.map((geometry, index) => {
     const floor = marFloors[index]
     return (
-      <mesh key={floor.id} geometry={geometry} material={materials[floor.kind]} position={[(floor.x0 + floor.x1) / 2, 0.02, (floor.z0 + floor.z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow />
+      <mesh key={floor.id} geometry={geometry} material={materials[floor.kind]} position={[(floor.x0 + floor.x1) / 2, floor.kind === 'cobble' || floor.kind === 'grass' ? 0.02 : 0.035, (floor.z0 + floor.z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow />
     )
   })
 }
@@ -209,13 +215,17 @@ const TREES: Array<[number, number]> = [[-32, 26], [-18, 28], [6, 27], [22, 26],
  * in layout.ts, not a triangle mesh of the visuals, so a window cannot become
  * a hidden wall and the entrance stays a real opening.
  */
-export function MarMuseum() {
+export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what the hall's flag shows until the full list arrives. */ obraImages?: string[] }) {
   const materials = useMemo(() => {
     const concreteMap = concreteTexture()
     const cobbleMap = cobbleTexture()
     const stepMap = escalatorTexture()
+    const boardMap = boardTexture()
+    const slatMap = slatTexture()
     return {
       concreteMap,
+      boardMap,
+      slatMap,
       cobbleMap,
       stepMap,
       concrete: new THREE.MeshStandardMaterial({ map: concreteMap, roughness: 0.92, metalness: 0.02 }),
@@ -223,6 +233,10 @@ export function MarMuseum() {
       white: new THREE.MeshStandardMaterial({ color: '#f4f3ef', roughness: 0.9 }),
       glass: new THREE.MeshStandardMaterial({ color: '#c5d7e4', transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12, side: THREE.DoubleSide, depthWrite: false }),
       mullion: new THREE.MeshStandardMaterial({ color: '#1c1e21', roughness: 0.45, metalness: 0.35 }),
+      black: new THREE.MeshStandardMaterial({ color: '#0f1113', roughness: 0.14, metalness: 0.35 }),
+      board: new THREE.MeshStandardMaterial({ map: boardMap, roughness: 0.95 }),
+      louvre: new THREE.MeshStandardMaterial({ map: slatMap, roughness: 0.6 }),
+      blueglass: new THREE.MeshStandardMaterial({ color: '#2f93d6', transparent: true, opacity: 0.82, roughness: 0.2, emissive: '#0f4f86', emissiveIntensity: 0.35 }),
       darkglass: new THREE.MeshStandardMaterial({ color: '#27343f', roughness: 0.12, metalness: 0.35 }),
       interior: new THREE.MeshStandardMaterial({ color: '#4a4f54', roughness: 0.7 }),
       steel: new THREE.MeshStandardMaterial({ color: '#cfd3d6', roughness: 0.4, metalness: 0.3 }),
@@ -235,7 +249,7 @@ export function MarMuseum() {
       trunk: new THREE.MeshStandardMaterial({ color: '#6b5344', roughness: 0.9 }),
       cobble: new THREE.MeshStandardMaterial({ map: cobbleMap, roughness: 0.96 }),
       grass: new THREE.MeshStandardMaterial({ color: '#7ea36a', roughness: 1 }),
-      polish: new THREE.MeshStandardMaterial({ color: '#9aa0a4', roughness: 0.32, metalness: 0.08 }),
+      polish: new THREE.MeshStandardMaterial({ color: '#4a3f38', roughness: 0.22, metalness: 0.1 }),
       gallery: new THREE.MeshStandardMaterial({ color: '#d5d3ce', roughness: 0.55 }),
       dark: new THREE.MeshStandardMaterial({ color: '#6a6e72', roughness: 0.48, metalness: 0.06 }),
       auditorium: new THREE.MeshStandardMaterial({ color: '#8a8178', roughness: 0.7 }),
@@ -253,6 +267,8 @@ export function MarMuseum() {
     materials.concreteMap.dispose()
     materials.cobbleMap.dispose()
     materials.stepMap.dispose()
+    materials.boardMap.dispose()
+    materials.slatMap.dispose()
     for (const value of Object.values(materials)) if (value instanceof THREE.Material) value.dispose()
   }, [materials])
 
@@ -284,6 +300,10 @@ export function MarMuseum() {
       <KindMeshes kind="white" material={materials.white} />
       <KindMeshes kind="glass" material={materials.glass} cast={false} />
       <KindMeshes kind="darkglass" material={materials.darkglass} cast={false} />
+      <KindMeshes kind="black" material={materials.black} />
+      <KindMeshes kind="board" material={materials.board} tile={[2.4, 2.4]} />
+      <KindMeshes kind="louvre" material={materials.louvre} tile={[2.4, 1.5]} cast={false} />
+      <KindMeshes kind="blueglass" material={materials.blueglass} cast={false} />
       <KindMeshes kind="interior" material={materials.interior} />
       <KindMeshes kind="steel" material={materials.steel} cast={false} />
       <KindMeshes kind="granite" material={materials.granite} cast={false} />
@@ -295,28 +315,12 @@ export function MarMuseum() {
       <KindMeshes kind="curb" material={materials.curb} />
       <KindMeshes kind="trunk" material={materials.trunk} />
 
-      <mesh position={[1, MAR.hallHeight, -10]} rotation={[Math.PI / 2, 0, 0]} material={materials.ceiling}>
-        <planeGeometry args={[26, 20]} />
-      </mesh>
-      <mesh position={[-21, MAR.westInterior, -2]} rotation={[Math.PI / 2, 0, 0]} material={materials.ceiling}>
-        <planeGeometry args={[17.6, 19.6]} />
-      </mesh>
       <mesh position={[23, MAR.eastInterior, -13]} rotation={[Math.PI / 2, 0, 0]} material={materials.darkCeiling}>
         <planeGeometry args={[17.6, 9.6]} />
       </mesh>
       <mesh position={[4, MAR.auditorium, -29]} rotation={[Math.PI / 2, 0, 0]} material={materials.ceiling}>
         <planeGeometry args={[23.6, 17.6]} />
       </mesh>
-      {[-16, -12, -8, -4].map((z) => (
-        <mesh key={z} position={[1, 8.72, z]} material={materials.beam} castShadow>
-          <boxGeometry args={[24, 0.22, 0.18]} />
-        </mesh>
-      ))}
-      {[-16, -6].map((x) => (
-        <mesh key={x} position={[x, 4.95, -2]} material={materials.lamp}>
-          <boxGeometry args={[0.12, 0.08, 8]} />
-        </mesh>
-      ))}
       {[-16, -13, -10].map((z) => (
         <mesh key={z} position={[23, 5.35, z]} material={materials.lamp}>
           <boxGeometry args={[12, 0.08, 0.16]} />
@@ -325,6 +329,8 @@ export function MarMuseum() {
 
       <EscalatorDecks material={materials.steps} />
       <Facade materials={materials} />
+      <Interior materials={materials} />
+      <HallFlag seed={obraImages} />
       <SeaLion />
 
       <mesh position={[-22, 0.08, 16]} rotation={[-Math.PI / 2, 0, 0]} material={materials.water}>
