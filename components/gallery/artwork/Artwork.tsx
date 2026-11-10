@@ -7,6 +7,7 @@ import type { Artwork as ArtworkData } from '@/data/artworks'
 import type { GalleryTheme } from '../themes'
 import { imageSrc } from '@/lib/image-src'
 import { framePresentation } from './frameStyles'
+import { wrapTitle } from './placard'
 
 // Modern museum framing: a slim dark frame + a white mat (passe-partout)
 // between the frame and the image, instead of one thick flat border.
@@ -43,6 +44,25 @@ function artistLabel(artist: string, flagSvg: string | null) {
   }
 }
 
+const PLACARD_WIDTH = 0.5
+const PLACARD_VIEW = { width: 340, height: 230 }
+
+function placardLabel({ title, artist, year, flagSvg }: Pick<ArtworkData, 'title' | 'artist' | 'year' | 'flagSvg'>) {
+  const lines = wrapTitle(title || 'Sin título')
+  const artistText = artist.length > 26 ? `${artist.slice(0, 25).trimEnd()}…` : artist
+  const titleSvg = lines.map((line, index) => `<text x="22" y="${48 + index * 31}" fill="#161513" font-family="Georgia, 'Times New Roman', serif" font-size="26" font-style="italic">${escapeSvgText(line)}</text>`).join('')
+  const artistY = 48 + lines.length * 31 + 14
+  const flagY = artistY + 22
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PLACARD_VIEW.width}" height="${PLACARD_VIEW.height}" viewBox="0 0 ${PLACARD_VIEW.width} ${PLACARD_VIEW.height}">
+    <rect x="1" y="1" width="${PLACARD_VIEW.width - 2}" height="${PLACARD_VIEW.height - 2}" fill="#f7f5f0" stroke="#d3cec4" stroke-width="2"/>
+    ${titleSvg}
+    <text x="22" y="${artistY}" fill="#161513" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600">${escapeSvgText(artistText)}</text>
+    ${flagSvg ? `<image x="22" y="${flagY}" width="39" height="26" href="data:image/svg+xml;charset=utf-8,${encodeURIComponent(flagSvg)}"/><rect x="22" y="${flagY}" width="39" height="26" fill="none" stroke="#d3cec4" stroke-width="1"/>` : ''}
+    <text x="${flagSvg ? 72 : 22}" y="${flagY + 20}" fill="#5c5750" font-family="Arial, Helvetica, sans-serif" font-size="20">${year}</text>
+  </svg>`
+  return { url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`, width: PLACARD_WIDTH, height: PLACARD_WIDTH * PLACARD_VIEW.height / PLACARD_VIEW.width }
+}
+
 function setSrgb(texture: { colorSpace: string }) {
   texture.colorSpace = SRGBColorSpace
 }
@@ -52,12 +72,14 @@ function setSrgb(texture: { colorSpace: string }) {
 // the sharper 1080px one for contemplating up close.
 const TEXTURE_WIDTH = window.matchMedia('(pointer: coarse)').matches ? 828 : 1080
 
-export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryTheme }) {
+export function Artwork({ data, theme, placard = false }: { data: ArtworkData; theme: GalleryTheme; /** Wall text to the right of the frame (title, artist, flag, year) instead of the artist's name under it. */ placard?: boolean }) {
   const texture = useTexture(imageSrc(data.image, TEXTURE_WIDTH), setSrgb)
   const frameStyle = data.frameStyle ?? 'standard'
   const frame = framePresentation(frameStyle, theme)
   const label = useMemo(() => artistLabel(data.artist, data.flagSvg), [data.artist, data.flagSvg])
   const labelTexture = useTexture(label.url, setSrgb)
+  const side = useMemo(() => (placard ? placardLabel(data) : null), [placard, data])
+  const sideTexture = useTexture(side?.url ?? label.url, setSrgb)
 
   // data.width/height is a bounding footprint on the wall — the image keeps
   // its native aspect ratio and is fit (never stretched) inside that box.
@@ -109,10 +131,18 @@ export function Artwork({ data, theme }: { data: ArtworkData; theme: GalleryThem
         </mesh>
       ))}
       {/* Museum-style label: always follows the frame and never covers the artwork. */}
-      <mesh position={[0, labelY, imageZ]}>
-        <planeGeometry args={[label.width, LABEL_HEIGHT]} />
-        <meshBasicMaterial map={labelTexture} toneMapped={false} />
-      </mesh>
+      {side ? (
+        // Wall text beside the frame, its foot level with the frame's.
+        <mesh position={[frameWidth / 2 + 0.12 + side.width / 2, -frameHeight / 2 + side.height / 2 + 0.05, imageZ]}>
+          <planeGeometry args={[side.width, side.height]} />
+          <meshBasicMaterial map={sideTexture} toneMapped={false} />
+        </mesh>
+      ) : (
+        <mesh position={[0, labelY, imageZ]}>
+          <planeGeometry args={[label.width, LABEL_HEIGHT]} />
+          <meshBasicMaterial map={labelTexture} toneMapped={false} />
+        </mesh>
+      )}
     </group>
   )
 }
