@@ -33,6 +33,7 @@ export function walkable(point: Point, garden = false, template: GalleryRoomTemp
   if (point.x <= minX + CLEARANCE || point.x >= maxX - CLEARANCE || point.z <= minZ + CLEARANCE || point.z >= maxZ - CLEARANCE) return false
   if (furniture && inBox(point, VINYL.x, VINYL.z, VINYL.width / 2, VINYL.depth / 2)) return false
   if (furniture && inBox(point, ARCADE.x, ARCADE.z, ARCADE.width / 2, ARCADE.depth / 2)) return false
+  if (template.floors && !template.floors.some(([x0, z0, x1, z1]) => point.x >= x0 && point.x <= x1 && point.z >= z0 && point.z <= z1)) return false
   if (template.walls.some(({ position, size }) => inBox(point, position[0], position[2], size[0] / 2, size[2] / 2))) return false
   return !garden || !template.garden.flowers.some(({ x, z }) => Math.hypot(point.x - x, point.z - z) < FLOWER_RADIUS + CLEARANCE)
 }

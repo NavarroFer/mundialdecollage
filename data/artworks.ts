@@ -70,12 +70,16 @@ export type Hanging = {
   presetOffset: number
   /** Only this stretch along the wall; the whole wall by default. */
   span?: [number, number]
+  /** Frame sizes to cycle through, [width, height] in metres. The main gallery's three by default. */
+  sizes?: Array<[number, number]>
+  /** Height of the frames' centres above the world's floor; an upper floor passes its own. */
+  baseY?: number
 }
 
 // The slot positions come from the wall itself, so moving a wall or a panel
 // in roomsData moves its obras with it.
 export function hang(
-  { roomId, wall: wallId, facing, count, presetOffset, span }: Hanging,
+  { roomId, wall: wallId, facing, count, presetOffset, span, sizes: presets = SIZE_PRESETS, baseY = BASE_Y }: Hanging,
   layoutWalls: WallSegment[] = walls,
 ): GallerySlot[] {
   const wall = layoutWalls.find((candidate) => candidate.id === wallId)
@@ -89,7 +93,7 @@ export function hang(
 
   const sizes = Array.from(
     { length: count },
-    (_, i) => SIZE_PRESETS[(presetOffset + i) % SIZE_PRESETS.length],
+    (_, i) => presets[(presetOffset + i) % presets.length],
   )
   const occupiedWidth = sizes.reduce((total, [width]) => total + width, 0)
   // Divide every bit of empty wall into equal gaps, including the space at
@@ -103,7 +107,7 @@ export function hang(
     cursor += width + gap
     return {
       roomId,
-      position: runsAlongX ? [center, BASE_Y, face] : [face, BASE_Y, center],
+      position: runsAlongX ? [center, baseY, face] : [face, baseY, center],
       rotation: [0, FACING_ROTATION[facing], 0],
       width,
       height,

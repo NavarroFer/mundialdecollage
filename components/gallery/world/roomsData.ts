@@ -52,12 +52,29 @@ export type Doorway = {
 export const CLUB_GALLERY_TEMPLATE_IDS = ['cabinet', 'classic', 'double'] as const
 export type ClubGalleryTemplateId = (typeof CLUB_GALLERY_TEMPLATE_IDS)[number]
 
+/** A building with a second walkable floor: its own walk map, and the ride that joins the two. */
+export type UpperLevel = {
+  /** The upper floor's walk map: the walls that stop you up there, and the floors you can stand on. */
+  template: GalleryRoomTemplate
+  /** Floor height of the upper level, metres. A point this high (minus a step) is on it. */
+  height: number
+  /**
+   * The escalator between the floors, as two ground-plan points on its centre
+   * line: `entry` just before it on the lower floor, `exit` just past its top.
+   */
+  link: { entry: { x: number; z: number }; exit: { x: number; z: number } }
+}
+
 export type GalleryRoomTemplate = {
   id: 'main' | ClubGalleryTemplateId | 'mar'
   capacity: number
   bounds: Bounds
   rooms: RoomDef[]
   walls: WallSegment[]
+  /** When set, a point is walkable only inside one of these rectangles (an upper floor has edges, a ground floor has the bounds). */
+  floors?: Bounds[]
+  /** A second floor, reached by the link. Only the lower floor's template carries it. */
+  upper?: UpperLevel
   doorways: Doorway[]
   /** Optional garden dressing. Other themes ignore these points. */
   garden: {

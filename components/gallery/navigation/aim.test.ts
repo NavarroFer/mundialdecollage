@@ -24,7 +24,7 @@ describe('aimAt', () => {
   })
 
   it('walks to whatever else is hit first, even in front of an obra', () => {
-    expect(aim(plane(-1), plane(-3, { attentionArtworkId: 'obra' }))).toEqual({ kind: 'spot', point: { x: 0, z: -1 } })
+    expect(aim(plane(-1), plane(-3, { attentionArtworkId: 'obra' }))).toEqual({ kind: 'spot', point: { x: 0, z: -1 }, y: 0 })
   })
 
   it('looks through the destination marker and hidden objects', () => {

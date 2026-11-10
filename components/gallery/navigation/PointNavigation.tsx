@@ -10,6 +10,7 @@ import { useInteractionStore } from '../interaction/store'
 import { useTouchStore } from '../mobile/touchStore'
 import { aimAt } from './aim'
 import { findWalkPath, viewingSpot } from './path'
+import { levelAt, planRoute, targetLevel } from './levels'
 import { useNavigationStore } from './store'
 import { mainGalleryTemplate, type GalleryRoomTemplate } from '../world/roomsData'
 
@@ -74,7 +75,11 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden, 
       if (touch && !artwork) return
       const to = artwork ? viewingSpot(artwork) : aim?.kind === 'spot' ? aim.point : null
       camera.getWorldPosition(playerPosition)
-      const route = to && findWalkPath({ x: playerPosition.x, z: playerPosition.z }, to, garden, template, blockFurniture)
+      // On which floor the visitor is, and which floor the click means: an obra hangs on its own floor,
+      // the floor under a click is the one at that height. A different floor is reached by the escalator.
+      const here = levelAt(playerPosition.y, template)
+      const there = artwork ? levelAt(artwork.position[1], template) : targetLevel(aim?.kind === 'spot' ? aim.y : undefined, here, template)
+      const route = to && planRoute({ x: playerPosition.x, z: playerPosition.z }, here, to, there, garden, template, blockFurniture)
       if (route) navigation.start(route, artwork?.id)
       else navigation.cancel(true)
     })
