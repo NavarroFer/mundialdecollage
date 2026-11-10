@@ -58,14 +58,15 @@ export function sweptBodyGeometry(spine: Section[] = SPINE, around = 36, along =
     for (let j = 0; j <= around; j++) {
       const angle = (j / around) * Math.PI * 2
       positions.push(point.x + normal.x * ry * Math.cos(angle), point.y + normal.y * ry * Math.cos(angle), rz * Math.sin(angle))
-      uvs.push((j / around) * 14, travelled / WEAVE_TILE)
+      // Four repeats round a body about 10 m in girth keeps one weave tile near 2.4 m.
+      uvs.push((j / around) * 4, travelled / WEAVE_TILE)
     }
   }
   for (let i = 0; i < along; i++) {
     for (let j = 0; j < around; j++) {
       const a = i * (around + 1) + j
       const b = a + around + 1
-      indices.push(a, b, a + 1, b, b + 1, a + 1)
+      indices.push(a, a + 1, b, b, a + 1, b + 1)
     }
   }
   const geometry = new THREE.BufferGeometry()
@@ -73,6 +74,20 @@ export function sweptBodyGeometry(spine: Section[] = SPINE, around = 36, along =
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
   geometry.setIndex(indices)
   geometry.computeVertexNormals()
+  return geometry
+}
+
+/**
+ * A unit sphere whose UVs are scaled so the weave keeps its true size once the
+ * mesh is stretched to radii (metres), instead of one tile across the whole flipper.
+ */
+function flipperGeometry(radii: [number, number, number], widthSegments = 18, heightSegments = 12) {
+  const geometry = new THREE.SphereGeometry(1, widthSegments, heightSegments)
+  const uv = geometry.getAttribute('uv')
+  const around = (2 * Math.PI * (radii[0] + radii[2])) / 2 / WEAVE_TILE
+  const down = (Math.PI * radii[1]) / WEAVE_TILE
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * around, uv.getY(i) * down)
+  uv.needsUpdate = true
   return geometry
 }
 
@@ -164,10 +179,15 @@ export function SeaLion() {
   const resources = useMemo(() => {
     const map = weaveTexture()
     const body = sweptBodyGeometry()
-    const material = new THREE.MeshStandardMaterial({ map, color: '#fff0c0', roughness: 0.55, metalness: 0.05, emissive: '#6b5020', emissiveIntensity: 0.18 })
+    const material = new THREE.MeshStandardMaterial({ map, color: '#fff6d8', roughness: 0.6, metalness: 0.05, emissive: '#5a4518', emissiveIntensity: 0.14 })
     const slab = new THREE.MeshStandardMaterial({ color: '#cdbfa6', roughness: 0.85 })
     const gravel = new THREE.MeshStandardMaterial({ color: '#d8d4c8', roughness: 1 })
-    return { map, body, material, slab, gravel }
+    const flippers = {
+      hanging: flipperGeometry([0.85, 2.35, 0.5]),
+      foot: flipperGeometry([1.5, 0.36, 0.85]),
+      hind: flipperGeometry([1.5, 0.35, 0.75]),
+    }
+    return { map, body, material, slab, gravel, flippers }
   }, [])
   useEffect(() => () => {
     resources.map.dispose()
@@ -175,6 +195,7 @@ export function SeaLion() {
     resources.material.dispose()
     resources.slab.dispose()
     resources.gravel.dispose()
+    Object.values(resources.flippers).forEach((geometry) => geometry.dispose())
   }, [resources])
 
   const { x0, x1, z0, z1, height, head } = LOBO
@@ -193,17 +214,16 @@ export function SeaLion() {
 
       <group position={[head.x, height, head.z]}>
         <mesh geometry={resources.body} material={resources.material} castShadow receiveShadow />
-        {/* Front flippers, flat on the ground either side of the chest. */}
+        {/* Front flippers hang from the chest like flat panels, their tips on the ground. */}
         {[1, -1].map((side) => (
-          <mesh key={`f${side}`} position={[-0.2, 0.42, side * 2.5]} rotation={[0, side * -0.95, side * 0.06]} scale={[2.2, 0.45, 0.95]} material={flipperMap} castShadow receiveShadow>
-            <sphereGeometry args={[1, 18, 12]} />
-          </mesh>
+          <group key={`f${side}`}>
+            <mesh position={[1.1, 2.05, side * 1.95]} rotation={[side * 0.1, 0, 0]} scale={[0.85, 2.35, 0.5]} geometry={resources.flippers.hanging} material={flipperMap} castShadow receiveShadow />
+            <mesh position={[0.5, 0.35, side * 2.1]} rotation={[0, side * -0.6, 0]} scale={[1.5, 0.36, 0.85]} geometry={resources.flippers.foot} material={flipperMap} castShadow receiveShadow />
+          </group>
         ))}
         {/* Hind flippers at the tail. */}
         {[1, -1].map((side) => (
-          <mesh key={`h${side}`} position={[10.6, 0.4, side * 1.05]} rotation={[0, side * 0.3, 0]} scale={[1.5, 0.35, 0.75]} material={flipperMap} castShadow receiveShadow>
-            <sphereGeometry args={[1, 14, 10]} />
-          </mesh>
+          <mesh key={`h${side}`} position={[10.6, 0.4, side * 1.05]} rotation={[0, side * 0.3, 0]} scale={[1.5, 0.35, 0.75]} geometry={resources.flippers.hind} material={flipperMap} castShadow receiveShadow />
         ))}
       </group>
     </group>
