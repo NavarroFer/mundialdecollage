@@ -494,6 +494,7 @@ const en: Messages = {
       clubBoardPending: p({ one: 'You have {count} cutout to approve on the board of “{title}”.', other: 'You have {count} cutouts to approve on the board of “{title}”.' }),
       clubBoardApproved: 'Your photo is now on the board of “{title}”.',
       clubBoardRejected: 'Your photo did not stay on the board of “{title}”. We gave you back the life to paste another.',
+      artworkImageUnreadable: 'We couldn’t show your artwork “{title}” because its file can’t be opened. Please upload it again as a JPG or PNG.',
       people: p({ one: '{count} person looking at your works', other: '{count} people looking at your works' }),
       stamps: p({ one: '{count} stamp', other: '{count} stamps' }),
     },

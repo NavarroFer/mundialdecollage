@@ -160,6 +160,17 @@ export const NOTIFICATION_TYPES = {
     icon: 'wallRejected',
     render: (data, { m }) => ({ text: fmt(m.types.clubBoardRejected, { title: data.title }), href: `/club/${encodeURIComponent(data.slug)}` }),
   }),
+  // Written by a one-off migration (20261110120000_hide_unreadable_obra_image.sql)
+  // when an obra's photo turned out not to be an image at all: the obra is
+  // taken off the site and its artist is asked to send it again.
+  artwork_image_unreadable: define({
+    schema: z.object({ title: z.string().nullish() }),
+    icon: 'image',
+    render: (data, { m, untitled }) => ({
+      text: fmt(m.types.artworkImageUnreadable, { title: data.title || untitled }),
+      href: '/onboarding?another=1',
+    }),
+  }),
   referral_joined: define({
     schema: z.object({ name: z.string().nullish(), slug: z.string().min(1).nullish() }),
     icon: 'referral',

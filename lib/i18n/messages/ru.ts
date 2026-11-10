@@ -503,6 +503,7 @@ const ru: Messages = {
       clubBoardPending: p({ one: 'У вас {count} вырезка для одобрения на доске «{title}».', few: 'У вас {count} вырезки для одобрения на доске «{title}».', many: 'У вас {count} вырезок для одобрения на доске «{title}».', other: 'У вас {count} вырезки для одобрения на доске «{title}».' }),
       clubBoardApproved: 'Ваше фото уже на доске «{title}».',
       clubBoardRejected: 'Ваше фото не осталось на доске «{title}». Мы вернули вам жизнь, чтобы вы приклеили другое.',
+      artworkImageUnreadable: 'Мы не смогли показать вашу работу «{title}»: файл не открывается. Загрузите её заново в формате JPG или PNG.',
       people: p({ one: '{count} человек у ваших работ', few: '{count} человека у ваших работ', many: '{count} человек у ваших работ', other: '{count} человека у ваших работ' }),
       stamps: p({ one: '{count} марка', few: '{count} марки', many: '{count} марок', other: '{count} марки' }),
     },

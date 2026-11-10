@@ -493,6 +493,7 @@ const it: Messages = {
       clubBoardPending: p({ one: 'Hai {count} ritaglio da approvare sulla bacheca di «{title}».', other: 'Hai {count} ritagli da approvare sulla bacheca di «{title}».' }),
       clubBoardApproved: 'La tua foto è sulla bacheca di «{title}».',
       clubBoardRejected: 'La tua foto non è rimasta sulla bacheca di «{title}». Ti abbiamo restituito la vita per incollarne un’altra.',
+      artworkImageUnreadable: 'Non siamo riusciti a mostrare la tua opera «{title}» perché il file non si apre. Caricala di nuovo come JPG o PNG.',
       people: p({ one: '{count} persona davanti alle tue opere', other: '{count} persone davanti alle tue opere' }),
       stamps: p({ one: '{count} francobollo', other: '{count} francobolli' }),
     },

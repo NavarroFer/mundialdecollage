@@ -57,6 +57,14 @@ describe('renderNotification', () => {
     expect(before?.text).toBe('Tu obra «Recortes» estuvo en la Galería 3D el 1 de octubre.')
   })
 
+  it('asks the artist to send an obra again when its file cannot be opened', () => {
+    expect(renderNotification({ type: 'artwork_image_unreadable', data: { title: 'Recortes' } }, context())).toEqual({
+      text: 'No pudimos mostrar tu obra «Recortes» porque su archivo no se puede abrir. Volvé a cargarla como JPG o PNG.',
+      href: '/onboarding?another=1',
+      icon: 'image',
+    })
+  })
+
   it('thanks the referrer by name, or without one', () => {
     expect(renderNotification({ type: 'referral_joined', data: { name: ' Inés ', slug: 'ines' } }, context())).toMatchObject({
       text: 'Inés se sumó al Mundial con tu link. ¡Gracias por compartir!',
@@ -99,6 +107,7 @@ describe('renderNotification', () => {
       wall_rejected: {},
       artwork_activity: { title: 'T', slug: 's', likes: 2, comments: 2 },
       artwork_exhibited: { title: 'T', slug: 's', day: '2026-10-05' },
+      artwork_image_unreadable: { title: 'T' },
       referral_joined: { name: 'N', slug: 's' },
       club_weekly: { slug: 's', title: 'T', week: '2026-10-26', viewers: 2, stamps: 1, likes: 0 },
       club_board_pending: { count: 2, slug: 's', title: 'T' },

@@ -493,6 +493,7 @@ const de: Messages = {
       clubBoardPending: p({ one: 'Du hast {count} Ausschnitt zum Freigeben auf der Tafel von „{title}“.', other: 'Du hast {count} Ausschnitte zum Freigeben auf der Tafel von „{title}“.' }),
       clubBoardApproved: 'Dein Foto hängt jetzt an der Tafel von „{title}“.',
       clubBoardRejected: 'Dein Foto ist nicht an der Tafel von „{title}“ geblieben. Du hast das Leben zurück, um ein anderes zu kleben.',
+      artworkImageUnreadable: 'Wir konnten dein Werk „{title}“ nicht zeigen, weil sich die Datei nicht öffnen lässt. Lade es bitte erneut als JPG oder PNG hoch.',
       people: p({ one: '{count} Person vor deinen Werken', other: '{count} Personen vor deinen Werken' }),
       stamps: p({ one: '{count} Briefmarke', other: '{count} Briefmarken' }),
     },

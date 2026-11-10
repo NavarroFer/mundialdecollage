@@ -503,6 +503,7 @@ const pl: Messages = {
       clubBoardPending: p({ one: 'Masz {count} wycinek do zatwierdzenia na tablicy „{title}”.', few: 'Masz {count} wycinki do zatwierdzenia na tablicy „{title}”.', many: 'Masz {count} wycinków do zatwierdzenia na tablicy „{title}”.', other: 'Masz {count} wycinka do zatwierdzenia na tablicy „{title}”.' }),
       clubBoardApproved: 'Twoje zdjęcie jest już na tablicy „{title}”.',
       clubBoardRejected: 'Twoje zdjęcie nie zostało na tablicy „{title}”. Oddaliśmy ci życie, żebyś przykleił inne.',
+      artworkImageUnreadable: 'Nie mogliśmy pokazać twojej pracy „{title}”, bo jej pliku nie da się otworzyć. Wgraj ją ponownie jako JPG lub PNG.',
       people: p({ one: '{count} osobę oglądającą twoje prace', few: '{count} osoby oglądające twoje prace', many: '{count} osób oglądających twoje prace', other: '{count} osoby oglądające twoje prace' }),
       stamps: p({ one: '{count} znaczek', few: '{count} znaczki', many: '{count} znaczków', other: '{count} znaczka' }),
     },

@@ -493,6 +493,7 @@ const pt: Messages = {
       clubBoardPending: p({ one: 'Você tem {count} recorte para aprovar no quadro de «{title}».', other: 'Você tem {count} recortes para aprovar no quadro de «{title}».' }),
       clubBoardApproved: 'Sua foto já está no quadro de «{title}».',
       clubBoardRejected: 'Sua foto não ficou no quadro de «{title}». Devolvemos a vida para você colar outra.',
+      artworkImageUnreadable: 'Não conseguimos mostrar sua obra «{title}» porque o arquivo não abre. Envie-a de novo como JPG ou PNG.',
       people: p({ one: '{count} pessoa olhando suas obras', other: '{count} pessoas olhando suas obras' }),
       stamps: p({ one: '{count} selo', other: '{count} selos' }),
     },

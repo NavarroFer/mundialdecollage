@@ -493,6 +493,7 @@ const fr: Messages = {
       clubBoardPending: p({ one: 'Vous avez {count} découpage à approuver sur le tableau de « {title} ».', other: 'Vous avez {count} découpages à approuver sur le tableau de « {title} ».' }),
       clubBoardApproved: 'Votre photo est sur le tableau de « {title} ».',
       clubBoardRejected: 'Votre photo n’est pas restée sur le tableau de « {title} ». Nous vous avons rendu la vie pour en coller une autre.',
+      artworkImageUnreadable: 'Nous n’avons pas pu afficher votre œuvre « {title} » car son fichier ne s’ouvre pas. Veuillez la recharger en JPG ou PNG.',
       people: p({ one: '{count} personne devant vos œuvres', other: '{count} personnes devant vos œuvres' }),
       stamps: p({ one: '{count} timbre', other: '{count} timbres' }),
     },

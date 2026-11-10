@@ -493,6 +493,7 @@ const id: Messages = {
       clubBoardPending: p({ other: 'Ada {count} potongan untuk kamu setujui di papan «{title}».' }),
       clubBoardApproved: 'Fotomu sudah ada di papan «{title}».',
       clubBoardRejected: 'Fotomu tidak dipasang di papan «{title}». Nyawamu kami kembalikan agar bisa menempel yang lain.',
+      artworkImageUnreadable: 'Karyamu «{title}» tidak bisa kami tampilkan karena filenya tidak bisa dibuka. Unggah ulang sebagai JPG atau PNG.',
       people: p({ other: '{count} orang melihat karyamu' }),
       stamps: p({ other: '{count} prangko' }),
     },

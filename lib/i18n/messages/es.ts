@@ -500,6 +500,7 @@ const es = {
       clubBoardPending: p({ one: 'Tenés {count} recorte para aprobar en el tablero de «{title}».', other: 'Tenés {count} recortes para aprobar en el tablero de «{title}».' }),
       clubBoardApproved: 'Tu foto ya está en el tablero de «{title}».',
       clubBoardRejected: 'Tu foto no quedó en el tablero de «{title}». Te devolvimos la vida para que pegues otra.',
+      artworkImageUnreadable: 'No pudimos mostrar tu obra «{title}» porque su archivo no se puede abrir. Volvé a cargarla como JPG o PNG.',
       people: p({ one: '{count} persona mirando tus obras', other: '{count} personas mirando tus obras' }),
       stamps: p({ one: '{count} estampilla', other: '{count} estampillas' }),
     },
