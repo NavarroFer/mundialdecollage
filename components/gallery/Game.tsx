@@ -28,6 +28,8 @@ import { useVinylStore } from './vinyl/store'
 import { SnakeDialog } from './arcade/SnakeDialog'
 import { useArcadeStore } from './arcade/store'
 import { WallDialog } from './wall/WallDialog'
+import { FlagObraCard } from './flag/FlagObraCard'
+import { useFlagStore } from './flag/store'
 import { loadWall, showClubBoard, useWallStore } from './wall/store'
 import { clubBoardFrame } from './club/board'
 import { useSouvenirStore } from './souvenir/store'
@@ -146,6 +148,7 @@ export function Game({
   const vinylOpen = useVinylStore((state) => state.open)
   const arcadeOpen = useArcadeStore((state) => state.open)
   const wallOpen = useWallStore((state) => state.placing !== null)
+  const flagOpen = useFlagStore((state) => state.entry !== null)
   const wallWeek = useWallStore((state) => state.weekStart)
   const musicRef = useRef<BackgroundMusicHandle>(null)
   // Desktop locks the pointer to the whole shell, not the canvas: the lock
@@ -197,14 +200,14 @@ export function Game({
   // Something in front of the walk: an obra, the photo, the collage, the passport.
   const letterOpen = useClubHostStore((state) => state.open)
   const clubMapOpen = useClubDoorStore((state) => state.mapOpen)
-  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || arcadeOpen || vinylOpen || letterOpen || clubMapOpen
+  const dialogOpen = passportOpen || Boolean(openId) || souvenirOpen || wallOpen || flagOpen || arcadeOpen || vinylOpen || letterOpen || clubMapOpen
   const overlayOpen = optionsOpen || dialogOpen
   const isActive = sceneReady && !overlayOpen && (usesPointerLock ? locked : hasStarted && playing)
   // Under the start screen or the phone menu nothing needs to move, so the
   // scene stops drawing frames and stepping physics. Reading an obra, the
   // collage or the souvenir keep it going:
   // the camera glides to the obra and the walls show around the dialog.
-  const paused = !loading && !isActive && !openId && !souvenirOpen && !wallOpen && !resuming
+  const paused = !loading && !isActive && !openId && !souvenirOpen && !wallOpen && !flagOpen && !resuming
   // The gallery stays visible behind resume controls; initial loading uses
   // a static status instead of the animated paper splash.
   const menuOpen = !isActive && !overlayOpen && !resuming
@@ -243,7 +246,7 @@ export function Game({
     const stopResuming = () => setResuming(false)
     document.addEventListener('pointerlockerror', stopResuming)
     // The collage's dialog (E on the big frame) works the same way.
-    const isOpen = () => Boolean(useInteractionStore.getState().openId || useWallStore.getState().placing || useArcadeStore.getState().open || useVinylStore.getState().open)
+    const isOpen = () => Boolean(useInteractionStore.getState().openId || useWallStore.getState().placing || useFlagStore.getState().entry || useArcadeStore.getState().open || useVinylStore.getState().open)
     let wasOpen = isOpen()
     const onChange = () => {
       const open = isOpen()
@@ -264,9 +267,11 @@ export function Game({
     const unsubscribeVinyl = useVinylStore.subscribe(onChange)
     const unsubscribeArcade = useArcadeStore.subscribe(onChange)
     const unsubscribeWall = useWallStore.subscribe(onChange)
+    const unsubscribeFlag = useFlagStore.subscribe(onChange)
     return () => {
       unsubscribeInteraction()
       unsubscribeWall()
+      unsubscribeFlag()
       unsubscribeArcade()
       unsubscribeVinyl()
       document.removeEventListener('pointerlockerror', stopResuming)
@@ -492,6 +497,7 @@ export function Game({
       <Passport artworks={artworks} theme={theme} onClose={resumeWalk} onResume={resumeArtwork} />
       <ArtworkModal artworks={artworks} theme={theme} />
       <WallDialog theme={theme} />
+      <FlagObraCard theme={theme} />
       <SnakeDialog />
       <VinylDialog />
       {!sceneReady && <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-paper">

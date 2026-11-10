@@ -11,11 +11,14 @@ import { useTouchStore } from '../mobile/touchStore'
 import { aimAt } from './aim'
 import { findWalkPath, viewingSpot } from './path'
 import { levelAt, planRoute, targetLevel } from './levels'
+import { useFlagStore } from '../flag/store'
 import { useNavigationStore } from './store'
 import { mainGalleryTemplate, type GalleryRoomTemplate } from '../world/roomsData'
 
 // The same reach as E: closer than this, a click on an obra opens it on the spot.
 const OPEN_DISTANCE = 3.5
+// The flag hangs high, so it opens from further back than an obra: its pictures are small.
+const FLAG_REACH = 14
 // Any further and the mouse press was a drag to look around, not a click.
 const DRAG_PX = 8
 const CLICK_MS = 600
@@ -63,6 +66,11 @@ export function PointNavigation({ active, touch, pointerLock, artworks, garden, 
           if (route) navigation.start(route)
         }
         return
+      }
+      // The hall's flag: a click on one of its pictures opens that obra's card (on a phone too).
+      if (aim?.kind === 'flag' && aim.distance <= FLAG_REACH) {
+        useNavigationStore.getState().cancel()
+        if (useFlagStore.getState().pick(aim.u, aim.v)) return
       }
       const artwork = aim?.kind === 'artwork' ? artworks.find(({ id }) => id === aim.id) : undefined
       const navigation = useNavigationStore.getState()

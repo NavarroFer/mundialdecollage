@@ -57,3 +57,16 @@ it('recognizes the record console through its parent and respects walls', () => 
   expect(aimAt(ray.intersectObjects([console], true))).toEqual({ kind: 'vinyl', distance: 2 })
   expect(aimAt(ray.intersectObjects([plane(-1), console], true))?.kind).toBe('spot')
 })
+
+it('reads where on the mosaic flag the pointer is', () => {
+  const ray = new Raycaster(new Vector3(), new Vector3(0, 0, -1))
+  const flag = plane(-4, { flagMosaic: true })
+  const result = aimAt(ray.intersectObjects([flag], true))
+  expect(result?.kind).toBe('flag')
+  if (result?.kind === 'flag') {
+    // The ray goes through the middle of a 2 × 2 plane.
+    expect(result.u).toBeCloseTo(0.5)
+    expect(result.v).toBeCloseTo(0.5)
+    expect(result.distance).toBe(4)
+  }
+})

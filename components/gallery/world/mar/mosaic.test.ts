@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FLAG, MOSAIC_LIMIT, loadOrder, mosaicCell, mosaicGrid, mosaicUrls } from './mosaic'
+import { FLAG, MOSAIC_LIMIT, cellAt, loadOrder, mosaicCell, mosaicEntries, mosaicGrid, mosaicUrls } from './mosaic'
 
 describe('mosaicGrid', () => {
   it('always has a cell for every obra, in square cells that fit the cloth', () => {
@@ -7,6 +7,16 @@ describe('mosaicGrid', () => {
       const grid = mosaicGrid(count)
       expect(grid.columns * grid.rows, `${count}`).toBeGreaterThanOrEqual(count)
       expect(grid.cell * grid.columns).toBeCloseTo(1024)
+    }
+  })
+
+  it('never runs past the bottom of the canvas it is drawn on: every row is visible', () => {
+    const height = 1024 / (FLAG.width / FLAG.height)
+    for (const count of [1, 5, 10, 37, 100, 250, 600]) {
+      const grid = mosaicGrid(count)
+      expect(grid.rows * grid.cell, `${count}`).toBeLessThanOrEqual(height + 0.001)
+      // And the last obra's cell is one of them.
+      expect(Math.floor((count - 1) / grid.columns), `${count}`).toBeLessThan(grid.rows)
     }
   })
 
@@ -47,5 +57,33 @@ describe('loadOrder', () => {
     // The first twenty loaded are not the first twenty cells.
     expect(order.slice(0, 20).some((index) => index >= 100)).toBe(true)
     expect(loadOrder(0)).toEqual([])
+  })
+})
+
+describe('mosaicEntries', () => {
+  it('keeps what came with each image, so a cell leads back to its obra', () => {
+    const kept = mosaicEntries([{ imageUrl: 'a', slug: 'uno' }, { imageUrl: 'a', slug: 'repetida' }, { imageUrl: null, slug: 'sin' }, { imageUrl: 'b', slug: 'dos' }])
+    expect(kept.map((entry) => entry.slug)).toEqual(['uno', 'dos'])
+  })
+})
+
+describe('cellAt', () => {
+  const canvas = { width: 1024, height: 2018 }
+
+  it('reads the cell under a point, v counted up from the cloth\'s foot', () => {
+    const grid = mosaicGrid(120, FLAG.width / FLAG.height, canvas.width)
+    // Top left corner of the cloth is the first cell; the foot's left corner is the first of the last row drawn.
+    expect(cellAt(0.001, 0.999, grid, canvas, 120)).toBe(0)
+    expect(cellAt(0.999, 0.999, grid, canvas, 120)).toBe(grid.columns - 1)
+    const second = mosaicCell(grid.columns + 1, grid)
+    expect(cellAt((second.x + grid.cell / 2) / canvas.width, 1 - (second.y + grid.cell / 2) / canvas.height, grid, canvas, 120)).toBe(grid.columns + 1)
+  })
+
+  it('is null where there is no obra: past the last cell, off the cloth, or not a number', () => {
+    const grid = mosaicGrid(10, FLAG.width / FLAG.height, canvas.width)
+    expect(cellAt(0.5, 0.001, grid, canvas, 10)).toBeNull()
+    expect(cellAt(-0.1, 0.5, grid, canvas, 10)).toBeNull()
+    expect(cellAt(1, 0.5, grid, canvas, 10)).toBeNull()
+    expect(cellAt(NaN, 0.5, grid, canvas, 10)).toBeNull()
   })
 })

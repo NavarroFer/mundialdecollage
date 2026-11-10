@@ -5,6 +5,8 @@ export type Aim =
   | { kind: 'vinyl'; distance: number }
   | { kind: 'arcade'; distance: number }
   | { kind: 'artwork'; id: string; distance: number }
+  /** The hall's mosaic flag, with the texture coordinates of the point hit (u from the left, v from the bottom). */
+  | { kind: 'flag'; u: number; v: number; distance: number }
   | { kind: 'spot'; point: Point; /** Height of the surface hit, for telling the floors apart. */ y?: number }
 
 /**
@@ -21,6 +23,7 @@ export function aimAt(hits: Intersection<Object3D>[]): Aim | null {
   if (!hit) return null
   for (let object: Object3D | null = hit.object; object; object = object.parent) if (object.userData.arcade) return { kind: 'arcade', distance: hit.distance }
   for (let object: Object3D | null = hit.object; object; object = object.parent) if (object.userData.vinyl) return { kind: 'vinyl', distance: hit.distance }
+  if (hit.object.userData.flagMosaic && hit.uv) return { kind: 'flag', u: hit.uv.x, v: hit.uv.y, distance: hit.distance }
   const id: unknown = hit.object.userData.attentionArtworkId
   if (typeof id === 'string') return { kind: 'artwork', id, distance: hit.distance }
   return { kind: 'spot', point: { x: hit.point.x, z: hit.point.z }, y: hit.point.y }

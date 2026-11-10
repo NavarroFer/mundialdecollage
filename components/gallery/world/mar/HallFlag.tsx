@@ -5,7 +5,8 @@ import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { imageSrc } from '@/lib/image-src'
 import { clothBase } from './interiorDecals'
-import { FLAG, loadOrder, mosaicCell, mosaicGrid, mosaicUrls } from './mosaic'
+import { useFlagStore, type FlagEntry } from '../../flag/store'
+import { FLAG, loadOrder, mosaicCell, mosaicEntries, mosaicGrid } from './mosaic'
 import { canvasTexture } from './textures'
 
 /** Where the flag hangs: x centre, z, in the hall's open void, east of the escalators. */
@@ -20,12 +21,12 @@ const PARALLEL = 16
 /** How often the canvas is re-sent to the GPU while pictures arrive. It is a few MB with its mipmaps, so not per picture. */
 const UPLOAD_EVERY_MS = 350
 
-/** Every published obra's image, from the CDN-cached listing the homepage search uses. */
-async function fetchObraUrls(signal: AbortSignal): Promise<string[]> {
+/** Every published obra, from the CDN-cached listing the homepage search uses. */
+async function fetchObraEntries(signal: AbortSignal): Promise<FlagEntry[]> {
   const response = await fetch('/api/obras', { signal })
   if (!response.ok) return []
-  const entries = (await response.json()) as Array<{ imageUrl?: string | null }>
-  return mosaicUrls(entries)
+  const entries = (await response.json()) as Array<{ slug?: string; title?: string; name?: string; countryCode?: string; imageUrl?: string | null }>
+  return mosaicEntries(entries)
 }
 
 function loadThumb(url: string, signal: AbortSignal): Promise<HTMLImageElement | null> {
@@ -84,15 +85,18 @@ function useMosaicTexture(seed: string[]) {
       if (timer === null) timer = setTimeout(upload, UPLOAD_EVERY_MS)
     }
     const run = async () => {
-      let urls = mosaicUrls(seedKey ? seedKey.split('\n').map((imageUrl) => ({ imageUrl })) : [])
+      // Until the full list arrives the cloth shows the day's obras: pictures only, with no page to open.
+      let entries: FlagEntry[] = mosaicEntries(seedKey ? seedKey.split('\n').map((imageUrl) => ({ imageUrl })) : [])
       try {
-        const all = await fetchObraUrls(abort.signal)
-        if (all.length) urls = all
+        const all = await fetchObraEntries(abort.signal)
+        if (all.length) entries = all
       } catch {
         // Offline or aborted: the day's obras are what the flag shows.
       }
-      if (abort.signal.aborted || !urls.length) return
+      if (abort.signal.aborted || !entries.length) return
+      const urls = entries.map((entry) => entry.imageUrl)
       const grid = mosaicGrid(urls.length)
+      useFlagStore.getState().setLayout({ entries, grid, canvas: { width: CANVAS_WIDTH, height: CANVAS_HEIGHT } })
       // Cells beyond the last obra stay white. Loaded in a shuffled order so the whole cloth fills at once.
       const order = loadOrder(urls.length)
       let next = 0
@@ -118,6 +122,7 @@ function useMosaicTexture(seed: string[]) {
     return () => {
       abort.abort()
       if (timer !== null) clearTimeout(timer)
+      useFlagStore.getState().setLayout(null)
     }
   }, [base, texture, seedKey, invalidate])
   return texture
@@ -154,11 +159,11 @@ export function HallFlag({ seed = [] }: { seed?: string[] }) {
   const [top, centre] = [FLAG.bottom + FLAG.height, FLAG.bottom + FLAG.height / 2]
   return (
     <group position={[FLAG_AT.x, 0, FLAG_AT.z]}>
-      <mesh geometry={geometries.front} position={[0, centre, 0]} castShadow>
+      <mesh geometry={geometries.front} position={[0, centre, 0]} userData={{ flagMosaic: true }} castShadow>
         <meshStandardMaterial map={texture} roughness={0.85} side={THREE.FrontSide} />
       </mesh>
       {/* Same folds, seen from behind, with the picture turned back the right way round. */}
-      <mesh geometry={geometries.back} position={[0, centre, 0]}>
+      <mesh geometry={geometries.back} position={[0, centre, 0]} userData={{ flagMosaic: true }}>
         <meshStandardMaterial map={texture} roughness={0.85} side={THREE.BackSide} />
       </mesh>
       {/* Top pole it hangs from, and the weighted pipe in its foot hem. */}
