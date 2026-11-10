@@ -26,7 +26,7 @@ import {
 import { artworksForVenue } from './place'
 
 const STEP = 0.5
-const MAR_ESCALATORS_ENTRY = { x: 8.175, z: -0.9 }
+const MAR_ESCALATORS_ENTRY = marGalleryTemplate.upper!.link.entry
 
 function reachableFrom(origin: { x: number; z: number }, template = marGalleryTemplate) {
   const cell = (x: number, z: number) => `${Math.round(x / STEP)},${Math.round(z / STEP)}`
@@ -126,11 +126,11 @@ describe('MAR layout', () => {
     expect(targetLevel(8, 1, marGalleryTemplate)).toBe(1)
   })
 
-  it('is a 30 × 30 m room, with a spot for each of the day\'s 37 obras and a metre of wall to spare around each', () => {
+  it('is a 30 × 30 m room, with a spot for each of the day\'s 37 obras and a metre of wall between them', () => {
     expect(GALLERY.x1 - GALLERY.x0).toBeCloseTo(30)
     expect(GALLERY.z1 - GALLERY.z0).toBeCloseTo(30)
     expect(marGallerySlots.length).toBeGreaterThanOrEqual(37)
-    // On every wall and partition face, the frames leave half a metre or more between them (and to the wall's ends).
+    // On every wall and partition face, the frames leave a metre or more between them (and to the wall's ends): room for the wall text beside each.
     for (const hanging of MAR_HANGINGS) {
       const wall = marBoxes.find((box) => box.id === hanging.wall)!
       const alongX = wall.maxX - wall.minX > wall.maxZ - wall.minZ
@@ -139,9 +139,9 @@ describe('MAR layout', () => {
         .map((slot) => [(alongX ? slot.position[0] : slot.position[2]) - slot.width / 2, (alongX ? slot.position[0] : slot.position[2]) + slot.width / 2])
         .sort((a, b) => a[0] - b[0])
       const [from, to] = alongX ? [wall.minX, wall.maxX] : [wall.minZ, wall.maxZ]
-      expect(spans[0][0] - from, hanging.wall).toBeGreaterThan(0.5)
-      expect(to - spans[spans.length - 1][1], hanging.wall).toBeGreaterThan(0.5)
-      for (let i = 1; i < spans.length; i++) expect(spans[i][0] - spans[i - 1][1], hanging.wall).toBeGreaterThan(0.5)
+      expect(spans[0][0] - from, hanging.wall).toBeGreaterThan(1)
+      expect(to - spans[spans.length - 1][1], hanging.wall).toBeGreaterThan(1)
+      for (let i = 1; i < spans.length; i++) expect(spans[i][0] - spans[i - 1][1], hanging.wall).toBeGreaterThan(1)
     }
   })
 
@@ -160,6 +160,19 @@ describe('MAR layout', () => {
     const mid = marEscalatorHeight((lane.x0 + lane.x1) / 2, (lane.zBottom + lane.zTop) / 2)
     expect(mid).toBeGreaterThan(1)
     expect(mid).toBeLessThan(MAR.mezzanine)
+  })
+
+  it('puts the escalators left of the entrance, with open floor between their foot and the front wall', () => {
+    for (const lane of MAR_ESCALATORS) {
+      // Entering the door you face -Z, so left is -X.
+      expect(lane.x1).toBeLessThan(MAR_DOORS.entrance.x0)
+      expect(MAR_DOORS.entrance.z - lane.zBottom).toBeGreaterThanOrEqual(4)
+      // And they are not jammed against the side walls either.
+      expect(lane.x0 - -12).toBeGreaterThan(2)
+    }
+    // The foot is reachable on the ground floor, in the open hall.
+    expect(walkable(marGalleryTemplate.upper!.link.entry, false, marGalleryTemplate, false)).toBe(true)
+    expect(reachableFrom(MAR_SPAWN)(-8, -4.5)).toBe(true)
   })
 
   it('leaves the main gallery furniture out of the MAR walk', () => {

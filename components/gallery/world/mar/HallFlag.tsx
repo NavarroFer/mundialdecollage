@@ -8,8 +8,8 @@ import { clothBase } from './interiorDecals'
 import { FLAG, loadOrder, mosaicCell, mosaicGrid, mosaicUrls } from './mosaic'
 import { canvasTexture } from './textures'
 
-/** Where the flag hangs: x centre, z, in the hall's open void near the glass. */
-export const FLAG_AT = { x: -5.8, z: -5.2 } as const
+/** Where the flag hangs: x centre, z, in the hall's open void, east of the escalators. */
+export const FLAG_AT = { x: 3.5, z: -6.5 } as const
 
 const CANVAS_WIDTH = 1024
 const CANVAS_HEIGHT = Math.round((CANVAS_WIDTH * FLAG.height) / FLAG.width)

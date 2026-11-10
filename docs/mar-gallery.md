@@ -37,6 +37,12 @@ In the real museum the obras are on the upper floor, so the daily obras now hang
 - **Lounge on the landing:** two lettered display cases ("Lobo Marino de Alfajores, Marta Minujin — Material de archivo") and two white leather lounge chairs, from the photographs of that corner.
 - **Not modelled:** the open void's far side and the upper floors of the other volumes; the tall cloth lettering on the hall's walls ("EN ESTE…", "ESCRIT…"), which is a fabric-letter installation.
 
+### Escalators, mezzanine and wall text
+
+In the photographs the escalators stand **left of the entrance** (you enter facing −Z, so −X), well inside the hall with open floor between their foot and the front wall. They are at x −8.9..−5.75, feet at z −5, heads at z −12.05. The mezzanine is a deck across the hall's north end where they land; the portal into the gallery is in the hall's west wall at its north end (z −18..−15), a few steps from the landing. The glass slot of the lounge (display cases, white chairs) is on the east end of that deck. The hall flag hangs east of the escalators.
+
+Each obra in MAR has a wall label beside its frame: title in italics (up to three lines), the artist, the flag and the year, on a 0.5 m plate. The main gallery keeps its single line under the frame (the artist's name): `Artworks` takes a `placard` prop and only MAR turns it on.
+
 ### Two floors in the walk map
 
 A point (x, z) does not say which floor you mean, so the lower floor's template carries an optional `upper` (its own template, its height, and the escalator's entry and exit). `walkable` also honours `floors`, rectangles an upper floor is limited to. `navigation/levels.ts` picks the floor from a height (the player's, an obra's, or the surface a click hit) and `planRoute` joins two walks with the escalator ride. A click on a high wall keeps you on your floor.
