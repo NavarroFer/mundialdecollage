@@ -28,6 +28,7 @@ const STAND_INS: Record<string, () => THREE.Texture> = {
   vinyl: noeBannerTexture,
   'standee-a': standeeTexture,
   'standee-b': standeeTexture,
+  'standee-c': standeeTexture,
 }
 
 function useBannerTextures(banners: MarBanner[]) {
@@ -54,12 +55,12 @@ function Banners() {
     if (banner.standee) {
       // A roll-up on its base: printed both sides, a steel foot, a pole behind.
       return (
-        <group key={banner.id} position={[banner.center[0], 0, banner.center[2]]} rotation={[0, banner.yaw ?? 0, 0]}>
-          <mesh position={[0, banner.center[1] + 0.05, 0]}>
+        <group key={banner.id} position={[banner.center[0], banner.center[1] - banner.height / 2 - 0.05, banner.center[2]]} rotation={[0, banner.yaw ?? 0, 0]}>
+          <mesh position={[0, banner.height / 2 + 0.1, 0]}>
             <planeGeometry args={[banner.width, banner.height]} />
             {material}
           </mesh>
-          <mesh position={[0, banner.center[1] + 0.05, -0.004]} rotation={[0, Math.PI, 0]}>
+          <mesh position={[0, banner.height / 2 + 0.1, -0.004]} rotation={[0, Math.PI, 0]}>
             <planeGeometry args={[banner.width, banner.height]} />
             <meshStandardMaterial color="#e9eef0" roughness={0.6} />
           </mesh>

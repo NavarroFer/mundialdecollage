@@ -229,7 +229,7 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
       cobbleMap,
       stepMap,
       concrete: new THREE.MeshStandardMaterial({ map: concreteMap, roughness: 0.92, metalness: 0.02 }),
-      deck: new THREE.MeshStandardMaterial({ color: '#b7b3ac', roughness: 0.78 }),
+      deck: new THREE.MeshStandardMaterial({ color: '#d2cbb9', roughness: 0.42, metalness: 0.04 }),
       white: new THREE.MeshStandardMaterial({ color: '#f4f3ef', roughness: 0.9 }),
       glass: new THREE.MeshStandardMaterial({ color: '#c5d7e4', transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12, side: THREE.DoubleSide, depthWrite: false }),
       mullion: new THREE.MeshStandardMaterial({ color: '#1c1e21', roughness: 0.45, metalness: 0.35 }),

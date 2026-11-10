@@ -28,13 +28,26 @@ Facade fidelity was reworked from a second set of photographs (plaza, entrance, 
 
 The concrete is board-formed: panels 2.4 × 1.2 m, rows not aligned, each panel its own shade, hairline joints, pin holes and water streaks. One texture repeat covers 4 × 4 panels.
 
+## Upper floor (where the obras hang)
+
+In the real museum the obras are on the upper floor, so the daily obras now hang there and nothing hangs on the ground floor. The mezzanine round the hall's void is at 5.2 m (it was 4.45 m; the escalator now rises 5.2 m over the same run, about 36°, steeper than before). Walking onto either escalator lifts you to it, and click-to-walk takes the same ride.
+
+- **Entrance to the gallery** (last photograph): a portal in the hall's west wall at the mezzanine, 3 m wide and 3.6 m high, with a roll-up banner at its foot. Past it, a **10 × 10 m room** (x −22.18..−12.18, z −11.82..−1.82, 4.6 m clear) with a cream resin floor, white walls, a skylight and track lights. It sits over the café. There are no photographs of the room itself: its size is what was asked for and its look is the entrance's.
+- **Three freestanding partitions** (3.4 m high, 7.4 m long) leave 2.4 m aisles between them and more than a metre at each end. With the four walls that makes 37 hanging spots (the daily exhibition's wall count), in the gallery's own smaller frames (1.5 × 1.1, 1.1 × 1.5, 1.3 × 1.3 m) so thirty-odd fit.
+- **Lounge on the landing:** two lettered display cases ("Lobo Marino de Alfajores, Marta Minujin — Material de archivo") and two white leather lounge chairs, from the photographs of that corner.
+- **Not modelled:** the open void's far side and the upper floors of the other volumes; the tall cloth lettering on the hall's walls ("EN ESTE…", "ESCRIT…"), which is a fabric-letter installation.
+
+### Two floors in the walk map
+
+A point (x, z) does not say which floor you mean, so the lower floor's template carries an optional `upper` (its own template, its height, and the escalator's entry and exit). `walkable` also honours `floors`, rectangles an upper floor is limited to. `navigation/levels.ts` picks the floor from a height (the player's, an obra's, or the surface a click hit) and `planRoute` joins two walks with the escalator ride. A click on a high wall keeps you on your floor.
+
 ## Ground floor, from the interior photographs
 
-The obras hang on the **upper floor** in the real museum. Nothing of that floor is modelled yet; until it is, the daily obras stay hung on the ground-floor walls (hall north walls, west room, east room) so the gallery still works, and the dressing below keeps clear of the 2.5 m in front of every hung wall. When the upper floor arrives, the hangings move there and the café and shop can use the whole room.
+No obras hang here any more (see above), so the café and the shop can use the whole room.
 
 - **Floor:** dark polished concrete, glossy; a drain grate along the hall's north wall.
 - **Hall:** deep concrete beams with a glowing skylight between them (the sun throws their shadows on the walls); stainless escalators with glass balustrades and black handrails that follow the slope; a blue glass box and a black reception counter by the west corner; a marble table on gold legs; a fire hose cabinet; two roll-up banners by the door.
-- **West room = café, shop and lab:** expanded-metal ceiling in white frames with fluorescent tubes and two crystal chandeliers; four café tables with wire chairs; **Tienda FINDE** (lettered black fascia, black counters, board-formed backdrop, shelves and goods); the **Espacio Laboratorio** as a 4.2 m black wall with white lettering (the same wall the partition's four obras hang on); La Isla as a carpet, a pale blue bench and surfboards at the SW glass corner; a track with spots on the north wall; a louvred band over the door to the hall.
+- **West room = café, shop and lab:** expanded-metal ceiling in white frames with fluorescent tubes and two crystal chandeliers; four café tables with wire chairs; **Tienda FINDE** (lettered black fascia, black counters, board-formed backdrop, shelves and goods); the **Espacio Laboratorio** as a 4.2 m black wall with white lettering ; La Isla as a carpet, a pale blue bench and surfboards at the SW glass corner; a track with spots on the north wall; a louvred band over the door to the hall.
 - Where each thing stands is an arrangement chosen to fit the hanging strips, not read off a plan.
 
 ### The flag in the hall

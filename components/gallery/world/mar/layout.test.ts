@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { gallerySlots } from '@/data/artworks'
+import { levelAt, planRoute, targetLevel } from '../../navigation/levels'
 import { viewingSpot, walkable } from '../../navigation/path'
 import { standInFront } from '../../player/spawn'
 import {
+  GALLERY,
   LOBO,
   MAR,
   MAR_BANNERS,
@@ -15,14 +17,16 @@ import {
   marEscalatorHeight,
   marGallerySlots,
   marGalleryTemplate,
+  marUpperTemplate,
   marWalls,
   STAIR,
 } from './layout'
 import { artworksForVenue } from './place'
 
 const STEP = 0.5
+const MAR_ESCALATORS_ENTRY = { x: 8.175, z: -0.9 }
 
-function reachableFrom(origin: { x: number; z: number }) {
+function reachableFrom(origin: { x: number; z: number }, template = marGalleryTemplate) {
   const cell = (x: number, z: number) => `${Math.round(x / STEP)},${Math.round(z / STEP)}`
   const seen = new Set([cell(origin.x, origin.z)])
   const queue = [origin]
@@ -31,7 +35,7 @@ function reachableFrom(origin: { x: number; z: number }) {
     for (const [dx, dz] of [[STEP, 0], [-STEP, 0], [0, STEP], [0, -STEP]]) {
       const next = { x: x + dx, z: z + dz }
       const id = cell(next.x, next.z)
-      if (seen.has(id) || !walkable(next, false, marGalleryTemplate, false)) continue
+      if (seen.has(id) || !walkable(next, false, template, false)) continue
       seen.add(id)
       queue.push(next)
     }
@@ -48,7 +52,7 @@ describe('MAR layout', () => {
   it('hangs one spot per daily obra, on walls that exist', () => {
     expect(MAR_HANGINGS.reduce((total, hanging) => total + hanging.count, 0)).toBe(37)
     expect(marGallerySlots).toHaveLength(37)
-    for (const hanging of MAR_HANGINGS) expect(marWalls.some((wall) => wall.id === hanging.wall)).toBe(true)
+    for (const hanging of MAR_HANGINGS) expect(marBoxes.some((box) => box.id === hanging.wall), hanging.wall).toBe(true)
   })
 
   it('starts on the plaza, outside the hall, with the entrance open', () => {
@@ -64,7 +68,7 @@ describe('MAR layout', () => {
     expect(entranceWidth).toBeLessThan(8)
   })
 
-  it('lets a person walk from the plaza through the entrance to every room and every obra', () => {
+  it('lets a person walk from the plaza through the entrance to every ground-floor room', () => {
     expect(walkable(MAR_SPAWN, false, marGalleryTemplate, false)).toBe(true)
     const reached = reachableFrom(MAR_SPAWN)
     for (const [name, point] of [
@@ -72,14 +76,62 @@ describe('MAR layout', () => {
       ['west gallery', { x: -20, z: 0 }],
       ['east gallery', { x: 18, z: -15 }],
       ['auditorium aisle', { x: 0.4, z: -28 }],
+      ['the escalator foot', MAR_ESCALATORS_ENTRY],
     ] as const) {
       expect(reached(point.x, point.z), name).toBe(true)
     }
+  })
+
+  it('hangs every obra on the upper floor, where each can be stood in front of and reached from the escalator', () => {
+    const upper = marGalleryTemplate.upper!
+    expect(upper.template).toBe(marUpperTemplate)
+    expect(walkable(upper.link.entry, false, marGalleryTemplate, false)).toBe(true)
+    expect(walkable(upper.link.exit, false, upper.template, false)).toBe(true)
+    const reached = reachableFrom(upper.link.exit, upper.template)
+    expect(reached(Math.round(upper.link.exit.x / STEP) * STEP, Math.round(upper.link.exit.z / STEP) * STEP)).toBe(true)
+    // Every obra is upstairs, at the upper floor's height.
     for (const slot of marGallerySlots) {
+      expect(slot.position[1], `${slot.roomId} ${slot.position}`).toBeGreaterThan(MAR.mezzanine + 0.5)
+      expect(levelAt(slot.position[1], marGalleryTemplate)).toBe(1)
       const spot = standInFront(slot)
-      expect(walkable(spot, false, marGalleryTemplate, false), `${slot.roomId} ${slot.position}`).toBe(true)
+      expect(walkable(spot, false, upper.template, false), `${slot.roomId} ${slot.position}`).toBe(true)
       expect(reached(Math.round(spot.x / STEP) * STEP, Math.round(spot.z / STEP) * STEP), `${slot.roomId} ${slot.position}`).toBe(true)
       expect(viewingSpot(slot)).toEqual({ x: spot.x, z: spot.z })
+    }
+  })
+
+  it('routes a visitor from the plaza up the escalator to an obra, and back down to the plaza', () => {
+    const slot = marGallerySlots[0]
+    const up = planRoute(MAR_SPAWN, 0, viewingSpot(slot), 1, false, marGalleryTemplate, false)
+    expect(up).not.toBeNull()
+    expect(up!.length).toBeGreaterThan(3)
+    const link = marGalleryTemplate.upper!.link
+    expect(up).toContainEqual(link.entry)
+    expect(up).toContainEqual(link.exit)
+    const down = planRoute(viewingSpot(slot), 1, MAR_SPAWN, 0, false, marGalleryTemplate, false)
+    expect(down).not.toBeNull()
+    expect(down).toContainEqual(link.exit)
+  })
+
+  it('knows which floor a height and a click are on', () => {
+    expect(levelAt(1.7, marGalleryTemplate)).toBe(0)
+    expect(levelAt(MAR.mezzanine + 1.7, marGalleryTemplate)).toBe(1)
+    expect(levelAt(6.9, undefined)).toBe(0)
+    // A floor click upstairs means upstairs; a high wall hit keeps you where you are.
+    expect(targetLevel(MAR.mezzanine + 0.05, 0, marGalleryTemplate)).toBe(1)
+    expect(targetLevel(0.02, 1, marGalleryTemplate)).toBe(0)
+    expect(targetLevel(8, 0, marGalleryTemplate)).toBe(0)
+    expect(targetLevel(8, 1, marGalleryTemplate)).toBe(1)
+  })
+
+  it('is a 10 × 10 m room with a skylight, fitting at least thirty obras and every one of the day\'s 37', () => {
+    expect(GALLERY.x1 - GALLERY.x0).toBeCloseTo(10)
+    expect(GALLERY.z1 - GALLERY.z0).toBeCloseTo(10)
+    expect(marGallerySlots.length).toBeGreaterThanOrEqual(37)
+    // Frames of one face never overlap each other along the wall.
+    for (const hanging of MAR_HANGINGS) {
+      const same = marGallerySlots.filter((slot) => slot.roomId === hanging.roomId)
+      expect(same.length).toBeGreaterThan(0)
     }
   })
 
@@ -144,7 +196,7 @@ describe('MAR facade', () => {
   })
 
   it('keeps every banner on a wall it fits, so a picture can be swapped in without moving anything', () => {
-    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual(['door-a', 'door-b', 'door-c', 'vinyl', 'standee-a', 'standee-b'])
+    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual(['door-a', 'door-b', 'door-c', 'vinyl', 'standee-a', 'standee-b', 'standee-c'])
     for (const banner of MAR_BANNERS) expect(banner.image).toBeUndefined()
     for (const banner of MAR_BANNERS.filter((item) => !item.standee)) {
       expect(banner.width).toBeGreaterThan(0.5)

@@ -166,6 +166,20 @@ export function clothBase(width: number, height: number) {
   return { canvas, context }
 }
 
+/** The grey fascia of a display case in the lounge, lettered in white. */
+export function vitrineTexture() {
+  const { canvas, context } = canvasOf(1024, 256)
+  context.fillStyle = '#8b8689'
+  context.fillRect(0, 0, 1024, 256)
+  context.fillStyle = '#f6f4f2'
+  context.textBaseline = 'middle'
+  context.font = `600 62px ${SANS}`
+  context.fillText('Lobo Marino de Alfajores, Marta Minujin', 36, 98)
+  context.font = `500 50px ${SANS}`
+  context.fillText('Material de archivo', 36, 178)
+  return canvasTexture(canvas, false)
+}
+
 /** A roll-up banner stand-in for a hall standee. */
 export function standeeTexture() {
   const { canvas, context } = canvasOf(340, 800)

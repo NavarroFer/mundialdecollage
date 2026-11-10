@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_TABLES, MAR, MAR_ESCALATORS, SHOP } from './layout'
+import { CAFE_TABLES, GALLERY, MAR, MAR_ESCALATORS, SHOP, SKYLIGHT } from './layout'
 import {
   boardTexture,
   fasciaTexture,
@@ -11,6 +11,7 @@ import {
   labTexture,
   meshCeilingTexture,
   slatTexture,
+  vitrineTexture,
 } from './interiorDecals'
 import { seeded } from './textures'
 
@@ -382,11 +383,11 @@ function HallProps() {
 /** A white track and spot fixtures along the west room's north wall, as in the wall photograph. */
 function Track() {
   const spots = useRef<THREE.InstancedMesh>(null)
-  const items = useMemo(() => Array.from({ length: 7 }, (_, i) => ({ position: [-28 + i * 2.5, 4.92, -11.35] as [number, number, number] })), [])
+  const items = useMemo(() => Array.from({ length: 7 }, (_, i) => ({ position: [-28 + i * 2.5, 4.62, -11.35] as [number, number, number] })), [])
   useInstances(spots, items)
   return (
     <group>
-      <mesh position={[-21, 5.08, -11.55]}>
+      <mesh position={[-21, 4.78, -11.55]}>
         <boxGeometry args={[17, 0.07, 0.1]} />
         <meshStandardMaterial color="#e8e8e6" roughness={0.5} />
       </mesh>
@@ -394,6 +395,112 @@ function Track() {
         <boxGeometry args={[0.14, 0.14, 0.2]} />
         <meshStandardMaterial color="#1b1c1e" roughness={0.5} />
       </instancedMesh>
+    </group>
+  )
+}
+
+const U = MAR.mezzanine
+
+/**
+ * The 10 × 10 m upper gallery: a skylight, a glowing roof strip, track lights
+ * over the partitions and the walls, and two point lights so the room reads
+ * bright without a window.
+ */
+function GalleryRoom({ materials }: { materials: InteriorMaterials }) {
+  const light = useMemo(() => new THREE.MeshBasicMaterial({ color: '#e8f1fa', toneMapped: false }), [])
+  useEffect(() => () => light.dispose(), [light])
+  const spots = useRef<THREE.InstancedMesh>(null)
+  const items = useMemo(() => {
+    const out: Array<{ position: [number, number, number] }> = []
+    const top = U + GALLERY.height - 0.25
+    for (const x of GALLERY.partitions.xs) for (let k = 0; k < 4; k++) out.push({ position: [x, top, GALLERY.partitions.z0 + 0.9 + k * 1.8] })
+    for (let k = 0; k < 6; k++) out.push({ position: [GALLERY.x0 + 1.1 + k * 1.6, top, GALLERY.z0 + 0.4] })
+    for (let k = 0; k < 6; k++) out.push({ position: [GALLERY.x0 + 1.1 + k * 1.6, top, GALLERY.z1 - 0.4] })
+    return out
+  }, [])
+  useInstances(spots, items)
+  const cx = (GALLERY.x0 + GALLERY.x1) / 2
+  const cz = (GALLERY.z0 + GALLERY.z1) / 2
+  const top = U + GALLERY.height
+  return (
+    <group>
+      <mesh position={[(SKYLIGHT.x0 + SKYLIGHT.x1) / 2, top + 0.14, (SKYLIGHT.z0 + SKYLIGHT.z1) / 2]} rotation={[Math.PI / 2, 0, 0]} material={light}>
+        <planeGeometry args={[SKYLIGHT.x1 - SKYLIGHT.x0, SKYLIGHT.z1 - SKYLIGHT.z0]} />
+      </mesh>
+      {/* Rails the spots hang from, one over each partition and along the long walls. */}
+      {GALLERY.partitions.xs.map((x) => (
+        <mesh key={x} position={[x, top - 0.12, (GALLERY.partitions.z0 + GALLERY.partitions.z1) / 2]} material={materials.lamp}>
+          <boxGeometry args={[0.06, 0.05, GALLERY.partitions.z1 - GALLERY.partitions.z0]} />
+        </mesh>
+      ))}
+      <instancedMesh ref={spots} args={[undefined, undefined, items.length]}>
+        <boxGeometry args={[0.14, 0.16, 0.2]} />
+        <meshStandardMaterial color="#f1f1ef" roughness={0.5} />
+      </instancedMesh>
+      <pointLight position={[cx, top - 0.8, cz - 2.5]} intensity={22} distance={13} decay={2} color="#fff6ea" />
+      <pointLight position={[cx, top - 0.8, cz + 2.5]} intensity={22} distance={13} decay={2} color="#fff6ea" />
+    </group>
+  )
+}
+
+/** A white display case on four legs, its grey fascia lettered. Metres: 2.2 × 1.0, top at 0.95. */
+function Vitrine({ position, texture }: { position: [number, number, number]; texture: THREE.Texture }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.65, 0]}>
+        <boxGeometry args={[2.2, 0.55, 0.95]} />
+        <meshStandardMaterial color="#f3f2ef" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 0.65, 0.4755]}>
+        <planeGeometry args={[2.1, 0.45]} />
+        <meshStandardMaterial map={texture} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.94, 0]}>
+        <boxGeometry args={[2.0, 0.03, 0.78]} />
+        <meshStandardMaterial color="#bcd2dc" transparent opacity={0.35} roughness={0.1} />
+      </mesh>
+      {[[-1, -0.4], [1, -0.4], [-1, 0.4], [1, 0.4]].map(([dx, dz]) => (
+        <mesh key={`${dx}${dz}`} position={[dx, 0.19, dz]}>
+          <boxGeometry args={[0.08, 0.38, 0.08]} />
+          <meshStandardMaterial color="#f3f2ef" roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+/** A white leather lounge chair on a chrome frame, yaw about the vertical. */
+function LoungeChair({ position, yaw }: { position: [number, number, number]; yaw: number }) {
+  return (
+    <group position={position} rotation={[0, yaw, 0]}>
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.78, 0.2, 0.7]} />
+        <meshStandardMaterial color="#efece6" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 0.66, -0.3]} rotation={[-0.15, 0, 0]}>
+        <boxGeometry args={[0.78, 0.5, 0.14]} />
+        <meshStandardMaterial color="#efece6" roughness={0.5} />
+      </mesh>
+      {[[-0.34, -0.28], [0.34, -0.28], [-0.34, 0.28], [0.34, 0.28]].map(([dx, dz]) => (
+        <mesh key={`${dx}${dz}`} position={[dx, 0.15, dz]}>
+          <boxGeometry args={[0.03, 0.3, 0.03]} />
+          <meshStandardMaterial color="#cfd3d6" roughness={0.3} metalness={0.4} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+/** The lounge on the landing: two lettered display cases and two chairs, as in the upper-floor photographs. */
+function Lounge() {
+  const texture = useMemo(() => vitrineTexture(), [])
+  useEffect(() => () => texture.dispose(), [texture])
+  return (
+    <group>
+      <Vitrine position={[9.3, U, -16.1]} texture={texture} />
+      <Vitrine position={[12.6, U, -12.85]} texture={texture} />
+      <LoungeChair position={[12.05, U, -10.45]} yaw={0.5} />
+      <LoungeChair position={[13.2, U, -10.65]} yaw={-0.35} />
     </group>
   )
 }
@@ -410,6 +517,8 @@ export function Interior({ materials }: { materials: InteriorMaterials }) {
       <LaIsla />
       <HallProps />
       <Track />
+      <GalleryRoom materials={materials} />
+      <Lounge />
     </group>
   )
 }
