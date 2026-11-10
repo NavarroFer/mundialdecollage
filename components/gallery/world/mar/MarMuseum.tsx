@@ -287,7 +287,7 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
       <Sky />
       <EscalatorRide />
       <RigidBody type="fixed" colliders={false} friction={1}>
-        <CuboidCollider args={[38, 0.25, 37]} position={[2, -0.25, -5]} />
+        <CuboidCollider args={[44, 0.25, 37]} position={[-4, -0.25, -5]} />
         {marBoxes.filter(blocksBody).map((item) => {
           const [width, height, depth] = marSize(item)
           return <CuboidCollider key={item.id} args={[width / 2, height / 2, depth / 2]} position={marCenter(item)} />

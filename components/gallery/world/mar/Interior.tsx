@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_TABLES, GALLERY, MAR, MAR_ESCALATORS, SHOP, SKYLIGHT } from './layout'
+import { CAFE_TABLES, GALLERY, MAR, MAR_ESCALATORS, SHOP } from './layout'
 import {
   boardTexture,
   fasciaTexture,
@@ -402,43 +402,51 @@ function Track() {
 const U = MAR.mezzanine
 
 /**
- * The 10 × 10 m upper gallery: a skylight, a glowing roof strip, track lights
- * over the partitions and the walls, and two point lights so the room reads
- * bright without a window.
+ * The 30 × 30 m upper gallery: a bright strip in the roof down every aisle
+ * between partitions, track lights over each partition and along the long
+ * walls, and a few point lights so the room reads bright without a window.
  */
 function GalleryRoom({ materials }: { materials: InteriorMaterials }) {
   const light = useMemo(() => new THREE.MeshBasicMaterial({ color: '#e8f1fa', toneMapped: false }), [])
   useEffect(() => () => light.dispose(), [light])
   const spots = useRef<THREE.InstancedMesh>(null)
+  const top = GALLERY.top
+  const { xs, z0, z1 } = GALLERY.partitions
+  // Aisle centres: between the west wall, each partition and the east wall.
+  const aisles = useMemo(() => {
+    const edges = [GALLERY.x0, ...xs, GALLERY.x1]
+    return edges.slice(1).map((edge, index) => (edges[index] + edge) / 2)
+  }, [xs])
   const items = useMemo(() => {
     const out: Array<{ position: [number, number, number] }> = []
-    const top = U + GALLERY.height - 0.25
-    for (const x of GALLERY.partitions.xs) for (let k = 0; k < 4; k++) out.push({ position: [x, top, GALLERY.partitions.z0 + 0.9 + k * 1.8] })
-    for (let k = 0; k < 6; k++) out.push({ position: [GALLERY.x0 + 1.1 + k * 1.6, top, GALLERY.z0 + 0.4] })
-    for (let k = 0; k < 6; k++) out.push({ position: [GALLERY.x0 + 1.1 + k * 1.6, top, GALLERY.z1 - 0.4] })
+    const y = top - 0.25
+    for (const x of xs) for (let k = 0; k < 8; k++) out.push({ position: [x, y, z0 + 1.2 + k * 3] })
+    for (let k = 0; k < 16; k++) out.push({ position: [GALLERY.x0 + 1.2 + k * 1.9, y, GALLERY.z0 + 0.4] })
+    for (let k = 0; k < 16; k++) out.push({ position: [GALLERY.x0 + 1.2 + k * 1.9, y, GALLERY.z1 - 0.4] })
     return out
-  }, [])
+  }, [xs, top, z0])
   useInstances(spots, items)
-  const cx = (GALLERY.x0 + GALLERY.x1) / 2
   const cz = (GALLERY.z0 + GALLERY.z1) / 2
-  const top = U + GALLERY.height
   return (
     <group>
-      <mesh position={[(SKYLIGHT.x0 + SKYLIGHT.x1) / 2, top + 0.14, (SKYLIGHT.z0 + SKYLIGHT.z1) / 2]} rotation={[Math.PI / 2, 0, 0]} material={light}>
-        <planeGeometry args={[SKYLIGHT.x1 - SKYLIGHT.x0, SKYLIGHT.z1 - SKYLIGHT.z0]} />
-      </mesh>
-      {/* Rails the spots hang from, one over each partition and along the long walls. */}
-      {GALLERY.partitions.xs.map((x) => (
-        <mesh key={x} position={[x, top - 0.12, (GALLERY.partitions.z0 + GALLERY.partitions.z1) / 2]} material={materials.lamp}>
-          <boxGeometry args={[0.06, 0.05, GALLERY.partitions.z1 - GALLERY.partitions.z0]} />
+      {aisles.map((x) => (
+        <mesh key={x} position={[x, top - 0.02, (z0 + z1) / 2]} rotation={[Math.PI / 2, 0, 0]} material={light}>
+          <planeGeometry args={[1.6, z1 - z0]} />
+        </mesh>
+      ))}
+      {/* Rails the spots hang from, one over each partition. */}
+      {xs.map((x) => (
+        <mesh key={x} position={[x, top - 0.12, (z0 + z1) / 2]} material={materials.lamp}>
+          <boxGeometry args={[0.06, 0.05, z1 - z0]} />
         </mesh>
       ))}
       <instancedMesh ref={spots} args={[undefined, undefined, items.length]}>
         <boxGeometry args={[0.14, 0.16, 0.2]} />
         <meshStandardMaterial color="#f1f1ef" roughness={0.5} />
       </instancedMesh>
-      <pointLight position={[cx, top - 0.8, cz - 2.5]} intensity={22} distance={13} decay={2} color="#fff6ea" />
-      <pointLight position={[cx, top - 0.8, cz + 2.5]} intensity={22} distance={13} decay={2} color="#fff6ea" />
+      {[-35, -27, -19].map((x) => (
+        <pointLight key={x} position={[x, top - 1, cz]} intensity={34} distance={22} decay={2} color="#fff6ea" />
+      ))}
     </group>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gallerySlots } from '@/data/artworks'
+import { gallerySlots, hang } from '@/data/artworks'
 import { levelAt, planRoute, targetLevel } from '../../navigation/levels'
 import { viewingSpot, walkable } from '../../navigation/path'
 import { standInFront } from '../../player/spawn'
@@ -14,7 +14,9 @@ import {
   MAR_SPAWN,
   blocksPath,
   marBoxes,
+  marCenter,
   marEscalatorHeight,
+  marSize,
   marGallerySlots,
   marGalleryTemplate,
   marUpperTemplate,
@@ -124,14 +126,22 @@ describe('MAR layout', () => {
     expect(targetLevel(8, 1, marGalleryTemplate)).toBe(1)
   })
 
-  it('is a 10 × 10 m room with a skylight, fitting at least thirty obras and every one of the day\'s 37', () => {
-    expect(GALLERY.x1 - GALLERY.x0).toBeCloseTo(10)
-    expect(GALLERY.z1 - GALLERY.z0).toBeCloseTo(10)
+  it('is a 30 × 30 m room, with a spot for each of the day\'s 37 obras and a metre of wall to spare around each', () => {
+    expect(GALLERY.x1 - GALLERY.x0).toBeCloseTo(30)
+    expect(GALLERY.z1 - GALLERY.z0).toBeCloseTo(30)
     expect(marGallerySlots.length).toBeGreaterThanOrEqual(37)
-    // Frames of one face never overlap each other along the wall.
+    // On every wall and partition face, the frames leave half a metre or more between them (and to the wall's ends).
     for (const hanging of MAR_HANGINGS) {
-      const same = marGallerySlots.filter((slot) => slot.roomId === hanging.roomId)
-      expect(same.length).toBeGreaterThan(0)
+      const wall = marBoxes.find((box) => box.id === hanging.wall)!
+      const alongX = wall.maxX - wall.minX > wall.maxZ - wall.minZ
+      const slots = hang(hanging, marBoxes.map((box) => ({ id: box.id, position: marCenter(box), size: marSize(box) })))
+      const spans = slots
+        .map((slot) => [(alongX ? slot.position[0] : slot.position[2]) - slot.width / 2, (alongX ? slot.position[0] : slot.position[2]) + slot.width / 2])
+        .sort((a, b) => a[0] - b[0])
+      const [from, to] = alongX ? [wall.minX, wall.maxX] : [wall.minZ, wall.maxZ]
+      expect(spans[0][0] - from, hanging.wall).toBeGreaterThan(0.5)
+      expect(to - spans[spans.length - 1][1], hanging.wall).toBeGreaterThan(0.5)
+      for (let i = 1; i < spans.length; i++) expect(spans[i][0] - spans[i - 1][1], hanging.wall).toBeGreaterThan(0.5)
     }
   })
 

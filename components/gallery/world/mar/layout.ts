@@ -96,28 +96,35 @@ export const CAFE_TABLES: Array<[number, number]> = [[-25.8, 4.1], [-22.9, 4.1],
 export const STAIR = { x0: 20, x1: 22.6, z0: 3.4, z1: 7.6, depth: 2.7 } as const
 
 /**
- * The gallery on the upper floor, entered from the mezzanine through the hall's west wall: a 10 × 10 m
- * room over the café, white walls, a skylight, and three partitions so thirty-odd obras fit. The photograph
- * of its entrance is all there is; the room itself is an invention to the size asked for.
+ * The gallery on the upper floor, entered from the mezzanine through the hall's west wall: a 30 × 30 m room
+ * that spreads over the café and out past it to the west and north (the volume grows to hold it), white
+ * walls, light strips in the roof, and five partitions so the day's obras hang with room to spare. The
+ * photograph of its entrance is all there is; the room itself is an invention to the size given.
  */
 export const GALLERY = {
   /** Clear interior, metres. */
-  x0: -22.18,
+  x0: -42.18,
   x1: -12.18,
-  z0: -11.82,
-  z1: -1.82,
+  z0: -22,
+  z1: 8,
   /** Clear height, floor to the underside of the roof. */
-  height: 4.6,
+  height: 6,
+  /** Height of the underside of the roof above the world's floor (the upper floor's 5.2 m plus the clear height). */
+  top: 5.2 + 6,
+  /** Thickness of the white lining; the concrete skin is another MAR.wall outside it. */
+  lining: 0.24,
   /** The opening in the hall's west wall, which the room's east wall is. */
   door: { z0: -11.4, z1: -8.4, height: 3.6 },
-  /** x of each freestanding partition; they run z0..z1, leaving more than a metre at either end to walk round. */
-  partitions: { xs: [-19.71, -17.18, -14.65], z0: -10.5, z1: -3.1, height: 3.4 },
-  /** Frame sizes in here, [width, height]: smaller than the main gallery's so every obra fits the walls. */
-  sizes: [[1.5, 1.1], [1.1, 1.5], [1.3, 1.3]] as Array<[number, number]>,
+  /** x of each freestanding partition; they run z0..z1, leaving three metres at either end to walk round and five between. */
+  partitions: { xs: [-37.2, -32.2, -27.2, -22.2, -17.2], z0: -19, z1: 5, height: 3.4 },
+  /** Frame sizes in here, [width, height]: the main gallery's. */
+  sizes: [[2.2, 1.5], [1.5, 2.1], [1.9, 1.9]] as Array<[number, number]>,
 } as const
 
-/** The skylight opening in the gallery's roof. */
-export const SKYLIGHT = { x0: -18.8, x1: -15.6, z0: -9.8, z1: -3.8 } as const
+const GX0 = GALLERY.x0
+const GZ0 = GALLERY.z0
+const GZ1 = GALLERY.z1
+const L = GALLERY.lining
 
 /**
  * Printed banners on the facade. Each is a rectangle on a wall; \`image\` is the
@@ -289,8 +296,9 @@ export const marBoxes: MarBox[] = [
   wallZ('mar-hall-e-pier', -0.2, 0, 14, H),
 
   // West exhibition volume (the café). Ground floor glazed to the plaza, tucked under the upper floor.
-  wallZ('mar-west-w', -12, 8, -30, WEST_H),
-  wallX('mar-west-n', -30, -12, -12, WEST_H),
+  // The café's own walls stop at the gallery's floor; above them the gallery's skin is the volume.
+  wallZ('mar-west-w', -12, 8, -30, U - 0.25),
+  wallX('mar-west-n', -30, -12, -12, U - 0.25),
   wallX('mar-west-s-glass', -30, -12, 8, SOFFIT, 'glass'),
   box('mar-west-s-up', -30, SOFFIT, 8 - T / 2, -12, WEST_H, 8 + T / 2, 'concrete'),
   // The upper floor overhangs the plaza: a thick slab edge, a recessed window band, then blank concrete.
@@ -332,7 +340,7 @@ export const marBoxes: MarBox[] = [
   box('mar-lamp-w', -34.25, 0, 20.75, -33.75, 13, 21.25, 'concrete', seeThrough),
   box('mar-lamp-e', 36.75, 0, 18.75, 37.25, 13, 19.25, 'concrete', seeThrough),
   // The step across the plaza, a long granite kerb. Drawn flat: the ground is one slab.
-  box('mar-plaza-step', -36, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
+  box('mar-plaza-step', -48, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
 
   // Auditorium block north of the hall.
   wallX('mar-aud-n', -8, 16, -38, AUD_H),
@@ -402,22 +410,29 @@ export const marBoxes: MarBox[] = [
   // La Isla, the children's corner at the glass: a carpet and a bench, kept off the wall's viewing strip.
   box('mar-isla-bench', -29.4, 0, 5.7, -27.2, 0.32, 6.1, 'seat', { visual: false }),
 
-  // --- The upper gallery: a 10 × 10 m room over the café, entered through the portal in the hall's west wall.
-  // Floor slab, roof with a skylight opening, white walls, three partitions (their obras: MAR_HANGINGS).
+  // --- The upper gallery: a 30 × 30 m room over the café and the new volume to its west and north, entered
+  // through the portal in the hall's west wall. Solid concrete under the parts that stick out past the café,
+  // a floor slab, white lining inside a concrete skin, a roof with light strips (drawn in Interior.tsx), five
+  // partitions (their obras: MAR_HANGINGS).
   box('mar-portal-sill', -12.14, U - 0.25, GALLERY.door.z0, -11.86, U, GALLERY.door.z1, 'deck'),
-  box('mar-gal-floor', GALLERY.x0 - 0.24, U - 0.25, GALLERY.z0 - 0.04, -12.14, U, GALLERY.z1 + 0.24, 'deck'),
-  up('mar-gal-w', GALLERY.x0 - 0.24, GALLERY.z0 - 0.04, GALLERY.x0, GALLERY.z1 + 0.24, GALLERY.height),
-  up('mar-gal-n', GALLERY.x0, GALLERY.z0 - 0.04, GALLERY.x1, GALLERY.z0, GALLERY.height),
-  up('mar-gal-s', GALLERY.x0, GALLERY.z1, -12.14, GALLERY.z1 + 0.24, GALLERY.height),
-  up('mar-gal-e-n', GALLERY.x1, GALLERY.z0, -12.14, GALLERY.door.z0, GALLERY.height),
-  up('mar-gal-e-s', GALLERY.x1, GALLERY.door.z1, -12.14, GALLERY.z1, GALLERY.height),
-  box('mar-gal-e-head', GALLERY.x1, U + GALLERY.door.height, GALLERY.door.z0, -12.14, U + GALLERY.height, GALLERY.door.z1, 'white'),
+  box('mar-ext-base-w', GX0 - L - T, 0, GZ0 - L - T, -30.14, U - 0.25, GZ1 + L + T, 'concrete'),
+  box('mar-ext-base-n', -30.14, 0, GZ0 - L - T, -12.14, U - 0.25, -12.14, 'concrete'),
+  box('mar-gal-floor', GX0 - L, U - 0.25, GZ0 - L, -12.14, U, GZ1 + L, 'deck'),
+  up('mar-gal-w', GX0 - L, GZ0, GX0, GZ1, GALLERY.height),
+  up('mar-gal-n', GX0 - L, GZ0 - L, GALLERY.x1, GZ0, GALLERY.height),
+  up('mar-gal-s', GX0 - L, GZ1, -12.14, GZ1 + L, GALLERY.height),
+  up('mar-gal-e-n', GALLERY.x1, GZ0, -12.14, GALLERY.door.z0, GALLERY.height),
+  up('mar-gal-e-s', GALLERY.x1, GALLERY.door.z1, -12.14, GZ1, GALLERY.height),
+  box('mar-gal-e-head', GALLERY.x1, U + GALLERY.door.height, GALLERY.door.z0, -12.14, GALLERY.top, GALLERY.door.z1, 'white'),
   ...GALLERY.partitions.xs.map((x, index) => up(`mar-gal-p${index + 1}`, x - 0.06, GALLERY.partitions.z0, x + 0.06, GALLERY.partitions.z1, GALLERY.partitions.height)),
-  // Roof, round a skylight opening (the glass is drawn in Interior.tsx).
-  box('mar-gal-roof-n', GALLERY.x0 - 0.24, U + GALLERY.height, GALLERY.z0 - 0.04, -12.14, U + GALLERY.height + 0.3, SKYLIGHT.z0, 'white'),
-  box('mar-gal-roof-s', GALLERY.x0 - 0.24, U + GALLERY.height, SKYLIGHT.z1, -12.14, U + GALLERY.height + 0.3, GALLERY.z1 + 0.24, 'white'),
-  box('mar-gal-roof-w', GALLERY.x0 - 0.24, U + GALLERY.height, SKYLIGHT.z0, SKYLIGHT.x0, U + GALLERY.height + 0.3, SKYLIGHT.z1, 'white'),
-  box('mar-gal-roof-e', SKYLIGHT.x1, U + GALLERY.height, SKYLIGHT.z0, -12.14, U + GALLERY.height + 0.3, SKYLIGHT.z1, 'white'),
+  // Concrete skin outside the lining, from the slab to the top of the volume; the roof slab; a solid block above it.
+  box('mar-gal-skin-w', GX0 - L - T, U - 0.25, GZ0 - L - T, GX0 - L, WEST_H, GZ1 + L + T, 'concrete'),
+  box('mar-gal-skin-n', GX0 - L, U - 0.25, GZ0 - L - T, -12.14, WEST_H, GZ0 - L, 'concrete'),
+  box('mar-gal-skin-s', GX0 - L, U - 0.25, GZ1 + L, -30, WEST_H, GZ1 + L + T, 'concrete'),
+  box('mar-gal-skin-e', -12.14, H, GZ0 - L - T, -11.86, WEST_H, -12, 'concrete'),
+  box('mar-gal-skin-e-n', -12.14, 0, GZ0 - L - T, -11.86, WEST_H, -20, 'concrete'),
+  box('mar-gal-roof', GX0 - L, GALLERY.top, GZ0 - L, -12.14, GALLERY.top + 0.3, GZ1 + L, 'white'),
+  box('mar-gal-top', GX0 - L - T, GALLERY.top + 0.3, GZ0 - L - T, -11.86, WEST_H, GZ1 + L + T, 'concrete'),
   // The lounge on the landing: two display cases and two white leather chairs. Drawn in Interior.tsx.
   up('mar-vitrine-a', 8.1, -16.7, 10.5, -15.5, 0.95, 'table', { visual: false }),
   up('mar-vitrine-b', 11.6, -13.4, 13.6, -12.3, 0.95, 'table', { visual: false }),
@@ -473,9 +488,9 @@ export const marBoxes: MarBox[] = [
   box('mar-house-c', 20, 0, 34.4, 29, 2.5, 38.8, 'distant', seeThrough),
 
   // Edge of the modeled site, not a wall of the museum. Low enough to see over, high enough that a hop stays inside.
-  wallX('mar-curb-s', -36, 40, 32, 0.7, 'curb', 0.4),
-  wallX('mar-curb-n', -36, 40, -42, 0.7, 'curb', 0.4),
-  wallZ('mar-curb-w', -42, 32, -36, 0.7, 'curb', 0.4),
+  wallX('mar-curb-s', -48, 40, 32, 0.7, 'curb', 0.4),
+  wallX('mar-curb-n', -48, 40, -42, 0.7, 'curb', 0.4),
+  wallZ('mar-curb-w', -42, 32, -48, 0.7, 'curb', 0.4),
   wallZ('mar-curb-e', -42, 32, 40, 0.7, 'curb', 0.4),
 ]
 
@@ -527,21 +542,21 @@ const marSurfaces: WallSegment[] = marBoxes.map(asWall)
 /** Floors are visual only. The walk surface is one slab at y = 0, so the threshold has no lip. */
 export const marFloors = [
   // The paving, cut round the stair's hole.
-  { id: 'cobble-front', kind: 'cobble' as const, x0: -36, x1: 40, z0: 0, z1: STAIR.z0 },
-  { id: 'cobble-stair-w', kind: 'cobble' as const, x0: -36, x1: STAIR.x0, z0: STAIR.z0, z1: STAIR.z1 },
+  { id: 'cobble-front', kind: 'cobble' as const, x0: -48, x1: 40, z0: 0, z1: STAIR.z0 },
+  { id: 'cobble-stair-w', kind: 'cobble' as const, x0: -48, x1: STAIR.x0, z0: STAIR.z0, z1: STAIR.z1 },
   { id: 'cobble-stair-e', kind: 'cobble' as const, x0: STAIR.x1, x1: 40, z0: STAIR.z0, z1: STAIR.z1 },
-  { id: 'cobble', kind: 'cobble' as const, x0: -36, x1: 40, z0: STAIR.z1, z1: 23 },
-  { id: 'grass', kind: 'grass' as const, x0: -36, x1: 40, z0: 23, z1: 32 },
+  { id: 'cobble', kind: 'cobble' as const, x0: -48, x1: 40, z0: STAIR.z1, z1: 23 },
+  { id: 'grass', kind: 'grass' as const, x0: -48, x1: 40, z0: 23, z1: 32 },
   { id: 'hall', kind: 'polish' as const, x0: -11.84, x1: 13.84, z0: -19.84, z1: 0.2 },
   { id: 'west', kind: 'polish' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },
   { id: 'east', kind: 'dark' as const, x0: 14.16, x1: 31.84, z0: -17.84, z1: -8.16 },
   { id: 'auditorium', kind: 'auditorium' as const, x0: -7.84, x1: 15.84, z0: -37.84, z1: -20.16 },
 ]
 
-const MAR_BOUNDS = [-36, -42, 40, 32] as [number, number, number, number]
+const MAR_BOUNDS = [-48, -42, 40, 32] as [number, number, number, number]
 
 export const marRooms = [
-  { id: 'mar-plaza', name: 'Plaza', bounds: [-36, 0, 40, 32] as [number, number, number, number] },
+  { id: 'mar-plaza', name: 'Plaza', bounds: [-48, 0, 40, 32] as [number, number, number, number] },
   { id: 'mar-hall', name: 'Hall', bounds: [-12, -20, 14, 0] as [number, number, number, number] },
   { id: 'mar-west', name: 'Sala oeste', bounds: [-30, -12, -12, 8] as [number, number, number, number] },
   { id: 'mar-east', name: 'Sala este', bounds: [14, -18, 32, -8] as [number, number, number, number] },
@@ -594,17 +609,23 @@ export const marGalleryTemplate: GalleryRoomTemplate = {
 // frame sizes and the upper floor's height.
 const upstairs = { sizes: GALLERY.sizes, baseY: U + 1.55 }
 export const MAR_HANGINGS: Hanging[] = [
-  // Four on the long north and south walls, so no one stands in front of a partition's end.
-  { roomId: 'mar-gallery', wall: 'mar-gal-n', facing: 'south', count: 4, presetOffset: 0, ...upstairs },
+  // The four walls: 20 spots.
+  { roomId: 'mar-gallery', wall: 'mar-gal-n', facing: 'south', count: 5, presetOffset: 0, ...upstairs },
   { roomId: 'mar-gallery', wall: 'mar-gal-w', facing: 'east', count: 5, presetOffset: 1, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-s', facing: 'north', count: 4, presetOffset: 2, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-e-s', facing: 'west', count: 3, presetOffset: 0, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-p1', facing: 'west', count: 4, presetOffset: 1, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-p1', facing: 'east', count: 4, presetOffset: 2, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-p2', facing: 'west', count: 4, presetOffset: 0, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-p2', facing: 'east', count: 3, presetOffset: 1, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-p3', facing: 'west', count: 3, presetOffset: 2, ...upstairs },
-  { roomId: 'mar-gallery', wall: 'mar-gal-p3', facing: 'east', count: 3, presetOffset: 0, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-s', facing: 'north', count: 5, presetOffset: 2, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-e-n', facing: 'west', count: 2, presetOffset: 0, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-e-s', facing: 'west', count: 3, presetOffset: 1, ...upstairs },
+  // Five partitions, both faces: 17 spots.
+  { roomId: 'mar-gallery', wall: 'mar-gal-p1', facing: 'west', count: 2, presetOffset: 2, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p1', facing: 'east', count: 2, presetOffset: 0, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p2', facing: 'west', count: 2, presetOffset: 1, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p2', facing: 'east', count: 2, presetOffset: 2, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p3', facing: 'west', count: 2, presetOffset: 0, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p3', facing: 'east', count: 2, presetOffset: 1, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p4', facing: 'west', count: 1, presetOffset: 2, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p4', facing: 'east', count: 2, presetOffset: 0, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p5', facing: 'west', count: 1, presetOffset: 1, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-p5', facing: 'east', count: 1, presetOffset: 2, ...upstairs },
 ]
 
 export const marGallerySlots: GallerySlot[] = MAR_HANGINGS.flatMap((hanging) => hang(hanging, marSurfaces))
