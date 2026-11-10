@@ -7,6 +7,7 @@ import { usePlayerTrackerStore } from '../minimap/store'
 import { useEffect, useState } from 'react'
 import { MAX_LIVE_VISITORS } from '../presence/protocol'
 import { peerPoses, usePresenceStore } from '../presence/store'
+import { levelAt, type Level } from '../navigation/levels'
 import { mainGalleryTemplate, type GalleryRoomTemplate } from '../world/roomsData'
 import type { GalleryTheme } from '../themes'
 import styles from '../gallery-theme.module.css'
@@ -38,6 +39,7 @@ export function Minimap({ theme, artworks, template = mainGalleryTemplate }: { t
   const x = usePlayerTrackerStore((state) => state.x)
   const z = usePlayerTrackerStore((state) => state.z)
   const heading = usePlayerTrackerStore((state) => state.heading)
+  const y = usePlayerTrackerStore((state) => state.y)
   const viewers = usePresenceStore((state) => state.viewers)
   const peers = usePresenceStore((state) => ((state.count ?? 0) > MAX_LIVE_VISITORS ? noPeers : state.peers))
   const [, setRefresh] = useState(0)
@@ -53,13 +55,28 @@ export function Minimap({ theme, artworks, template = mainGalleryTemplate }: { t
   const tipX = x + Math.sin(heading) * HEADING_LENGTH
   const tipZ = z - Math.cos(heading) * HEADING_LENGTH
   const colors = mapColors[theme]
+  // A building with an upper floor draws the floor the visitor is on, and says which one it is.
+  const level: Level = levelAt(y, template)
+  const upper = template.upper
+  const walls = level === 1 && upper ? upper.template.walls : template.walls
+  const floors = level === 1 && upper ? upper.template.floors : undefined
+  const onLevel = (artwork: Artwork) => levelAt(artwork.position[1], template) === level
+  const shown = upper ? artworks.filter(onLevel) : artworks
 
   return (
     <div className={`${styles.hudPanel} animate-in fade-in absolute top-4 right-4 z-20 w-56 duration-300`}>
-      <p className="px-2 py-1 text-xs">✓ {t.visited}: {artworks.filter((artwork) => visited.includes(artwork.id)).length}/{artworks.length}</p>
+      <p className="flex items-center justify-between px-2 py-1 text-xs">
+        <span>✓ {t.visited}: {artworks.filter((artwork) => visited.includes(artwork.id)).length}/{artworks.length}</span>
+        {upper && (
+          <span className="flex gap-1 font-mono" aria-label={`${level}`}>
+            {([0, 1] as const).map((floor) => <span key={floor} aria-current={floor === level ? 'true' : undefined} className={floor === level ? 'rounded bg-white/90 px-1.5 font-bold text-black' : 'px-1.5 opacity-60'}>{floor}</span>)}
+          </span>
+        )}
+      </p>
       <svg role="img" aria-label={t.visited} viewBox={viewBox} className="block w-full" style={{ aspectRatio: `${maxX - minX + PADDING * 2} / ${maxZ - minZ + PADDING * 2}` }}>
         <rect x={minX} y={minZ} width={maxX - minX} height={maxZ - minZ} fill={colors.floor} />
-        {template.walls.map((wall) => (
+        {floors?.map(([fx0, fz0, fx1, fz1]) => <rect key={`${fx0},${fz0}`} x={fx0} y={fz0} width={fx1 - fx0} height={fz1 - fz0} fill={colors.wall} opacity={0.3} />)}
+        {walls.map((wall) => (
           <rect
             key={wall.id}
             x={wall.position[0] - wall.size[0] / 2}
@@ -69,9 +86,9 @@ export function Minimap({ theme, artworks, template = mainGalleryTemplate }: { t
             fill={colors.wall}
           />
         ))}
-        {artworks.filter((artwork) => visited.includes(artwork.id)).map((artwork) => <text key={`visited-${artwork.id}`} x={artwork.position[0]} y={artwork.position[2]} fill={colors.player} stroke={colors.stroke} strokeWidth={0.06} fontSize={1.5} textAnchor="middle">✓<title>{artwork.title}</title></text>)}
+        {shown.filter((artwork) => visited.includes(artwork.id)).map((artwork) => <text key={`visited-${artwork.id}`} x={artwork.position[0]} y={artwork.position[2]} fill={colors.player} stroke={colors.stroke} strokeWidth={0.06} fontSize={1.5} textAnchor="middle">✓<title>{artwork.title}</title></text>)}
         {/* Obras someone else has open right now. */}
-        {artworks.filter((artwork) => viewers[artwork.id]).map((artwork) => (
+        {shown.filter((artwork) => viewers[artwork.id]).map((artwork) => (
           <circle
             key={artwork.id}
             cx={artwork.position[0]}

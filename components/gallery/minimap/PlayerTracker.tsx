@@ -25,7 +25,7 @@ export function PlayerTracker() {
     camera.getWorldDirection(worldDirection)
     const heading = Math.atan2(worldDirection.x, -worldDirection.z)
 
-    usePlayerTrackerStore.getState().setPose(worldPosition.x, worldPosition.z, heading)
+    usePlayerTrackerStore.getState().setPose(worldPosition.x, worldPosition.z, heading, worldPosition.y)
   })
 
   return null
