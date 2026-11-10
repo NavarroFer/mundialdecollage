@@ -4,7 +4,7 @@ Open it at `/museomar`. That address starts in MAR. `/galeria-3d` stays the Coll
 
 A second public building in the 3D gallery, chosen next to the theme list (or with `?museo=mar`). The Collage World Cup rooms are unchanged. This is a first reconstruction from the plan, the three sections, the published sheet and the site photographs. It is not a measured survey. Every metre below is an estimate and lives in `components/gallery/world/mar/layout.ts`, so a later photo with one known dimension can move a wall without hunting through the meshes.
 
-The daily obras are the same ones as the other gallery. They are rehung on MAR's walls in the browser. Nothing here reproduces the artworks visible in the reference photographs, and the sea-lion sculpture on the plaza is a temporary installation, so it is not in the model.
+The daily obras are the same ones as the other gallery. They are rehung on MAR's walls in the browser. Nothing here reproduces the artworks visible in the reference photographs. The woven sea lion on the plaza is a temporary installation, but it is in every photograph of the front and dominates the plaza, so it is modelled (`SeaLion.tsx`) and can be deleted in one line when it is taken down.
 
 ## What the sheets and photos actually show
 
@@ -14,6 +14,24 @@ Observed, not measured:
 - The plan is a cluster of rectangles: a large west block (tables in one part, a dense grid in another), a north block filled with seating rows, a central open hall, and an east wing with an inner room and scattered tables outside it. Section marks A-A, B-B and C-C show stairs, a tall central space and a lower floor. The drawing's north is not labeled, so "south = sea side" below is a choice that makes the entrance, the sea glazing and the plaza agree with the photos. It is not a compass reading.
 - Photos: cobblestone plaza; a rectangular basin beside the side facade; large concrete panels with regular joints; ground-floor glass under a concrete upper floor; the entrance is a bank of glass doors between a volume that projects toward you and a volume set further back with the letters MAR; inside, a double-height hall, a mezzanine with a glass balustrade, a pair of escalators, polished concrete, sea through one glass wall and trees through another. The bright white room and the dark room with a floor installation are exhibition fit-outs. The white partitions in the model are generic temporary walls, not that exhibition.
 
+## The front, as the photographs show it
+
+Facade fidelity was reworked from a second set of photographs (plaza, entrance, door close-ups, the sea lion). What is drawn, left to right from the plaza:
+
+- **West volume (the café).** About 16 m, the tallest. Its upper floor overhangs the plaza on a thick slab edge with a recessed window band; ground glass sits under it, with the café's round emblem.
+- **Volume over the doors.** About 13.4 m. Slab edge, a recessed window band, then blank concrete with the "Buenos Aires Provincia" relief mark. Under its soffit: a bank of black-framed glass with two transom rows, a black revolving door in a half-drum (blocks the way; only the swing doors are open), the two swing leaves pushed open, "SALIDA" signs and square downlights.
+- **Glass slot** between that volume and the next: full-height glazing with a concrete cap.
+- **Vinyl volume.** About 11 m. Its ground floor is set back behind a long printed vinyl; the floors above overhang it; a tall narrow window runs up its east end.
+- **Tower** at the east end, about 16 m: a black door and a ground window at its foot, the louvred vent housing in front of them, and the sunken stair beside it (walled off; the shaft is drawn below the paving).
+- **Plaza.** Granite setts in overlapping fans (`cobbleTexture`), a low granite kerb across it, an orange tactile pad, two concrete street lamps, and a deep-blue sky dome.
+- **Sea lion.** On a low beige slab with white gravel, rocks and a stainless rail on angled brackets. About 9.7 m to the muzzle, 11 m long, from the photographs; not surveyed. The slab is solid in the walk map and the plaza goes round it.
+
+The concrete is board-formed: panels 2.4 × 1.2 m, rows not aligned, each panel its own shade, hairline joints, pin holes and water streaks. One texture repeat covers 4 × 4 panels.
+
+## Banners are slots
+
+Posters and vinyl are `MAR_BANNERS` in `layout.ts`: a centre, a width and a height on the wall, and an optional `image`. Without `image` a stand-in drawn in `decals.ts` shows (the exhibition posters and the Noé vinyl in the photographs). To print a Collage World Cup banner, put the file under `public/` and set `image: '/mar/banner-a.jpg'` on that slot. Nothing else needs to move. Keep the picture's aspect ratio equal to the slot's width ÷ height or it stretches.
+
 ## Estimated dimensions
 
 One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; yaw 0 looks toward −Z. Spawn is `(0, 16)`, on the cobbles, looking at the door.
@@ -21,7 +39,7 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 | Quantity | Value | Why it is only a guess |
 | --- | ---: | --- |
 | Facade panel | 2.4 × 1.2 m | Joints are visible; no dimension is readable |
-| Cobble module | 1.5 m | The paving pattern, not a counted paver |
+| Paving repeat | 3 m, setts 0.1 m | The fan pattern, not a counted paver |
 | Wall thickness | 0.28 m | Reads as a solid concrete wall at eye height |
 | Entrance clear width | 5.2 m | Still the walkable door bank. Concrete returns now stop about 1.6 m from each jamb, so the slot reads like the frontal photo. Steps stay flush so the walk does not catch a lip |
 | Door head | 3.2 m | Glass continues above the doors to the hall ceiling |
@@ -29,9 +47,13 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 | Mezzanine walk surface | 4.45 m | About halfway up that photo |
 | Escalator run | 7.05 m horizontal, 4.45 m rise (~32°) | Placed on the east side of the hall, where the photo shows the pair. A real escalator is usually 30° |
 | West room clear height | 5.2 m | Bright gallery photograph |
-| West volume exterior | 11.4 m | Taller box, upper window band, cantilever over the plaza |
+| West volume exterior | 16 m | Counted from panel rows in the photographs, 1.2 m a row |
+| Volume over the doors | 13.4 m | Lower than the west volume in the same frame |
+| Tower | 16 m | Same panel-row count |
+| Soffit over the doors | 4.6 m | Door head 2.6 m plus two transom rows |
+| Sea lion | 9.7 m high, 11 m long | Against the 20 m box behind it in the front photograph |
 | East room clear height | 5.6 m | Darker room, lighting rails just under the ceiling |
-| East volume / MAR letters | 8.6 m | The right-hand box in the frontal photo |
+| Vinyl volume | 11 m | The right-hand box in the frontal photo |
 | Auditorium clear height | 7.4 m | Section, not a counted seat riser |
 | Site edge | x −36..40, z −42..32 | The modeled plot, not the real property line |
 
@@ -41,10 +63,10 @@ Footprints (interior side of the walls):
 - West exhibition room: x −30..−12, z −12..8, glazed to the plaza at ground level
 - East exhibition room: x 14..32, z −18..−8
 - Auditorium: x −8..16, z −38..−20, entered from the hall. Seat banks are solid blocks with aisles, not a seat count
-- Right-hand plaza volume (MAR letters): x 8..28, z 0.15..5.6
+- Vinyl volume: x 7.2..20, z 0.15..3.4 (ground floor set back to z 2.0); tower x 20..34
 - Basin: about x −28..−16, z 12..20, rim 0.42 m so you walk around it
 
-Doors, all open in both the mesh and the walk map: entrance x −2.6..2.6 at z = 0; west room z −3.45..−0.35 at x = −12; east room z −13.6..−10.4 at x = 14; auditorium x −1.6..2.4 at z = −20.
+Doors, all open in both the mesh and the walk map: entrance (the swing doors) x −2.6..2.6 at z = 0; west room z −3.45..−0.35 at x = −12; east room z −13.6..−10.4 at x = 14; auditorium x −1.6..2.4 at z = −20.
 
 ## What this visit can and cannot do
 

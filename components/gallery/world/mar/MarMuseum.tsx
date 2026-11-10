@@ -21,7 +21,9 @@ import {
   type MarBox,
   type MarKind,
 } from './layout'
-import { cobbleTexture, concreteTexture, escalatorTexture } from './textures'
+import { Facade } from './Facade'
+import { SeaLion } from './SeaLion'
+import { CONCRETE_TILE, cobbleTexture, concreteTexture, escalatorTexture } from './textures'
 
 // BoxGeometry face order: +x, -x, +y, -y, +z, -z. Each face's UVs run 0..1
 // across that face, so scaling them by the face size tiles one panel module.
@@ -57,7 +59,7 @@ function useBoxGeometries(boxes: MarBox[], tile: boolean) {
   const geometries = useMemo(() => boxes.map((item) => {
     const size = marSize(item)
     const geometry = new THREE.BoxGeometry(size[0], size[1], size[2])
-    if (tile) tileBox(geometry, size, MAR.panel.width, MAR.panel.height)
+    if (tile) tileBox(geometry, size, MAR.panel.width * CONCRETE_TILE.columns, MAR.panel.height * CONCRETE_TILE.rows)
     return geometry
   }), [boxes, tile])
   useEffect(() => () => geometries.forEach((geometry) => geometry.dispose()), [geometries])
@@ -135,28 +137,29 @@ function EscalatorRide() {
   return null
 }
 
-function MarSign() {
-  const texture = useMemo(() => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 640
-    canvas.height = 200
-    const context = canvas.getContext('2d')!
-    context.clearRect(0, 0, 640, 200)
-    context.fillStyle = '#f7f4ee'
-    context.font = '700 168px Arial, Helvetica, sans-serif'
-    context.textAlign = 'center'
-    context.textBaseline = 'middle'
-    context.fillText('MAR', 320, 108)
-    const map = new THREE.CanvasTexture(canvas)
-    map.colorSpace = THREE.SRGBColorSpace
-    return map
+/**
+ * The sky over the plaza: deep blue overhead, pale at the horizon, as in the
+ * photographs. A big inside-out sphere painted with vertex colours.
+ */
+function Sky() {
+  const geometry = useMemo(() => {
+    const sphere = new THREE.SphereGeometry(300, 24, 16)
+    const position = sphere.getAttribute('position')
+    const zenith = new THREE.Color('#1f5fc2')
+    const horizon = new THREE.Color('#b4d6f0')
+    const colors: number[] = []
+    for (let i = 0; i < position.count; i++) {
+      const height = Math.max(0, position.getY(i) / 300)
+      const mixed = horizon.clone().lerp(zenith, Math.pow(height, 0.55))
+      colors.push(mixed.r, mixed.g, mixed.b)
+    }
+    sphere.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+    return sphere
   }, [])
-  useEffect(() => () => texture.dispose(), [texture])
-  // Stand-in lettering on the right volume's plaza face. Not a traced logo.
+  useEffect(() => () => geometry.dispose(), [geometry])
   return (
-    <mesh position={[18, 6.15, 5.66]}>
-      <planeGeometry args={[6.2, 1.95]} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} />
+    <mesh geometry={geometry} renderOrder={-10}>
+      <meshBasicMaterial vertexColors side={THREE.BackSide} depthWrite={false} fog={false} toneMapped={false} />
     </mesh>
   )
 }
@@ -220,6 +223,11 @@ export function MarMuseum() {
       white: new THREE.MeshStandardMaterial({ color: '#f4f3ef', roughness: 0.9 }),
       glass: new THREE.MeshStandardMaterial({ color: '#c5d7e4', transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12, side: THREE.DoubleSide, depthWrite: false }),
       mullion: new THREE.MeshStandardMaterial({ color: '#1c1e21', roughness: 0.45, metalness: 0.35 }),
+      darkglass: new THREE.MeshStandardMaterial({ color: '#27343f', roughness: 0.12, metalness: 0.35 }),
+      interior: new THREE.MeshStandardMaterial({ color: '#4a4f54', roughness: 0.7 }),
+      steel: new THREE.MeshStandardMaterial({ color: '#cfd3d6', roughness: 0.4, metalness: 0.3 }),
+      granite: new THREE.MeshStandardMaterial({ color: '#85827b', roughness: 0.9 }),
+      void: new THREE.MeshStandardMaterial({ color: '#0e0f11', roughness: 0.9 }),
       distant: new THREE.MeshStandardMaterial({ color: '#d5cfc4', roughness: 0.9 }),
       seat: new THREE.MeshStandardMaterial({ color: '#6d5348', roughness: 0.86 }),
       table: new THREE.MeshStandardMaterial({ color: '#8d9294', roughness: 0.55, metalness: 0.2 }),
@@ -260,6 +268,7 @@ export function MarMuseum() {
   return (
     <group>
       <MarLights />
+      <Sky />
       <EscalatorRide />
       <RigidBody type="fixed" colliders={false} friction={1}>
         <CuboidCollider args={[38, 0.25, 37]} position={[2, -0.25, -5]} />
@@ -274,6 +283,11 @@ export function MarMuseum() {
       <KindMeshes kind="deck" material={materials.deck} />
       <KindMeshes kind="white" material={materials.white} />
       <KindMeshes kind="glass" material={materials.glass} cast={false} />
+      <KindMeshes kind="darkglass" material={materials.darkglass} cast={false} />
+      <KindMeshes kind="interior" material={materials.interior} />
+      <KindMeshes kind="steel" material={materials.steel} cast={false} />
+      <KindMeshes kind="granite" material={materials.granite} cast={false} />
+      <KindMeshes kind="void" material={materials.void} cast={false} />
       <KindMeshes kind="mullion" material={materials.mullion} cast={false} />
       <KindMeshes kind="distant" material={materials.distant} cast={false} />
       <KindMeshes kind="seat" material={materials.seat} />
@@ -310,11 +324,8 @@ export function MarMuseum() {
       ))}
 
       <EscalatorDecks material={materials.steps} />
-      <MarSign />
-      {/* Upper window band on the volume that projects over the plaza. */}
-      <mesh position={[-20, 7.9, 12.22]} material={materials.glass}>
-        <planeGeometry args={[9.5, 1.35]} />
-      </mesh>
+      <Facade materials={materials} />
+      <SeaLion />
 
       <mesh position={[-22, 0.08, 16]} rotation={[-Math.PI / 2, 0, 0]} material={materials.water}>
         <planeGeometry args={[10.4, 6.6]} />

@@ -7,7 +7,23 @@
 import { hang, type GallerySlot, type Hanging } from '@/data/artworks'
 import type { GalleryRoomTemplate, WallSegment } from '../roomsData'
 
-export type MarKind = 'concrete' | 'deck' | 'white' | 'glass' | 'mullion' | 'seat' | 'table' | 'curb' | 'trunk' | 'distant'
+export type MarKind =
+  | 'concrete'
+  | 'deck'
+  | 'white'
+  | 'glass'
+  | 'darkglass'
+  | 'interior'
+  | 'mullion'
+  | 'steel'
+  | 'platform'
+  | 'granite'
+  | 'void'
+  | 'seat'
+  | 'table'
+  | 'curb'
+  | 'trunk'
+  | 'distant'
 
 export type MarBox = {
   id: string
@@ -31,8 +47,8 @@ export type MarBox = {
 export const MAR = {
   /** Facade panel module. The joints are visible; their spacing is not dimensioned on the sheets. */
   panel: { width: 2.4, height: 1.2 },
-  /** Cobble module on the plaza. */
-  cobble: 1.5,
+  /** One repeat of the plaza's fan paving (setts are 0.1 m). */
+  cobble: 3,
   wall: 0.28,
   /** Clear height of the central doors. The photos show a full-height glass wall with a door bank under a head. */
   doorHeight: 3.2,
@@ -41,11 +57,19 @@ export const MAR = {
   /** Walk surface of the mezzanine. */
   mezzanine: 4.45,
   westInterior: 5.2,
-  /** Left volume, taller than the entrance, with an upper window band. */
-  westExterior: 11.4,
+  /** Left volume, the tallest, with an upper window band on the cantilever. */
+  westExterior: 16,
   eastInterior: 5.6,
-  /** Right volume, the one carrying the MAR letters. */
-  eastExterior: 8.6,
+  /** Right volume, the one with the printed vinyl at its foot. */
+  eastExterior: 11,
+  /** Volume over the door bank, the one carrying the Buenos Aires Provincia mark. */
+  logoExterior: 13.4,
+  /** The tall end volume, with the vent housing and the stair at its foot. */
+  towerExterior: 16,
+  /** Underside of the slab over the doors. */
+  soffit: 4.6,
+  /** Door head: swing leaves and the revolving drum stop here, glass transoms run above. */
+  doorLeaf: 2.6,
   auditorium: 7.4,
   /** How thick a temporary exhibition partition reads. */
   partition: 0.12,
@@ -53,6 +77,36 @@ export const MAR = {
 } as const
 
 const T = MAR.wall
+
+/** The sea lion sculpture's platform on the plaza, in front of the vinyl-faced volume. */
+export const LOBO = { x0: 7.6, x1: 21.8, z0: 8.4, z1: 14.8, height: 0.35, /** Where the sculpture's head stands, on the slab. */ head: { x: 10.8, z: 11.6 } } as const
+
+/** The sunken stair beside the vent housing: a hole in the paving, walled off. */
+export const STAIR = { x0: 20, x1: 22.6, z0: 3.4, z1: 7.6, depth: 2.7 } as const
+
+/**
+ * Printed banners on the facade. Each is a rectangle on a wall; \`image\` is the
+ * picture on it. Without one the slot shows a stand-in drawn in decals.ts.
+ * To change a banner, set \`image\` to a path under /public (or an https URL).
+ */
+export type MarBanner = {
+  id: string
+  /** Centre of the print, metres. It faces +Z, toward the plaza. */
+  center: [number, number, number]
+  width: number
+  height: number
+  /** Picture to print. Leave unset for the stand-in. */
+  image?: string
+}
+
+export const MAR_BANNERS: MarBanner[] = [
+  // On the glass left of the revolving door.
+  { id: 'door-a', center: [-10.3, 1.9, 0.08], width: 1.8, height: 3.3 },
+  { id: 'door-b', center: [-8.8, 1.9, 0.08], width: 1.2, height: 3.3 },
+  { id: 'door-c', center: [-7.3, 1.85, 0.08], width: 1.7, height: 3.2 },
+  // The long vinyl at the foot of the volume right of the slot.
+  { id: 'vinyl', center: [14.15, 1.78, 2.02], width: 11.1, height: 2.8 },
+]
 
 export const MAR_DOORS = {
   /** South glass wall of the hall, the only way in from the plaza. */
@@ -133,9 +187,34 @@ function mullionsZ(id: string, z0: number, z1: number, x: number, y0: number, y1
   return bars
 }
 
+/** Dark frame posts on a glass wall along X, at explicit positions. Not colliders. */
+function postsX(id: string, xs: number[], z: number, y0: number, y1: number, width = 0.07): MarBox[] {
+  return xs.map((x, index) => box(`${id}-${index}`, x - width / 2, y0, z - 0.05, x + width / 2, y1, z + 0.05, 'mullion', seeThrough))
+}
+
+/** A horizontal frame bar along X. */
+function barX(id: string, x0: number, x1: number, z: number, y: number, kind: MarKind = 'mullion', height = 0.1): MarBox {
+  return box(id, x0, y - height / 2, z - 0.05, x1, y + height / 2, z + 0.05, kind, seeThrough)
+}
+
+/** A swing door leaf standing open, hinged at a jamb and pushed into the hall. Glass in a steel frame; nothing to collide with. */
+function openLeaf(id: string, x: number, z0: number, z1: number): MarBox[] {
+  const t = 0.04
+  return [
+    box(`${id}-glass`, x - 0.015, 0.1, z0, x + 0.015, MAR.doorLeaf - 0.08, z1, 'glass', seeThrough),
+    box(`${id}-stile-a`, x - t, 0.1, z0, x + t, MAR.doorLeaf - 0.04, z0 + 0.09, 'steel', seeThrough),
+    box(`${id}-stile-b`, x - t, 0.1, z1 - 0.09, x + t, MAR.doorLeaf - 0.04, z1, 'steel', seeThrough),
+    box(`${id}-head`, x - t, MAR.doorLeaf - 0.12, z0, x + t, MAR.doorLeaf - 0.04, z1, 'steel', seeThrough),
+    box(`${id}-foot`, x - t, 0.1, z0, x + t, 0.3, z1, 'steel', seeThrough),
+  ]
+}
+
 const H = MAR.hallHeight
 const WEST_H = MAR.westExterior
 const EAST_H = MAR.eastExterior
+const LOGO_H = MAR.logoExterior
+const TOWER_H = MAR.towerExterior
+const SOFFIT = MAR.soffit
 const AUD_H = MAR.auditorium
 
 /**
@@ -154,21 +233,51 @@ export const marBoxes: MarBox[] = [
   wallZ('mar-hall-e-s', MAR_DOORS.east.z1, -7.8, MAR_DOORS.east.x, H),
   wallZ('mar-hall-e-pier', -0.2, 0, 14, H),
 
-  // West exhibition volume. Ground floor glazed to the plaza; concrete above.
+  // West exhibition volume (the café). Ground floor glazed to the plaza, tucked under the upper floor.
   wallZ('mar-west-w', -12, 8, -30, WEST_H),
   wallX('mar-west-n', -30, -12, -12, WEST_H),
-  wallX('mar-west-s-glass', -30, -12, 8, 3.4, 'glass'),
-  box('mar-west-s-up', -30, 3.4, 8 - T / 2, -12, WEST_H, 8 + T / 2, 'concrete'),
-  // Upper floor reaches toward the entrance slot. Above head height, so the plaza stays open.
-  box('mar-west-cantilever', -26, 5.6, 8, -4.6, WEST_H, 12.2, 'concrete'),
+  wallX('mar-west-s-glass', -30, -12, 8, SOFFIT, 'glass'),
+  box('mar-west-s-up', -30, SOFFIT, 8 - T / 2, -12, WEST_H, 8 + T / 2, 'concrete'),
+  // The upper floor overhangs the plaza: a thick slab edge, a recessed window band, then blank concrete.
+  // All above head height, so the plaza stays open under it.
+  box('mar-west-lip', -26, SOFFIT, 8, -7, 5.9, 12.35, 'concrete'),
+  box('mar-west-win-back', -26, 5.9, 8, -7, 8.3, 11.95, 'interior'),
+  box('mar-west-cantilever', -26, 8.3, 8, -7, WEST_H, 12.2, 'concrete'),
+  box('mar-west-win-glass', -25.6, 5.95, 11.96, -7.4, 8.25, 12.0, 'glass', seeThrough),
+  ...mullionsX('mar-west-win-mullion', -25.6, -7.4, 12.04, 5.95, 8.25, 2.27),
 
   // East exhibition room.
   wallX('mar-east-n', 14, 32, -18, EAST_H),
   wallX('mar-east-s', 14, 32, -8, EAST_H),
   wallZ('mar-east-e', -18, -8, 32, EAST_H),
 
-  // Right-hand concrete volume, set back from the left cantilever and close to the door.
-  box('mar-east-mass', 4.6, 0, 0.15, 28, EAST_H, 5.6, 'concrete'),
+  // The volume right of the glass slot. Its ground floor is set back behind printed vinyl; the upper
+  // floors overhang it. A tall narrow window runs up its east end.
+  box('mar-banner-low', 7.2, 0, 0.15, 20, 3.6, 2.0, 'concrete'),
+  box('mar-banner-up', 7.2, 3.6, 0.15, 20, EAST_H, 3.4, 'concrete'),
+  box('mar-banner-slit', 18.6, 4.7, 3.4, 19.6, 10, 3.45, 'darkglass', seeThrough),
+  ...postsX('mar-banner-slit-frame', [18.55, 19.65], 3.46, 4.7, 10, 0.1),
+
+  // The tall end volume. A black door at its foot, a ground window, and in front of both
+  // the housing that vents the level below, with the stair going down beside it.
+  box('mar-tower', 20, 0, 0.15, 34, TOWER_H, 3.4, 'concrete'),
+  box('mar-tower-door', 23.8, 0, 3.4, 26.6, 3.7, 3.44, 'void', seeThrough),
+  box('mar-tower-window', 29.2, 0.3, 3.4, 32.8, 3.4, 3.44, 'darkglass', seeThrough),
+  ...mullionsX('mar-tower-mullion', 29.2, 32.8, 3.47, 0.3, 3.4, 1.2),
+  box('mar-vent-plinth', 22.6, 0, 3.4, 33, 1.15, 7.6, 'concrete'),
+  wallZ('mar-stair-wall', 3.4, 7.6, 19.85, 1, 'concrete', 0.3),
+  box('mar-stair-block', 20, 0, 3.4, 22.6, 1.2, 7.6, 'void', { visual: false }),
+
+  // The sea lion's platform: a low slab with a rail round it. The sculpture itself is drawn
+  // in SeaLion.tsx; this keeps people out of it.
+  box('mar-lobo-slab', LOBO.x0, 0, LOBO.z0, LOBO.x1, LOBO.height, LOBO.z1, 'platform', seeThrough),
+  box('mar-lobo-block', LOBO.x0, 0, LOBO.z0, LOBO.x1, 1.2, LOBO.z1, 'platform', { visual: false }),
+
+  // A street lamp's concrete column on each side of the plaza.
+  box('mar-lamp-w', -34.25, 0, 20.75, -33.75, 13, 21.25, 'concrete', seeThrough),
+  box('mar-lamp-e', 36.75, 0, 18.75, 37.25, 13, 19.25, 'concrete', seeThrough),
+  // The step across the plaza, a long granite kerb. Drawn flat: the ground is one slab.
+  box('mar-plaza-step', -36, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
 
   // Auditorium block north of the hall.
   wallX('mar-aud-n', -8, 16, -38, AUD_H),
@@ -181,18 +290,40 @@ export const marBoxes: MarBox[] = [
   box('mar-seat-e', 11.3, 0, -36.2, 14.6, 0.55, -23.6, 'seat'),
   box('mar-stage', -6.2, 0, -37.7, 14.6, 0.62, -36.2, 'seat'),
 
-  // South wall of the hall. The photo frames a short glass slot between concrete, not a long glazed front.
-  wallX('mar-hall-s-concrete-w', -12, -4.2, 0, H),
-  wallX('mar-hall-s-glass-w', -4.2, MAR_DOORS.entrance.x0, 0, H, 'glass', 0.08),
-  wallX('mar-hall-s-glass-e', MAR_DOORS.entrance.x1, 4.4, 0, H, 'glass', 0.08),
-  wallX('mar-hall-s-concrete-e', 4.4, 8.2, 0, H),
-  box('mar-hall-s-transom', MAR_DOORS.entrance.x0, MAR.doorHeight, -0.04, MAR_DOORS.entrance.x1, H, 0.04, 'glass'),
+  // The front of the hall, from the plaza. Left to right: a slice of concrete, the volume over the doors
+  // (slab, a recessed window band, blank concrete above), the door bank under its soffit, a tall glass slot
+  // with concrete above, then the vinyl-faced volume. Glass walls here are the real stop; frames are just drawn.
+  wallX('mar-hall-s-concrete-w', -12, -11.4, 0, LOGO_H),
+  box('mar-logo-slab', -11.4, SOFFIT, 0, 4.2, 5.8, 3.4, 'concrete'),
+  box('mar-logo-win-back', -11.4, 5.8, 0, 4.2, 8, 2.95, 'interior'),
+  box('mar-logo-up', -11.4, 8, 0, 4.2, LOGO_H, 3.2, 'concrete'),
+  box('mar-logo-win-glass', -11, 5.85, 2.96, 3.8, 7.95, 3, 'glass', seeThrough),
+  ...mullionsX('mar-logo-win-mullion', -11, 3.8, 3.05, 5.85, 7.95, 1.95),
+  wallX('mar-hall-s-glass-w1', -11.4, -5.25, 0, MAR.doorLeaf, 'glass', 0.08),
+  wallX('mar-hall-s-glass-w2', -5.25, MAR_DOORS.entrance.x0, 0, MAR.doorLeaf, 'glass', 0.08),
+  wallX('mar-hall-s-glass-e', MAR_DOORS.entrance.x1, 4.2, 0, MAR.doorLeaf, 'glass', 0.08),
+  box('mar-hall-s-transom', -11.4, MAR.doorLeaf, -0.04, 4.2, SOFFIT, 0.04, 'glass', seeThrough),
+  // The revolving door's drum (drawn in Facade.tsx). It blocks the way; the swing doors beside it are the way in.
+  box('mar-revolve', -5.25, 0, -0.35, -2.75, MAR.doorLeaf + 0.1, 2.15, 'glass', { visual: false }),
+  barX('mar-frame-head', -11.4, 4.2, 0.06, MAR.doorLeaf),
+  barX('mar-frame-mid', -11.4, 4.2, 0.06, 3.6, 'mullion', 0.07),
+  barX('mar-frame-top', -11.4, 4.2, 0.06, SOFFIT - 0.05, 'mullion', 0.1),
+  ...postsX('mar-frame-post', [-11.4, -9.4, -8.15, -6.45, -5.25, -2.75, MAR_DOORS.entrance.x0, MAR_DOORS.entrance.x1, 4.2], 0.06, 0, MAR.doorLeaf, 0.08),
+  ...postsX('mar-frame-transom-post', [-9.8, -8.1, -6.4, -4.7, -3.1, -1.5, 0, 1.5, 3, 4.2], 0.06, MAR.doorLeaf, SOFFIT, 0.06),
+  ...openLeaf('mar-leaf-w', MAR_DOORS.entrance.x0 - 0.04, -1.4, -0.06),
+  ...openLeaf('mar-leaf-e', MAR_DOORS.entrance.x1 + 0.04, -1.4, -0.06),
+  // The glass slot: full height, with a cap of concrete over it.
+  box('mar-slot-glass', 4.2, 0, -0.04, 7.2, H, 0.04, 'glass'),
+  box('mar-slot-cap', 4.2, H, -T / 2, 7.2, LOGO_H, T / 2, 'concrete'),
+  ...mullionsX('mar-slot-mullion', 4.2, 7.2, 0.06, 0, H, 1.5),
+  barX('mar-slot-bar-a', 4.2, 7.2, 0.06, 3.6, 'mullion', 0.08),
+  barX('mar-slot-bar-b', 4.2, 7.2, 0.06, 6.6, 'mullion', 0.08),
   // East window of the hall, toward the trees. A sill, not a door.
   box('mar-hall-window-e', 14 - 0.04, 0.35, -7.8, 14 + 0.04, 8.2, -0.2, 'glass'),
   ...mullionsX('mar-mullion-door-w', -4.2, MAR_DOORS.entrance.x0, 0.06, 0, H, 1.15),
   ...mullionsX('mar-mullion-door-e', MAR_DOORS.entrance.x1, 4.4, 0.06, 0, H, 1.15),
   ...mullionsX('mar-mullion-transom', MAR_DOORS.entrance.x0, MAR_DOORS.entrance.x1, 0.06, MAR.doorHeight, H, 1.3),
-  ...mullionsX('mar-mullion-west-glass', -30, -12, 8.08, 0, 3.4, 1.25),
+  ...mullionsX('mar-mullion-west-glass', -30, -12, 8.08, 0, SOFFIT, 1.25),
   ...mullionsZ('mar-mullion-hall-e', -7.8, -0.2, 14.08, 0.35, 8.2, 1.25),
 
   // Temporary white partitions. They are a typical exhibition fit-out, not a copy of a particular show.
@@ -284,7 +415,11 @@ export const marWalls: WallSegment[] = marBoxes.filter(blocksPath).map((box) => 
 
 /** Floors are visual only. The walk surface is one slab at y = 0, so the threshold has no lip. */
 export const marFloors = [
-  { id: 'cobble', kind: 'cobble' as const, x0: -36, x1: 40, z0: 0, z1: 23 },
+  // The paving, cut round the stair's hole.
+  { id: 'cobble-front', kind: 'cobble' as const, x0: -36, x1: 40, z0: 0, z1: STAIR.z0 },
+  { id: 'cobble-stair-w', kind: 'cobble' as const, x0: -36, x1: STAIR.x0, z0: STAIR.z0, z1: STAIR.z1 },
+  { id: 'cobble-stair-e', kind: 'cobble' as const, x0: STAIR.x1, x1: 40, z0: STAIR.z0, z1: STAIR.z1 },
+  { id: 'cobble', kind: 'cobble' as const, x0: -36, x1: 40, z0: STAIR.z1, z1: 23 },
   { id: 'grass', kind: 'grass' as const, x0: -36, x1: 40, z0: 23, z1: 32 },
   { id: 'hall', kind: 'polish' as const, x0: -11.84, x1: 13.84, z0: -19.84, z1: 0.2 },
   { id: 'west', kind: 'gallery' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },
