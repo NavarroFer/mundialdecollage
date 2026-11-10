@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from '@/lib/onboarding-image'
 import { setLegacyImageManually } from '@/app/[locale]/(site)/admin/obras/actions'
 import { downscaleImage } from '@/lib/downscale-image'
+import { isRealImage } from '@/lib/image-signature'
 
 // Lets an admin pick a photo by hand for a legacy_submissions row whose
 // Drive fetch keeps failing (private file, deleted, or a restriction the
@@ -36,6 +37,11 @@ export function LegacyImageUpload({ id }: { id: string }) {
     }
     if (file.size > MAX_IMAGE_BYTES) {
       setError('Pesa más de 15MB — probá con una versión más liviana.')
+      return
+    }
+    // The extension can lie (a PSD renamed .jpg got through once).
+    if (!(await isRealImage(file))) {
+      setError('Ese archivo no es una imagen de verdad (¿un PSD con otro nombre?). Exportalo como JPG o PNG.')
       return
     }
 

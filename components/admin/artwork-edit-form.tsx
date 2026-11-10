@@ -8,6 +8,7 @@ import { updateArtwork } from '@/app/[locale]/(site)/admin/obras/actions'
 import { Button } from '@/components/ui/button'
 import type { Submission } from '@/components/admin/submission-types'
 import { downscaleImage } from '@/lib/downscale-image'
+import { isRealImage } from '@/lib/image-signature'
 
 const inputClass =
   'mt-1 w-full rounded-lg border-2 border-ink/15 bg-background px-3 py-2 text-sm outline-none focus:border-collage-blue'
@@ -38,7 +39,7 @@ export function ArtworkEditForm({ item }: { item: Submission }) {
     setError(null)
   }
 
-  function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
     const picked = event.target.files?.[0]
     event.target.value = ''
     if (!picked) return
@@ -49,6 +50,11 @@ export function ArtworkEditForm({ item }: { item: Submission }) {
     }
     if (picked.size > MAX_IMAGE_BYTES) {
       setError('Pesa más de 15MB — probá con una versión más liviana.')
+      return
+    }
+    // The extension can lie (a PSD renamed .jpg got through once).
+    if (!(await isRealImage(picked))) {
+      setError('Ese archivo no es una imagen de verdad (¿un PSD con otro nombre?). Exportalo como JPG o PNG.')
       return
     }
     if (preview) URL.revokeObjectURL(preview)
