@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { LOBO } from './layout'
 import { loboPlaqueTexture } from './decals'
 import { WEAVE_TILE, seeded, weaveTexture } from './textures'
@@ -13,20 +14,23 @@ import { WEAVE_TILE, seeded, weaveTexture } from './textures'
 
 type Section = { x: number; y: number; /** Radius in the plane of the spine. */ ry: number; /** Radius across it. */ rz: number }
 
-/** From the muzzle, down the raised neck and chest, then along the lying body to the tail. */
+/**
+ * From the top of the head, down a thick, nearly cylindrical neck and chest (in the photographs the head is a
+ * broad column with a rounded top, not a pointed muzzle), then along the low body trailing to the tail.
+ */
 const SPINE: Section[] = [
-  { x: -0.55, y: 9.75, ry: 0.04, rz: 0.04 },
-  { x: -0.6, y: 9.55, ry: 0.42, rz: 0.4 },
-  { x: -0.45, y: 9.1, ry: 0.9, rz: 0.84 },
-  { x: -0.3, y: 8.3, ry: 1.35, rz: 1.22 },
-  { x: -0.1, y: 7.1, ry: 1.7, rz: 1.5 },
-  { x: 0.15, y: 5.9, ry: 2.05, rz: 1.8 },
-  { x: 0.55, y: 4.6, ry: 2.15, rz: 1.9 },
-  { x: 1.5, y: 3.35, ry: 2.5, rz: 2.15 },
-  { x: 3.4, y: 2.65, ry: 2.5, rz: 2.1 },
-  { x: 5.9, y: 2.25, ry: 2.25, rz: 1.85 },
-  { x: 8.4, y: 1.75, ry: 1.65, rz: 1.35 },
-  { x: 10.1, y: 1.3, ry: 0.85, rz: 0.75 },
+  { x: -0.4, y: 10, ry: 0.05, rz: 0.05 },
+  { x: -0.4, y: 9.85, ry: 1.0, rz: 0.95 },
+  { x: -0.4, y: 9.4, ry: 1.75, rz: 1.65 },
+  { x: -0.35, y: 8.6, ry: 2.15, rz: 1.95 },
+  { x: -0.3, y: 7.2, ry: 2.3, rz: 2.1 },
+  { x: -0.2, y: 5.8, ry: 2.45, rz: 2.25 },
+  { x: 0.3, y: 4.4, ry: 2.65, rz: 2.4 },
+  { x: 1.6, y: 3.2, ry: 2.85, rz: 2.45 },
+  { x: 3.8, y: 2.6, ry: 2.7, rz: 2.35 },
+  { x: 6.4, y: 2.2, ry: 2.35, rz: 2.05 },
+  { x: 8.6, y: 1.75, ry: 1.7, rz: 1.5 },
+  { x: 10.2, y: 1.3, ry: 0.9, rz: 0.85 },
   { x: 10.9, y: 1.0, ry: 0.05, rz: 0.05 },
 ]
 
@@ -88,6 +92,19 @@ function flipperGeometry(radii: [number, number, number], widthSegments = 18, he
   const around = (2 * Math.PI * (radii[0] + radii[2])) / 2 / WEAVE_TILE
   const down = (Math.PI * radii[1]) / WEAVE_TILE
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * around, uv.getY(i) * down)
+  uv.needsUpdate = true
+  return geometry
+}
+
+/**
+ * A flat panel with straight edges and softened corners, its weave kept at true
+ * size: the front flippers are plates sewn on the chest, not round paddles.
+ */
+function panelGeometry(width: number, height: number, depth: number, radius = 0.18) {
+  const geometry = new RoundedBoxGeometry(width, height, depth, 4, radius)
+  const uv = geometry.getAttribute('uv')
+  const factor = Math.max(width, height) / WEAVE_TILE
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * factor, uv.getY(i) * factor)
   uv.needsUpdate = true
   return geometry
 }
@@ -210,8 +227,9 @@ export function SeaLion() {
     const slab = new THREE.MeshStandardMaterial({ color: '#cdbfa6', roughness: 0.85 })
     const gravel = new THREE.MeshStandardMaterial({ color: '#d8d4c8', roughness: 1 })
     const flippers = {
-      hanging: flipperGeometry([0.85, 2.35, 0.5]),
-      foot: flipperGeometry([1.5, 0.36, 0.85]),
+      // x = thickness, y = length, z = width: it faces the front, where the animal looks.
+      panel: panelGeometry(0.75, 4.3, 1.85),
+      foot: flipperGeometry([0.9, 0.5, 1.15]),
       hind: flipperGeometry([1.5, 0.35, 0.75]),
     }
     return { map, plaque, body, material, slab, gravel, flippers }
@@ -243,11 +261,11 @@ export function SeaLion() {
 
       <group position={[head.x, height, head.z]}>
         <mesh geometry={resources.body} material={resources.material} castShadow receiveShadow />
-        {/* Front flippers hang from the chest like flat panels, their tips on the ground. */}
+        {/* Front flippers: flat plates hanging from the chest, a rounded foot where each meets the ground. */}
         {[1, -1].map((side) => (
           <group key={`f${side}`}>
-            <mesh position={[1.1, 2.05, side * 1.95]} rotation={[side * 0.1, 0, 0]} scale={[0.85, 2.35, 0.5]} geometry={resources.flippers.hanging} material={flipperMap} castShadow receiveShadow />
-            <mesh position={[0.5, 0.35, side * 2.1]} rotation={[0, side * -0.6, 0]} scale={[1.5, 0.36, 0.85]} geometry={resources.flippers.foot} material={flipperMap} castShadow receiveShadow />
+            <mesh position={[-2.45, 2.4, side * 1.75]} geometry={resources.flippers.panel} material={flipperMap} castShadow receiveShadow />
+            <mesh position={[-2.45, 0.38, side * 1.75]} geometry={resources.flippers.foot} material={flipperMap} castShadow receiveShadow />
           </group>
         ))}
         {/* Hind flippers at the tail. */}
