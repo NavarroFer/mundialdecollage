@@ -110,9 +110,15 @@ export async function GET(request: Request) {
     if (store && folder) await save(store, variantKey(folder, width), output, 'image/webp')
     return webp(output, immutable, request, imageCache)
   } catch (error) {
-    // Not something sharp can read: hand back the original.
+    // Not something sharp can read: hand back the original. The redirect is
+    // cached like a derivative would be — an uncacheable one made every visit
+    // run sharp again on a file that will fail the same way (a PSD renamed
+    // .jpg did that on every page view for a day).
     console.error('api/img: resize failed', src, error)
-    return Response.redirect(src, 302)
+    return new Response(null, {
+      status: 302,
+      headers: { Location: src, 'Cache-Control': immutable ? IMMUTABLE_CACHE : MUTABLE_CACHE },
+    })
   }
 }
 

@@ -58,6 +58,16 @@ describe('GET /api/img', () => {
     expect((await GET(request(photo, 640))).status).toBe(404)
   })
 
+  it('redirects a file sharp cannot read to the original, and lets the CDN cache that', async () => {
+    const psd = Buffer.from('8BPS\x00\x01\x00\x00\x00\x00\x00\x00')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array(psd))))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const response = await GET(request(photo, 640))
+    expect(response.status).toBe(302)
+    expect(response.headers.get('location')).toBe(photo)
+    expect(response.headers.get('cache-control')).toContain('s-maxage')
+  })
+
   it('reuses unchanged derivatives with a bodyless 304, but sends changed ones', async () => {
     const original = await sharp({ create: { width: 100, height: 100, channels: 3, background: '#c33' } }).jpeg().toBuffer()
     vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array(original))))
