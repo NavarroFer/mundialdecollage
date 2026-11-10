@@ -5,7 +5,7 @@ import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { imageSrc } from '@/lib/image-src'
 import { clothBase } from './interiorDecals'
-import { FLAG, mosaicCell, mosaicGrid, mosaicUrls } from './mosaic'
+import { FLAG, loadOrder, mosaicCell, mosaicGrid, mosaicUrls } from './mosaic'
 import { canvasTexture } from './textures'
 
 /** Where the flag hangs: x centre, z, in the hall's open void near the glass. */
@@ -15,7 +15,10 @@ const CANVAS_WIDTH = 1024
 const CANVAS_HEIGHT = Math.round((CANVAS_WIDTH * FLAG.height) / FLAG.width)
 /** Thumbnail width asked of /api/img. The smallest step it serves, already cached by the home and the map. */
 const THUMB = 96
-const PARALLEL = 6
+/** Browsers multiplex these over one connection (HTTP/2), so more at once is cheap. */
+const PARALLEL = 16
+/** How often the canvas is re-sent to the GPU while pictures arrive. It is a few MB with its mipmaps, so not per picture. */
+const UPLOAD_EVERY_MS = 350
 
 /** Every published obra's image, from the CDN-cached listing the homepage search uses. */
 async function fetchObraUrls(signal: AbortSignal): Promise<string[]> {
@@ -52,7 +55,7 @@ function drawCell(context: CanvasRenderingContext2D, image: HTMLImageElement, x:
 }
 
 /**
- * The cloth's texture: patchwork until the obras arrive, then the mosaic. It
+ * The cloth's texture: white until the obras arrive, then the mosaic. It
  * starts from the day's own obras when there are any and widens to every
  * published one, drawing as thumbnails load (a few at a time, uploaded to the
  * GPU in batches, so a long list never stalls a frame).
@@ -70,11 +73,15 @@ function useMosaicTexture(seed: string[]) {
 
   useEffect(() => {
     const abort = new AbortController()
-    let pending = 0
-    const flush = () => {
-      pending = 0
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const upload = () => {
+      timer = null
       texture.needsUpdate = true
       invalidate()
+    }
+    // At most one upload per interval, however many pictures landed in it.
+    const schedule = () => {
+      if (timer === null) timer = setTimeout(upload, UPLOAD_EVERY_MS)
     }
     const run = async () => {
       let urls = mosaicUrls(seedKey ? seedKey.split('\n').map((imageUrl) => ({ imageUrl })) : [])
@@ -86,24 +93,32 @@ function useMosaicTexture(seed: string[]) {
       }
       if (abort.signal.aborted || !urls.length) return
       const grid = mosaicGrid(urls.length)
-      // Cells beyond the last obra keep the patchwork.
+      // Cells beyond the last obra stay white. Loaded in a shuffled order so the whole cloth fills at once.
+      const order = loadOrder(urls.length)
       let next = 0
       const worker = async () => {
         while (!abort.signal.aborted) {
-          const index = next++
-          if (index >= urls.length) return
+          const turn = next++
+          if (turn >= order.length) return
+          const index = order[turn]
           const image = await loadThumb(urls[index], abort.signal)
           if (!image) continue
           const { x, y } = mosaicCell(index, grid)
           drawCell(base.context, image, x, y, grid.cell)
-          if (++pending >= 12) flush()
+          schedule()
         }
       }
       await Promise.all(Array.from({ length: PARALLEL }, worker))
-      if (!abort.signal.aborted) flush()
+      if (!abort.signal.aborted) {
+        if (timer !== null) clearTimeout(timer)
+        upload()
+      }
     }
     void run()
-    return () => abort.abort()
+    return () => {
+      abort.abort()
+      if (timer !== null) clearTimeout(timer)
+    }
   }, [base, texture, seedKey, invalidate])
   return texture
 }

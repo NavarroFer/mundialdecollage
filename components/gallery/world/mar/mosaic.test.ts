@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FLAG, MOSAIC_LIMIT, mosaicCell, mosaicGrid, mosaicUrls } from './mosaic'
+import { FLAG, MOSAIC_LIMIT, loadOrder, mosaicCell, mosaicGrid, mosaicUrls } from './mosaic'
 
 describe('mosaicGrid', () => {
   it('always has a cell for every obra, in square cells that fit the cloth', () => {
@@ -36,5 +36,16 @@ describe('mosaicUrls', () => {
     expect(urls).toHaveLength(MOSAIC_LIMIT)
     expect(urls[0]).toBe('u0')
     expect(urls[urls.length - 1]).toBe(`u${MOSAIC_LIMIT * 2 - 2}`)
+  })
+})
+
+describe('loadOrder', () => {
+  it('visits every cell exactly once, the same way every time, and not top to bottom', () => {
+    const order = loadOrder(200)
+    expect([...order].sort((a, b) => a - b)).toEqual(Array.from({ length: 200 }, (_, index) => index))
+    expect(loadOrder(200)).toEqual(order)
+    // The first twenty loaded are not the first twenty cells.
+    expect(order.slice(0, 20).some((index) => index >= 100)).toBe(true)
+    expect(loadOrder(0)).toEqual([])
   })
 })

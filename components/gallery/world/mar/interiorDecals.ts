@@ -133,36 +133,11 @@ export function grateTexture() {
   return canvasTexture(canvas)
 }
 
-/**
- * Pink and white patchwork cloth, with plaid squares: what the hall's flag is
- * made of in the photographs. The mosaic is drawn over it; cells without an
- * obra yet show this.
- */
+/** The flag's cloth: plain white. The mosaic is drawn over it, so cells without an obra yet stay white. */
 export function clothBase(width: number, height: number) {
   const { canvas, context } = canvasOf(width, height)
-  const random = seeded(13)
-  const cell = width / 8
-  for (let y = 0; y * cell < height; y++) {
-    for (let x = 0; x < 8; x++) {
-      const kind = random()
-      if (kind < 0.55) context.fillStyle = `rgb(${232 + random() * 14}, ${176 + random() * 18}, ${186 + random() * 18})`
-      else if (kind < 0.8) context.fillStyle = '#efe9e4'
-      else context.fillStyle = `rgb(${150 + random() * 40}, ${40 + random() * 20}, ${52 + random() * 20})`
-      context.fillRect(x * cell, y * cell, cell, cell)
-      if (kind >= 0.8) {
-        context.strokeStyle = 'rgba(245, 235, 230, 0.55)'
-        context.lineWidth = 3
-        for (let i = 1; i < 5; i++) {
-          context.beginPath()
-          context.moveTo(x * cell + (i * cell) / 5, y * cell)
-          context.lineTo(x * cell + (i * cell) / 5, y * cell + cell)
-          context.moveTo(x * cell, y * cell + (i * cell) / 5)
-          context.lineTo(x * cell + cell, y * cell + (i * cell) / 5)
-          context.stroke()
-        }
-      }
-    }
-  }
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, width, height)
   return { canvas, context }
 }
 

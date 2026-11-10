@@ -45,3 +45,22 @@ export function mosaicUrls(entries: MosaicSource[], limit = MOSAIC_LIMIT): strin
   if (urls.length <= limit) return urls
   return Array.from({ length: limit }, (_, index) => urls[Math.floor((index * urls.length) / limit)])
 }
+
+/**
+ * The order to load cells in: every index once, shuffled with a fixed seed.
+ * Loading top to bottom filled the cloth from its top, which is out of sight
+ * from the floor; a shuffle spreads the first pictures over all of it.
+ */
+export function loadOrder(count: number, seed = 7): number[] {
+  const order = Array.from({ length: Math.max(0, Math.floor(count)) }, (_, index) => index)
+  let state = seed
+  const next = () => {
+    state = (state * 16807) % 2147483647
+    return state / 2147483647
+  }
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1))
+    ;[order[i], order[j]] = [order[j], order[i]]
+  }
+  return order
+}

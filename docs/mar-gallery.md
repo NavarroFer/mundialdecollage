@@ -52,7 +52,7 @@ No obras hang here any more (see above), so the café and the shop can use the w
 
 ### The flag in the hall
 
-The tall cloth hanging in the hall (pink patchwork in the photographs) is printed with a **mosaic of every published obra**. `HallFlag.tsx` reads `/api/obras` (the CDN-cached list the homepage search uses) and draws each obra's 96 px thumbnail from `/api/img` into one canvas, a few at a time, so the cloth fills in as they arrive. It starts from the day's obras and widens to all of them; cells beyond the last obra keep the patchwork. At most 600 are drawn (`MOSAIC_LIMIT`, sampled evenly past that). The grid logic is pure and tested in `mosaic.ts`. No new server work: the list and the 96 px thumbnails are already CDN-cached.
+The tall cloth hanging in the hall (white cloth) is printed with a **mosaic of every published obra**. `HallFlag.tsx` reads `/api/obras` (the CDN-cached list the homepage search uses) and draws each obra's 96 px thumbnail from `/api/img` into one canvas, a few at a time, so the cloth fills in as they arrive. It starts from the day's obras and widens to all of them; cells beyond the last obra stay white. Cloth is plain white; pictures load 16 at a time in a shuffled order (so the whole cloth fills at once, not top to bottom) and the canvas goes to the GPU at most every 350 ms. At most 600 are drawn (`MOSAIC_LIMIT`, sampled evenly past that). The grid logic is pure and tested in `mosaic.ts`. No new server work: the list and the 96 px thumbnails are already CDN-cached.
 
 ## Banners are slots
 
