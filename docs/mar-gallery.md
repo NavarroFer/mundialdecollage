@@ -64,9 +64,15 @@ The tall cloth hanging in the hall (white cloth) is printed with a **mosaic of e
 
 A click (or a tap) on a picture of the flag, from up to 14 m away, opens a card with that obra's picture, title and artist, and a link to its page (`/obras/<slug>`) in a new tab, so the visit is still there when the visitor comes back. The click gives the point's texture coordinates (`aim.ts` reads them from the raycast), `cellAt` turns them into a cell, and the flag registers which obra each cell holds in `flag/store.ts`. Every cell answers, but the cloth hangs high and its pictures are small: from the floor the lower rows are the easy ones to hit. Cells filled from the day's obras before the full list arrives, and blank cells, have no page and open nothing.
 
+## Branding
+
+The signs that stand in for printed banners wear the Mundial de Collage's identity (`brand.ts`, `brandBanners.ts`): the paper, ink, blue, red and yellow of the September 2026 guide (a test reads `app/globals.css` so they cannot drift), torn-paper blocks, the real logo and wordmark, headlines in the site's Anton, and the domain. The logo's letters have no fill of their own (cream with a dark shadow), so it sits on paper and the blue block carries the headline. The wall labels beside each obra use the same colours: a blue, red and yellow strip, the artist in blue, "MUNDIAL DE COLLAGE" in red (an SVG drawn as an image cannot use the page's fonts, so those labels keep system type).
+
+Left as they are, because they are the museum's own signs and not banners: Buenos Aires Provincia, SALIDA, TIENDA FINDE, the Laboratorio lettering, the archive cases and the sea lion's plaque, and the café emblem. The texts on the banners (headlines, lines) are placeholders in the site's voice, written to be replaced.
+
 ## Banners are slots
 
-Posters and vinyl are `MAR_BANNERS` in `layout.ts`: a centre, a width and a height on the wall, and an optional `image`. Without `image` a stand-in drawn in `decals.ts` shows (the exhibition posters and the Noé vinyl in the photographs). The two roll-up banners in the hall (`standee-a`, `standee-b`) are slots too. To print a Collage World Cup banner, put the file under `public/` and set `image: '/mar/banner-a.jpg'` on that slot. Nothing else needs to move. Keep the picture's aspect ratio equal to the slot's width ÷ height or it stretches.
+Posters and vinyl are `MAR_BANNERS` in `layout.ts`: a centre, a width and a height on the wall, and an optional `image`. Without `image` a branded stand-in drawn in `brandBanners.ts` shows. The two roll-up banners in the hall (`standee-a`, `standee-b`) are slots too. To print a Collage World Cup banner, put the file under `public/` and set `image: '/mar/banner-a.jpg'` on that slot. Nothing else needs to move. Keep the picture's aspect ratio equal to the slot's width ÷ height or it stretches.
 
 ## Estimated dimensions
 

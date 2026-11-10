@@ -45,20 +45,26 @@ function artistLabel(artist: string, flagSvg: string | null) {
 }
 
 const PLACARD_WIDTH = 0.5
-const PLACARD_VIEW = { width: 340, height: 230 }
+const PLACARD_VIEW = { width: 340, height: 250 }
 
 function placardLabel({ title, artist, year, flagSvg }: Pick<ArtworkData, 'title' | 'artist' | 'year' | 'flagSvg'>) {
   const lines = wrapTitle(title || 'Sin título')
   const artistText = artist.length > 26 ? `${artist.slice(0, 25).trimEnd()}…` : artist
-  const titleSvg = lines.map((line, index) => `<text x="22" y="${48 + index * 31}" fill="#161513" font-family="Georgia, 'Times New Roman', serif" font-size="26" font-style="italic">${escapeSvgText(line)}</text>`).join('')
-  const artistY = 48 + lines.length * 31 + 14
+  const titleSvg = lines.map((line, index) => `<text x="22" y="${62 + index * 31}" fill="#1b110c" font-family="Georgia, 'Times New Roman', serif" font-size="26" font-style="italic" font-weight="600">${escapeSvgText(line)}</text>`).join('')
+  const artistY = 62 + lines.length * 31 + 14
   const flagY = artistY + 22
+  // The Mundial's identity: paper, ink, and the blue, red and yellow of the globe as a strip along the top.
+  // (An SVG drawn as an image can't use the page's fonts, so the type stays the system's.)
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PLACARD_VIEW.width}" height="${PLACARD_VIEW.height}" viewBox="0 0 ${PLACARD_VIEW.width} ${PLACARD_VIEW.height}">
-    <rect x="1" y="1" width="${PLACARD_VIEW.width - 2}" height="${PLACARD_VIEW.height - 2}" fill="#f7f5f0" stroke="#d3cec4" stroke-width="2"/>
+    <rect x="1" y="1" width="${PLACARD_VIEW.width - 2}" height="${PLACARD_VIEW.height - 2}" fill="#faf8f2" stroke="#d3cec4" stroke-width="2"/>
+    <rect x="1" y="1" width="${(PLACARD_VIEW.width - 2) * 0.5}" height="9" fill="#11458c"/>
+    <rect x="${1 + (PLACARD_VIEW.width - 2) * 0.5}" y="1" width="${(PLACARD_VIEW.width - 2) * 0.3}" height="9" fill="#d4302e"/>
+    <rect x="${1 + (PLACARD_VIEW.width - 2) * 0.8}" y="1" width="${(PLACARD_VIEW.width - 2) * 0.2}" height="9" fill="#e79d00"/>
     ${titleSvg}
-    <text x="22" y="${artistY}" fill="#161513" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600">${escapeSvgText(artistText)}</text>
+    <text x="22" y="${artistY}" fill="#11458c" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">${escapeSvgText(artistText)}</text>
     ${flagSvg ? `<image x="22" y="${flagY}" width="39" height="26" href="data:image/svg+xml;charset=utf-8,${encodeURIComponent(flagSvg)}"/><rect x="22" y="${flagY}" width="39" height="26" fill="none" stroke="#d3cec4" stroke-width="1"/>` : ''}
     <text x="${flagSvg ? 72 : 22}" y="${flagY + 20}" fill="#5c5750" font-family="Arial, Helvetica, sans-serif" font-size="20">${year}</text>
+    <text x="${PLACARD_VIEW.width - 18}" y="${PLACARD_VIEW.height - 14}" text-anchor="end" fill="#d4302e" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="1">MUNDIAL DE COLLAGE</text>
   </svg>`
   return { url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`, width: PLACARD_WIDTH, height: PLACARD_WIDTH * PLACARD_VIEW.height / PLACARD_VIEW.width }
 }

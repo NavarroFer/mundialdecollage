@@ -154,25 +154,3 @@ export function vitrineTexture() {
   context.fillText('Material de archivo', 36, 178)
   return canvasTexture(canvas, false)
 }
-
-/** A roll-up banner stand-in for a hall standee. */
-export function standeeTexture() {
-  const { canvas, context } = canvasOf(340, 800)
-  context.fillStyle = '#f2f6f8'
-  context.fillRect(0, 0, 340, 800)
-  context.fillStyle = '#28a6d6'
-  context.fillRect(0, 0, 340, 130)
-  context.fillStyle = '#ffffff'
-  context.font = `800 34px ${SANS}`
-  context.fillText('INSTITUTO', 24, 56)
-  context.fillText('CULTURAL', 24, 98)
-  context.fillStyle = '#2c3a42'
-  context.font = `500 24px ${SANS}`
-  context.fillText('GOBIERNO DE LA', 24, 640)
-  context.fillText('PROVINCIA DE', 24, 670)
-  context.fillStyle = '#28a6d6'
-  context.font = `800 46px ${SANS}`
-  context.fillText('BUENOS', 24, 716)
-  context.fillText('AIRES', 24, 764)
-  return canvasTexture(canvas, false)
-}

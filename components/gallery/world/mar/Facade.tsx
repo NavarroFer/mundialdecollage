@@ -4,33 +4,19 @@ import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { MAR, MAR_BANNERS, STAIR, type MarBanner } from './layout'
 import {
-  bancoPanelTexture,
-  biformesPosterTexture,
   cafeEmblemTexture,
   exitSignTexture,
-  maquinasPosterTexture,
-  noeBannerTexture,
   provinciaLogoTexture,
   tactileTexture,
 } from './decals'
-import { standeeTexture } from './interiorDecals'
+import { brandBannerTexture } from './brandBanners'
 import { louvreTexture } from './textures'
 
 // Everything printed, painted or fitted on the faces of the volumes: the mark
 // over the doors, the banners, the revolving door, the vent housing and the
 // stair. Colliders for these live in layout.ts; none of this is solid.
 
-/** What each banner slot shows until an image is set on it in layout.ts. */
-const STAND_INS: Record<string, () => THREE.Texture> = {
-  'door-a': biformesPosterTexture,
-  'door-b': bancoPanelTexture,
-  'door-c': maquinasPosterTexture,
-  vinyl: noeBannerTexture,
-  'standee-a': standeeTexture,
-  'standee-b': standeeTexture,
-  'standee-c': standeeTexture,
-}
-
+/** A banner slot without its own `image` shows the Mundial de Collage's branded stand-in (brandBanners.ts). */
 function useBannerTextures(banners: MarBanner[]) {
   const textures = useMemo(() => banners.map((banner) => {
     if (banner.image) {
@@ -39,7 +25,7 @@ function useBannerTextures(banners: MarBanner[]) {
       texture.anisotropy = 8
       return texture
     }
-    return STAND_INS[banner.id]?.() ?? null
+    return brandBannerTexture(banner.id)
   }), [banners])
   useEffect(() => () => textures.forEach((texture) => texture?.dispose()), [textures])
   return textures
