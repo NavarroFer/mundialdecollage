@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { LOBO } from './layout'
+import { loboPlaqueTexture } from './decals'
 import { WEAVE_TILE, seeded, weaveTexture } from './textures'
 
 // The woven sea lion on the plaza: a temporary installation, kept as a model
@@ -95,10 +96,10 @@ function flipperGeometry(radii: [number, number, number], widthSegments = 18, he
 function rockPlacements() {
   const random = seeded(91)
   const rocks: Array<{ position: [number, number, number]; scale: [number, number, number]; rotation: [number, number, number] }> = []
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 120; i++) {
     const x = LOBO.head.x - 1.2 + random() * 9.5
     const z = LOBO.head.z + (random() - 0.5) * 4.6
-    const size = 0.12 + random() * random() * 0.36
+    const size = 0.14 + random() * random() * 0.42
     rocks.push({
       position: [x, LOBO.height + size * 0.3, z],
       scale: [size * (0.8 + random() * 0.7), size * (0.6 + random() * 0.4), size * (0.8 + random() * 0.6)],
@@ -119,7 +120,7 @@ function Rocks() {
     <>
       {rocks.map((rock, index) => (
         <mesh key={index} geometry={geometry} position={rock.position} scale={rock.scale} rotation={rock.rotation} castShadow receiveShadow>
-          <meshStandardMaterial color={index % 4 === 0 ? '#d9d5cb' : index % 3 === 0 ? '#9a978f' : '#bdb9ae'} roughness={0.95} flatShading />
+          <meshStandardMaterial color={index % 5 === 0 ? '#c4c2bc' : index % 3 === 0 ? '#8d8c88' : index % 2 === 0 ? '#a7a5a0' : '#77767a'} roughness={0.95} flatShading />
         </mesh>
       ))}
     </>
@@ -175,9 +176,35 @@ function Rail() {
   )
 }
 
+/** The plaque at the sea lion's foot, tilted back on two posts, facing the plaza. */
+function Plaque({ texture }: { texture: THREE.Texture }) {
+  const { x0, z1, height, head } = LOBO
+  const x = head.x + 2.4
+  const z = z1 - 1.5
+  return (
+    <group position={[x, height, z]}>
+      {[-0.42, 0.42].map((dx) => (
+        <mesh key={dx} position={[dx, 0.2, -0.05]} castShadow>
+          <boxGeometry args={[0.04, 0.4, 0.04]} />
+          <meshStandardMaterial color="#2a2c2e" roughness={0.6} metalness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.5, 0]} rotation={[-0.5, 0, 0]}>
+        <boxGeometry args={[1.0, 0.43, 0.03]} />
+        <meshStandardMaterial color="#b8bbbd" roughness={0.45} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.5, 0.017]} rotation={[-0.5, 0, 0]}>
+        <planeGeometry args={[0.96, 0.4]} />
+        <meshStandardMaterial map={texture} roughness={0.5} metalness={0.15} />
+      </mesh>
+    </group>
+  )
+}
+
 export function SeaLion() {
   const resources = useMemo(() => {
     const map = weaveTexture()
+    const plaque = loboPlaqueTexture()
     const body = sweptBodyGeometry()
     const material = new THREE.MeshStandardMaterial({ map, color: '#fff6d8', roughness: 0.6, metalness: 0.05, emissive: '#5a4518', emissiveIntensity: 0.14 })
     const slab = new THREE.MeshStandardMaterial({ color: '#cdbfa6', roughness: 0.85 })
@@ -187,10 +214,11 @@ export function SeaLion() {
       foot: flipperGeometry([1.5, 0.36, 0.85]),
       hind: flipperGeometry([1.5, 0.35, 0.75]),
     }
-    return { map, body, material, slab, gravel, flippers }
+    return { map, plaque, body, material, slab, gravel, flippers }
   }, [])
   useEffect(() => () => {
     resources.map.dispose()
+    resources.plaque.dispose()
     resources.body.dispose()
     resources.material.dispose()
     resources.slab.dispose()
@@ -210,6 +238,7 @@ export function SeaLion() {
         <planeGeometry args={[x1 - x0 - 0.7, z1 - z0 - 0.7]} />
       </mesh>
       <Rocks />
+      <Plaque texture={resources.plaque} />
       <Rail />
 
       <group position={[head.x, height, head.z]}>

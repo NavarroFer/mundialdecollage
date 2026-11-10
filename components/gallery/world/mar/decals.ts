@@ -240,6 +240,35 @@ export function tactileTexture() {
   return finish(canvas)
 }
 
+/** The plaque among the rocks at the sea lion's foot: brushed grey, engraved, on two posts. */
+export function loboPlaqueTexture() {
+  const { canvas, context } = canvasOf(1024, 440)
+  context.fillStyle = '#c9cbcd'
+  context.fillRect(0, 0, 1024, 440)
+  const sheen = context.createLinearGradient(0, 0, 1024, 440)
+  sheen.addColorStop(0, 'rgba(255,255,255,0.35)')
+  sheen.addColorStop(0.5, 'rgba(255,255,255,0)')
+  sheen.addColorStop(1, 'rgba(60,64,68,0.18)')
+  context.fillStyle = sheen
+  context.fillRect(0, 0, 1024, 440)
+  context.strokeStyle = 'rgba(90, 94, 98, 0.5)'
+  context.lineWidth = 6
+  context.strokeRect(3, 3, 1018, 434)
+  context.fillStyle = '#2f3336'
+  context.textBaseline = 'alphabetic'
+  context.font = `italic 600 50px Georgia, serif`
+  context.fillText('Lobo Marino De Alfajores', 46, 86)
+  context.font = `italic 400 36px Georgia, serif`
+  context.fillText('Idea y creación de Marta Minujín.', 46, 150)
+  context.font = `italic 400 36px Georgia, serif`
+  context.fillText('Donación de HAVANNA S.A. al', 46, 250)
+  context.fillText('Instituto Cultural de la Provincia de Buenos Aires', 46, 300)
+  context.font = `italic 400 28px Georgia, serif`
+  context.textAlign = 'right'
+  context.fillText('Mar del Plata - 2014', 980, 400)
+  return finish(canvas)
+}
+
 export function disposeAll(textures: THREE.Texture[]) {
   textures.forEach((texture) => texture.dispose())
 }
