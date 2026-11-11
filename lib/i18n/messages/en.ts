@@ -1084,6 +1084,8 @@ const en: Messages = {
     exploreSearch: 'Search by name or country',
     exploreCountry: 'Country',
     exploreTechnique: 'Technique',
+    exploreRecent: 'Recent',
+    exploreForYou: 'For you',
     exploreAll: 'All',
     exploreEmpty: 'Nothing matches that search.',
     exploreArtists: 'Artists',

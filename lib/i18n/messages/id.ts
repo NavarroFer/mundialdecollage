@@ -1080,6 +1080,8 @@ const id: Messages = {
     exploreSearch: 'Cari menurut nama atau negara',
     exploreCountry: 'Negara',
     exploreTechnique: 'Teknik',
+    exploreRecent: 'Terbaru',
+    exploreForYou: 'Untukmu',
     exploreAll: 'Semua',
     exploreEmpty: 'Tidak ada yang cocok.',
     exploreArtists: 'Seniman',

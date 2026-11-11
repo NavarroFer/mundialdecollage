@@ -1,14 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle } from 'lucide-react'
+import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { addArtworkComment, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { useI18n } from '@/lib/i18n/client'
 import { imageSrc } from '@/lib/image-src'
 import { countryCodeToFlag } from '@/lib/participants'
 import { fmt } from '@/lib/i18n/format'
+import { rankForTaste } from '@/lib/community'
+import { tagsFromIndexes } from '@/lib/community-tags'
+import { createClient } from '@/lib/supabase/client'
 
 type Recent = { author: string; body: string; createdAt: string }
 export type ObraCard = {
@@ -22,6 +26,8 @@ export type ObraCard = {
   comments: number
   activityAt: string
   recent: Recent[]
+  /** Indexes into COMMUNITY_TAGS, for «Para vos». */
+  tags?: number[]
 }
 
 type Page = { obras: ObraCard[]; next: { at: string; id: string } | null }
@@ -41,12 +47,26 @@ function load(cursor?: { at: string; id: string }) {
 export function ObraActivityFeed() {
   const { m } = useI18n()
   const t = m.community
+  const tabs = m.siteSections
   const [obras, setObras] = useState<ObraCard[] | null>(null)
   const [next, setNext] = useState<Page['next']>(null)
   const [error, setError] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [pendingNote, setPendingNote] = useState<Record<string, string>>({})
+  // «Para vos»: the database computes the taste, the browser orders what it
+  // already has. Hidden until there is a taste to read.
+  const [sort, setSort] = useState<'recent' | 'foryou'>('recent')
+  const [taste, setTaste] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    let gone = false
+    createClient().auth.getSession().then(({ data }) => {
+      if (gone || !data.session) return
+      communityViewer().then((viewer) => { if (!gone) setTaste(viewer.taste) }).catch(() => {})
+    }).catch(() => {})
+    return () => { gone = true }
+  }, [])
 
   useEffect(() => {
     let gone = false
@@ -57,6 +77,18 @@ export function ObraActivityFeed() {
     }).catch(() => { if (!gone) setError(true) })
     return () => { gone = true }
   }, [])
+
+  const ordered = useMemo(() => {
+    const list = obras ?? []
+    if (sort !== 'foryou' || Object.keys(taste).length === 0) return list
+    return rankForTaste(list.map((obra) => ({
+      obra,
+      tags: tagsFromIndexes(obra.tags),
+      createdAt: obra.activityAt,
+      likes: obra.likes,
+      comments: obra.comments,
+    })), taste).map(({ obra }) => obra)
+  }, [obras, sort, taste])
 
   function bump(slug: string, patch: (obra: ObraCard) => ObraCard) {
     setObras((current) => {
@@ -117,8 +149,29 @@ export function ObraActivityFeed() {
   if (!obras.length) return <p className="py-16 text-center text-muted-foreground">{t.empty}</p>
 
   return (
-    <ul className="flex flex-col gap-8">
-      {obras.map((obra) => (
+    <div>
+      {Object.keys(taste).length > 0 && (
+        <div className="mb-6 inline-flex rounded-full border-2 border-ink/15 p-1" role="group" aria-label={`${tabs.exploreRecent} / ${tabs.exploreForYou}`}>
+          <button
+            type="button"
+            aria-pressed={sort === 'recent'}
+            onClick={() => setSort('recent')}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-collage-blue ${sort === 'recent' ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5'}`}
+          >
+            {tabs.exploreRecent}
+          </button>
+          <button
+            type="button"
+            aria-pressed={sort === 'foryou'}
+            onClick={() => setSort('foryou')}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-collage-blue ${sort === 'foryou' ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5'}`}
+          >
+            {tabs.exploreForYou}
+          </button>
+        </div>
+      )}
+      <ul className="flex flex-col gap-8">
+        {ordered.map((obra) => (
         <li key={obra.id} className="overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">
           <div className="flex items-center gap-3 px-4 py-3">
             <span className="text-lg" aria-hidden="true">{obra.countryCode ? countryCodeToFlag(obra.countryCode) : ''}</span>
@@ -174,6 +227,7 @@ export function ObraActivityFeed() {
           </button>
         </li>
       )}
-    </ul>
+      </ul>
+    </div>
   )
 }

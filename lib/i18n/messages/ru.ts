@@ -1105,6 +1105,8 @@ const ru: Messages = {
     exploreSearch: 'Искать по имени или стране',
     exploreCountry: 'Страна',
     exploreTechnique: 'Техника',
+    exploreRecent: 'Новые',
+    exploreForYou: 'Для вас',
     exploreAll: 'Все',
     exploreEmpty: 'Ничего не нашлось.',
     exploreArtists: 'Художники',

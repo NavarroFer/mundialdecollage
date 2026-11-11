@@ -1083,6 +1083,8 @@ const fr: Messages = {
     exploreSearch: 'Chercher par nom ou pays',
     exploreCountry: 'Pays',
     exploreTechnique: 'Technique',
+    exploreRecent: 'Récentes',
+    exploreForYou: 'Pour vous',
     exploreAll: 'Tous',
     exploreEmpty: 'Rien ne correspond à cette recherche.',
     exploreArtists: 'Artistes',
