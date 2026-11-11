@@ -1049,6 +1049,13 @@ const pt: Messages = {
     moderationForcedKey: 'Falta ANTHROPIC_API_KEY. A moderação com IA fica desligada mesmo com este interruptor ligado.',
     moderationActive: 'Neste momento a IA está etiquetando o que está pendente.',
     moderationManual: 'Neste momento a moderação é manual.',
+    feedSubtitle: 'O que os artistas do Mundial estão compartilhando: obras, curtidas e comentários.',
+    feedRecent: 'Recentes',
+    feedPopular: 'Populares',
+    feedConversation: 'Com conversa',
+    feedEmpty: 'Ainda não há movimento. Quando uma obra receber uma curtida ou um comentário, ela aparece aqui.',
+    feedConversationEmpty: 'Ninguém comentou uma obra ainda.',
+    feedSeeCommunity: 'Ver Comunidade',
     errors: {
       signin: 'Entre com o Google para continuar.',
       not_artist: 'Publicar é para artistas inscritos. Você pode curtir e comentar.',
