@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { hasPaidEntries } from '@/lib/entry-payments'
@@ -16,6 +17,14 @@ import { provisionLegacyProfiles, publishPendingLegacySubmissions } from '@/lib/
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { refreshArtworkData, refreshPublicData } from '@/lib/public-data-cache'
+import { tagArtwork } from '@/lib/community-ai'
+
+// Same pattern as enrichLater in Comunidad: the model call runs after the
+// response so approving an obra stays instant.
+function tagLater(artworkId: string) {
+  const run = () => { void tagArtwork(artworkId).catch((error) => console.error('artwork tags', error)) }
+  try { after(run) } catch { run() }
+}
 
 // The service-role client bypasses RLS entirely, so any action that reaches
 // for it (unlike the rest of this file, which relies on the session client +
@@ -559,6 +568,10 @@ export async function selectArtwork(formData: FormData) {
 
   const { error: selectError } = await supabase.from('artworks').update({ is_selected: true }).eq('id', id)
   if (selectError) redirect(`/admin/obras?error=${encodeURIComponent(selectError.message)}`)
+
+  // The chosen obra is now public for the first time: tag it once, off the
+  // response path, so «Para vos» and similares have labels to work with.
+  tagLater(id)
 
   // The chosen obra is now the postulated one (a trigger marks it entered).
   // An artist who didn't pay for more entries keeps only that one.
