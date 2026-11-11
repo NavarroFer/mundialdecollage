@@ -19,11 +19,9 @@ import { JurySection } from '@/components/jury-section'
 import { Footer } from '@/components/footer'
 import { TrackView } from '@/components/track'
 import { ArtistFeedHome } from '@/components/artist-feed-home'
-import { SiteSections } from '@/components/site-sections'
-import { artistSeesFeedHome } from '@/lib/artist-home'
-import { isAdminEmail, isAdminView } from '@/lib/view-mode'
+import { COMMUNITY_POSTING } from '@/lib/community'
+import { viewerCanSeeObraFeed } from '@/lib/feed-access'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { createClient, getCurrentUser } from '@/lib/supabase/server'
 
 // Renders per request so a new submission shows up without a redeploy.
 // The anonymous copy (anon/page.tsx) calls renderAsAnonymous() first, so
@@ -32,16 +30,8 @@ export const dynamic = 'force-dynamic'
 
 async function homeKind(forceSite: boolean): Promise<'feed' | 'artist-site' | 'public'> {
   if (!isSupabaseConfigured) return 'public'
-  const user = await getCurrentUser()
-  if (!user) return 'public'
-  const admin = isAdminEmail(user.email)
-  const adminView = await isAdminView(user)
-  let onboarded = false
-  if (!(admin && !adminView)) {
-    const { data } = await (await createClient()).from('profiles').select('onboarded_at').eq('id', user.id).maybeSingle()
-    onboarded = Boolean(data?.onboarded_at)
-  }
-  const sees = artistSeesFeedHome({ signedIn: true, onboarded, admin, adminView, forceSite: false })
+  // Server-side: no obra submitted means the public home, not the feed.
+  const sees = await viewerCanSeeObraFeed()
   if (!sees) return 'public'
   return forceSite ? 'artist-site' : 'feed'
 }
@@ -60,7 +50,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           that's hidden behind the splash but still in the DOM. */}
       <div id="site-content">
         <SiteHeader />
-        {kind === 'artist-site' && <SiteSections here="site" />}
         <main>
           <HeroSection />
           <FlagRibbon />
@@ -72,7 +61,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             hideForSignedIn
             className="mx-auto max-w-4xl px-5 pt-10 sm:px-8 sm:pt-14"
           />
-          <CommunityStrip />
+          {COMMUNITY_POSTING && <CommunityStrip />}
           <BasesBanner />
           <EditionSection />
           {/* Before the obras: after them it sat 8–9 phone screens down,

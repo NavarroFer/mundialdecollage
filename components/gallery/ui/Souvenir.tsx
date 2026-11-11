@@ -17,7 +17,7 @@ import { fmt, formatDayMonth } from '@/lib/i18n/format'
 import { createClient } from '@/lib/supabase/client'
 import { downscaleImage } from '@/lib/downscale-image'
 import { communityViewer, publishImage } from '@/app/[locale]/(site)/comunidad/actions'
-import { communityPostPath, type CommunityError } from '@/lib/community'
+import { COMMUNITY_POSTING, communityPostPath, type CommunityError } from '@/lib/community'
 
 const FILE_NAME = 'mundial-de-collage.jpg'
 const DOMAIN = 'mundialdecollage.com.ar'
@@ -241,7 +241,7 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
                   <Download className="h-4 w-4" aria-hidden="true" /> {t.download}
                 </a>
               )}
-              {photo && canPost && (
+              {photo && canPost && COMMUNITY_POSTING && (
                 publishedHref ? (
                   <a href={publishedHref} className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-ink/20 px-5 py-2.5 text-sm font-semibold">
                     {m.community.offerDone}

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Boxes, DoorOpen, Store } from 'lucide-react'
+import { Compass, Landmark, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AccountMenu } from '@/components/account-menu'
 import { artistProfileSlug } from '@/lib/artist-slug'
@@ -12,7 +12,6 @@ import { getI18n } from '@/lib/i18n/server'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { TrackedLink } from '@/components/track'
 import { SiteHeaderMotion } from '@/components/site-header-motion'
-import { SectionLink } from '@/components/section-link'
 import { getCallState } from '@/lib/call-state'
 import { NotificationsSlot } from '@/components/notifications/notifications-slot'
 import { MobileTabBar } from '@/components/mobile-tab-bar'
@@ -75,7 +74,7 @@ async function AccountSlot() {
   return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} adminView={adminView} />
 }
 
-export async function SiteHeader() {
+export async function SiteHeader({ deskNav = true }: { deskNav?: boolean } = {}) {
   // «Participar» becomes «Ver las obras» once the call closes.
   const [{ m }, { open: callOpen }, user] = await Promise.all([
     getI18n(),
@@ -102,29 +101,20 @@ export async function SiteHeader() {
             />
           </Link>
 
-          <nav className="hidden items-center rounded-full bg-ink/[0.06] p-1.5 text-[15px] font-semibold transition-[padding] duration-300 ease-out group-data-[scrolled=true]/header:p-1 lg:flex motion-reduce:transition-none" aria-label={m.header.nav}>
-            <TrackedLink href="/tienda" event="store_click_header" className="flex h-11 items-center gap-2 rounded-full bg-paper px-4 text-ink shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-collage-yellow/20 hover:shadow-md active:translate-y-0 motion-reduce:transition-none">
-              <Store className="h-4 w-4" aria-hidden="true" />
-              {m.header.shop}
-            </TrackedLink>
-            <SectionLink href="/#participantes" className="flex h-11 items-center rounded-full px-4 text-ink/70 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
-              {m.header.participants}
-            </SectionLink>
-            <Link
-              href="/galeria-3d"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-collage-blue transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:shadow-sm active:translate-y-0 motion-reduce:transition-none"
-            >
-              <Boxes className="h-4 w-4" aria-hidden="true" />
-              {m.header.gallery3d}
-              <span className="sr-only"> {m.common.opensInNewTab}</span>
+          {deskNav && <nav className="hidden items-center rounded-full bg-ink/[0.06] p-1.5 text-[15px] font-semibold transition-[padding] duration-300 ease-out group-data-[scrolled=true]/header:p-1 lg:flex motion-reduce:transition-none" aria-label={m.header.nav}>
+            <Link href="/explorar" className="flex h-11 items-center gap-2 rounded-full px-4 text-ink/80 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
+              <Search className="h-4 w-4" aria-hidden="true" />
+              {m.siteSections.explore}
             </Link>
-            <Link href="/club" className="flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-ink/70 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
-              <DoorOpen className="h-4 w-4" aria-hidden="true" />
-              {m.header.club}
+            <Link href="/muestra" className="flex h-11 items-center gap-2 rounded-full px-4 text-ink/80 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
+              <Landmark className="h-4 w-4" aria-hidden="true" />
+              {m.siteSections.show}
             </Link>
-          </nav>
+            <Link href="/mundial" className="flex h-11 items-center gap-2 rounded-full px-4 text-ink/80 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-paper hover:text-ink hover:shadow-sm active:translate-y-0 motion-reduce:transition-none">
+              <Compass className="h-4 w-4" aria-hidden="true" />
+              {m.siteSections.mundial}
+            </Link>
+          </nav>}
 
           <div className="hidden items-center gap-2 lg:flex">
             <LanguageSwitcher className="px-2" />
@@ -154,10 +144,10 @@ export async function SiteHeader() {
         labels={{
           nav: m.header.nav,
           home: m.header.home,
-          participants: m.header.participants,
+          explore: m.siteSections.explore,
           participate: callOpen ? m.header.participate : m.closed.headerCta,
-          gallery3d: m.header.gallery3d,
-          club: m.header.club,
+          show: m.siteSections.show,
+          mundial: m.siteSections.mundial,
           opensInNewTab: m.common.opensInNewTab,
         }}
       />
