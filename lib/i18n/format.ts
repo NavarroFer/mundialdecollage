@@ -34,6 +34,23 @@ export function formatDayMonth(locale: Locale, iso: string): string {
   }).format(new Date(iso))
 }
 
+/** «hace 3 h»: a short relative time in the reader's language. */
+export function formatRelative(locale: Locale, iso: string, now = new Date()): string {
+  const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000)
+  const abs = Math.abs(seconds)
+  const format = new Intl.RelativeTimeFormat(LOCALE_INFO[locale].intl, { numeric: 'auto', style: 'short' })
+  if (abs < 60) return format.format(seconds, 'second')
+  const minutes = Math.round(seconds / 60)
+  if (Math.abs(minutes) < 60) return format.format(minutes, 'minute')
+  const hours = Math.round(minutes / 60)
+  if (Math.abs(hours) < 24) return format.format(hours, 'hour')
+  const days = Math.round(hours / 24)
+  if (Math.abs(days) < 30) return format.format(days, 'day')
+  const months = Math.round(days / 30)
+  if (Math.abs(months) < 12) return format.format(months, 'month')
+  return format.format(Math.round(months / 12), 'year')
+}
+
 // Whole amounts only ("$ 30.000", "US$ 15"): prices are set in round numbers.
 export function formatMoney(locale: Locale, value: number, currency: 'ARS' | 'USD'): string {
   return new Intl.NumberFormat(LOCALE_INFO[locale].intl, { style: 'currency', currency, maximumFractionDigits: 0 }).format(value)

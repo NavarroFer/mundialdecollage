@@ -20,6 +20,7 @@ const CLIENT_NAMESPACES = [
   'confirmation',
   'entries',
   'share',
+  'community',
   'gallery',
   'ar',
   'store',
