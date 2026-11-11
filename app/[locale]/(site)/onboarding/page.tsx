@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { getCallState } from '@/lib/call-state'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminView } from '@/lib/view-mode'
 import { fetchAndStoreLegacyArtwork } from '@/lib/legacy-submissions'
 import { guessCountryCodeFromName } from '@/lib/participants'
 import { needsEntryChoice } from '@/lib/entries'
@@ -69,7 +69,7 @@ export default async function OnboardingPage({
 
   // Admins log in to moderate, not to submit an artwork — skip the
   // onboarding form and drop them straight into the panel.
-  if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
+  if (await isAdminView(user)) redirect('/admin')
 
   const { error, another } = await searchParams
   if (another && !callOpen) return <CallClosed m={m} signedIn />

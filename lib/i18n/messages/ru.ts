@@ -49,6 +49,8 @@ const ru: Messages = {
     helloName: 'Здравствуйте, {name}',
     participating: 'Вы уже участвуете',
     adminPanel: 'Админ-панель',
+    viewAsArtist: "Смотреть как художник",
+    viewAsAdmin: "Смотреть как админ",
     club: 'Клуб',
     account: 'Меню аккаунта',
     myGallery: 'Моя галерея Клуба',

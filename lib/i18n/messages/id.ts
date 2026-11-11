@@ -49,6 +49,8 @@ const id: Messages = {
     helloName: 'Halo, {name}',
     participating: 'Kamu sudah ikut serta',
     adminPanel: 'Panel admin',
+    viewAsArtist: "Lihat sebagai seniman",
+    viewAsAdmin: "Lihat sebagai admin",
     club: 'Club',
     account: 'Menu akun',
     myGallery: 'Galeri Club saya',

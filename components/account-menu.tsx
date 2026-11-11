@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useId, useRef, useState } from 'react'
-import { DoorOpen, LogOut, PencilLine, ShieldCheck, Store, User } from 'lucide-react'
+import { useEffect, useId, useRef, useState, useTransition } from 'react'
+import { DoorOpen, LogOut, PencilLine, Palette, ShieldCheck, Store, User } from 'lucide-react'
+import { setViewMode } from '@/components/view-mode-actions'
 import { GoogleIcon, useGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useI18n } from '@/lib/i18n/client'
@@ -18,6 +19,8 @@ export type AccountMenuLabels = {
   editProfile: string
   shop: string
   adminPanel: string
+  viewAsArtist: string
+  viewAsAdmin: string
 }
 
 export type AccountMenuProps = {
@@ -29,7 +32,9 @@ export type AccountMenuProps = {
   profileHref?: string
   // Thumbnail of the artist's obra: their avatar, as Google shows a photo.
   thumbUrl?: string
+  // An admin account, and whether it is seen as one right now (lib/view-mode.ts).
   isAdmin?: boolean
+  adminView?: boolean
 }
 
 const ITEM =
@@ -54,10 +59,11 @@ function Avatar({ name, thumbUrl, signedIn, size }: { name?: string; thumbUrl?: 
 // The avatar at the top right, like Google's: it opens a card with the
 // artist's thumbnail, their profile and everything the phone's tab bar has
 // no room for (shop, language, the Club gallery, sign out).
-export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isAdmin }: AccountMenuProps) {
+export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isAdmin, adminView = true }: AccountMenuProps) {
   const { m } = useI18n()
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [switching, startSwitch] = useTransition()
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
@@ -88,6 +94,14 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
   }
 
   const close = () => setOpen(false)
+
+  function switchView() {
+    startSwitch(async () => {
+      await setViewMode(adminView ? 'artist' : 'admin')
+      setOpen(false)
+      router.refresh()
+    })
+  }
 
   return (
     <div ref={rootRef} className="relative">
@@ -147,11 +161,17 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
             <Store className="h-5 w-5 text-ink/70" aria-hidden="true" />
             {labels.shop}
           </Link>
-          {isAdmin && (
+          {isAdmin && adminView && (
             <Link href="/admin/estadisticas" onClick={close} className={ITEM}>
               <ShieldCheck className="h-5 w-5 text-ink/70" aria-hidden="true" />
               {labels.adminPanel}
             </Link>
+          )}
+          {isAdmin && (
+            <button type="button" onClick={switchView} disabled={switching} className={`${ITEM} disabled:opacity-60`}>
+              {adminView ? <Palette className="h-5 w-5 text-ink/70" aria-hidden="true" /> : <ShieldCheck className="h-5 w-5 text-ink/70" aria-hidden="true" />}
+              {adminView ? labels.viewAsArtist : labels.viewAsAdmin}
+            </button>
           )}
           {/* The desktop header already shows the language switcher. */}
           <div className="lg:hidden">

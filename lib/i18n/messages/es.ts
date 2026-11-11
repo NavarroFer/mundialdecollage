@@ -51,6 +51,8 @@ const es = {
     helloName: 'Hola, {name}',
     participating: 'Ya estás participando',
     adminPanel: 'Panel admin',
+    viewAsArtist: "Ver como artista",
+    viewAsAdmin: "Ver como admin",
     club: 'Club',
     account: 'Menú de cuenta',
     myGallery: 'Mi galería del Club',

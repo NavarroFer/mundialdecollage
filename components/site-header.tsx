@@ -7,7 +7,7 @@ import { artistProfileSlug } from '@/lib/artist-slug'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminEmail, isAdminView } from '@/lib/view-mode'
 import { getI18n } from '@/lib/i18n/server'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { TrackedLink } from '@/components/track'
@@ -29,20 +29,24 @@ async function AccountSlot() {
     editProfile: m.header.editProfile,
     shop: m.header.shop,
     adminPanel: m.header.adminPanel,
+    viewAsArtist: m.header.viewAsArtist,
+    viewAsAdmin: m.header.viewAsAdmin,
   }
 
   const user = await getCurrentUser()
   if (!user) return <AccountMenu labels={labels} signedIn={false} />
 
-  const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
+  // An admin can switch to seeing the site as an artist (lib/view-mode.ts).
+  const isAdmin = isAdminEmail(user.email)
+  const adminView = await isAdminView(user)
   const fullName = user.user_metadata?.full_name as string | undefined
 
-  // Admins never submit an artwork, so skip the profile lookups for them
-  // entirely (same as app/onboarding/page.tsx).
+  // An admin seen as an admin never submits an artwork, so skip the profile
+  // lookups for them entirely (same as app/onboarding/page.tsx).
   let name = fullName?.split(' ')[0]
   let profileHref: string | undefined
   let thumbUrl: string | undefined
-  if (!isAdmin) {
+  if (!adminView) {
     const supabase = await createClient()
     const [{ data: profile }, { data: artwork }] = await Promise.all([
       supabase.from('profiles').select('onboarded_at, name').eq('id', user.id).maybeSingle(),
@@ -66,7 +70,7 @@ async function AccountSlot() {
     }
   }
 
-  return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} />
+  return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} adminView={adminView} />
 }
 
 export async function SiteHeader() {

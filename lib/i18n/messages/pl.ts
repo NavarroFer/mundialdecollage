@@ -49,6 +49,8 @@ const pl: Messages = {
     helloName: 'Cześć, {name}',
     participating: 'Już bierzesz udział',
     adminPanel: 'Panel admina',
+    viewAsArtist: "Zobacz jako artysta",
+    viewAsAdmin: "Zobacz jako admin",
     club: 'Klub',
     account: 'Menu konta',
     myGallery: 'Moja galeria w Klubie',

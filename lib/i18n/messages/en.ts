@@ -49,6 +49,8 @@ const en: Messages = {
     helloName: 'Hi, {name}',
     participating: "You're taking part",
     adminPanel: 'Admin panel',
+    viewAsArtist: "View as artist",
+    viewAsAdmin: "View as admin",
     club: 'Club',
     account: 'Account menu',
     myGallery: 'My Club gallery',
