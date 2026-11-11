@@ -1096,6 +1096,8 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 
 ### Etapa 4: red (solo si el dueño la pide)
 
+El detalle de esta etapa, con las señales, el SQL y el orden en el navegador, está en `docs/red-social-explorar.md`.
+
 - Sugerencias personales: pestaña «Para vos», «Artistas que te pueden gustar» y sugerencias en el mail diario (§11 ter). Se activan con más de unas 50 publicaciones por semana.
 - Tabla `follows (follower_id, followed_id, created_at, primary key (follower_id, followed_id))`, botón «Seguir» en el perfil y en la tarjeta, y filtro «Siguiendo». Este filtro sí es personal: va en una action, no en el endpoint cacheado.
 - Menciones con `@` y notificación `post_mention`.
