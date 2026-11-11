@@ -5,6 +5,7 @@ import {
   Images,
   BarChart3,
   MessageSquare,
+  Heart,
   CreditCard,
   Boxes,
   BookOpen,
@@ -138,6 +139,12 @@ export const adminSections: {
         label: 'Galerías del Club',
         icon: DoorOpen,
         description: 'Las galerías de los socios del Club. Desde acá se le da una de cortesía a un fundador, con monedas de regalo, y se la termina.',
+      },
+      {
+        href: '/admin/publicaciones',
+        label: 'Publicaciones',
+        icon: Heart,
+        description: 'Revisá lo que los artistas publican en Comunidad, publicá como el Mundial y fijá la consigna de la semana.',
       },
       {
         href: '/admin/comentarios',
