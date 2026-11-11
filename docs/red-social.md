@@ -109,6 +109,7 @@ Si el dueño no dice otra cosa, se construye así:
 | Notificaciones | Nombran a quien respondió («A Marta y 2 más…») |
 | Idiomas | El texto se traduce solo a los 9 idiomas al publicar (IA, §11 bis). Se muestra en el idioma de quien lee, con «Ver original» |
 | Link de una publicación | Página propia `/comunidad/p/<id>` con vista previa y el `?ref=` del autor |
+| Sugerencias | La IA etiqueta cada publicación una vez; el gusto de cada persona sale de lo que le gustó, y el orden «Para vos» se arma en su navegador (§11 ter). El feed sigue siendo igual para todos en el CDN |
 | IA | Traducción, texto alternativo de imágenes, ayuda para moderar y resumen semanal para el admin. Nunca por visita, y con interruptor para apagarla |
 
 ---
@@ -287,6 +288,9 @@ create table if not exists public.posts (
   lang text,
   translations jsonb not null default '{}'::jsonb,
   image_alt text,
+  -- What it shows, from a fixed vocabulary (lib/community-tags.ts): what the
+  -- «Para vos» order and the suggestions match tastes on (§11 ter).
+  tags text[] not null default '{}',
   created_at timestamptz not null default now(),
   moderated_at timestamptz,
   constraint posts_kind_shape check (
@@ -544,7 +548,7 @@ returns table (
   like_count integer, comment_count integer,
   profile_id uuid, author_name text, author_country text, author_thumb text,
   artwork_slug text, artwork_title text, image_url text, image_path text,
-  official boolean, pinned boolean, lang text, translations jsonb, image_alt text
+  official boolean, pinned boolean, lang text, translations jsonb, image_alt text, tags text[]
 )
 language sql stable security definer set search_path = '' as $$
   select p.id, p.kind, p.body, p.created_at, p.like_count, p.comment_count,
@@ -553,7 +557,7 @@ language sql stable security definer set search_path = '' as $$
             where a2.profile_id = pr.id and a2.archived_at is null and a2.image_url is not null
             order by a2.is_selected desc, a2.created_at desc limit 1),
          a.slug, a.title, a.image_url, p.image_path,
-         p.official, coalesce(p.pinned_until > now(), false), p.lang, p.translations, p.image_alt
+         p.official, coalesce(p.pinned_until > now(), false), p.lang, p.translations, p.image_alt, p.tags
   from public.posts p
   join public.profiles pr on pr.id = p.profile_id and (pr.is_public or p.official)
   left join public.artworks a on a.id = p.artwork_id
@@ -577,7 +581,7 @@ returns table (
   like_count integer, comment_count integer,
   profile_id uuid, author_name text, author_country text, author_thumb text,
   artwork_slug text, artwork_title text, image_url text, image_path text,
-  official boolean, pinned boolean, lang text, translations jsonb, image_alt text
+  official boolean, pinned boolean, lang text, translations jsonb, image_alt text, tags text[]
 )
 language sql stable security definer set search_path = '' as $$
   select f.*
@@ -644,6 +648,7 @@ export type FeedPost = {
   artwork: { slug: string; title: string | null; href: string } | null
   official: boolean           // «Mundial de Collage»: logo instead of thumb, no profile link
   pinned: boolean             // the week's prompt
+  tags: string[]              // fixed vocabulary; the browser ranks «Para vos» with them
   // body is already in the language asked for (?lang=); original is the
   // text as written when a translation was used, for «Ver original».
   original: string | null
@@ -772,7 +777,8 @@ app/api/cron/comunidad/route.ts + vercel.json                nuevo (etapa 3)
 // already posted. One call per page view, only when there is a session.
 communityViewer(input: { postIds?: string[]; artworkSlug?: string }):
   Promise<{ signedIn: boolean; canPost: boolean; liked: string[]; mine: string[]; artworkPostId: string | null;
-            unpostedArtworkSlug: string | null }>  // their published obra, when it isn't on Comunidad yet
+            unpostedArtworkSlug: string | null;  // their published obra, when it isn't on Comunidad yet
+            taste: Record<string, number> }>     // tag → weight, from what they liked (§11 ter); {} until there is enough
 
 publishArtwork(input: { artworkSlug: string; body?: string }):
   Promise<{ ok: true; id: string } | { error: CommunityError }>
@@ -894,6 +900,38 @@ El repo ya usa la API de Anthropic para traducir mails (`lib/email-translator.ts
 **Privacidad:** a la API se manda el texto y la imagen de la publicación, nunca emails ni identificadores. La Política de privacidad (etapa 3) lo menciona.
 
 **Pruebas:** `lib/community-ai.test.ts` con el cliente de Anthropic simulado. Sin clave no llama y devuelve vacío; una respuesta mal formada no rompe la publicación; un texto corto no se traduce.
+
+---
+
+## 11 ter. Sugerencias según los gustos de cada persona
+
+La idea: que el sitio aprenda qué le gusta a cada persona y le muestre primero eso, y le sugiera artistas y obras afines.
+
+**El problema a esquivar:** un feed distinto para cada persona no se puede guardar en el CDN, y calcularlo por visita gastaría la CPU de Vercel. Y una IA «recomendando» por visita sería cara y lenta. Por eso se parte en tres piezas baratas:
+
+1. **La IA etiqueta el contenido, una sola vez.** En la misma llamada que escribe el texto alternativo (§11 bis, uso 2), devuelve de 3 a 6 etiquetas por publicación, elegidas de un vocabulario fijo en `lib/community-tags.ts` (unas 40: técnica —analógico, digital, mixto—, tema —retrato, cuerpo, naturaleza, ciudad, política, humor, surreal, abstracto, tipografía—, paleta —blanco y negro, colores vivos, tonos tierra—, clima —íntimo, lúdico, oscuro—, y tipo —obra terminada, proceso, taller, materiales—). Vocabulario fijo y no texto libre: así se pueden comparar y traducir. Se guardan en `posts.tags`.
+   - Lo mismo para las **obras** (`artworks.tags`, columna nueva en esa migración): un script de una sola corrida (`scripts/tag-artworks.mjs`) etiqueta las que ya existen, y las nuevas se etiquetan al aprobarse. Ya hay señal de gusto sobre obras (los me gusta de la galería 3D, `artwork_likes`), así que el gusto no arranca de cero.
+2. **El gusto de cada persona se calcula en la base, sin IA.** Una función `community_taste(visitor uuid)` suma las etiquetas de lo que esa persona marcó con me gusta o comentó (publicaciones y obras), con más peso a lo reciente, y devuelve las 10 más fuertes normalizadas de 0 a 1. Si tiene menos de 5 respuestas, devuelve vacío: con tan poco no hay gusto que leer. `communityViewer()` lo devuelve en `taste`: es la llamada que ya se hace una vez por página para quien tiene sesión, así que no suma pedidos.
+3. **El orden «Para vos» se arma en el navegador.** El feed del CDN trae las etiquetas de cada publicación. El cliente puntúa cada una con el gusto de la persona (suma de pesos de las etiquetas que coinciden, más un poco por reciente y por respuestas) y reordena lo que ya bajó. En `/comunidad` hay dos pestañas: «Recientes» (por defecto) y «Para vos» (solo con sesión y gusto no vacío). Cuesta cero en el servidor.
+
+**Qué más se sugiere con lo mismo:**
+
+- **«Artistas que te pueden gustar»** en `/comunidad` y en el perfil: quienes tienen obras o publicaciones con las etiquetas de tu gusto y a quienes todavía no respondiste. Se calcula en una action al abrir la sección, no por visita.
+- **«Si te gustó esta obra»** en la página de cada obra y de cada publicación: otras con etiquetas parecidas. Esto es igual para todos (no depende de la persona), así que sale del CDN: `GET /api/comunidad/parecidas?id=…` con `s-maxage` de un día. Sirve también a quien mira sin cuenta, que es la mayoría.
+- **En el mail diario:** «3 publicaciones que te pueden gustar», calculadas en el cron que ya arma ese mail. Es la sugerencia que más vuelve a traer gente, porque llega a quien no está en el sitio.
+- **Para quien publica:** al subir una foto libre, las etiquetas detectadas se muestran como sugerencia y puede quitarlas.
+
+**Cuándo sirve de verdad (para no construirlo antes de tiempo):** con pocas publicaciones todo entra en una pantalla y ordenar por gusto no cambia nada. Por eso:
+
+- Las **etiquetas** se guardan desde la etapa 2, para que el dato se acumule desde el primer día.
+- «Si te gustó esta obra» va en la etapa 2: funciona con las obras que ya existen, sin esperar publicaciones.
+- **«Para vos», artistas sugeridos y sugerencias en el mail** van en la etapa 4, y se activan recién cuando haya más de unas 50 publicaciones por semana. Antes, la pestaña no se muestra.
+
+**Privacidad:** el gusto es un dato personal. Solo lo ve su dueño, no se muestra a nadie más ni se manda a la IA (la IA solo ve publicaciones, nunca personas). La Política de privacidad lo explica, y en «Editar mis datos» hay un interruptor «No personalizar mis sugerencias» (`profiles.personalize boolean default true`), que hace que `taste` vuelva vacío.
+
+**Medición:** eventos `community_foryou_view` y `community_suggestion_click`. La comparación que importa: respuestas por publicación vista en «Para vos» contra «Recientes». Si no es mejor, se apaga la pestaña.
+
+**Pruebas:** PGlite para `community_taste` (menos de 5 respuestas devuelve vacío; pesa más lo reciente; respeta `personalize = false`). Vitest para la función pura de puntaje en `lib/community.ts` (`rankForTaste(posts, taste)`): sin gusto conserva el orden; una coincidencia fuerte sube; la fijada queda siempre primera.
 
 ---
 
@@ -1033,6 +1071,7 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 6. Notificaciones `post_comment_approved` y `post_comments_pending`.
 7. Página propia de cada publicación, con vista previa y link con `?ref=` (§4.11). Las notificaciones y «Compartir» pasan a usarla.
 8. Traducción automática y texto alternativo (§11 bis, usos 1 y 2).
+9. Etiquetas de publicaciones y obras, y «Si te gustó esta obra» (§11 ter, pieza 1).
 
 **Criterios de aceptación:**
 
@@ -1057,6 +1096,7 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 
 ### Etapa 4: red (solo si el dueño la pide)
 
+- Sugerencias personales: pestaña «Para vos», «Artistas que te pueden gustar» y sugerencias en el mail diario (§11 ter). Se activan con más de unas 50 publicaciones por semana.
 - Tabla `follows (follower_id, followed_id, created_at, primary key (follower_id, followed_id))`, botón «Seguir» en el perfil y en la tarjeta, y filtro «Siguiendo». Este filtro sí es personal: va en una action, no en el endpoint cacheado.
 - Menciones con `@` y notificación `post_mention`.
 - Vista previa propia del link de una publicación (`opengraph-image`), **dibujada una vez y guardada en R2** con `lib/share-image-cache.ts`, y anotada en `lib/cost-guards.test.ts`.
@@ -1073,6 +1113,7 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 - No mandar `user_id` de `auth.users`, emails ni `author_email` al navegador. En las respuestas públicas, solo `profileId` de artistas públicos.
 - No convertir el texto en HTML ni en links.
 - No integrar la API de Instagram.
+- No calcular un feed distinto por persona en el servidor: el orden personal se arma en el navegador con las etiquetas (§11 ter).
 - No llamar a la IA por visita ni desde el endpoint del feed. No dejar que la IA publique o rechace sola.
 - No enviar la campaña de lanzamiento: la manda el dueño.
 - No tocar `components/mobile-tab-bar.tsx`.
