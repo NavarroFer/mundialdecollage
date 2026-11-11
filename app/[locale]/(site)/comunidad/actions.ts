@@ -1,10 +1,12 @@
 'use server'
 
+import { after } from 'next/server'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { authorName } from '@/lib/gallery-author'
+import { enrichCommunityComment, enrichCommunityPost } from '@/lib/community-ai'
 import {
   COMMENT_BODY_MAX,
   POST_BODY_MAX,
@@ -16,6 +18,11 @@ import {
   isOwnPostPath,
   isUuid,
 } from '@/lib/community'
+
+function enrichLater(work: () => Promise<void>) {
+  const run = () => { void work().catch((error) => console.error('community enrich', error)) }
+  try { after(run) } catch { run() }
+}
 
 // Writes for Comunidad. The feed itself is the CDN endpoint (app/api/comunidad);
 // these run only when someone acts, after the session is checked. Error codes,
@@ -158,7 +165,9 @@ export async function publishArtwork(input: { artworkSlug: string; body?: string
       .single()
     const failure = fromDb(error)
     if (failure || !data) return { error: failure ?? 'unavailable' }
-    return { ok: true, id: (data as { id: string }).id }
+    const id = (data as { id: string }).id
+    enrichLater(() => enrichCommunityPost(id))
+    return { ok: true, id }
   } catch {
     return { error: 'unavailable' }
   }
@@ -201,7 +210,9 @@ export async function publishImage(input: { kind: 'souvenir' | 'photo'; path: st
       await admin.storage.from(POSTS_BUCKET).remove([input.path])
       return { error: failure ?? 'unavailable' }
     }
-    return { ok: true, id: (data as { id: string }).id, pending }
+    const id = (data as { id: string }).id
+    enrichLater(() => enrichCommunityPost(id))
+    return { ok: true, id, pending }
   } catch {
     return { error: 'unavailable' }
   }
@@ -296,7 +307,9 @@ export async function addPostComment(input: { postId: string; body: string }): P
     }).select('id').single()
     const failure = fromDb(error)
     if (failure || !data) return { error: failure === 'already' ? 'unavailable' : failure ?? 'unavailable' }
-    return { ok: true, id: (data as { id: string }).id, pending }
+    const id = (data as { id: string }).id
+    enrichLater(() => enrichCommunityComment(id))
+    return { ok: true, id, pending }
   } catch {
     return { error: 'unavailable' }
   }
@@ -313,9 +326,11 @@ export async function reportPost(input: { postId: string; reason?: string }): Pr
     const user = await sessionUser()
     if (!user) return { error: 'signin' }
     const admin = createAdminClient()
-    const post = await admin.from('posts').select('status').eq('id', input.postId).maybeSingle()
+    const post = await admin.from('posts').select('status, kind, artwork_id').eq('id', input.postId).maybeSingle()
     if (post.error) return { error: 'unavailable' }
-    if (!post.data || (post.data as { status: string }).status !== 'published') return { error: 'not_found' }
+    const row = post.data as { status: string; kind: string; artwork_id: string | null } | null
+    // An obra is the artist's contest work. Souvenirs and free photos can still be reported.
+    if (!row || row.status !== 'published' || row.kind === 'artwork' || row.artwork_id) return { error: 'not_found' }
     const { error } = await admin.from('post_reports').insert({ post_id: input.postId, user_id: user.id, reason })
     // One report per person: a repeat is the same as the first.
     if (error && error.code !== '23505') return fromDb(error) === 'rate_limited' ? { error: 'rate_limited' } : { error: 'unavailable' }

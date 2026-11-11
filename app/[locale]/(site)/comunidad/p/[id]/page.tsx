@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PostComments } from '@/components/community/post-comments'
+import { SimilarPosts } from '@/components/community/similar-posts'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { getI18n } from '@/lib/i18n/server'
@@ -57,6 +58,7 @@ export default async function CommunityPostPage({ params }: { params: Promise<{ 
             <p className="mt-4"><Link href={post.artwork.href} className="text-sm font-semibold underline">{post.artwork.title || t.seeAll}</Link></p>
           )}
           <PostComments postId={post.id} />
+          <SimilarPosts postId={post.id} />
           <p className="mt-10"><Link href="/comunidad" className="text-sm font-semibold underline">{t.seeAll}</Link></p>
         </article>
       </main>

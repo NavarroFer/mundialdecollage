@@ -133,10 +133,16 @@ describe('reportPost', () => {
   })
 
   it('records one report and treats a repeat as done', async () => {
-    queue.posts = [{ data: { status: 'published' } }, { data: { status: 'published' } }]
+    queue.posts = [{ data: { status: 'published', kind: 'photo', artwork_id: null } }, { data: { status: 'published', kind: 'souvenir', artwork_id: null } }]
     queue.post_reports = [{ data: null, error: null }, { data: null, error: { code: '23505', message: 'duplicate' } }]
     expect(await reportPost({ postId, reason: '  spam  ' })).toEqual({ ok: true })
     expect(await reportPost({ postId })).toEqual({ ok: true })
+  })
+
+  it('refuses a report on an obra', async () => {
+    queue.posts = [{ data: { status: 'published', kind: 'artwork', artwork_id: artworkId } }]
+    expect(await reportPost({ postId, reason: 'no' })).toEqual({ error: 'not_found' })
+    expect(queue.post_reports).toBeUndefined()
   })
 })
 

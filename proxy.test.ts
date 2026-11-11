@@ -32,6 +32,7 @@ describe('proxy matcher', () => {
       '/api/img',
       '/api/track',
       '/api/cron/infra',
+      '/api/comunidad/parecidas',
       '/api/artistas/ana-123/social',
       '/monitoring/www.clarity.ms/tag/abc',
       '/es/opengraph-image',
