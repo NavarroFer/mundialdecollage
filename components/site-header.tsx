@@ -17,6 +17,8 @@ import { getCallState } from '@/lib/call-state'
 import { NotificationsSlot } from '@/components/notifications/notifications-slot'
 import { MobileTabBar } from '@/components/mobile-tab-bar'
 import { TermsPromptSlot } from '@/components/terms-prompt-slot'
+import { SignInButton } from '@/components/sign-in-button'
+import { ViewModeSwitch } from '@/components/view-mode-switch'
 
 async function AccountSlot() {
   if (!isSupabaseConfigured) return null
@@ -75,7 +77,15 @@ async function AccountSlot() {
 
 export async function SiteHeader() {
   // «Participar» becomes «Ver las obras» once the call closes.
-  const [{ m }, { open: callOpen }] = await Promise.all([getI18n(), getCallState()])
+  const [{ m }, { open: callOpen }, user] = await Promise.all([
+    getI18n(),
+    getCallState(),
+    isSupabaseConfigured ? getCurrentUser() : Promise.resolve(null),
+  ])
+  const isAdmin = isAdminEmail(user?.email)
+  const adminView = user ? await isAdminView(user) : false
+  const signIn = () => !user ? <SignInButton label={m.header.logIn} pendingLabel={m.auth.signingIn} /> : null
+  const viewSwitch = () => isAdmin ? <ViewModeSwitch adminView={adminView} artistLabel={m.header.viewAsArtist} adminLabel={m.header.viewAsAdmin} /> : null
   return (
     <>
       <SiteHeaderMotion>
@@ -119,6 +129,8 @@ export async function SiteHeader() {
           <div className="hidden items-center gap-2 lg:flex">
             <LanguageSwitcher className="px-2" />
             <NotificationsSlot />
+            {viewSwitch()}
+            {signIn()}
             <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
               <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
                 {callOpen ? m.header.participate : m.closed.headerCta}
@@ -129,6 +141,8 @@ export async function SiteHeader() {
 
           {/* Phones: the bell and the avatar up here; the sections live in MobileTabBar. */}
           <div className="flex items-center gap-1 lg:hidden">
+            {viewSwitch()}
+            {signIn()}
             <NotificationsSlot />
             <AccountSlot />
           </div>

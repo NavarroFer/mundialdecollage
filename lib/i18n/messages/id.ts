@@ -45,6 +45,7 @@ const id: Messages = {
     participants: 'Peserta',
     gallery3d: 'Galeri 3D',
     participate: 'Ikut serta',
+    logIn: 'Masuk',
     hello: 'Halo',
     helloName: 'Halo, {name}',
     participating: 'Kamu sudah ikut serta',

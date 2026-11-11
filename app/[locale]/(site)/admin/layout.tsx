@@ -7,6 +7,9 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { AdminNav } from '@/components/admin/admin-nav'
 import { NotificationsSlot } from '@/components/notifications/notifications-slot'
+import { ViewModeSwitch } from '@/components/view-mode-switch'
+import { getI18n } from '@/lib/i18n/server'
+import { isAdminView } from '@/lib/view-mode'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!isSupabaseConfigured) redirect('/')
@@ -14,6 +17,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await getCurrentUser()
 
   if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) redirect('/')
+  const { m } = await getI18n()
+  const adminView = await isAdminView(user)
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,6 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </span>
             </Link>
             <div className="flex items-center gap-4">
+              <ViewModeSwitch adminView={adminView} artistLabel={m.header.viewAsArtist} adminLabel={m.header.viewAsAdmin} />
               <Link
                 href="/"
                 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"

@@ -45,6 +45,7 @@ const ru: Messages = {
     participants: 'Участники',
     gallery3d: '3D-галерея',
     participate: 'Участвовать',
+    logIn: 'Войти',
     hello: 'Здравствуйте',
     helloName: 'Здравствуйте, {name}',
     participating: 'Вы уже участвуете',

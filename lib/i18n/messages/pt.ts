@@ -45,6 +45,7 @@ const pt: Messages = {
     participants: 'Participantes',
     gallery3d: 'Galeria 3D',
     participate: 'Participar',
+    logIn: 'Entrar',
     hello: 'Olá',
     helloName: 'Olá, {name}',
     participating: 'Você já está participando',

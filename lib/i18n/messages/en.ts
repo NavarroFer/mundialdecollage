@@ -45,6 +45,7 @@ const en: Messages = {
     participants: 'Participants',
     gallery3d: '3D Gallery',
     participate: 'Take part',
+    logIn: 'Log in',
     hello: 'Hi',
     helloName: 'Hi, {name}',
     participating: "You're taking part",

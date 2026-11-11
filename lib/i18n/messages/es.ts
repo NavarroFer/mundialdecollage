@@ -47,6 +47,7 @@ const es = {
     participants: 'Participantes',
     gallery3d: 'Galería 3D',
     participate: 'Participar',
+    logIn: 'Ingresar',
     hello: 'Hola',
     helloName: 'Hola, {name}',
     participating: 'Ya estás participando',
