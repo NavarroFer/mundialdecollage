@@ -14,6 +14,10 @@ import { cn } from '@/lib/utils'
 import { track } from '@/lib/track'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, formatDayMonth } from '@/lib/i18n/format'
+import { createClient } from '@/lib/supabase/client'
+import { downscaleImage } from '@/lib/downscale-image'
+import { communityViewer, publishImage } from '@/app/[locale]/(site)/comunidad/actions'
+import { communityPostPath, type CommunityError } from '@/lib/community'
 
 const FILE_NAME = 'mundial-de-collage.jpg'
 const DOMAIN = 'mundialdecollage.com.ar'
@@ -55,6 +59,10 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
   const wallOpen = useWallStore((state) => state.placing !== null)
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [failed, setFailed] = useState(false)
+  const [canPost, setCanPost] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [publishedHref, setPublishedHref] = useState<string | null>(null)
+  const [publishError, setPublishError] = useState<CommunityError | null>(null)
   const wasLocked = useRef(false)
   const busy = useRef(false)
   const walking = useRef(active)
@@ -110,9 +118,52 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
     if (photo) URL.revokeObjectURL(photo.url)
     setPhoto(null)
     setFailed(false)
+    setPublishedHref(null)
+    setPublishError(null)
     useSouvenirStore.getState().setOpen(false)
     if (resume && wasLocked.current) onResume()
     wasLocked.current = false
+  }
+
+  useEffect(() => {
+    if (!open) return
+    let gone = false
+    createClient().auth.getSession().then(async ({ data }) => {
+      if (!data.session || gone) return
+      const viewer = await communityViewer()
+      if (!gone) setCanPost(viewer.canPost)
+    })
+    return () => { gone = true }
+  }, [open])
+
+  async function publishOnSite() {
+    if (!photo || publishing) return
+    setPublishing(true)
+    setPublishError(null)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setPublishError('signin')
+        return
+      }
+      const file = await downscaleImage(new File([photo.blob], FILE_NAME, { type: 'image/jpeg' }), 1600)
+      const path = `${user.id}/${crypto.randomUUID()}.jpg`
+      const uploaded = await supabase.storage.from('posts').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false })
+      if (uploaded.error) {
+        setPublishError('bad_image')
+        return
+      }
+      const result = await publishImage({ kind: 'souvenir', path })
+      if ('error' in result) {
+        setPublishError(result.error)
+        return
+      }
+      track('community_publish_souvenir')
+      setPublishedHref(communityPostPath(result.id))
+    } finally {
+      setPublishing(false)
+    }
   }
 
   function download() {
@@ -190,6 +241,19 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
                   <Download className="h-4 w-4" aria-hidden="true" /> {t.download}
                 </a>
               )}
+              {photo && canPost && (
+                publishedHref ? (
+                  <a href={publishedHref} className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-ink/20 px-5 py-2.5 text-sm font-semibold">
+                    {m.community.offerDone}
+                  </a>
+                ) : (
+                  <button type="button" onClick={() => void publishOnSite()} disabled={publishing}
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-ink/20 px-5 py-2.5 text-sm font-semibold disabled:opacity-50">
+                    {publishing ? m.community.publishing : m.community.publishSouvenir}
+                  </button>
+                )
+              )}
+              {publishError && <p role="alert" className="text-sm text-red-700">{m.community.errors[publishError]}</p>}
               <button type="button" onClick={() => close(true)}
                 className="inline-flex min-h-11 items-center gap-2 px-5 py-2 text-sm font-semibold underline">
                 {t.close}
