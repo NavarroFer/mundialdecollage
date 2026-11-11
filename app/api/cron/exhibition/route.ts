@@ -12,7 +12,7 @@ import {
   type ExhibitionQueueRow,
   type ExhibitionRecipient,
 } from '@/lib/exhibition-mail'
-import { digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
+import { communityDigestLine, digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
 import { galleryArtworkPath } from '@/lib/gallery-return'
 import { getSiteUrl, site } from '@/lib/site'
@@ -167,10 +167,13 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
 
   const template = await ensureSystemTemplate(db, 'novedades_obra')
   const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
+  const { data: postedRows, error: postedError } = await db.from('posts').select('profile_id').in('profile_id', recipients.map((r) => r.profile_id)).eq('kind', 'artwork').neq('status', 'removed')
+  const posted = postedError ? null : new Set((postedRows ?? []).map((row: { profile_id: string }) => row.profile_id))
 
   const results = await sendMails(recipients.map((r) => {
     const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
-    const html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
+    let html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
+    if (posted && !posted.has(r.profile_id)) html += communityDigestLine(r.locale, `${getSiteUrl()}/obras/${r.artwork_slug}#publicar`)
     return { to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
   }), { kind: 'bulk' })
 

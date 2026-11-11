@@ -21,7 +21,7 @@ import { isClubOpen } from '@/lib/club-launch'
 import { clubMembershipPlanById } from '@/lib/store'
 import type { TemplateAudience } from '@/lib/template-audiences'
 
-export type SystemTemplateKey = 'elegir_obra' | 'perfil_artista' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento'
+export type SystemTemplateKey = 'elegir_obra' | 'perfil_artista' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento' | 'comunidad_lanzamiento'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
@@ -441,6 +441,29 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         { id: nextBlockId(), type: 'button', text: 'Visitar el museo', url: `${siteUrl}/galeria-3d`, align: 'left', color: 'red' },
         ...(isClubOpen() ? clubBlocks(siteUrl) : []),
         ...storeBlocks(siteUrl),
+        ...footer(),
+      ],
+    }),
+  },
+  comunidad_lanzamiento: {
+    name: 'Comunidad: publicá tu obra en un toque',
+    audiences: ['artistas'],
+    subject: 'Estrenamos Comunidad: publicá tu obra en un toque',
+    description:
+      'Para la campaña de lanzamiento de Comunidad. No se envía sola: en Campañas elegí esta plantilla y el público «Artistas con perfil público», y mandala vos. El botón abre la obra de cada artista en /obras/…#publicar. Usá {{nombre}} y {{publicar_url}}.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: '{{nombre}}, estrenamos Comunidad', align: 'left', size: 'md' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'En el inicio del Mundial ahora se ve lo que publican los artistas. Tu obra ya está: con un toque la ven tus colegas, sin armar nada nuevo.',
+          align: 'left',
+        },
+        { id: nextBlockId(), type: 'button', text: 'Publicar mi obra', url: '{{publicar_url}}', align: 'left', color: 'red' },
+        { id: nextBlockId(), type: 'text', text: 'Si querés, después le sumás una línea. Y podés invitar a colegas con el link de la publicación.', align: 'left' },
         ...footer(),
       ],
     }),

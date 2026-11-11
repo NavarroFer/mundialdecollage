@@ -176,6 +176,7 @@ export function campaignRecipientValues(contact: CampaignRecipient): Record<stri
     perfil_url: contact.profileSlug ? `${getSiteUrl()}/artistas/${contact.profileSlug}` : undefined,
     obra_imagen: contact.profileMail?.imageUrl,
     obra_titulo: contact.profileMail ? contact.profileMail.title?.trim() || 'Sin título' : undefined,
+    publicar_url: contact.profileMail?.slug ? `${getSiteUrl()}/obras/${contact.profileMail.slug}#publicar` : undefined,
     perfil_obras: contact.profileMail ? String(contact.profileMail.obras) : undefined,
     perfil_likes: contact.profileMail ? String(contact.profileMail.likes) : undefined,
     perfil_comentarios: contact.profileMail ? String(contact.profileMail.comments) : undefined,

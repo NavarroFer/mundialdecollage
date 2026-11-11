@@ -6,7 +6,7 @@
 import { contactLocale } from '@/lib/email-translation'
 import { unreachableReason } from '@/lib/exhibition-mail'
 import { escapeHtml, fillTag, fillTextTag } from '@/lib/system-templates'
-import type { Locale } from '@/lib/i18n/locales'
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 // The exhibition day turns at 09:00 Argentina = 12:00 UTC (see
@@ -65,6 +65,25 @@ export function commentsHtml(comments: DigestComment[]): string {
   return comments
     .map((comment) => `«${escapeHtml(comment.body)}» — <strong>${escapeHtml(comment.author)}</strong>`)
     .join('<br /><br />')
+}
+
+// One line for an artist who has not posted their obra on Comunidad yet.
+// Stage 2 adds «tu publicación sumó…»; this is only the invitation (§4.10).
+const COMMUNITY_INVITE: Record<Locale, string> = {
+  es: 'Tu obra todavía no está en Comunidad. Publicala en un toque:',
+  en: 'Your artwork is not on Comunidad yet. Post it in one tap:',
+  pt: 'Sua obra ainda não está na Comunidad. Publique em um toque:',
+  it: 'La tua opera non è ancora su Comunidad. Pubblicala in un tocco:',
+  fr: 'Ton œuvre n’est pas encore sur Comunidad. Publie-la en un geste :',
+  de: 'Dein Werk ist noch nicht in Comunidad. Veröffentliche es mit einem Tipp:',
+  pl: 'Twojej pracy jeszcze nie ma w Comunidad. Opublikuj ją jednym ruchem:',
+  ru: 'Твоей работы ещё нет в Comunidad. Опубликуй её в одно касание:',
+  id: 'Karyamu belum ada di Comunidad. Bagikan dengan sekali ketuk:',
+}
+
+export function communityDigestLine(locale: Locale, url: string): string {
+  const text = COMMUNITY_INVITE[locale] ?? COMMUNITY_INVITE[DEFAULT_LOCALE]
+  return `<p>${escapeHtml(text)} <a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`
 }
 
 /** Fills the digest's own tags ({{obra}} and {{nombre}} are filled by the caller's shared path). */

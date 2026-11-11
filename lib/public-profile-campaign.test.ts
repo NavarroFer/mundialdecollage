@@ -35,9 +35,10 @@ describe('artist profile campaign', () => {
   it('shows each artist their own obra and numbers', () => {
     const own = campaignRecipientValues({
       id: 'c', email: 'ana@x.invalid', name: 'Ana', locale: 'es', profileSlug: slug,
-      profileMail: { imageUrl: 'https://example.com/api/img?url=x&w=1080', title: 'Mar de papel', obras: 2, likes: 41, comments: 5 },
+      profileMail: { imageUrl: 'https://example.com/api/img?url=x&w=1080', title: 'Mar de papel', slug: 'mar-de-papel', obras: 2, likes: 41, comments: 5 },
     })
     expect(own).toMatchObject({ obra_titulo: 'Mar de papel', perfil_obras: '2', perfil_likes: '41', perfil_comentarios: '5' })
+    expect(own.publicar_url).toBe(`${getSiteUrl()}/obras/mar-de-papel#publicar`)
     const html = personalizeHtmlWithValues(renderEmailDocumentToHtml(SYSTEM_TEMPLATES.perfil_artista.createDocument('https://example.com')), own)
     expect(html).toContain('src="https://example.com/api/img?url=x&amp;w=1080"')
     expect(html).toContain('Me gusta: 41')
@@ -47,7 +48,7 @@ describe('artist profile campaign', () => {
   it('shows zeros, not a blank, for an obra nobody has reacted to yet', () => {
     const values = campaignRecipientValues({
       id: 'c', email: 'ana@x.invalid', name: 'Ana', locale: 'es', profileSlug: slug,
-      profileMail: { imageUrl: 'https://example.com/a.jpg', title: null, obras: 1, likes: 0, comments: 0 },
+      profileMail: { imageUrl: 'https://example.com/a.jpg', title: null, slug: 'sin-titulo', obras: 1, likes: 0, comments: 0 },
     })
     expect(values).toMatchObject({ obra_titulo: 'Sin título', perfil_likes: '0', perfil_comentarios: '0' })
   })
@@ -58,7 +59,7 @@ describe('artist profile campaign', () => {
 })
 
 describe('the obra a profile mail leads with', () => {
-  const row = (id: string, over: Partial<Parameters<typeof leadArtwork>[0][number]>) => ({ id, profile_id: 'p', title: id, image_url: `https://s.invalid/${id}.jpg`, is_selected: false, created_at: '2026-10-01T00:00:00Z', ...over })
+  const row = (id: string, over: Partial<Parameters<typeof leadArtwork>[0][number]>) => ({ id, profile_id: 'p', slug: id, title: id, image_url: `https://s.invalid/${id}.jpg`, is_selected: false, created_at: '2026-10-01T00:00:00Z', ...over })
 
   it('prefers the one chosen to take part, then the newest', () => {
     expect(leadArtwork([row('old', {}), row('chosen', { is_selected: true, created_at: '2026-09-01T00:00:00Z' }), row('new', { created_at: '2026-11-01T00:00:00Z' })])?.id).toBe('chosen')
