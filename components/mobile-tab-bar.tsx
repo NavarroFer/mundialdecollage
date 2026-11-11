@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { Boxes, DoorOpen, Eye, House, Plus, Users, type LucideIcon } from 'lucide-react'
+import { useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { Compass, Eye, House, Landmark, Plus, Search, type LucideIcon } from 'lucide-react'
 import { SectionLink } from '@/components/section-link'
 import { track } from '@/lib/track'
 import type { FunnelEvent } from '@/lib/funnel'
@@ -12,15 +12,15 @@ import './mobile-tab-bar.css'
 export type MobileTabBarLabels = {
   nav: string
   home: string
-  participants: string
+  explore: string
   participate: string
-  club: string
-  gallery3d: string
+  show: string
+  mundial: string
   opensInNewTab: string
 }
 
 type Tab = {
-  key: 'home' | 'participants' | 'participate' | 'gallery' | 'club'
+  key: 'home' | 'explore' | 'participate' | 'show' | 'mundial'
   href: string
   label: string
   icon: LucideIcon
@@ -30,15 +30,16 @@ type Tab = {
   newTab?: boolean
 }
 
-const PARTICIPANTS_ID = 'participantes'
 const CENTER = 2
 // How far a finger travels before a press becomes a drag across the tabs.
 const DRAG_SLOP = 8
 
-function activeTab(pathname: string, participantsInView: boolean): Tab['key'] | null {
-  if (pathname === '/') return participantsInView ? 'participants' : 'home'
-  if (pathname.startsWith('/club') || pathname.startsWith('/mi-galeria')) return 'club'
+function activeTab(pathname: string): Tab['key'] | null {
+  if (pathname.startsWith('/explorar')) return 'explore'
+  if (pathname.startsWith('/muestra') || pathname.startsWith('/galeria-3d') || pathname.startsWith('/museomar')) return 'show'
+  if (pathname.startsWith('/mundial') || pathname.startsWith('/club') || pathname.startsWith('/tienda') || pathname.startsWith('/revista')) return 'mundial'
   if (pathname.startsWith('/onboarding')) return 'participate'
+  if (pathname === '/') return 'home'
   return null
 }
 
@@ -57,39 +58,21 @@ export function MobileTabBar({ callOpen, labels }: { callOpen: boolean; labels: 
   const [hovered, setHovered] = useState<number | null>(null)
   // Shown as selected from the tap until the route catches up (or briefly, for a tab that stays on this page).
   const [chosen, setChosen] = useState<{ index: number; path: string; n: number } | null>(null)
-  const [participantsInView, setParticipantsInView] = useState(false)
-
   const tabs: Tab[] = [
     { key: 'home', href: '/', label: labels.home, icon: House },
-    // The feed home has no participantes section. ?sitio=1 is the public page,
-    // for a logged-in artist and for a visitor (the CDN copy still serves it).
-    { key: 'participants', href: `/?sitio=1#${PARTICIPANTS_ID}`, label: labels.participants, icon: Users, sectionId: PARTICIPANTS_ID },
-    // «Participar» becomes «Ver las obras» once the call closes, as in the header.
+    { key: 'explore', href: '/explorar', label: labels.explore, icon: Search },
     callOpen
       ? { key: 'participate', href: '/onboarding', label: labels.participate, icon: Plus, event: 'submit_click_tabbar' }
       : { key: 'participate', href: '/galeria-3d', label: labels.participate, icon: Eye, event: 'submit_click_tabbar' },
-    { key: 'gallery', href: '/galeria-3d', label: labels.gallery3d, icon: Boxes, event: 'gallery_click_tabbar', newTab: true },
-    { key: 'club', href: '/club', label: labels.club, icon: DoorOpen },
+    { key: 'show', href: '/muestra', label: labels.show, icon: Landmark, event: 'gallery_click_tabbar' },
+    { key: 'mundial', href: '/mundial', label: labels.mundial, icon: Compass },
   ]
 
-  const activeKey = activeTab(pathname, participantsInView)
+  const activeKey = activeTab(pathname)
   const activeIndex = tabs.findIndex((tab) => tab.key === activeKey)
   const chosenIndex = chosen && chosen.path === pathname ? chosen.index : null
   const restIndex = chosenIndex ?? (activeIndex >= 0 ? activeIndex : null)
   const dragging = hovered !== null
-
-  // On the home, «Participantes» lights up while its section crosses the
-  // middle of the screen, and «Inicio» the rest of the time.
-  useEffect(() => {
-    if (pathname !== '/') return
-    const section = document.getElementById(PARTICIPANTS_ID)
-    if (!section) return
-    const observer = new IntersectionObserver(([entry]) => setParticipantsInView(entry.isIntersecting), {
-      rootMargin: '-45% 0px -45% 0px',
-    })
-    observer.observe(section)
-    return () => observer.disconnect()
-  }, [pathname])
 
   // The lens rests on the selected tab; a drag moves it by hand (see onPointerMove).
   useLayoutEffect(() => {

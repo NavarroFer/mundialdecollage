@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState, useTransition } from 'react'
-import { DoorOpen, LogOut, PencilLine, Palette, ShieldCheck, Store, User } from 'lucide-react'
+import { DoorOpen, LogOut, PencilLine, Palette, ShieldCheck, User } from 'lucide-react'
 import { setViewMode } from '@/components/view-mode-actions'
 import { GoogleIcon, useGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -157,10 +157,6 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
               </Link>
             </>
           )}
-          <Link href="/tienda" onClick={() => { track('store_click_header'); close() }} className={ITEM}>
-            <Store className="h-5 w-5 text-ink/70" aria-hidden="true" />
-            {labels.shop}
-          </Link>
           {isAdmin && adminView && (
             <Link href="/admin/estadisticas" onClick={close} className={ITEM}>
               <ShieldCheck className="h-5 w-5 text-ink/70" aria-hidden="true" />

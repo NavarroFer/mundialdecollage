@@ -14,6 +14,10 @@ export const COMMENT_BODY_MAX = 500
 export const FEED_PAGE_SIZE = 20
 export const STRIP_MIN_POSTS = 6
 export const POSTS_BUCKET = 'posts'
+
+// Artists are not publishing on Comunidad for now. The buttons stay in the
+// code; the feed they see is the obras, not posts. Flip this to bring them back.
+export const COMMUNITY_POSTING = false
 export const STRIP_SIZE = 6
 
 export const FEED_CACHE = 'public, s-maxage=60, stale-while-revalidate=600'
