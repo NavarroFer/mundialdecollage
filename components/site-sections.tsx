@@ -2,6 +2,10 @@ import { SectionLink } from '@/components/section-link'
 import { getI18n } from '@/lib/i18n/server'
 import { cn } from '@/lib/utils'
 
+// Turn on when the finalists are announced. Until then Museo MAR is linked
+// only from the admin panel; /museomar itself keeps working.
+export const SHOW_MUSEO_MAR = false
+
 // How a logged-in artist moves through the rest of the site, and how the
 // public home jumps to its own sections. Groups, not one long list.
 export async function SiteSections({ here }: { here: 'feed' | 'site' }) {
@@ -17,7 +21,7 @@ export async function SiteSections({ here }: { here: 'feed' | 'site' }) {
       label: t.show,
       items: [
         { href: '/galeria-3d', label: t.gallery, current: false },
-        { href: '/museomar', label: t.mar, current: false },
+        ...(SHOW_MUSEO_MAR ? [{ href: '/museomar', label: t.mar, current: false }] : []),
         { href: site('participantes'), label: t.participants, current: false },
         { href: site('mapa'), label: t.map, current: false },
         { href: site('jurado'), label: t.jury, current: false },

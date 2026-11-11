@@ -14,7 +14,7 @@ describe('admin sections', () => {
   it('keeps every destination once, with Comunidad on its own', () => {
     const hrefs = adminSections.flatMap((section) => section.items.map((item) => item.href))
     expect(new Set(hrefs).size).toBe(hrefs.length)
-    expect(hrefs).toEqual(expect.arrayContaining(['/admin/publicaciones', '/admin/club', '/admin/obras', '/admin/campanas', '/galeria-3d']))
+    expect(hrefs).toEqual(expect.arrayContaining(['/admin/publicaciones', '/admin/club', '/admin/obras', '/admin/campanas', '/galeria-3d', '/museomar']))
     expect(adminSections.find((section) => section.label === 'Comunidad')?.items.map((item) => item.href)).toEqual(['/admin/publicaciones', '/admin/comunidad'])
     expect(adminSections.map((section) => section.label).slice(0, 2)).toEqual(['Convocatoria', 'Comunidad'])
   })

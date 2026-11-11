@@ -174,6 +174,13 @@ export const adminSections: {
         description: 'Aprobá o rechazá las fotos que la gente pega en el cuadro grande de la Sala 1.',
       },
       { href: '/galeria-3d', label: 'Recorrido', icon: Boxes, external: true },
+      {
+        href: '/museomar',
+        label: 'Museo MAR',
+        icon: Landmark,
+        external: true,
+        description: 'El recorrido del museo. En la barra pública recién cuando se anuncien las finalistas.',
+      },
     ],
   },
   {
