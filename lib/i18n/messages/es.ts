@@ -1105,6 +1105,7 @@ const es = {
     mundial: 'El Mundial',
     clubShop: 'Club y tienda',
     gallery: 'Galería 3D',
+    mar: 'Museo MAR',
     participants: 'Participantes',
     map: 'Mapa',
     jury: 'Jurado',

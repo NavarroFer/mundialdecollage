@@ -1063,6 +1063,7 @@ const id: Messages = {
     mundial: 'Mundial',
     clubShop: 'Klub dan toko',
     gallery: 'Galeri 3D',
+    mar: 'Museum MAR',
     participants: 'Peserta',
     map: 'Peta',
     jury: 'Juri',

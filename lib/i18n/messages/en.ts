@@ -1067,6 +1067,7 @@ const en: Messages = {
     mundial: 'The World Cup',
     clubShop: 'Club and shop',
     gallery: '3D Gallery',
+    mar: 'MAR Museum',
     participants: 'Participants',
     map: 'Map',
     jury: 'Jury',

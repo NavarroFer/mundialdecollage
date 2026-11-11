@@ -1088,6 +1088,7 @@ const pl: Messages = {
     mundial: 'Mundial',
     clubShop: 'Klub i sklep',
     gallery: 'Galeria 3D',
+    mar: 'Muzeum MAR',
     participants: 'Uczestnicy',
     map: 'Mapa',
     jury: 'Jury',

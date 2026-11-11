@@ -17,6 +17,7 @@ export async function SiteSections({ here }: { here: 'feed' | 'site' }) {
       label: t.show,
       items: [
         { href: '/galeria-3d', label: t.gallery, current: false },
+        { href: '/museomar', label: t.mar, current: false },
         { href: site('participantes'), label: t.participants, current: false },
         { href: site('mapa'), label: t.map, current: false },
         { href: site('jurado'), label: t.jury, current: false },
