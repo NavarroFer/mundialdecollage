@@ -111,6 +111,19 @@ export const adminSections: {
     ],
   },
   {
+    label: 'Comunidad',
+    icon: Heart,
+    tone: tones.red,
+    items: [
+      {
+        href: '/admin/publicaciones',
+        label: 'Publicaciones',
+        icon: Heart,
+        description: 'Revisá lo que los artistas publican en Comunidad, publicá como el Mundial y fijá la consigna de la semana.',
+      },
+    ],
+  },
+  {
     label: 'Tienda',
     icon: ShoppingBag,
     tone: tones.yellow,
@@ -141,12 +154,6 @@ export const adminSections: {
         description: 'Las galerías de los socios del Club. Desde acá se le da una de cortesía a un fundador, con monedas de regalo, y se la termina.',
       },
       {
-        href: '/admin/publicaciones',
-        label: 'Publicaciones',
-        icon: Heart,
-        description: 'Revisá lo que los artistas publican en Comunidad, publicá como el Mundial y fijá la consigna de la semana.',
-      },
-      {
         href: '/admin/comentarios',
         label: 'Comentarios',
         icon: MessageSquare,
@@ -168,18 +175,18 @@ export const adminSections: {
     tone: tones.ink,
     items: [
       {
-        href: '/admin/contactos',
-        label: 'Contactos',
-        icon: Users,
-        description:
-          'La lista de suscriptores: pausalos, resuscribilos o borralos.',
-      },
-      {
         href: '/admin/campanas',
         label: 'Campañas',
         icon: Send,
         description:
           'Armá y mandá emails a tus contactos, y mirá cómo les fue.',
+      },
+      {
+        href: '/admin/contactos',
+        label: 'Contactos',
+        icon: Users,
+        description:
+          'La lista de suscriptores: pausalos, resuscribilos o borralos.',
       },
       {
         href: '/admin/plantillas',
@@ -197,6 +204,18 @@ export const adminSections: {
     ],
   },
 ]
+
+/** A group is open when it holds the current page, or the admin opened it, unless they closed it. */
+export function isAdminGroupOpen(
+  label: string,
+  activeLabel: string | undefined,
+  opened: ReadonlySet<string>,
+  closed: ReadonlySet<string>,
+): boolean {
+  if (closed.has(label)) return false
+  if (opened.has(label)) return true
+  return label === activeLabel
+}
 
 export function adminSectionFor(pathname: string | null) {
   return adminSections.find((s) =>
