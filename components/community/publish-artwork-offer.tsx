@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { communityViewer, publishArtwork } from '@/app/[locale]/(site)/comunidad/actions'
 import { startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { useI18n } from '@/lib/i18n/client'
-import { communityPostPath, POST_BODY_MAX, type CommunityError } from '@/lib/community'
+import { COMMUNITY_POSTING, communityPostPath, POST_BODY_MAX, type CommunityError } from '@/lib/community'
 import { withReferral } from '@/lib/referral'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/track'
@@ -95,6 +95,8 @@ export function PublishArtworkOffer({ slug, isPublic, opened }: { slug: string; 
     const url = `${window.location.origin}${withReferral('/comunidad', slug)}#post-${postId}`
     window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer')
   }
+
+  if (!COMMUNITY_POSTING) return null
 
   return (
     <div ref={root} className="mt-4 rounded-2xl border-2 border-ink/10 bg-collage-yellow/15 p-4">

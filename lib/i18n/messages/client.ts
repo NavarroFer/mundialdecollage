@@ -21,6 +21,7 @@ const CLIENT_NAMESPACES = [
   'entries',
   'share',
   'community',
+  'siteSections',
   'gallery',
   'ar',
   'store',

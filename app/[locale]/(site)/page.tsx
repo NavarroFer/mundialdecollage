@@ -19,7 +19,7 @@ import { JurySection } from '@/components/jury-section'
 import { Footer } from '@/components/footer'
 import { TrackView } from '@/components/track'
 import { ArtistFeedHome } from '@/components/artist-feed-home'
-import { SiteSections } from '@/components/site-sections'
+import { COMMUNITY_POSTING } from '@/lib/community'
 import { viewerCanSeeObraFeed } from '@/lib/feed-access'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 
@@ -50,7 +50,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           that's hidden behind the splash but still in the DOM. */}
       <div id="site-content">
         <SiteHeader />
-        {kind === 'artist-site' && <SiteSections here="site" />}
         <main>
           <HeroSection />
           <FlagRibbon />
@@ -62,7 +61,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             hideForSignedIn
             className="mx-auto max-w-4xl px-5 pt-10 sm:px-8 sm:pt-14"
           />
-          <CommunityStrip />
+          {COMMUNITY_POSTING && <CommunityStrip />}
           <BasesBanner />
           <EditionSection />
           {/* Before the obras: after them it sat 8–9 phone screens down,

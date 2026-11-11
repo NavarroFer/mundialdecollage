@@ -13,7 +13,7 @@ export type SearchEntry = {
 
 // What /api/obras serves: the search's fields plus the photo, which the
 // home's map draws its cards from (components/world-map-lazy.tsx).
-export type ObraEntry = SearchEntry & { imageUrl: string }
+export type ObraEntry = SearchEntry & { imageUrl: string; technique?: string | null }
 
 // Lowercase and without accents, so "jose" finds "José" and "mexico" finds
 // "México".
