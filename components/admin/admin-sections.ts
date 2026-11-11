@@ -19,6 +19,7 @@ import {
   Gauge,
   Scissors,
   DoorOpen,
+  SlidersHorizontal,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -120,6 +121,12 @@ export const adminSections: {
         label: 'Publicaciones',
         icon: Heart,
         description: 'Revisá lo que los artistas publican en Comunidad, publicá como el Mundial y fijá la consigna de la semana.',
+      },
+      {
+        href: '/admin/comunidad',
+        label: 'Moderación',
+        icon: SlidersHorizontal,
+        description: 'Prendé o apagá la etiqueta de IA en fotos libres y comentarios. Sin deploy.',
       },
     ],
   },

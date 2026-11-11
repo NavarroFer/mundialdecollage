@@ -50,11 +50,13 @@ export default async function ComentariosPage({
   const comments = (data ?? []) as unknown as CommentRow[]
   const { data: communityRaw } = await supabase
     .from('post_comments')
-    .select('id, author_name, author_email, body, created_at, post_id')
+    .select('id, author_name, author_email, body, created_at, post_id, ai_verdict, ai_reason')
     .eq('status', tab.status)
     .order('created_at', { ascending: tab.status === 'pending' })
     .limit(200)
-  const community = (communityRaw ?? []) as { id: string; author_name: string; author_email: string | null; body: string; created_at: string; post_id: string }[]
+  const rank = (verdict: string | null) => verdict === 'dudoso' ? 0 : verdict === 'rechazar' ? 1 : verdict === 'ok' ? 2 : 3
+  const community = ((communityRaw ?? []) as { id: string; author_name: string; author_email: string | null; body: string; created_at: string; post_id: string; ai_verdict: string | null; ai_reason: string | null }[])
+    .sort((a, b) => tab.status === 'pending' ? rank(a.ai_verdict) - rank(b.ai_verdict) : 0)
 
   return (
     <div>
@@ -149,6 +151,7 @@ export default async function ComentariosPage({
       <h2 className="font-display mt-10 text-2xl tracking-tight text-ink uppercase">Comunidad</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Los de un artista inscripto se publican al instante. Los demás esperan acá, igual que los de la galería.
+        Si la moderación con IA está encendida, cada pendiente trae una etiqueta. La decisión sigue siendo tuya.
       </p>
       <div className="mt-4 space-y-3">
         {community.length === 0 && <p className="text-muted-foreground">No hay comentarios de Comunidad en esta pestaña.</p>}
@@ -164,8 +167,11 @@ export default async function ComentariosPage({
                 {' · '}
                 {dateFormat.format(new Date(comment.created_at))}
                 {' · '}
-                <Link href={`/comunidad#post-${comment.post_id}`} className="underline">Ver publicación</Link>
+                <Link href={`/comunidad/p/${comment.post_id}`} className="underline">Ver publicación</Link>
               </p>
+              {comment.ai_verdict && (
+                <p className="mt-1 text-xs text-muted-foreground">IA: {comment.ai_verdict}{comment.ai_reason ? ` · ${comment.ai_reason}` : ''}</p>
+              )}
               <p className="mt-2 whitespace-pre-line text-ink">{comment.body}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {tab.status !== 'approved' && (
