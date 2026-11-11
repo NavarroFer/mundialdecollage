@@ -28,6 +28,8 @@ export type Finalist = {
   // m.common.untitled until the artist writes it (see confirmArtistDetails).
   artworkTitle: string | null
   technique?: string
+  /** Fixed vocabulary (lib/community-tags.ts). Empty until the obra is read. */
+  tags?: string[]
   imageUrl: string
   instagram?: string
   website?: string
@@ -36,12 +38,13 @@ export type Finalist = {
 // What an obra's card on the map and in the collage draws.
 export type ArtworkSummary = Pick<Finalist, 'slug' | 'artworkTitle' | 'name' | 'countryCode' | 'imageUrl'>
 
-const SELECT_COLUMNS = 'slug, title, technique, image_url, profiles!inner(id, name, country_code, instagram, website)'
+const SELECT_COLUMNS = 'slug, title, technique, tags, image_url, profiles!inner(id, name, country_code, instagram, website)'
 
 type FinalistRow = {
   slug: string | null
   title: string | null
   technique: string | null
+  tags: string[] | null
   image_url: string | null
   profiles: {
     id: string | null
@@ -64,6 +67,7 @@ function rowToFinalist(row: FinalistRow): Finalist | undefined {
     countryCode: profile.country_code,
     artworkTitle: row.title?.trim() || null,
     technique: row.technique ?? undefined,
+    tags: row.tags ?? [],
     imageUrl: row.image_url,
     instagram: profile.instagram ?? undefined,
     website: profile.website ?? undefined,

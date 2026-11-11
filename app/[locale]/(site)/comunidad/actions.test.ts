@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   from: vi.fn(),
+  rpc: vi.fn(),
   list: vi.fn(),
   remove: vi.fn(),
 }))
@@ -12,6 +13,7 @@ vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { g
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
     from: mocks.from,
+    rpc: mocks.rpc,
     storage: { from: () => ({ list: mocks.list, remove: mocks.remove }) },
   }),
 }))
@@ -46,6 +48,7 @@ beforeEach(() => {
   mocks.getUser.mockResolvedValue({ data: { user } })
   mocks.list.mockResolvedValue({ data: [{ name: file }], error: null })
   mocks.remove.mockResolvedValue({ error: null })
+  mocks.rpc.mockResolvedValue({ data: [], error: null })
   queue = {}
   mocks.from.mockImplementation((table: string) => {
     const next = queue[table]?.shift() ?? { data: null, error: null }
@@ -179,5 +182,13 @@ describe('communityViewer', () => {
     queue.posts = [{ data: null }]
     const viewer = await communityViewer()
     expect(viewer).toMatchObject({ signedIn: true, canPost: true, unpostedArtworkSlug: 'recortes', taste: {} })
+  })
+
+  it('returns the taste the database computed, and nothing when it fails', async () => {
+    mocks.rpc.mockResolvedValue({ data: [{ tag: 'retrato', weight: 1 }, { tag: 'papel', weight: 0.4 }], error: null })
+    expect((await communityViewer()).taste).toEqual({ retrato: 1, papel: 0.4 })
+
+    mocks.rpc.mockResolvedValue({ data: null, error: { message: 'missing function' } })
+    expect((await communityViewer()).taste).toEqual({})
   })
 })

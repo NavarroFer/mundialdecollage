@@ -2,11 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { artistProfileSlug } from '@/lib/artist-slug'
 import { buildSearchIndex, searchArtists, searchIndex, type ObraEntry } from '@/lib/artwork-search'
+import { rankForTaste } from '@/lib/community'
+import { tagsFromIndexes } from '@/lib/community-tags'
 import { useI18n } from '@/lib/i18n/client'
 import { imageSrc } from '@/lib/image-src'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
+import { createClient } from '@/lib/supabase/client'
 
 // The whole published list comes from the CDN (/api/obras). Filters run here.
 export function ExploreBrowser() {
@@ -17,6 +21,19 @@ export function ExploreBrowser() {
   const [query, setQuery] = useState('')
   const [country, setCountry] = useState('')
   const [technique, setTechnique] = useState('')
+  // «Para vos» needs a session and enough signals. The database computes the
+  // taste once; the order is built here, over the same cached list for everyone.
+  const [sort, setSort] = useState<'recent' | 'foryou'>('recent')
+  const [taste, setTaste] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    let gone = false
+    createClient().auth.getSession().then(({ data }) => {
+      if (gone || !data.session) return
+      communityViewer().then((viewer) => { if (!gone) setTaste(viewer.taste) }).catch(() => {})
+    }).catch(() => {})
+    return () => { gone = true }
+  }, [])
 
   useEffect(() => {
     let gone = false
@@ -36,6 +53,12 @@ export function ExploreBrowser() {
   const index = useMemo(() => buildSearchIndex(narrowed, (code) => countryCodeToName(code, locale)), [narrowed, locale])
   const obras = query.trim() ? searchIndex(index, query) : narrowed
   const artists = query.trim() ? searchArtists(index, query, 8) : []
+  // Pinned never applies here; the obras carry their tags as indexes.
+  const ordered = useMemo(() => {
+    if (sort !== 'foryou' || Object.keys(taste).length === 0) return obras
+    return rankForTaste(obras.map((entry) => ({ entry, tags: tagsFromIndexes(entry.tags) })), taste)
+      .map(({ entry }) => entry)
+  }, [obras, sort, taste])
 
   if (failed) return <p role="alert" className="py-16 text-center text-muted-foreground">{m.community.loadError}</p>
   if (!entries) return <div className="mt-8 h-64 animate-pulse rounded-3xl bg-ink/5" aria-hidden="true" />
@@ -62,6 +85,26 @@ export function ExploreBrowser() {
           </select>
         </label>
       </div>
+      {Object.keys(taste).length > 0 && (
+        <div className="mt-6 inline-flex rounded-full border-2 border-ink/15 p-1" role="group" aria-label={`${t.exploreRecent} / ${t.exploreForYou}`}>
+          <button
+            type="button"
+            aria-pressed={sort === 'recent'}
+            onClick={() => setSort('recent')}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-collage-blue ${sort === 'recent' ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5'}`}
+          >
+            {t.exploreRecent}
+          </button>
+          <button
+            type="button"
+            aria-pressed={sort === 'foryou'}
+            onClick={() => setSort('foryou')}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-collage-blue ${sort === 'foryou' ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5'}`}
+          >
+            {t.exploreForYou}
+          </button>
+        </div>
+      )}
       {artists.length > 0 && (
         <section className="mt-8" aria-label={t.exploreArtists}>
           <h2 className="text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">{t.exploreArtists}</h2>
@@ -78,7 +121,7 @@ export function ExploreBrowser() {
       )}
       {obras.length === 0 ? <p className="py-16 text-center text-muted-foreground">{t.exploreEmpty}</p> : (
         <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {obras.map((obra) => (
+          {ordered.map((obra) => (
             <li key={obra.slug}>
               <Link href={`/obras/${obra.slug}`} className="block overflow-hidden rounded-2xl border-2 border-ink/10 bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

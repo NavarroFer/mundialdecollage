@@ -1,8 +1,9 @@
 // Likes and approved comments move an obra to the front. A pending comment does not.
+// The list also carries each obra's tags, for «Para vos» in the browser.
 import { readFileSync } from 'node:fs'
 import { boot, applyMigrations } from './harness.mjs'
 
-const FILE = '20261113120000_obra_activity.sql'
+const FILE = '20261113160000_obra_activity_tags.sql'
 const KNOWN = new Set(['20261009010000_home_stats_broadcast.sql'])
 const A = '00000000-0000-4000-8000-0000000000a1'
 const B = '00000000-0000-4000-8000-0000000000b1'
@@ -26,13 +27,16 @@ await db.exec(`
   insert into auth.users (id, email) values ('${A}', 'a@x.invalid'), ('${B}', 'b@x.invalid');
   insert into public.profiles (id, name, is_public, country_code) values
     ('${A}', 'Ana', true, 'AR'), ('${B}', 'Beto', true, 'UY');
-  insert into public.artworks (id, profile_id, title, slug, image_url, is_selected, created_at) values
-    ('${ART1}', '${A}', 'Una', 'una', 'https://x.invalid/una.jpg', true, now() - interval '2 days'),
-    ('${ART2}', '${B}', 'Dos', 'dos', 'https://x.invalid/dos.jpg', true, now() - interval '1 day');
+  insert into public.artworks (id, profile_id, title, slug, image_url, is_selected, created_at, tags) values
+    ('${ART1}', '${A}', 'Una', 'una', 'https://x.invalid/una.jpg', true, now() - interval '2 days', '{mar}'),
+    ('${ART2}', '${B}', 'Dos', 'dos', 'https://x.invalid/dos.jpg', true, now() - interval '1 day', '{ciudad}');
 `)
 await db.exec(`update public.artworks set last_activity_at = created_at`)
-let order = (await db.query(`select slug from public.obra_activity_feed()`)).rows.map((row) => row.slug)
+let rows = (await db.query(`select slug, tags from public.obra_activity_feed()`)).rows
+let order = rows.map((row) => row.slug)
 check('newer obra is first before any activity', order[0] === 'dos', order.join(','))
+check('every obra carries its tags', rows.every((row) => Array.isArray(row.tags)), JSON.stringify(rows))
+check('the tags are the obra ones', rows.find((row) => row.slug === 'una')?.tags?.[0] === 'mar', JSON.stringify(rows))
 await db.exec(`insert into public.artwork_likes (artwork_id, email) values ('${ART1}', 'fan@x.invalid')`)
 order = (await db.query(`select slug from public.obra_activity_feed()`)).rows.map((row) => row.slug)
 check('a like moves that obra first', order[0] === 'una', order.join(','))

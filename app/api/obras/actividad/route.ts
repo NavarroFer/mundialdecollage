@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { tagIndexes } from '@/lib/community-tags'
 import { viewerCanSeeObraFeed } from '@/lib/feed-access'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isUuid } from '@/lib/community'
@@ -20,6 +21,7 @@ type Row = {
   comment_count: number
   last_activity_at: string
   recent: { author: string; body: string; createdAt: string }[] | null
+  tags: string[] | null
 }
 
 export async function GET(request: Request) {
@@ -54,6 +56,7 @@ export async function GET(request: Request) {
         comments: row.comment_count,
         activityAt: row.last_activity_at,
         recent: row.recent ?? [],
+        tags: tagIndexes(row.tags),
       })),
       next: more ? { at: more.last_activity_at, id: more.id } : null,
     }, { headers: { 'Cache-Control': PRIVATE } })

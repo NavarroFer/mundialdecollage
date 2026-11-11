@@ -76,6 +76,24 @@ export function parseCommunityReading(raw: string, options: { translate: boolean
   }
 }
 
+/** Tags-only payload. Unknown tags are dropped; a broken payload is empty, never a throw. */
+export function parseArtworkTags(raw: string): string[] {
+  const candidates = [raw]
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start !== -1 && end > start) candidates.push(raw.slice(start, end + 1))
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as { tags?: unknown }
+      const tags = cleanTags(parsed?.tags)
+      if (tags.length) return tags
+    } catch {
+      // Try the next shape (raw, then the JSON inside surrounding text).
+    }
+  }
+  return []
+}
+
 function prompt(task: { body: string; describe: boolean; moderate: boolean }): string {
   return `You help the Mundial de Collage, a collage community. Reply with JSON only.
 ${task.body.trim().length >= 3 ? `Text: ${JSON.stringify(task.body)}
@@ -95,7 +113,9 @@ async function ask(task: { body: string; imageUrl?: string | null; describe: boo
     if (task.imageUrl && task.describe) content.push({ type: 'image', source: { type: 'url', url: task.imageUrl } })
     const response = await client.messages.create({
       model: MODEL,
-      max_tokens: 2000,
+      // Haiku 5.5 thinks by default, so the budget also covers thinking. The
+      // answer (eight translations plus tags) needs room after it.
+      max_tokens: 4000,
       messages: [{ role: 'user', content }],
     })
     const text = response.content.find((block) => block.type === 'text')?.text ?? ''
@@ -104,6 +124,64 @@ async function ask(task: { body: string; imageUrl?: string | null; describe: boo
   } catch (error) {
     console.error('community ai', error)
     return EMPTY
+  }
+}
+
+const TAGS_INSTRUCTIONS = `You help the Mundial de Collage, a collage contest. Pick 3 to 6 tags for this obra from this list only: ${COMMUNITY_TAGS.join(', ')}.
+Reply with JSON only, no explanations: {"tags":["..."]}`
+
+/** Tags only — no translations, no alt text, no verdict: the cheap call. A bad payload is empty. */
+async function askTags(task: { title: string | null; technique: string | null; imageUrl: string }): Promise<string[]> {
+  if (!isCommunityAiOn()) return []
+  try {
+    const client = new Anthropic()
+    const lines = [TAGS_INSTRUCTIONS]
+    if (task.title) lines.push(`Title: ${JSON.stringify(task.title)}`)
+    if (task.technique) lines.push(`Technique: ${task.technique}`)
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 200,
+      // Haiku 5.5 thinks by default and spends the whole budget before writing
+      // the JSON (stop_reason: max_tokens, no text block). Tagging needs one
+      // short answer, so thinking is off; the other calls keep it on.
+      thinking: { type: 'disabled' },
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'url', url: task.imageUrl } },
+          { type: 'text', text: lines.join('\n') },
+        ],
+      }],
+    })
+    const text = response.content.find((block) => block.type === 'text')?.text ?? ''
+    return parseArtworkTags(text)
+  } catch (error) {
+    console.error('community ai tags', error)
+    return []
+  }
+}
+
+/**
+ * Tags one existing obra. No-op when the model is off, the obra is gone, has
+ * no photo, or was already tagged (the community post flow may have done it).
+ * Tagging never breaks the action that triggered it.
+ */
+export async function tagArtwork(artworkId: string): Promise<void> {
+  if (!artworkId || !isCommunityAiOn()) return
+  try {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from('artworks')
+      .select('title, technique, image_url, tags')
+      .eq('id', artworkId)
+      .maybeSingle()
+    const artwork = data as { title: string | null; technique: string | null; image_url: string | null; tags: string[] | null } | null
+    if (!artwork?.image_url || artwork.tags?.length) return
+    const tags = await askTags({ title: artwork.title, technique: artwork.technique, imageUrl: artwork.image_url })
+    if (!tags.length) return
+    await admin.from('artworks').update({ tags }).eq('id', artworkId)
+  } catch (error) {
+    console.error('community ai artwork tags', error)
   }
 }
 

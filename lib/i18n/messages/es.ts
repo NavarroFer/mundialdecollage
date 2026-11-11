@@ -1129,6 +1129,8 @@ const es = {
     exploreSearch: 'Buscar por nombre o país',
     exploreCountry: 'País',
     exploreTechnique: 'Técnica',
+    exploreRecent: 'Recientes',
+    exploreForYou: 'Para vos',
     exploreAll: 'Todos',
     exploreEmpty: 'Nada coincide con esa búsqueda.',
     exploreArtists: 'Artistas',

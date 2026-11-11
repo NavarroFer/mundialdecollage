@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { tagIndexes } from '@/lib/community-tags'
 import { getFinalists } from '@/lib/finalists'
 import type { ObraEntry } from '@/lib/artwork-search'
 
@@ -11,7 +12,7 @@ import type { ObraEntry } from '@/lib/artwork-search'
 export const revalidate = 3600
 
 export async function GET() {
-  const entries: ObraEntry[] = (await getFinalists()).map(({ slug, artworkTitle, name, countryCode, imageUrl, profileId, technique }) => ({
+  const entries: ObraEntry[] = (await getFinalists()).map(({ slug, artworkTitle, name, countryCode, imageUrl, profileId, technique, tags }) => ({
     slug,
     title: artworkTitle,
     name,
@@ -19,6 +20,7 @@ export async function GET() {
     imageUrl,
     profileId,
     technique: technique ?? null,
+    tags: tagIndexes(tags),
   }))
   return NextResponse.json(entries)
 }

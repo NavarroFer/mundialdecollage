@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { addArtworkComment, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { useI18n } from '@/lib/i18n/client'
 import { formatRelative, fmt } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
 import { countryCodeToFlag } from '@/lib/participants'
+import { rankForTaste } from '@/lib/community'
+import { tagsFromIndexes } from '@/lib/community-tags'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 type Recent = { author: string; body: string; createdAt: string }
@@ -23,10 +27,12 @@ export type ObraCard = {
   comments: number
   activityAt: string
   recent: Recent[]
+  /** Indexes into COMMUNITY_TAGS, for «Para vos». */
+  tags?: number[]
 }
 
 type Page = { obras: ObraCard[]; next: { at: string; id: string } | null }
-type Sort = 'recent' | 'popular' | 'conversation'
+type Sort = 'foryou' | 'recent' | 'popular' | 'conversation'
 
 const AVATAR_BG = ['bg-collage-blue/15', 'bg-collage-yellow/30', 'bg-collage-red/15'] as const
 
@@ -47,7 +53,7 @@ function byRecent(a: ObraCard, b: ObraCard) {
 }
 
 function sortObras(obras: ObraCard[], sort: Sort) {
-  if (sort === 'recent') return obras
+  if (sort === 'recent' || sort === 'foryou') return obras
   if (sort === 'conversation') {
     return obras
       .filter((obra) => obra.comments > 0)
@@ -74,6 +80,7 @@ function load(cursor?: { at: string; id: string }) {
 export function ObraActivityFeed() {
   const { locale, m } = useI18n()
   const t = m.community
+  const tabs = m.siteSections
   const [obras, setObras] = useState<ObraCard[] | null>(null)
   const [next, setNext] = useState<Page['next']>(null)
   const [error, setError] = useState(false)
@@ -83,12 +90,24 @@ export function ObraActivityFeed() {
   const [pendingNote, setPendingNote] = useState<Record<string, string>>({})
   const [liked, setLiked] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState<string | null>(null)
+  // «Para vos»: the database computes the taste, the browser orders what it
+  // already has. Hidden until there is a taste to read.
+  const [taste, setTaste] = useState<Record<string, number>>({})
 
   useEffect(() => {
     if (!copied) return
     const timer = setTimeout(() => setCopied(null), 2000)
     return () => clearTimeout(timer)
   }, [copied])
+
+  useEffect(() => {
+    let gone = false
+    createClient().auth.getSession().then(({ data }) => {
+      if (gone || !data.session) return
+      communityViewer().then((viewer) => { if (!gone) setTaste(viewer.taste) }).catch(() => {})
+    }).catch(() => {})
+    return () => { gone = true }
+  }, [])
 
   useEffect(() => {
     let gone = false
@@ -100,7 +119,22 @@ export function ObraActivityFeed() {
     return () => { gone = true }
   }, [])
 
-  const visible = useMemo(() => (obras ? sortObras(obras, sort) : []), [obras, sort])
+  const hasTaste = Object.keys(taste).length > 0
+
+  const visible = useMemo(() => {
+    const list = obras ?? []
+    if (sort === 'foryou') {
+      if (!hasTaste) return list
+      return rankForTaste(list.map((obra) => ({
+        obra,
+        tags: tagsFromIndexes(obra.tags),
+        createdAt: obra.activityAt,
+        likes: obra.likes,
+        comments: obra.comments,
+      })), taste).map(({ obra }) => obra)
+    }
+    return sortObras(list, sort)
+  }, [obras, sort, taste, hasTaste])
 
   function bump(slug: string, patch: (obra: ObraCard) => ObraCard) {
     setObras((current) => {
@@ -185,7 +219,8 @@ export function ObraActivityFeed() {
     )
   }
 
-  const tabs: { key: Sort; label: string }[] = [
+  const tabList: { key: Sort; label: string }[] = [
+    ...(hasTaste ? [{ key: 'foryou' as const, label: tabs.exploreForYou }] : []),
     { key: 'recent', label: t.feedRecent },
     { key: 'popular', label: t.feedPopular },
     { key: 'conversation', label: t.feedConversation },
@@ -194,14 +229,14 @@ export function ObraActivityFeed() {
   return (
     <div>
       <div role="group" aria-label={t.title} className="flex gap-1 rounded-full border-2 border-ink/10 bg-card p-1">
-        {tabs.map((tab) => (
+        {tabList.map((tab) => (
           <button
             key={tab.key}
             type="button"
             aria-pressed={sort === tab.key}
             onClick={() => setSort(tab.key)}
             className={cn(
-              'min-h-9 flex-1 rounded-full px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue',
+              'min-h-9 flex-1 rounded-full px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue',
               sort === tab.key ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5',
             )}
           >

@@ -49,7 +49,7 @@ describe('gallery likes', () => {
   it('likes with the Google account email, normalized', async () => {
     mocks.getUser.mockResolvedValue({ data: { user } })
     expect(await likeArtwork('obra')).toEqual({ liked: true })
-    expect(mocks.rpc).toHaveBeenCalledWith('like_gallery_artwork', { artwork_slug: 'obra', voter_email: 'ana@example.com' })
+    expect(mocks.rpc).toHaveBeenCalledWith('like_gallery_artwork', { artwork_slug: 'obra', voter_email: 'ana@example.com', voter_id: 'u1' })
   })
 
   it('does not claim success when the transaction fails', async () => {

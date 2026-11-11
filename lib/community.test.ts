@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { cleanBody, decodeCursor, encodeCursor, isOwnPostPath, parseFeedQuery, POST_BODY_MAX } from './community'
+import {
+  cleanBody,
+  decodeCursor,
+  encodeCursor,
+  isOwnPostPath,
+  parseFeedQuery,
+  POST_BODY_MAX,
+  rankForTaste,
+  tasteFromRows,
+  tasteScore,
+} from './community'
 
 const id = '11111111-2222-4333-8444-555555555555'
 const at = '2026-11-11T18:00:00.000Z'
@@ -69,5 +79,81 @@ describe('parseFeedQuery', () => {
     expect(parseFeedQuery(new URLSearchParams({ n: '0' }))).toBeNull()
     expect(parseFeedQuery(new URLSearchParams({ n: '21' }))).toBeNull()
     expect(parseFeedQuery(new URLSearchParams({ lang: 'english' }))).toBeNull()
+  })
+})
+
+describe('taste', () => {
+  const day = (n: number) => `2026-11-${String(n).padStart(2, '0')}T12:00:00.000Z`
+  const post = (id: string, overrides: Partial<{
+    tags: string[]
+    pinned: boolean
+    createdAt: string
+    likes: number
+    comments: number
+  }> = {}) => ({
+    id,
+    tags: [] as string[],
+    pinned: false,
+    createdAt: day(1),
+    likes: 0,
+    comments: 0,
+    ...overrides,
+  })
+
+  it('keeps the exact order without a taste and never mutates the input', () => {
+    const items = [post('a', { likes: 9 }), post('b', { pinned: true }), post('c', { createdAt: day(9) })]
+    const snapshot = items.map((item) => ({ ...item }))
+    const ranked = rankForTaste(items, {})
+
+    expect(ranked.map((item) => item.id)).toEqual(['a', 'b', 'c'])
+    expect(ranked).not.toBe(items)
+    expect(items).toEqual(snapshot)
+  })
+
+  it('moves a strong match up and keeps the original order on a tie', () => {
+    const items = [
+      post('sin-gusto', { likes: 5 }),
+      post('match', { tags: ['retrato'] }),
+      post('empate-a', { tags: ['retrato'] }),
+    ]
+    const ranked = rankForTaste(items, { retrato: 1 })
+    expect(ranked.map((item) => item.id)).toEqual(['match', 'empate-a', 'sin-gusto'])
+  })
+
+  it('puts a pinned item first even when its taste is 0', () => {
+    const items = [
+      post('match', { tags: ['retrato'] }),
+      post('pinned', { pinned: true, likes: 0 }),
+    ]
+    expect(rankForTaste(items, { retrato: 1 }).map((item) => item.id)).toEqual(['pinned', 'match'])
+  })
+
+  it('breaks a taste tie with popularity', () => {
+    const items = [
+      post('menos', { tags: ['retrato'], likes: 1 }),
+      post('mas', { tags: ['retrato'], likes: 10 }),
+    ]
+    expect(rankForTaste(items, { retrato: 1 }).map((item) => item.id)).toEqual(['mas', 'menos'])
+  })
+
+  it('tasteScore counts repeated tags once and ignores tags without a weight', () => {
+    expect(tasteScore(['retrato', 'retrato', 'naturaleza', 'humor'], { retrato: 0.5, naturaleza: 0.25 })).toBe(0.75)
+    expect(tasteScore(['desconocida'], { retrato: 1 })).toBe(0)
+    expect(tasteScore([], { retrato: 1 })).toBe(0)
+  })
+
+  it('tasteFromRows drops invalid rows and returns a plain object', () => {
+    const taste = tasteFromRows([
+      { tag: 'retrato', weight: 0.9 },
+      { tag: '', weight: 0.5 },
+      { tag: 'naturaleza', weight: 0 },
+      { tag: 'humor', weight: -1 },
+      { tag: 'ciudad', weight: Number.NaN },
+      { tag: 'digital', weight: Number.POSITIVE_INFINITY },
+      { tag: ' oscuro ', weight: 0.4 },
+    ])
+
+    expect(taste).toEqual({ retrato: 0.9, oscuro: 0.4 })
+    expect(Object.getPrototypeOf(taste)).toBe(Object.prototype)
   })
 })

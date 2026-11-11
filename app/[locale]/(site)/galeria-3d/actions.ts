@@ -66,9 +66,12 @@ export async function getArtworkLike(slug: string): Promise<LikeState | { error:
 export async function likeArtwork(slug: string) {
   if (!isConfigured() || !validSlug(slug)) return { error: unavailable }
   try {
-    const email = normalizeLikeEmail((await getSessionUser())?.email)
-    if (!email) return { error: 'sign_in_required' }
-    const { error } = await createAdminClient().rpc('like_gallery_artwork', { artwork_slug: slug, voter_email: email })
+    const user = await getSessionUser()
+    const email = normalizeLikeEmail(user?.email)
+    if (!user || !email) return { error: 'sign_in_required' }
+    // user_id is what community_taste() reads; older likes were backfilled by
+    // email, but every new one must carry the account from the start.
+    const { error } = await createAdminClient().rpc('like_gallery_artwork', { artwork_slug: slug, voter_email: email, voter_id: user.id })
     if (error) return { error: 'save_failed' }
     return { liked: true }
   } catch {

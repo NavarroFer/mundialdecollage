@@ -11,7 +11,7 @@ vi.mock('@/lib/supabase/admin', () => ({
   }),
 }))
 
-import { communityAiBlocks, isCommunityModerationOn, parseCommunityReading } from './community-ai'
+import { communityAiBlocks, isCommunityModerationOn, parseArtworkTags, parseCommunityReading } from './community-ai'
 
 describe('parseCommunityReading', () => {
   it('keeps a translation, a known tag and a verdict', () => {
@@ -44,6 +44,28 @@ describe('parseCommunityReading', () => {
     expect(reading.imageAlt).toBeNull()
     expect(reading.verdict).toBeNull()
     expect(reading.tags).toEqual(['taller'])
+  })
+})
+
+describe('parseArtworkTags', () => {
+  it('keeps the tags of a valid payload', () => {
+    expect(parseArtworkTags('{"tags":["recorte","papel","luz"]}')).toEqual(['recorte', 'papel', 'luz'])
+  })
+
+  it('finds the JSON inside surrounding text', () => {
+    expect(parseArtworkTags('Claro, acá va:\n{"tags":["ciudad","noche"]}\nEspero que sirva.')).toEqual(['ciudad', 'noche'])
+  })
+
+  it('drops tags outside the vocabulary and stops at six', () => {
+    expect(parseArtworkTags(JSON.stringify({
+      tags: ['retrato', 'inventado', 'Retrato', 'luz', 'mar', 'viaje', 'casa', 'infancia'],
+    }))).toEqual(['retrato', 'luz', 'mar', 'viaje', 'casa', 'infancia'])
+  })
+
+  it('is empty when the payload is broken', () => {
+    expect(parseArtworkTags('no es json')).toEqual([])
+    expect(parseArtworkTags('{"tags":')).toEqual([])
+    expect(parseArtworkTags('{"tags":"retrato"}')).toEqual([])
   })
 })
 

@@ -144,3 +144,98 @@ export function parseFeedQuery(params: URLSearchParams): FeedQuery | null {
 
   return { cursor, author: autor?.toLowerCase() ?? null, limit, lang: lang ?? 'es', highlights }
 }
+
+/** The tags an item shares with a taste, weighted. 0 when nothing matches. */
+export function tasteScore(tags: string[], taste: Record<string, number>): number {
+  if (!Array.isArray(tags) || !taste) return 0
+  const seen = new Set<string>()
+  let score = 0
+  for (const tag of tags) {
+    // Repeats count once; a tag with no weight adds nothing.
+    if (typeof tag !== 'string' || seen.has(tag)) continue
+    seen.add(tag)
+    const weight = taste[tag]
+    if (typeof weight !== 'number' || !Number.isFinite(weight)) continue
+    score += weight
+  }
+  return score
+}
+
+/** Likes or comments clamped to a usable count: missing, negative or NaN become 0. */
+function count(value: number | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0
+}
+
+/** Milliseconds for `createdAt`; null when it doesn't parse. */
+function time(value: string | undefined): number | null {
+  if (typeof value !== 'string') return null
+  const at = Date.parse(value)
+  return Number.isNaN(at) ? null : at
+}
+
+/**
+ * Orders a cached list for one visitor, in the browser.
+ * - No taste: the same array, same order (copy, never mutate).
+ * - `pinned` always first, keeping its relative order.
+ * - Otherwise: tag match (sum of weights), then popularity, then recency.
+ */
+export function rankForTaste<T extends {
+  tags: string[]
+  pinned?: boolean
+  createdAt?: string
+  likes?: number
+  comments?: number
+}>(items: T[], taste: Record<string, number>): T[] {
+  // Never mutate the caller's array or its objects: sort a copy of the entries.
+  const copy = [...items]
+  if (!taste || Object.keys(taste).length === 0) return copy
+
+  let likesMax = 0
+  let commentsMax = 0
+  let oldest = Number.POSITIVE_INFINITY
+  let newest = Number.NEGATIVE_INFINITY
+  for (const item of copy) {
+    likesMax = Math.max(likesMax, count(item.likes))
+    commentsMax = Math.max(commentsMax, count(item.comments))
+    const at = time(item.createdAt)
+    if (at == null) continue
+    oldest = Math.min(oldest, at)
+    newest = Math.max(newest, at)
+  }
+  const span = newest > oldest ? newest - oldest : 0
+
+  const scored = copy.map((item, index) => {
+    const at = time(item.createdAt)
+    const recency = at == null || span === 0 ? 0 : 0.2 * ((at - oldest) / span)
+    return {
+      item,
+      index,
+      pinned: item.pinned === true,
+      score:
+        tasteScore(item.tags, taste) +
+        0.5 * (likesMax > 0 ? count(item.likes) / likesMax : 0) +
+        0.3 * (commentsMax > 0 ? count(item.comments) / commentsMax : 0) +
+        recency,
+    }
+  })
+
+  // Pinned first, then the score; `index` keeps ties in their original order.
+  scored.sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.score - a.score || a.index - b.index)
+  return scored.map((entry) => entry.item)
+}
+
+/** The `{ tag: weight }` shape from rows returned by community_taste(). */
+export function tasteFromRows(rows: { tag: string; weight: number }[]): Record<string, number> {
+  const taste: Record<string, number> = {}
+  if (!Array.isArray(rows)) return taste
+  for (const row of rows) {
+    if (!row || typeof row.tag !== 'string') continue
+    const tag = row.tag.trim()
+    const weight = row.weight
+    // Empty tags and weights outside (0, ∞) carry no signal.
+    if (!tag || typeof weight !== 'number' || !Number.isFinite(weight) || weight <= 0) continue
+    if (tag === '__proto__' || tag === 'constructor' || tag === 'prototype') continue
+    taste[tag] = (taste[tag] ?? 0) + weight
+  }
+  return taste
+}

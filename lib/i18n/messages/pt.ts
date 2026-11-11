@@ -1090,6 +1090,8 @@ const pt: Messages = {
     exploreSearch: 'Buscar por nome ou país',
     exploreCountry: 'País',
     exploreTechnique: 'Técnica',
+    exploreRecent: 'Recentes',
+    exploreForYou: 'Para você',
     exploreAll: 'Todos',
     exploreEmpty: 'Nada combina com essa busca.',
     exploreArtists: 'Artistas',

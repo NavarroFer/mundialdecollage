@@ -1112,6 +1112,8 @@ const pl: Messages = {
     exploreSearch: 'Szukaj po nazwisku lub kraju',
     exploreCountry: 'Kraj',
     exploreTechnique: 'Technika',
+    exploreRecent: 'Najnowsze',
+    exploreForYou: 'Dla ciebie',
     exploreAll: 'Wszyscy',
     exploreEmpty: 'Nic nie pasuje do tego wyszukiwania.',
     exploreArtists: 'Artyści',
