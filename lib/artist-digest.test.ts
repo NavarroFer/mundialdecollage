@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { commentsHtml, digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from './artist-digest'
+import { commentsHtml, communityActivityLine, digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from './artist-digest'
 
 function row(overrides: Partial<DigestRow>): DigestRow {
   return {
@@ -45,5 +45,11 @@ describe('digest tags', () => {
 
   it('separates several comments', () => {
     expect(commentsHtml([{ author: 'A', body: 'x' }, { author: 'B', body: 'y' }])).toContain('<br /><br />')
+  })
+
+  it('mentions likes and comments a Comunidad post picked up', () => {
+    expect(communityActivityLine('es', 2, 1)).toBe('<p>Tu publicación sumó 2 me gusta y 1 comentarios.</p>')
+    expect(communityActivityLine('es', 3, 0)).toBe('<p>Tu publicación sumó 3 me gusta.</p>')
+    expect(communityActivityLine('es', 0, 0)).toBeNull()
   })
 })
