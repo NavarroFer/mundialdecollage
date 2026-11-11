@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle, MoreHorizontal, Share2 } from 'lucide-react'
+import { CommentsSheet } from '@/components/community/comments-sheet'
 import { useGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt, formatRelative } from '@/lib/i18n/format'
@@ -34,6 +35,8 @@ export function PostCard({
   const [open, setOpen] = useState(false)
   const [menu, setMenu] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [sheet, setSheet] = useState(false)
+  const [addedComments, setAddedComments] = useState(0)
   const href = communityPostPath(post.id, post.artwork?.slug)
   const signIn = useGoogleSignIn(href)
   const name = post.official ? t.officialName : post.author.name
@@ -145,11 +148,19 @@ export function PostCard({
           <span className="sr-only">{t.like}</span>
           {post.likes > 0 && <span>{fmt(t.likes, { count: post.likes })}</span>}
         </button>
-        <span className="inline-flex items-center gap-1 px-3 py-2 text-sm text-muted-foreground">
+        <button type="button" className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-ink/5" onClick={() => setSheet(true)}>
           <MessageCircle className="size-4" aria-hidden="true" />
           <span className="sr-only">{t.comments}</span>
-          {post.comments}
-        </span>
+          {post.comments + addedComments}
+        </button>
+        {sheet && (
+          <CommentsSheet
+            postId={post.id}
+            signedIn={signedIn}
+            onClose={() => setSheet(false)}
+            onPosted={() => setAddedComments((count) => count + 1)}
+          />
+        )}
         <button type="button" className="ml-auto inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-ink/5" onClick={() => void share()}>
           <Share2 className="size-4" aria-hidden="true" />
           {copied ? t.linkCopied : t.share}

@@ -16,7 +16,7 @@ vi.mock('@/lib/supabase/admin', () => ({
   }),
 }))
 
-import { communityViewer, deletePost, publishArtwork, publishImage, togglePostLike } from './actions'
+import { addPostComment, communityViewer, deletePost, publishArtwork, publishImage, togglePostLike } from './actions'
 
 const userId = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
 const postId = '11111111-2222-4333-8444-555555555555'
@@ -123,6 +123,25 @@ describe('togglePostLike and deletePost', () => {
     const update = mocks.from.mock.results.at(-1)?.value.update
     expect(update).toHaveBeenCalledWith({ status: 'removed' })
     expect(mocks.remove).toHaveBeenCalledWith([`${userId}/${file}`])
+  })
+})
+
+describe('addPostComment', () => {
+  it('asks to sign in', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null } })
+    expect(await addPostComment({ postId, body: 'hola' })).toEqual({ error: 'signin' })
+  })
+
+  it('publishes an artist comment and holds everyone else', async () => {
+    queue.posts = [{ data: { status: 'published' } }]
+    queue.profiles = [{ data: { onboarded_at: '2026-01-01', is_public: true } }, { data: { name: 'Ana' } }]
+    queue.post_comments = [{ data: { id: 'c1' } }]
+    expect(await addPostComment({ postId, body: '  hola  ' })).toEqual({ ok: true, id: 'c1', pending: false })
+
+    queue.posts = [{ data: { status: 'published' } }]
+    queue.profiles = [{ data: { onboarded_at: null, is_public: false } }, { data: { name: 'Ana' } }]
+    queue.post_comments = [{ data: { id: 'c2' } }]
+    expect(await addPostComment({ postId, body: 'hola' })).toEqual({ ok: true, id: 'c2', pending: true })
   })
 })
 

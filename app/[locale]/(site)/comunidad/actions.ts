@@ -4,7 +4,9 @@ import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { authorName } from '@/lib/gallery-author'
 import {
+  COMMENT_BODY_MAX,
   POST_BODY_MAX,
   POSTS_BUCKET,
   type CommunityError,
@@ -222,6 +224,79 @@ export async function deletePost(id: string): Promise<{ ok: true } | { error: Co
       if (post.image_path) await admin.storage.from(POSTS_BUCKET).remove([post.image_path])
     }
     return { ok: true }
+  } catch {
+    return { error: 'unavailable' }
+  }
+}
+
+export type PostComment = {
+  id: string
+  name: string
+  body: string
+  createdAt: string
+  pending: boolean
+  mine: boolean
+}
+
+export async function listPostComments(postId: string): Promise<{ ok: true; comments: PostComment[] } | { error: CommunityError }> {
+  if (!configured()) return { error: 'unavailable' }
+  if (!isUuid(postId)) return { error: 'not_found' }
+  try {
+    const user = await sessionUser()
+    const admin = createAdminClient()
+    const post = await admin.from('posts').select('status').eq('id', postId).maybeSingle()
+    if (post.error) return { error: 'unavailable' }
+    if (!post.data || (post.data as { status: string }).status === 'removed') return { error: 'not_found' }
+    const { data, error } = await admin
+      .from('post_comments')
+      .select('id, user_id, author_name, body, created_at, status')
+      .eq('post_id', postId)
+      .in('status', ['approved', 'pending'])
+      .order('created_at', { ascending: true })
+    if (error) return { error: 'unavailable' }
+    const comments = ((data ?? []) as { id: string; user_id: string; author_name: string; body: string; created_at: string; status: string }[])
+      .filter((row) => row.status === 'approved' || row.user_id === user?.id)
+      .map((row) => ({
+        id: row.id,
+        name: row.author_name,
+        body: row.body,
+        createdAt: row.created_at,
+        pending: row.status === 'pending',
+        mine: row.user_id === user?.id,
+      }))
+    return { ok: true, comments }
+  } catch {
+    return { error: 'unavailable' }
+  }
+}
+
+export async function addPostComment(input: { postId: string; body: string }): Promise<{ ok: true; id: string; pending: boolean } | { error: CommunityError }> {
+  if (!configured()) return { error: 'unavailable' }
+  const body = cleanBody(input?.body, COMMENT_BODY_MAX)
+  if (body == null) return { error: 'too_long' }
+  if (!body) return { error: 'too_long' }
+  if (!isUuid(input.postId)) return { error: 'not_found' }
+  try {
+    const user = await sessionUser()
+    if (!user) return { error: 'signin' }
+    const admin = createAdminClient()
+    const post = await admin.from('posts').select('status').eq('id', input.postId).maybeSingle()
+    if (post.error) return { error: 'unavailable' }
+    if (!post.data || (post.data as { status: string }).status !== 'published') return { error: 'not_found' }
+    const artist = await canPost(user.id)
+    if (artist == null) return { error: 'unavailable' }
+    const pending = !artist
+    const { data, error } = await admin.from('post_comments').insert({
+      post_id: input.postId,
+      user_id: user.id,
+      author_name: await authorName(user),
+      author_email: user.email?.toLowerCase() ?? null,
+      body,
+      status: pending ? 'pending' : 'approved',
+    }).select('id').single()
+    const failure = fromDb(error)
+    if (failure || !data) return { error: failure === 'already' ? 'unavailable' : failure ?? 'unavailable' }
+    return { ok: true, id: (data as { id: string }).id, pending }
   } catch {
     return { error: 'unavailable' }
   }

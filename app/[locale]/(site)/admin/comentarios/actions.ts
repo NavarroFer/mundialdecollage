@@ -15,3 +15,13 @@ export async function approveComment(formData: FormData) {
 export async function rejectComment(formData: FormData) {
   await moderate(comments, formData, 'rejected')
 }
+
+const communityComments: ModerationQueue = { table: 'post_comments', path: '/admin/comentarios', anchor: 'ccomment' }
+
+export async function approveCommunityComment(formData: FormData) {
+  await moderate(communityComments, formData, 'approved')
+}
+
+export async function rejectCommunityComment(formData: FormData) {
+  await moderate(communityComments, formData, 'rejected')
+}
