@@ -302,6 +302,29 @@ export async function addPostComment(input: { postId: string; body: string }): P
   }
 }
 
+const REPORT_REASON_MAX = 300
+
+export async function reportPost(input: { postId: string; reason?: string }): Promise<{ ok: true } | { error: CommunityError }> {
+  if (!configured()) return { error: 'unavailable' }
+  if (!input || !isUuid(input.postId)) return { error: 'not_found' }
+  const reason = cleanBody(input.reason ?? '', REPORT_REASON_MAX)
+  if (reason == null) return { error: 'too_long' }
+  try {
+    const user = await sessionUser()
+    if (!user) return { error: 'signin' }
+    const admin = createAdminClient()
+    const post = await admin.from('posts').select('status').eq('id', input.postId).maybeSingle()
+    if (post.error) return { error: 'unavailable' }
+    if (!post.data || (post.data as { status: string }).status !== 'published') return { error: 'not_found' }
+    const { error } = await admin.from('post_reports').insert({ post_id: input.postId, user_id: user.id, reason })
+    // One report per person: a repeat is the same as the first.
+    if (error && error.code !== '23505') return fromDb(error) === 'rate_limited' ? { error: 'rate_limited' } : { error: 'unavailable' }
+    return { ok: true }
+  } catch {
+    return { error: 'unavailable' }
+  }
+}
+
 export async function togglePostLike(id: string): Promise<{ ok: true; liked: boolean; likes: number } | { error: CommunityError }> {
   if (!configured()) return { error: 'unavailable' }
   if (!isUuid(id)) return { error: 'not_found' }

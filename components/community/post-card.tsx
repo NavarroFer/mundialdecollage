@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle, MoreHorizontal, Share2 } from 'lucide-react'
+import { reportPost } from '@/app/[locale]/(site)/comunidad/actions'
 import { CommentsSheet } from '@/components/community/comments-sheet'
 import { useGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { useI18n } from '@/lib/i18n/client'
@@ -37,6 +38,9 @@ export function PostCard({
   const [copied, setCopied] = useState(false)
   const [sheet, setSheet] = useState(false)
   const [addedComments, setAddedComments] = useState(0)
+  const [reporting, setReporting] = useState(false)
+  const [reason, setReason] = useState('')
+  const [reported, setReported] = useState(false)
   const href = communityPostPath(post.id, post.artwork?.slug)
   const signIn = useGoogleSignIn(href)
   const name = post.official ? t.officialName : post.author.name
@@ -104,25 +108,55 @@ export function PostCard({
           </p>
         </div>
         {post.pinned && <span className="rounded-full bg-collage-yellow px-2 py-1 text-xs font-semibold text-ink">{t.prompt}</span>}
-        {mine && (
-          <div className="relative">
-            <button type="button" className="rounded-full p-2 text-ink hover:bg-ink/5" aria-label={t.more} aria-expanded={menu} onClick={() => setMenu((value) => !value)}>
-              <MoreHorizontal className="size-4" aria-hidden="true" />
-            </button>
-            {menu && (
-              <button
-                type="button"
-                className="absolute right-0 z-10 mt-1 whitespace-nowrap rounded-xl border-2 border-ink/10 bg-card px-3 py-2 text-sm font-semibold text-collage-red"
-                onClick={() => {
-                  setMenu(false)
-                  if (window.confirm(t.deleteConfirm)) onDelete(post.id)
-                }}
-              >
-                {t.delete}
-              </button>
-            )}
-          </div>
-        )}
+        <div className="relative">
+          <button type="button" className="rounded-full p-2 text-ink hover:bg-ink/5" aria-label={t.more} aria-expanded={menu} onClick={() => setMenu((value) => !value)}>
+            <MoreHorizontal className="size-4" aria-hidden="true" />
+          </button>
+          {menu && (
+            <div className="absolute right-0 z-10 mt-1 w-56 rounded-xl border-2 border-ink/10 bg-card p-2 shadow-sm">
+              {mine ? (
+                <button
+                  type="button"
+                  className="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-collage-red"
+                  onClick={() => {
+                    setMenu(false)
+                    if (window.confirm(t.deleteConfirm)) onDelete(post.id)
+                  }}
+                >
+                  {t.delete}
+                </button>
+              ) : reported ? (
+                <p className="px-3 py-2 text-sm text-muted-foreground">{t.reported}</p>
+              ) : (
+                <form onSubmit={(event) => {
+                  event.preventDefault()
+                  if (!signedIn) {
+                    void signIn.start()
+                    return
+                  }
+                  void reportPost({ postId: post.id, reason }).then((result) => {
+                    if ('error' in result) return
+                    track('community_report')
+                    setReported(true)
+                    setReporting(false)
+                    setMenu(false)
+                  })
+                }}>
+                  {!reporting ? (
+                    <button type="button" className="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink" onClick={() => setReporting(true)}>
+                      {t.report}
+                    </button>
+                  ) : (
+                    <>
+                      <textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} rows={2} placeholder={t.reportReason} className="w-full rounded-lg border border-ink/15 px-2 py-1 text-sm" />
+                      <button type="submit" className="mt-2 text-sm font-semibold text-ink">{t.report}</button>
+                    </>
+                  )}
+                </form>
+              )}
+            </div>
+          )}
+        </div>
       </header>
       {post.artwork ? (
         <Link href={post.artwork.href} onClick={() => track('community_to_obra')}>{image}</Link>

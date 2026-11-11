@@ -16,7 +16,7 @@ vi.mock('@/lib/supabase/admin', () => ({
   }),
 }))
 
-import { addPostComment, communityViewer, deletePost, publishArtwork, publishImage, togglePostLike } from './actions'
+import { addPostComment, communityViewer, deletePost, publishArtwork, publishImage, reportPost, togglePostLike } from './actions'
 
 const userId = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
 const postId = '11111111-2222-4333-8444-555555555555'
@@ -123,6 +123,20 @@ describe('togglePostLike and deletePost', () => {
     const update = mocks.from.mock.results.at(-1)?.value.update
     expect(update).toHaveBeenCalledWith({ status: 'removed' })
     expect(mocks.remove).toHaveBeenCalledWith([`${userId}/${file}`])
+  })
+})
+
+describe('reportPost', () => {
+  it('asks to sign in', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null } })
+    expect(await reportPost({ postId })).toEqual({ error: 'signin' })
+  })
+
+  it('records one report and treats a repeat as done', async () => {
+    queue.posts = [{ data: { status: 'published' } }, { data: { status: 'published' } }]
+    queue.post_reports = [{ data: null, error: null }, { data: null, error: { code: '23505', message: 'duplicate' } }]
+    expect(await reportPost({ postId, reason: '  spam  ' })).toEqual({ ok: true })
+    expect(await reportPost({ postId })).toEqual({ ok: true })
   })
 })
 
