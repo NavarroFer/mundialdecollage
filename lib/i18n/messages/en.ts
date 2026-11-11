@@ -1050,6 +1050,13 @@ const en: Messages = {
     moderationForcedKey: 'ANTHROPIC_API_KEY is missing. AI moderation stays off even if this switch is on.',
     moderationActive: 'Right now the model is labeling what is pending.',
     moderationManual: 'Right now moderation is manual.',
+    feedSubtitle: 'What the World Cup artists are sharing: artworks, likes and comments.',
+    feedRecent: 'Recent',
+    feedPopular: 'Popular',
+    feedConversation: 'With conversation',
+    feedEmpty: 'No activity yet. When an artwork gets a like or a comment, it shows up here.',
+    feedConversationEmpty: 'Nobody has commented on an artwork yet.',
+    feedSeeCommunity: 'See Community',
     errors: {
       signin: 'Sign in with Google to continue.',
       not_artist: 'Posting is for enrolled artists. You can still like and comment.',

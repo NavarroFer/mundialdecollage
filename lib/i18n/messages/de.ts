@@ -1049,6 +1049,13 @@ const de: Messages = {
     moderationForcedKey: 'ANTHROPIC_API_KEY fehlt. Die KI-Moderation bleibt aus, auch wenn dieser Schalter an ist.',
     moderationActive: 'Gerade kennzeichnet die KI, was noch wartet.',
     moderationManual: 'Gerade ist die Moderation manuell.',
+    feedSubtitle: 'Was die Künstler des Weltcups teilen: Werke, Likes und Kommentare.',
+    feedRecent: 'Neueste',
+    feedPopular: 'Beliebt',
+    feedConversation: 'Mit Gespräch',
+    feedEmpty: 'Noch keine Aktivität. Wenn ein Werk ein Like oder einen Kommentar bekommt, erscheint es hier.',
+    feedConversationEmpty: 'Noch hat niemand ein Werk kommentiert.',
+    feedSeeCommunity: 'Community ansehen',
     errors: {
       signin: 'Melde dich mit Google an, um weiterzumachen.',
       not_artist: 'Veröffentlichen ist für angemeldete Künstlerinnen und Künstler. Gefällt mir und Kommentare gehen trotzdem.',
