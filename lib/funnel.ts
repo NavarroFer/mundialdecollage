@@ -254,6 +254,24 @@ export const PARTNER_EVENTS = [
   { name: 'partners_email_click', label: 'Tocaron el mail para escribirnos' },
 ] as const
 
+// Comunidad (docs/red-social.md §11). Recorded from the home strip, the feed
+// and the offer next to the story image. Later stages fire the souvenir,
+// photo, comment and report events; they stay at zero until then.
+export const COMMUNITY_EVENTS = [
+  { name: 'community_strip_view', label: 'Vieron la franja de Comunidad en el inicio' },
+  { name: 'community_view', label: 'Abrieron Comunidad' },
+  { name: 'community_post_open', label: 'Abrieron una publicación (imagen o ver más)' },
+  { name: 'community_publish_offer_view', label: 'Vieron «Publicala en el Mundial»' },
+  { name: 'community_publish_artwork', label: 'Publicaron su obra' },
+  { name: 'community_publish_souvenir', label: 'Publicaron un souvenir' },
+  { name: 'community_publish_photo', label: 'Mandaron una foto libre' },
+  { name: 'community_like', label: 'Dieron me gusta' },
+  { name: 'community_comment', label: 'Comentaron' },
+  { name: 'community_report', label: 'Denunciaron' },
+  { name: 'community_to_obra', label: 'Fueron de una publicación a la obra' },
+  { name: 'community_to_profile', label: 'Fueron de una publicación al perfil' },
+] as const
+
 // Donations (lib/donations.ts): who goes to give, from the home or the
 // gallery, how many of them in dollars through PayPal (the rest, in pesos
 // through Mercado Pago), and who comes back to /donar/gracias (paid, or a
@@ -288,12 +306,13 @@ export type FunnelEvent =
   | (typeof MAGAZINE_ENTRY_EVENTS)[number]['name']
   | (typeof PARTNER_EVENTS)[number]['name']
   | (typeof DONATION_EVENTS)[number]['name']
+  | (typeof COMMUNITY_EVENTS)[number]['name']
 
 const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...ONBOARDING_FORM_EVENTS, ...FORM_RESCUE_EVENTS, ...LOGIN_EVENTS, ...SIGNUP_SOURCE_EVENTS, ...GALLERY_READY_EVENTS,
-    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS, ...COMMUNITY_EVENTS,
   ].map((step) => step.name),
 )
 

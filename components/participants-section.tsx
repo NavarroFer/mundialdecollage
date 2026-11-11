@@ -13,7 +13,7 @@ export async function ParticipantsSection() {
   const [collageFinalists, { m }] = await Promise.all([getDailyExhibition(), getI18n()])
 
   return (
-    <section id="participantes" className="border-t-2 border-ink/10 bg-background py-20 sm:py-28">
+    <section id="participantes" className="scroll-mt-28 border-t-2 border-ink/10 bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-4xl px-5 sm:px-8">
         <FadeIn>
           <h2 className="font-display text-center text-3xl tracking-tight uppercase sm:text-4xl">

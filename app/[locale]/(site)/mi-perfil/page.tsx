@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { CheckCircle2 } from 'lucide-react'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { CountrySelect } from '@/components/ui/country-select'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminView } from '@/lib/view-mode'
 import { instagramHandle } from '@/lib/instagram'
 import { getI18n } from '@/lib/i18n/server'
 import { artistProfileSlug } from '@/lib/artist-slug'
@@ -24,7 +24,7 @@ export default async function MyProfilePage({ searchParams }: { searchParams: Pr
   const user = await getCurrentUser()
   if (!user) redirect('/onboarding')
   // Admins moderate, they don't submit (lib/admin.ts).
-  if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
+  if (await isAdminView(user)) redirect('/admin')
 
   const { locale, m } = await getI18n()
   const t = m.profileEditor

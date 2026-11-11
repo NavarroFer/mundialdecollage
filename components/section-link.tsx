@@ -9,6 +9,9 @@ import { usePathname } from 'next/navigation'
 export function SectionLink({ href, onClick, ...props }: React.ComponentProps<typeof Link> & { href: string }) {
   const pathname = usePathname()
   const [path, id] = href.split('#')
+  // `/?sitio=1#participantes` is still this page. The query only chooses which
+  // home to show; the scroll below runs when that section is actually here.
+  const pathOnly = (path || '/').split('?')[0] || '/'
 
   return (
     <Link
@@ -16,7 +19,7 @@ export function SectionLink({ href, onClick, ...props }: React.ComponentProps<ty
       {...props}
       onClick={(e) => {
         onClick?.(e)
-        if (e.defaultPrevented || !id || (path || '/') !== pathname) return
+        if (e.defaultPrevented || !id || pathOnly !== pathname) return
         const target = document.getElementById(id)
         if (!target) return
         e.preventDefault()

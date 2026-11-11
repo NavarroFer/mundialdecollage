@@ -7,6 +7,7 @@ import { StampAlbum } from '@/components/stamp-album'
 import { ParticipationStatus } from '@/components/participation-status'
 import { ReferralInvite } from '@/components/referral-invite'
 import { BasesBanner } from '@/components/bases-banner'
+import { CommunityStrip } from '@/components/community/community-strip'
 import { AboutSection } from '@/components/about-section'
 import { DonationSection } from '@/components/donation-section'
 import { HomeStoreSection } from '@/components/home-store-section'
@@ -17,12 +18,38 @@ import { MapSection } from '@/components/map-section'
 import { JurySection } from '@/components/jury-section'
 import { Footer } from '@/components/footer'
 import { TrackView } from '@/components/track'
+import { ArtistFeedHome } from '@/components/artist-feed-home'
+import { SiteSections } from '@/components/site-sections'
+import { artistSeesFeedHome } from '@/lib/artist-home'
+import { isAdminEmail, isAdminView } from '@/lib/view-mode'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 
 // Renders per request so a new submission shows up without a redeploy.
+// The anonymous copy (anon/page.tsx) calls renderAsAnonymous() first, so
+// getCurrentUser() is null and this stays the public home on the CDN.
 export const dynamic = 'force-dynamic'
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ ref?: string | string[] }> }) {
-  const { ref } = await searchParams
+async function homeKind(forceSite: boolean): Promise<'feed' | 'artist-site' | 'public'> {
+  if (!isSupabaseConfigured) return 'public'
+  const user = await getCurrentUser()
+  if (!user) return 'public'
+  const admin = isAdminEmail(user.email)
+  const adminView = await isAdminView(user)
+  let onboarded = false
+  if (!(admin && !adminView)) {
+    const { data } = await (await createClient()).from('profiles').select('onboarded_at').eq('id', user.id).maybeSingle()
+    onboarded = Boolean(data?.onboarded_at)
+  }
+  const sees = artistSeesFeedHome({ signedIn: true, onboarded, admin, adminView, forceSite: false })
+  if (!sees) return 'public'
+  return forceSite ? 'artist-site' : 'feed'
+}
+
+export default async function Home({ searchParams }: { searchParams: Promise<{ ref?: string | string[]; sitio?: string }> }) {
+  const { ref, sitio } = await searchParams
+  const kind = await homeKind(sitio === '1')
+  if (kind === 'feed') return <ArtistFeedHome />
   return (
     <>
       <TrackView event="home_view" />
@@ -33,6 +60,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           that's hidden behind the splash but still in the DOM. */}
       <div id="site-content">
         <SiteHeader />
+        {kind === 'artist-site' && <SiteSections here="site" />}
         <main>
           <HeroSection />
           <FlagRibbon />
@@ -44,6 +72,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             hideForSignedIn
             className="mx-auto max-w-4xl px-5 pt-10 sm:px-8 sm:pt-14"
           />
+          <CommunityStrip />
           <BasesBanner />
           <EditionSection />
           {/* Before the obras: after them it sat 8–9 phone screens down,

@@ -12,7 +12,7 @@ import {
   type ExhibitionQueueRow,
   type ExhibitionRecipient,
 } from '@/lib/exhibition-mail'
-import { digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
+import { communityActivityLine, communityDigestLine, digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
 import { galleryArtworkPath } from '@/lib/gallery-return'
 import { getSiteUrl, site } from '@/lib/site'
@@ -167,10 +167,46 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
 
   const template = await ensureSystemTemplate(db, 'novedades_obra')
   const translations = await translationsForLocales(db, template, recipients.map((r) => r.locale))
+  const profileIds = recipients.map((r) => r.profile_id)
+  const { data: theirPosts, error: postedError } = await db.from('posts').select('id, profile_id, kind, status').in('profile_id', profileIds).neq('status', 'removed')
+  const posted = new Set<string>()
+  const postOwner = new Map<string, string>()
+  if (!postedError) {
+    for (const row of (theirPosts ?? []) as { id: string; profile_id: string; kind: string }[]) {
+      postOwner.set(row.id, row.profile_id)
+      if (row.kind === 'artwork') posted.add(row.profile_id)
+    }
+  }
+  const activity = new Map<string, { likes: number; comments: number }>()
+  const postIds = [...postOwner.keys()]
+  if (postIds.length) {
+    const [likeRows, commentRows] = await Promise.all([
+      db.from('post_likes').select('post_id').in('post_id', postIds).gte('created_at', start.toISOString()).lt('created_at', end.toISOString()),
+      db.from('post_comments').select('post_id').in('post_id', postIds).eq('status', 'approved').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()),
+    ])
+    for (const row of (likeRows.data ?? []) as { post_id: string }[]) {
+      const owner = postOwner.get(row.post_id)
+      if (!owner) continue
+      const current = activity.get(owner) ?? { likes: 0, comments: 0 }
+      current.likes += 1
+      activity.set(owner, current)
+    }
+    for (const row of (commentRows.data ?? []) as { post_id: string }[]) {
+      const owner = postOwner.get(row.post_id)
+      if (!owner) continue
+      const current = activity.get(owner) ?? { likes: 0, comments: 0 }
+      current.comments += 1
+      activity.set(owner, current)
+    }
+  }
 
   const results = await sendMails(recipients.map((r) => {
     const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
-    const html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
+    let html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
+    const counts = activity.get(r.profile_id)
+    const activityHtml = counts ? communityActivityLine(r.locale, counts.likes, counts.comments) : null
+    if (activityHtml) html += activityHtml
+    if (!postedError && !posted.has(r.profile_id)) html += communityDigestLine(r.locale, `${getSiteUrl()}/obras/${r.artwork_slug}#publicar`)
     return { to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
   }), { kind: 'bulk' })
 

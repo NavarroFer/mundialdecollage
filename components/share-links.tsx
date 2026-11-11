@@ -31,6 +31,7 @@ export function ShareLinks({
   storyHref,
   events,
   footer,
+  onStory,
 }: {
   heading: string
   title: string
@@ -39,6 +40,8 @@ export function ShareLinks({
   storyHref: string
   events: ShareEvents
   footer?: ReactNode
+  /** Fired with the story download, so Comunidad can offer to post the obra. */
+  onStory?: () => void
 }) {
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
@@ -96,7 +99,7 @@ export function ShareLinks({
           <Copy className="h-4 w-4" aria-hidden="true" />
           {t.copyLink}
         </button>
-        <a href={storyHref} download rel="nofollow" className={pill} onClick={() => track(events.story)}>
+        <a href={storyHref} download rel="nofollow" className={pill} onClick={() => { track(events.story); onStory?.() }}>
           <Download className="h-4 w-4 text-collage-red" aria-hidden="true" />
           {t.story}
         </a>

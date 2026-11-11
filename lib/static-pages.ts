@@ -18,6 +18,8 @@ export const STATIC_PAGES = [
   '/club/[slug]',
   '/galeria-3d',
   '/onboarding',
+  '/comunidad',
+  '/comunidad/p/[id]',
   '/partners',
   '/revista',
   '/tienda',

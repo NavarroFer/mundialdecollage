@@ -133,6 +133,7 @@ const PREVIEW_TAG_VALUES: Record<string, string> = {
   comentarios: '“Qué hermosa composición.” — Julieta',
   link_obra: `${getSiteUrl()}/galeria-3d?obra=ejemplo`,
   perfil_url: `${getSiteUrl()}/artistas/ejemplo`,
+  publicar_url: `${getSiteUrl()}/obras/ejemplo#publicar`,
   obra_imagen: `${getSiteUrl()}/email/perfil-ejemplo-obra.png`,
   obra_titulo: 'La ciudad que imaginé',
   perfil_obras: '3',

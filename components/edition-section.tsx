@@ -14,7 +14,7 @@ export async function EditionSection() {
   const hasSubmissions = submissionsCount > 0
 
   return (
-    <section id="primera-edicion" className="bg-grain relative overflow-hidden border-t-2 border-ink/10 bg-collage-yellow py-16 sm:py-24">
+    <section id="primera-edicion" className="bg-grain relative scroll-mt-28 overflow-hidden border-t-2 border-ink/10 bg-collage-yellow py-16 sm:py-24">
       <div className="mx-auto max-w-3xl px-5 text-center sm:px-8">
         <FadeIn>
           <span className="torn-strip inline-block -rotate-1 bg-collage-blue px-5 py-2 text-xs font-bold tracking-[0.2em] text-primary-foreground uppercase sm:text-sm">

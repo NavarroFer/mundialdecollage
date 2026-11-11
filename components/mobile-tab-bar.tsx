@@ -61,7 +61,9 @@ export function MobileTabBar({ callOpen, labels }: { callOpen: boolean; labels: 
 
   const tabs: Tab[] = [
     { key: 'home', href: '/', label: labels.home, icon: House },
-    { key: 'participants', href: `/#${PARTICIPANTS_ID}`, label: labels.participants, icon: Users, sectionId: PARTICIPANTS_ID },
+    // The feed home has no participantes section. ?sitio=1 is the public page,
+    // for a logged-in artist and for a visitor (the CDN copy still serves it).
+    { key: 'participants', href: `/?sitio=1#${PARTICIPANTS_ID}`, label: labels.participants, icon: Users, sectionId: PARTICIPANTS_ID },
     // «Participar» becomes «Ver las obras» once the call closes, as in the header.
     callOpen
       ? { key: 'participate', href: '/onboarding', label: labels.participate, icon: Plus, event: 'submit_click_tabbar' }

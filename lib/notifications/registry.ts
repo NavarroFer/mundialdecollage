@@ -74,6 +74,8 @@ function money(amount: number, currency: string): string {
 const ADMIN_TEXTS = {
   commentsPending: p({ one: 'Hay {count} comentario esperando moderación.', other: 'Hay {count} comentarios esperando moderación.' }),
   wallPending: p({ one: 'Hay {count} foto del collage colectivo para aprobar.', other: 'Hay {count} fotos del collage colectivo para aprobar.' }),
+  postsPending: p({ one: 'Hay {count} foto de Comunidad para revisar.', other: 'Hay {count} fotos de Comunidad para revisar.' }),
+  postCommentsPending: p({ one: 'Hay {count} comentario de Comunidad para revisar.', other: 'Hay {count} comentarios de Comunidad para revisar.' }),
   imagesFailed: p({
     one: '{count} obra del registro no tiene imagen: no se pudo bajar de Drive.',
     other: '{count} obras del registro no tienen imagen: no se pudieron bajar de Drive.',
@@ -180,11 +182,74 @@ export const NOTIFICATION_TYPES = {
     }),
   }),
 
+  post_activity: define({
+    schema: z.object({
+      postId: z.string().min(1),
+      likes: z.number().int().nonnegative(),
+      comments: z.number().int().nonnegative(),
+      lastName: z.string().nullish(),
+    }),
+    icon: 'activity',
+    render: (data, { locale, m }) => {
+      const likes = data.likes
+      const comments = data.comments
+      if (likes + comments < 1) return null
+      const href = `/comunidad/p/${data.postId}`
+      const name = data.lastName?.trim()
+      if (name) {
+        if (likes > 0 && comments > 0) {
+          const others = likes + comments - 1
+          return { text: others > 0 ? fmt(m.types.postRepliedMore, { name, count: others }) : fmt(m.types.postReplied, { name }), href }
+        }
+        if (likes > 0) {
+          return { text: likes === 1 ? fmt(m.types.postLiked, { name }) : fmt(m.types.postLikedMore, { name, count: likes - 1 }), href }
+        }
+        return { text: comments === 1 ? fmt(m.types.postCommented, { name }) : fmt(m.types.postCommentedMore, { name, count: comments - 1 }), href }
+      }
+      const parts = [
+        likes > 0 && plural(locale, likes, m.types.likes),
+        comments > 0 && plural(locale, comments, m.types.comments),
+      ].filter((part): part is string => Boolean(part))
+      const what = new Intl.ListFormat(LOCALE_INFO[locale].intl, { type: 'conjunction' }).format(parts)
+      return { text: fmt(m.types.postActivity, { what }), href }
+    },
+  }),
+  post_approved: define({
+    schema: z.object({ postId: z.string().min(1) }),
+    icon: 'image',
+    render: (data, { m }) => ({ text: m.types.postApproved, href: `/comunidad/p/${data.postId}` }),
+  }),
+  post_hidden: define({
+    schema: z.object({ postId: z.string().min(1), kind: z.string().nullish() }),
+    icon: 'alert',
+    render: (_data, { m }) => ({ text: m.types.postHidden, href: '/comunidad' }),
+  }),
+  post_comment_approved: define({
+    schema: z.object({ postId: z.string().min(1) }),
+    icon: 'comment',
+    render: (data, { m }) => ({ text: m.types.postCommentApproved, href: `/comunidad/p/${data.postId}` }),
+  }),
+
   // --- For the admins (Spanish only) --------------------------------------
   admin_comments_pending: define({
     schema: countData,
     icon: 'pending',
     render: ({ count }) => ({ text: plural('es', count, ADMIN_TEXTS.commentsPending), href: '/admin/comentarios' }),
+  }),
+  posts_pending: define({
+    schema: countData,
+    icon: 'pending',
+    render: ({ count }) => ({ text: plural('es', count, ADMIN_TEXTS.postsPending), href: '/admin/publicaciones' }),
+  }),
+  post_comments_pending: define({
+    schema: countData,
+    icon: 'pending',
+    render: ({ count }) => ({ text: plural('es', count, ADMIN_TEXTS.postCommentsPending), href: '/admin/comentarios' }),
+  }),
+  post_reported: define({
+    schema: z.object({ postId: z.string().min(1), reports: z.number().int().positive() }),
+    icon: 'alert',
+    render: ({ reports }) => ({ text: `Denunciaron una publicación (${reports}).`, href: '/admin/publicaciones?denunciadas=1' }),
   }),
   admin_wall_pending: define({
     schema: countData,

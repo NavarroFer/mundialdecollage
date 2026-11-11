@@ -4,7 +4,7 @@ import { getI18n } from '@/lib/i18n/server'
 export async function AboutSection() {
   const { m } = await getI18n()
   return (
-    <section className="relative overflow-hidden border-t-2 border-ink/10 bg-background py-20 sm:py-28">
+    <section id="nosotros" className="relative scroll-mt-28 overflow-hidden border-t-2 border-ink/10 bg-background py-20 sm:py-28">
       <div className="relative mx-auto max-w-3xl px-5 text-center sm:px-8">
         <FadeIn>
           <p className="text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">

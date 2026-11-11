@@ -10,7 +10,7 @@ export async function DonationSection() {
   const { m } = await getI18n()
   const t = m.donate
   return (
-    <section id="donar" aria-labelledby="donate-title" className="bg-grain scroll-mt-20 border-t-2 border-ink/10 py-16 sm:py-24">
+    <section id="donar" aria-labelledby="donate-title" className="bg-grain scroll-mt-28 border-t-2 border-ink/10 py-16 sm:py-24">
       <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 sm:px-8 md:grid-cols-[1.1fr_1fr]">
         <FadeIn>
           <h2 id="donate-title" className="font-display text-4xl tracking-tight text-ink uppercase sm:text-5xl">{t.title}</h2>

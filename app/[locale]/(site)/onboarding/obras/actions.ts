@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { mercadoPago } from '@/lib/payments/providers/mercadopago'
 import { entryExternalReference } from '@/lib/payments/references'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminView } from '@/lib/view-mode'
 import { site, getSiteUrl } from '@/lib/site'
 import { entryLimit, resolveEntryChoice } from '@/lib/entries'
 import { hasPaidEntries } from '@/lib/entry-payments'
@@ -115,7 +115,7 @@ export async function startEntryCheckout() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/onboarding/obras')
-  if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
+  if (await isAdminView(user)) redirect('/admin')
   if (!user.email) redirect('/onboarding/obras?error=mp_failed')
 
   if (await hasPaidEntries(supabase, user.id)) redirect('/onboarding/obras')

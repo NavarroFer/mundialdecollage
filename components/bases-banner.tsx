@@ -12,7 +12,7 @@ import { getI18n } from '@/lib/i18n/server'
 export async function BasesBanner() {
   const [{ m }, { open }] = await Promise.all([getI18n(), getCallState()])
   return (
-    <section className="bg-ink py-10">
+    <section id="bases" className="scroll-mt-28 bg-ink py-10">
       <FadeIn>
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-5 px-5 text-center sm:flex-row sm:justify-between sm:text-left">
           <div>

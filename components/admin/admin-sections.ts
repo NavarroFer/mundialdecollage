@@ -5,6 +5,7 @@ import {
   Images,
   BarChart3,
   MessageSquare,
+  Heart,
   CreditCard,
   Boxes,
   BookOpen,
@@ -18,6 +19,7 @@ import {
   Gauge,
   Scissors,
   DoorOpen,
+  SlidersHorizontal,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -110,6 +112,25 @@ export const adminSections: {
     ],
   },
   {
+    label: 'Comunidad',
+    icon: Heart,
+    tone: tones.red,
+    items: [
+      {
+        href: '/admin/publicaciones',
+        label: 'Publicaciones',
+        icon: Heart,
+        description: 'Revisá lo que los artistas publican en Comunidad, publicá como el Mundial y fijá la consigna de la semana.',
+      },
+      {
+        href: '/admin/comunidad',
+        label: 'Moderación',
+        icon: SlidersHorizontal,
+        description: 'Prendé o apagá la etiqueta de IA en fotos libres y comentarios. Sin deploy.',
+      },
+    ],
+  },
+  {
     label: 'Tienda',
     icon: ShoppingBag,
     tone: tones.yellow,
@@ -153,6 +174,13 @@ export const adminSections: {
         description: 'Aprobá o rechazá las fotos que la gente pega en el cuadro grande de la Sala 1.',
       },
       { href: '/galeria-3d', label: 'Recorrido', icon: Boxes, external: true },
+      {
+        href: '/museomar',
+        label: 'Museo MAR',
+        icon: Landmark,
+        external: true,
+        description: 'El recorrido del museo. En la barra pública recién cuando se anuncien las finalistas.',
+      },
     ],
   },
   {
@@ -161,18 +189,18 @@ export const adminSections: {
     tone: tones.ink,
     items: [
       {
-        href: '/admin/contactos',
-        label: 'Contactos',
-        icon: Users,
-        description:
-          'La lista de suscriptores: pausalos, resuscribilos o borralos.',
-      },
-      {
         href: '/admin/campanas',
         label: 'Campañas',
         icon: Send,
         description:
           'Armá y mandá emails a tus contactos, y mirá cómo les fue.',
+      },
+      {
+        href: '/admin/contactos',
+        label: 'Contactos',
+        icon: Users,
+        description:
+          'La lista de suscriptores: pausalos, resuscribilos o borralos.',
       },
       {
         href: '/admin/plantillas',
@@ -190,6 +218,18 @@ export const adminSections: {
     ],
   },
 ]
+
+/** A group is open when it holds the current page, or the admin opened it, unless they closed it. */
+export function isAdminGroupOpen(
+  label: string,
+  activeLabel: string | undefined,
+  opened: ReadonlySet<string>,
+  closed: ReadonlySet<string>,
+): boolean {
+  if (closed.has(label)) return false
+  if (opened.has(label)) return true
+  return label === activeLabel
+}
 
 export function adminSectionFor(pathname: string | null) {
   return adminSections.find((s) =>

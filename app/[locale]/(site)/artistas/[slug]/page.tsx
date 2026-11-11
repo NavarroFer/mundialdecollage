@@ -13,6 +13,7 @@ import { getI18n } from '@/lib/i18n/server'
 import { getCallState } from '@/lib/call-state'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { imageSrc } from '@/lib/image-src'
+import { CommunityFeed } from '@/components/community/community-feed'
 import { ArtistFeed } from './artist-feed'
 import { ArtistStats } from './artist-stats'
 import { ShareProfile } from './share-profile'
@@ -164,6 +165,12 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
           <div className="empty:hidden pb-8">
             <ClubOnProfile slug={artist.slug} name={artist.name} isOwn={isOwn} clubOpen={isClubOpen()} show="gallery" texts={clubTexts} />
           </div>
+
+          {artistProfileIdFromSlug(artist.slug) && (
+            <div className="pb-10 sm:pb-14">
+              <CommunityFeed author={artistProfileIdFromSlug(artist.slug)} callOpen={callOpen} hideEmpty title={m.community.artistPosts} />
+            </div>
+          )}
 
           <section className="pb-10 sm:pb-14" aria-label={m.collage.label}>
             <ArtistFeed

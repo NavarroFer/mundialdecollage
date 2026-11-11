@@ -10,7 +10,7 @@ import { MagazinePromo } from '@/components/store-promo'
 import { getCallState, isCallOpen } from '@/lib/call-state'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminView } from '@/lib/view-mode'
 import { countryCodeToName, getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { completeMissingDetails } from '@/app/[locale]/(site)/onboarding/actions'
 import { getArtworkShareState } from '@/lib/finalists'
@@ -33,7 +33,7 @@ export async function ParticipationStatus() {
   const supabase = await createClient()
   const user = await getCurrentUser()
   if (!user) return null
-  if (ADMIN_EMAILS.includes(user.email ?? '')) return null
+  if (await isAdminView(user)) return null
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')

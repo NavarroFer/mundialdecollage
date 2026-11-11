@@ -2,34 +2,29 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { adminSections } from '@/components/admin/admin-sections'
+import { adminSectionFor, adminSections, isAdminGroupOpen } from '@/components/admin/admin-sections'
 
-// Each section begins as its icon, then opens in sequence. It can also be
-// toggled independently without changing the one-click access to every page.
+// Groups stay closed until the admin opens one, except the group of the
+// page they're on. The names stay visible either way, so the bar is a short
+// list of areas instead of every destination at once.
 export function AdminNav() {
   const pathname = usePathname()
-  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set())
-
-  useEffect(() => {
-    const timers = adminSections.map((section, index) =>
-      window.setTimeout(() => {
-        setOpenSections((current) => new Set([...current, section.label]))
-      }, 120 + index * 140),
-    )
-
-    return () => timers.forEach(window.clearTimeout)
-  }, [])
+  const activeLabel = adminSectionFor(pathname)?.label
+  const [opened, setOpened] = useState<Set<string>>(() => new Set())
+  const [closed, setClosed] = useState<Set<string>>(() => new Set())
 
   function toggleSection(label: string) {
-    setOpenSections((current) => {
-      const next = new Set(current)
-      if (next.has(label)) next.delete(label)
-      else next.add(label)
-      return next
-    })
+    const isOpen = isAdminGroupOpen(label, activeLabel, opened, closed)
+    if (isOpen) {
+      setOpened((current) => { const next = new Set(current); next.delete(label); return next })
+      setClosed((current) => new Set([...current, label]))
+    } else {
+      setClosed((current) => { const next = new Set(current); next.delete(label); return next })
+      setOpened((current) => new Set([...current, label]))
+    }
   }
 
   return (
@@ -43,7 +38,7 @@ export function AdminNav() {
             (item) => !item.external && pathname?.startsWith(item.href),
           )
           const SectionIcon = section.icon
-          const isOpen = openSections.has(section.label)
+          const isOpen = isAdminGroupOpen(section.label, activeLabel, opened, closed)
           const sectionId = `admin-nav-${section.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
           return (
@@ -57,27 +52,20 @@ export function AdminNav() {
             >
               <button
                 type="button"
-                title={section.label}
                 aria-expanded={isOpen}
                 aria-controls={sectionId}
                 onClick={() => toggleSection(section.label)}
                 className={cn(
-                  'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full',
-                  'transition-transform focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none',
-                  isOpen && 'scale-100',
+                  'flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5',
+                  'focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none',
                   section.tone.badge,
                 )}
               >
                 <SectionIcon className="h-4 w-4" aria-hidden />
-                <span className="sr-only">{section.label}</span>
+                {section.label}
               </button>
-              <div
-                className={cn(
-                  'grid min-w-0 transition-[grid-template-columns,opacity] duration-500 ease-out motion-reduce:transition-none',
-                  isOpen ? 'grid-cols-[1fr] opacity-100' : 'grid-cols-[0fr] opacity-0',
-                )}
-              >
-                <ul id={sectionId} className="flex min-w-0 overflow-hidden items-center gap-1" aria-label={`Sección ${section.label}`}>
+              {isOpen && (
+                <ul id={sectionId} className="flex items-center gap-1" aria-label={`Sección ${section.label}`}>
                   {section.items.map((item) => {
                     const isActive = !item.external && pathname?.startsWith(item.href)
                     const Icon = item.icon
@@ -90,7 +78,7 @@ export function AdminNav() {
                           title={item.description ?? (item.external ? 'Se abre en otra pestaña' : undefined)}
                           className={cn(
                             'flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-semibold whitespace-nowrap',
-                            'transition-colors focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none',
+                            'focus-visible:ring-2 focus-visible:ring-ink/50 focus-visible:outline-none',
                             isActive ? section.tone.active : cn('text-ink/75', section.tone.hover),
                           )}
                         >
@@ -102,7 +90,7 @@ export function AdminNav() {
                     )
                   })}
                 </ul>
-              </div>
+              )}
             </div>
           )
         })}

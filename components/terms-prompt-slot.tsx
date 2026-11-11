@@ -1,4 +1,4 @@
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminView } from '@/lib/view-mode'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { TermsPrompt } from './terms-prompt'
@@ -11,6 +11,6 @@ import { TermsPrompt } from './terms-prompt'
 export async function TermsPromptSlot() {
   if (!isSupabaseConfigured) return null
   const user = await getCurrentUser()
-  if (!user || ADMIN_EMAILS.includes(user.email ?? '')) return null
+  if (!user || (await isAdminView(user))) return null
   return <TermsPrompt userId={user.id} />
 }

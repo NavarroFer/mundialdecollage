@@ -21,7 +21,7 @@ export async function MapSection() {
   return (
     <section
       id={MAP_SECTION_ID}
-      className="relative overflow-hidden border-t-2 border-ink/10 bg-card py-20 sm:py-28"
+      className="relative scroll-mt-28 overflow-hidden border-t-2 border-ink/10 bg-card py-20 sm:py-28"
     >
       <Globe2
         className="pointer-events-none absolute -top-14 -left-10 h-56 w-56 text-collage-blue/10 sm:h-72 sm:w-72"

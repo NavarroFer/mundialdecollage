@@ -10,12 +10,14 @@ export type ProfileMailData = {
   /** Absolute URL of the obra, resized and cached by app/api/img. */
   imageUrl: string
   title: string | null
+  /** The obra the launch mail links to (`/obras/<slug>#publicar`). */
+  slug: string
   obras: number
   likes: number
   comments: number
 }
 
-type ArtworkRow = { id: string; profile_id: string; title: string | null; image_url: string | null; is_selected: boolean | null; created_at: string }
+type ArtworkRow = { id: string; profile_id: string; slug: string; title: string | null; image_url: string | null; is_selected: boolean | null; created_at: string }
 
 const IDS_PER_QUERY = 150
 const PAGE = 1000
@@ -62,7 +64,7 @@ export async function profileMailData(db: SupabaseClient, profileIds: string[]):
   for (const ids of chunks(profileIds, IDS_PER_QUERY)) {
     const { data, error } = await db
       .from('artworks')
-      .select('id, profile_id, title, image_url, is_selected, created_at')
+      .select('id, profile_id, slug, title, image_url, is_selected, created_at')
       .in('profile_id', ids)
       .is('archived_at', null)
     if (error) throw new Error(error.message)
@@ -83,6 +85,7 @@ export async function profileMailData(db: SupabaseClient, profileIds: string[]):
     result.set(profileId, {
       imageUrl: mailImageUrl(lead.image_url),
       title: lead.title,
+      slug: lead.slug,
       obras: artworks.length,
       likes: artworks.reduce((sum, artwork) => sum + (likes.get(artwork.id) ?? 0), 0),
       comments: artworks.reduce((sum, artwork) => sum + (comments.get(artwork.id) ?? 0), 0),

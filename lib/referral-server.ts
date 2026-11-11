@@ -6,7 +6,7 @@ import { cookies } from 'next/headers'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminView } from '@/lib/view-mode'
 import { parseReferral, REFERRAL_COOKIE } from '@/lib/referral'
 import { isAnonymousRender } from '@/lib/render-mode'
 
@@ -56,7 +56,7 @@ export async function getReferralInvite(
     const user = await getCurrentUser()
     if (user) {
       const supabase = await createClient()
-      if (hideForSignedIn || ADMIN_EMAILS.includes(user.email ?? '')) return null
+      if (hideForSignedIn || (await isAdminView(user))) return null
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('onboarded_at')

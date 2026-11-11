@@ -23,6 +23,8 @@ import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { loadIncome } from '@/lib/income'
 import { IncomeSection } from './income-section'
+import { CommunityStatsPanel } from '@/components/admin/community-stats'
+import { loadCommunityStats } from '@/lib/community-stats'
 
 async function getArtworkStats() {
   if (!isSupabaseConfigured) return null
@@ -190,7 +192,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
   const grouping: HistoryGrouping = requestedGrouping === 'week' || requestedGrouping === 'month' ? requestedGrouping : 'day'
   const comparisonDays = periodDays === 7 ? 1 : 7
   const windows: Windows = { period: `Últimos ${periodDays} días`, recent: comparisonDays === 1 ? 'Último día' : `Últimos ${comparisonDays} días` }
-  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory, income] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays, browser), getFunnel(periodDays, browser), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping), getIncome(periodDays)])
+  const [siteStats, receivedCount, funnelWeek, funnelMonth, galleryHistory, submissionHistory, income, community] = await Promise.all([getArtworkStats(), getSubmissionsCount(), getFunnel(comparisonDays, browser), getFunnel(periodDays, browser), getGalleryHistory(periodDays), getSubmissionHistory(periodDays, grouping), getIncome(periodDays), loadCommunityStats()])
   const artworkStats = siteStats?.artworks
   const artistStats = siteStats?.artists
   const leadingCountry = artistStats?.countries.find((c) => c.countryCode !== null)
@@ -550,6 +552,20 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
             </div>
           </div>
         </>
+      ),
+    },
+    {
+      id: 'comunidad',
+      label: 'Comunidad',
+      description: 'Quién publica, quién responde y si la oferta de publicar la obra se usa. Las metas son las de las dos semanas.',
+      content: (
+        <CommunityStatsPanel
+          stats={community}
+          homeViews={funnelMonth?.get('home_view') ?? 0}
+          stripViews={funnelMonth?.get('community_strip_view') ?? 0}
+          offerViews={funnelMonth?.get('community_publish_offer_view') ?? 0}
+          published={funnelMonth?.get('community_publish_artwork') ?? 0}
+        />
       ),
     },
   ]

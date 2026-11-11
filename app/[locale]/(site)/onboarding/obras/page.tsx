@@ -4,7 +4,7 @@ import { CheckCircle2, Clock, Plus } from 'lucide-react'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { isMercadoPagoConfigured } from '@/lib/mercadopago'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminView } from '@/lib/view-mode'
 import { site } from '@/lib/site'
 import { entryLimit } from '@/lib/entries'
 import { syncPayment } from '@/lib/payments/apply'
@@ -50,7 +50,7 @@ export default async function EntriesPage({
       </main>
     )
   }
-  if (ADMIN_EMAILS.includes(user.email ?? '')) redirect('/admin')
+  if (await isAdminView(user)) redirect('/admin')
 
   const params = await searchParams
 

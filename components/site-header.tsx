@@ -7,7 +7,7 @@ import { artistProfileSlug } from '@/lib/artist-slug'
 import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
-import { ADMIN_EMAILS } from '@/lib/admin'
+import { isAdminEmail, isAdminView } from '@/lib/view-mode'
 import { getI18n } from '@/lib/i18n/server'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { TrackedLink } from '@/components/track'
@@ -17,6 +17,8 @@ import { getCallState } from '@/lib/call-state'
 import { NotificationsSlot } from '@/components/notifications/notifications-slot'
 import { MobileTabBar } from '@/components/mobile-tab-bar'
 import { TermsPromptSlot } from '@/components/terms-prompt-slot'
+import { SignInButton } from '@/components/sign-in-button'
+import { ViewModeSwitch } from '@/components/view-mode-switch'
 
 async function AccountSlot() {
   if (!isSupabaseConfigured) return null
@@ -29,20 +31,24 @@ async function AccountSlot() {
     editProfile: m.header.editProfile,
     shop: m.header.shop,
     adminPanel: m.header.adminPanel,
+    viewAsArtist: m.header.viewAsArtist,
+    viewAsAdmin: m.header.viewAsAdmin,
   }
 
   const user = await getCurrentUser()
   if (!user) return <AccountMenu labels={labels} signedIn={false} />
 
-  const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
+  // An admin can switch to seeing the site as an artist (lib/view-mode.ts).
+  const isAdmin = isAdminEmail(user.email)
+  const adminView = await isAdminView(user)
   const fullName = user.user_metadata?.full_name as string | undefined
 
-  // Admins never submit an artwork, so skip the profile lookups for them
-  // entirely (same as app/onboarding/page.tsx).
+  // An admin seen as an admin never submits an artwork, so skip the profile
+  // lookups for them entirely (same as app/onboarding/page.tsx).
   let name = fullName?.split(' ')[0]
   let profileHref: string | undefined
   let thumbUrl: string | undefined
-  if (!isAdmin) {
+  if (!adminView) {
     const supabase = await createClient()
     const [{ data: profile }, { data: artwork }] = await Promise.all([
       supabase.from('profiles').select('onboarded_at, name').eq('id', user.id).maybeSingle(),
@@ -66,12 +72,20 @@ async function AccountSlot() {
     }
   }
 
-  return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} />
+  return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} adminView={adminView} />
 }
 
 export async function SiteHeader() {
   // «Participar» becomes «Ver las obras» once the call closes.
-  const [{ m }, { open: callOpen }] = await Promise.all([getI18n(), getCallState()])
+  const [{ m }, { open: callOpen }, user] = await Promise.all([
+    getI18n(),
+    getCallState(),
+    isSupabaseConfigured ? getCurrentUser() : Promise.resolve(null),
+  ])
+  const isAdmin = isAdminEmail(user?.email)
+  const adminView = user ? await isAdminView(user) : false
+  const signIn = () => !user ? <SignInButton label={m.header.logIn} pendingLabel={m.auth.signingIn} /> : null
+  const viewSwitch = () => isAdmin ? <ViewModeSwitch adminView={adminView} artistLabel={m.header.viewAsArtist} adminLabel={m.header.viewAsAdmin} /> : null
   return (
     <>
       <SiteHeaderMotion>
@@ -115,6 +129,8 @@ export async function SiteHeader() {
           <div className="hidden items-center gap-2 lg:flex">
             <LanguageSwitcher className="px-2" />
             <NotificationsSlot />
+            {viewSwitch()}
+            {signIn()}
             <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
               <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
                 {callOpen ? m.header.participate : m.closed.headerCta}
@@ -125,6 +141,8 @@ export async function SiteHeader() {
 
           {/* Phones: the bell and the avatar up here; the sections live in MobileTabBar. */}
           <div className="flex items-center gap-1 lg:hidden">
+            {viewSwitch()}
+            {signIn()}
             <NotificationsSlot />
             <AccountSlot />
           </div>
