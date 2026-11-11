@@ -113,6 +113,13 @@ describe('renderNotification', () => {
       club_board_pending: { count: 2, slug: 's', title: 'T' },
       club_board_approved: { slug: 's', title: 'T' },
       club_board_rejected: { slug: 's', title: 'T' },
+      post_activity: { postId: '11111111-2222-4333-8444-555555555555', likes: 2, comments: 1, lastName: 'Marta' },
+      post_approved: { postId: '11111111-2222-4333-8444-555555555555' },
+      post_hidden: { postId: '11111111-2222-4333-8444-555555555555', kind: 'photo' },
+      post_comment_approved: { postId: '11111111-2222-4333-8444-555555555555' },
+      posts_pending: { count: 2 },
+      post_comments_pending: { count: 2 },
+      post_reported: { postId: '11111111-2222-4333-8444-555555555555', reports: 3 },
       admin_comments_pending: { count: 2 },
       admin_wall_pending: { count: 2 },
       admin_images_failed: { count: 2 },
@@ -143,7 +150,7 @@ describe('notification types written by the database', () => {
     .filter((text) => /public\.notify_(user|admins)\(|on_admin_count_change\(/.test(text))
     .join('\n')
   // place_club_board_piece's own answer, in the same migration as its notice.
-  const NOT_TYPES = new Set<string>(['no_lives'])
+  const NOT_TYPES = new Set<string>(['no_lives', 'rate_limited'])
   const written = new Set([...sql.matchAll(/'([a-z]+(?:_[a-z]+)+)'/g)].map((match) => match[1]).filter((name) => !NOT_TYPES.has(name)))
 
   it('are all registered', () => {
