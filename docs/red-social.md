@@ -1,6 +1,6 @@
 # Comunidad: red social de artistas en el Mundial de Collage
 
-**Guía de implementación completa.** Está escrita para que una IA (o una persona) que no conoce el proyecto pueda construir la función de punta a punta. Fecha: 2026-11-11. Estado: nada construido todavía.
+**Guía de implementación completa.** Revisada el 2026-11-11 con foco en que se use y tenga impacto (§1.1, §4.9–4.13, §11.1 y §11 bis). Está escrita para que una IA (o una persona) que no conoce el proyecto pueda construir la función de punta a punta. Fecha: 2026-11-11. Estado: nada construido todavía.
 
 ---
 
@@ -67,6 +67,19 @@
 
 Instagram no deja leer las historias de cuentas personales. La Basic Display API se cerró en diciembre de 2024. La Graph API solo da historias de cuentas profesionales vinculadas a Facebook y solo por 24 horas. Por eso **la publicación sale del sitio en el momento de compartir**, con imágenes que ya son nuestras. No hay que integrar nada con Instagram.
 
+### 1.1 Qué tiene que pasar para que funcione (leer antes de construir)
+
+Un feed no se usa por existir. Estas son las palancas que el plan trae **a propósito**. Ninguna es opcional: si hay que recortar alcance, se recorta otra cosa.
+
+1. **Nunca vacío el primer día.** El lanzamiento incluye contenido antes de mostrar la franja: una cuenta oficial del Mundial que publica (§4.9) y un mail a todos los inscriptos con un link que publica su obra en un toque (§4.10). La franja del inicio recién aparece con 6 publicaciones.
+2. **Publicar cuesta un toque.** La imagen ya existe (la obra). La oferta aparece en los tres momentos de más ganas: justo después de inscribirse (`onboarding/confirmado`), al bajar la imagen para historias, y en la propia franja del inicio para quien todavía no publicó («Tu obra todavía no está en Comunidad · Publicar»).
+3. **Cada respuesta trae de vuelta al autor.** La notificación nombra a la persona («A Marta y 2 más les gustó tu publicación»), no un número. Y llega también por mail en el resumen diario, porque la campanita solo la ve quien ya volvió.
+4. **Un motivo nuevo cada semana.** La cuenta oficial fija una consigna semanal («Mostranos tu mesa de trabajo»). Sin motivo, cada artista publica su obra una vez y no hay segunda publicación.
+5. **Es un Mundial: se leen entre idiomas.** Los textos se traducen solos al idioma de quien lee (§11 bis). Sin esto, una artista italiana no le responde a uno argentino.
+6. **Cada publicación trae gente de afuera.** Tiene página propia con vista previa (la imagen de la obra) para WhatsApp e Instagram, y su link lleva la invitación del artista (`?ref=`, `lib/referral.ts`), que ya convierte visitas en inscripciones.
+7. **Quien mira sin cuenta tiene un siguiente paso.** Entre las publicaciones, una tarjeta invita a sumar su obra (si la convocatoria está abierta) o a recorrer la galería 3D (si cerró).
+8. **Se mide y se corrige.** Hay una meta por indicador y una revisión a las 2 semanas con decisiones previstas (§11.1).
+
 ---
 
 ## 2. Decisiones tomadas (valores por defecto)
@@ -91,6 +104,12 @@ Si el dueño no dice otra cosa, se construye así:
 | Franja vacía | No se muestra hasta que haya **6 o más** publicaciones |
 | Barra inferior del teléfono | No se toca: ya tiene 5 pestañas |
 | Realtime | No |
+| Cuenta oficial | Los admins publican como «Mundial de Collage» (`official = true`), al instante, y pueden fijar una publicación (la consigna semanal) |
+| Orden | `/comunidad`: cronológico. Franja del inicio: la fijada primero y después las más respondidas de los últimos 14 días |
+| Notificaciones | Nombran a quien respondió («A Marta y 2 más…») |
+| Idiomas | El texto se traduce solo a los 9 idiomas al publicar (IA, §11 bis). Se muestra en el idioma de quien lee, con «Ver original» |
+| Link de una publicación | Página propia `/comunidad/p/<id>` con vista previa y el `?ref=` del autor |
+| IA | Traducción, texto alternativo de imágenes, ayuda para moderar y resumen semanal para el admin. Nunca por visita, y con interruptor para apagarla |
 
 ---
 
@@ -118,11 +137,11 @@ Si el dueño no dice otra cosa, se construye así:
 
 Componente de cliente `components/community/community-strip.tsx`. Se inserta en `app/[locale]/(site)/page.tsx` entre `<ReferralInvite …/>` y `<BasesBanner />`.
 
-- **No lee nada en el servidor.** Con `IntersectionObserver` (margen de unos 600 px) pide `GET /api/comunidad`.
+- **No lee nada en el servidor.** Con `IntersectionObserver` (margen de unos 600 px) pide `GET /api/comunidad?destacadas=1&lang=<idioma>`: la consigna fijada primero y después las más respondidas (§5, `community_highlights`).
 - Si la respuesta trae menos de 6 publicaciones, no muestra nada (`return null`), sin dejar espacio vacío.
 - Título «Lo que comparten los artistas» y link «Ver todo» a `/comunidad`.
 - En el teléfono, carrusel horizontal con `scroll-snap`: tarjetas de unos 80 % del ancho. En escritorio, grilla de 3 columnas con 6 tarjetas.
-- Para un artista inscripto, una tarjeta inicial «¿Qué estás haciendo? Publicá» que abre el compositor. Se sabe si puede publicar llamando a `communityViewer()` (§9.3) **solo si hay sesión en el navegador**: `createClient()` de `lib/supabase/client.ts` y luego `auth.getSession()`. Ese chequeo es local y no pega al servidor.
+- Para un artista inscripto que todavía no publicó su obra, la primera tarjeta es «Tu obra todavía no está en Comunidad · Publicar», con su obra de fondo, y publica en un toque (`communityViewer` devuelve para eso `unpostedArtworkSlug`). Si ya la publicó, la tarjeta es «¿Qué estás haciendo? Publicá», que abre el compositor (desde la etapa 3). Se sabe si puede publicar llamando a `communityViewer()` (§9.3) **solo si hay sesión en el navegador**: `createClient()` de `lib/supabase/client.ts` y luego `auth.getSession()`. Ese chequeo es local y no pega al servidor.
 - Respetar `prefers-reduced-motion`.
 
 ### 4.2 Tarjeta de publicación
@@ -198,6 +217,39 @@ Componente `components/community/comments-sheet.tsx`: hoja desde abajo en el tel
 - Lista con `listPostComments(postId)`. Campo de texto con `addPostComment`.
 - Si queda `pending`, el autor del comentario lo ve con la marca «En revisión».
 
+### 4.9 Cuenta oficial y consigna semanal
+
+- Un admin (por email, `ADMIN_EMAILS`) puede publicar desde `/admin/publicaciones` → «Nueva publicación oficial»: imagen y texto, publicada al instante con `official = true`. En la tarjeta, el autor se muestra como «Mundial de Collage» con `/logo-mark.png`, sin link a perfil.
+- Puede marcar «Fijar hasta…» (`pinned_until`): es la **consigna de la semana**. Hay una sola fijada a la vez: al fijar una, se le quita a la anterior. La fijada va primera en la franja del inicio y arriba en `/comunidad`, con el rótulo «Consigna de la semana» y un botón «Sumarme» que abre el compositor (o la oferta de publicar la obra, mientras no exista la foto libre).
+- Antes del lanzamiento, el dueño carga de 3 a 5 publicaciones oficiales (bienvenida, cómo publicar, primera consigna).
+
+### 4.10 Lanzamiento: publicar desde el mail en un toque
+
+- El link es `/obras/<slug>#publicar`. Va con hash y no con `?publicar=1` porque la página de la obra es estática y no puede leer `searchParams` en el servidor. `publish-artwork-offer` lo lee en el navegador (`window.location.hash`), hace scroll a la oferta y la abre con el foco en **Publicar**. Sin sesión, primero pide ingresar con Google y vuelve al mismo link.
+- El mail de lanzamiento se manda con el sistema de campañas que ya existe (`/admin/campanas`, plantillas en `/admin/plantillas`): «Estrenamos Comunidad: publicá tu obra en un toque», con ese link por artista. Quien implemente deja la plantilla creada y probada, y **no la envía**: la manda el dueño.
+- El resumen diario (`lib/artist-digest.ts`) suma desde la etapa 1 una línea para quien todavía no publicó, con el mismo link.
+
+### 4.11 Página propia de cada publicación
+
+- `app/[locale]/(site)/comunidad/p/[id]/page.tsx`, su copia `anon/comunidad/p/[id]/page.tsx` y `'/comunidad/p/[id]'` en `STATIC_PAGES`. Seguir el patrón de `obras/[slug]`: mirar cómo esa página arma su copia estática y su `revalidate`.
+- Muestra la publicación, sus comentarios aprobados (pedidos desde el cliente) y, debajo, «Más de Comunidad».
+- `generateMetadata`: título «{autor} en la Comunidad del Mundial de Collage», descripción con las primeras 150 letras del texto, y **`openGraph.images` apuntando directo a la imagen de la publicación por `/api/img`** (ancho 1200). No se dibuja nada con satori.
+- El botón «Compartir» de la tarjeta usa este link con `withReferral(path, slugDeLaObraDelAutor)` cuando el autor tiene obra publicada. Desde la etapa 2 reemplaza a `/comunidad#post-<id>` en «Compartir» y en las notificaciones.
+- Una publicación oculta o borrada responde `notFound()`.
+
+### 4.12 Tarjeta para quien mira sin cuenta
+
+En `community-feed`, después de la cuarta publicación y luego cada 10, va una tarjeta fija:
+
+- Con la convocatoria abierta: «¿Hacés collage? Sumá tu obra al Mundial», que lleva a `/onboarding`.
+- Con la convocatoria cerrada: «Recorré las obras en la galería 3D», que lleva a `/galeria-3d`.
+
+El estado se lee con `getCallState()` en la página (que es estática) y se pasa como prop. No se muestra a quien ya es artista (`communityViewer().canPost`).
+
+### 4.13 Después de publicar
+
+La confirmación («¡Listo! Ya está en Comunidad») ofrece dos acciones: «Ver publicación» e «Invitar a colegas por WhatsApp» (el link de la publicación con `?ref=`). Es el momento en que hay más ganas de compartir.
+
 ---
 
 ## 5. Base de datos
@@ -226,6 +278,15 @@ create table if not exists public.posts (
   like_count integer not null default 0 check (like_count >= 0),
   comment_count integer not null default 0 check (comment_count >= 0),
   report_count integer not null default 0 check (report_count >= 0),
+  -- Posted by an admin as «Mundial de Collage»: shown without the profile.
+  official boolean not null default false,
+  -- The week's prompt stays first until then; one at a time.
+  pinned_until timestamptz,
+  -- Filled after publishing (lib/community-ai.ts): the body's language, its
+  -- translations ({ "en": "…", … }) and a description of the image.
+  lang text,
+  translations jsonb not null default '{}'::jsonb,
+  image_alt text,
   created_at timestamptz not null default now(),
   moderated_at timestamptz,
   constraint posts_kind_shape check (
@@ -343,7 +404,7 @@ create trigger post_comments_rate_limit before insert on public.post_comments
 -- ---------------------------------------------------------------- activity
 -- Likes and approved comments on a post, grouped per Argentine day into one
 -- notice for its author, like bump_artwork_activity does for obras.
-create or replace function public.bump_post_activity(post uuid, field text, actor uuid)
+create or replace function public.bump_post_activity(post uuid, field text, actor uuid, actor_name text)
 returns void
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -357,9 +418,12 @@ begin
   if owner_id is null or owner_id = actor then return; end if;
   insert into public.notifications as n (user_id, type, dedupe_key, data)
   values (owner_id, 'post_activity', 'post_activity:' || post || ':' || day,
-          jsonb_build_object('postId', post, 'day', day, 'likes', 0, 'comments', 0) || jsonb_build_object(field, 1))
+          jsonb_build_object('postId', post, 'day', day, 'likes', 0, 'comments', 0, 'lastName', actor_name)
+            || jsonb_build_object(field, 1))
   on conflict (user_id, dedupe_key) do update
-    set data = n.data || jsonb_build_object(field, coalesce((n.data ->> field)::integer, 0) + 1),
+    -- lastName: who answered last, so the notice reads «A Marta y 2 más…».
+    set data = n.data || jsonb_build_object(field, coalesce((n.data ->> field)::integer, 0) + 1)
+          || case when actor_name is null then '{}'::jsonb else jsonb_build_object('lastName', actor_name) end,
         read_at = null,
         updated_at = now();
 end;
@@ -371,7 +435,8 @@ language plpgsql security definer set search_path = '' as $$
 begin
   if tg_op = 'INSERT' then
     update public.posts set like_count = like_count + 1 where id = new.post_id;
-    perform public.bump_post_activity(new.post_id, 'likes', new.user_id);
+    perform public.bump_post_activity(new.post_id, 'likes', new.user_id,
+      (select split_part(name, ' ', 1) from public.profiles where id = new.user_id));
     return new;
   end if;
   update public.posts set like_count = greatest(like_count - 1, 0) where id = old.post_id;
@@ -393,7 +458,7 @@ declare
 begin
   if now_approved and not was then
     update public.posts set comment_count = comment_count + 1 where id = target;
-    perform public.bump_post_activity(target, 'comments', new.user_id);
+    perform public.bump_post_activity(target, 'comments', new.user_id, split_part(new.author_name, ' ', 1));
   elsif was and not now_approved then
     update public.posts set comment_count = greatest(comment_count - 1, 0) where id = target;
   end if;
@@ -478,7 +543,8 @@ returns table (
   id uuid, kind text, body text, created_at timestamptz,
   like_count integer, comment_count integer,
   profile_id uuid, author_name text, author_country text, author_thumb text,
-  artwork_slug text, artwork_title text, image_url text, image_path text
+  artwork_slug text, artwork_title text, image_url text, image_path text,
+  official boolean, pinned boolean, lang text, translations jsonb, image_alt text
 )
 language sql stable security definer set search_path = '' as $$
   select p.id, p.kind, p.body, p.created_at, p.like_count, p.comment_count,
@@ -486,9 +552,10 @@ language sql stable security definer set search_path = '' as $$
          (select a2.image_url from public.artworks a2
             where a2.profile_id = pr.id and a2.archived_at is null and a2.image_url is not null
             order by a2.is_selected desc, a2.created_at desc limit 1),
-         a.slug, a.title, a.image_url, p.image_path
+         a.slug, a.title, a.image_url, p.image_path,
+         p.official, coalesce(p.pinned_until > now(), false), p.lang, p.translations, p.image_alt
   from public.posts p
-  join public.profiles pr on pr.id = p.profile_id and pr.is_public
+  join public.profiles pr on pr.id = p.profile_id and (pr.is_public or p.official)
   left join public.artworks a on a.id = p.artwork_id
   where p.status = 'published'
     and (p.kind <> 'artwork' or (a.is_selected and a.archived_at is null))
@@ -500,12 +567,51 @@ $$;
 revoke all on function public.community_feed(timestamptz, uuid, uuid, integer) from public, anon, authenticated;
 grant execute on function public.community_feed(timestamptz, uuid, uuid, integer) to service_role;
 
+-- The home strip: the pinned prompt first, then the most answered posts of
+-- the last 14 days (a comment weighs twice a like), newest breaking ties, so
+-- the home shows conversation rather than whatever came last. Picks among
+-- the 50 newest; no cursor.
+create or replace function public.community_highlights(page_size integer default 10)
+returns table (
+  id uuid, kind text, body text, created_at timestamptz,
+  like_count integer, comment_count integer,
+  profile_id uuid, author_name text, author_country text, author_thumb text,
+  artwork_slug text, artwork_title text, image_url text, image_path text,
+  official boolean, pinned boolean, lang text, translations jsonb, image_alt text
+)
+language sql stable security definer set search_path = '' as $$
+  select f.*
+  from public.community_feed(null, null, null, 50) f
+  order by f.pinned desc,
+           case when f.created_at > now() - interval '14 days'
+                then f.like_count + 2 * f.comment_count else -1 end desc,
+           f.created_at desc
+  limit least(greatest(page_size, 1), 20)
+$$;
+revoke all on function public.community_highlights(integer) from public, anon, authenticated;
+grant execute on function public.community_highlights(integer) to service_role;
+
+-- One pinned post at a time.
+create or replace function public.on_post_pinned()
+returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  update public.posts set pinned_until = null where id <> new.id and pinned_until is not null;
+  return new;
+end;
+$$;
+drop trigger if exists posts_single_pin on public.posts;
+create trigger posts_single_pin after insert or update of pinned_until on public.posts
+  for each row when (new.pinned_until is not null) execute function public.on_post_pinned();
+
 notify pgrst, 'reload schema';
 ```
 
 Notas sobre el SQL:
 
 - Antes de escribirlo, verificar con `grep` que existan las columnas `artworks.is_selected`, `archived_at`, `image_url`, `title`, `slug`, `profile_id`, `created_at` y `profiles.name`, `country_code`, `is_public`, `onboarded_at`, y que los nombres sean esos.
+- Publicaciones oficiales: verificar que las cuentas admin tengan fila en `profiles` (mirar el trigger o el código que la crea al ingresar). Si no la tienen, la action de publicar oficial la crea con `upsert` (`name = 'Mundial de Collage'`, `is_public = false`).
+- `official = true` y `pinned_until` solo los escribe la action de admin. `publishArtwork` y `publishImage` nunca los mandan.
 - Si `notify_admins` exige otro orden o firma, ajustarlo a lo que define `20261005120000_notifications.sql`.
 - Revisar cómo `/admin/comentarios` lista los comentarios pendientes de obras: los de publicaciones deben aparecer ahí también (§10), no en un panel aparte.
 
@@ -534,7 +640,13 @@ export type FeedPost = {
   comments: number
   author: { profileId: string; name: string; countryCode: string | null; thumbUrl: string | null; href: string }
   imageUrl: string            // obra image or public URL of the bucket file
+  imageAlt: string | null     // written by AI (§11 bis); the card falls back to «Foto de {name}»
   artwork: { slug: string; title: string | null; href: string } | null
+  official: boolean           // «Mundial de Collage»: logo instead of thumb, no profile link
+  pinned: boolean             // the week's prompt
+  // body is already in the language asked for (?lang=); original is the
+  // text as written when a translation was used, for «Ver original».
+  original: string | null
 }
 
 export type FeedPage = { posts: FeedPost[]; next: string | null }
@@ -572,7 +684,7 @@ En `lib/notifications/registry.ts`, una entrada por tipo con su esquema `zod`, �
 
 | Tipo | Para | `data` | Texto (es) | Link |
 |---|---|---|---|---|
-| `post_activity` | autor | `{ postId, day, likes, comments }` | «Tu publicación sumó {likes} me gusta y {comments} comentarios» (con plurales y omitiendo los ceros, como `artwork_activity`) | `/comunidad#post-{postId}` |
+| `post_activity` | autor | `{ postId, day, likes, comments, lastName }` | Con nombre: «A {lastName} le gustó tu publicación», «A {lastName} y {n} más les gustó tu publicación», «{lastName} comentó tu publicación»; con me gusta y comentarios, «{lastName} y {n} más respondieron a tu publicación». Sin `lastName`: «Tu publicación sumó {likes} me gusta y {comments} comentarios». Plurales como en `artwork_activity`. | `/comunidad#post-{postId}` |
 | `post_approved` | autor | `{ postId }` | «Publicamos tu foto en Comunidad» | `/comunidad#post-{postId}` |
 | `post_hidden` | autor | `{ postId, kind }` | «Ocultamos una de tus publicaciones. Si creés que es un error, escribinos» | `/comunidad` |
 | `post_comment_approved` | quien comentó | `{ postId }` | «Publicamos tu comentario» | `/comunidad#post-{postId}` |
@@ -616,7 +728,10 @@ lib/i18n/messages/*.ts (9)                                   + bloque `community
 lib/cost-guards.test.ts                                      + guardia del feed (§9.1)
 app/sitemap.ts (o equivalente)                               + /comunidad
 app/[locale]/(site)/terminos-y-condiciones, politica-de-privacidad  + contenido de usuarios (etapa 3)
-lib/artist-digest.ts                                         + actividad en Comunidad (etapa 2)
+lib/artist-digest.ts                                         + invitación a publicar (etapa 1) y actividad (etapa 2)
+app/[locale]/(site)/comunidad/p/[id]/page.tsx + anon/…       nuevo (etapa 2)
+lib/community-ai.ts / lib/community-ai.test.ts               nuevo (etapas 2 y 3)
+app/api/cron/comunidad/route.ts + vercel.json                nuevo (etapa 3)
 ```
 
 ---
@@ -627,7 +742,8 @@ lib/artist-digest.ts                                         + actividad en Comu
 
 `app/api/comunidad/route.ts`:
 
-- Parámetros: `antes` (cursor, opcional), `autor` (uuid de perfil, opcional), `n` (tamaño, opcional, de 1 a 20; por defecto 20).
+- Parámetros: `antes` (cursor, opcional), `autor` (uuid de perfil, opcional), `n` (tamaño, opcional, de 1 a 20; por defecto 20), `lang` (uno de los 9 idiomas; por defecto `es`) y `destacadas=1` (la franja del inicio: usa `community_highlights`, sin cursor).
+- El cliente manda siempre `lang` con su idioma (`useI18n()`). Si existe `translations[lang]` y `lang` no es el idioma original, el servidor devuelve `body` traducido y `original` con el texto escrito. Si no, `body` original y `original: null`. Cada idioma es una URL distinta, así que el CDN guarda una copia por idioma.
 - **No lee la sesión, cookies ni headers.** No exporta `revalidate`: es un handler dinámico al que el CDN le guarda la respuesta por los headers.
 - Llama a `createAdminClient().rpc('community_feed', { before_at, before_id, author, page_size: n + 1 })`. Si vuelven `n + 1` filas, hay página siguiente: `next = encodeCursor(...)` de la fila `n`.
 - Arma cada `FeedPost` en `lib/community-server.ts`:
@@ -655,7 +771,8 @@ lib/artist-digest.ts                                         + actividad en Comu
 // which of those are theirs, and (with artworkSlug) whether that obra is
 // already posted. One call per page view, only when there is a session.
 communityViewer(input: { postIds?: string[]; artworkSlug?: string }):
-  Promise<{ signedIn: boolean; canPost: boolean; liked: string[]; mine: string[]; artworkPostId: string | null }>
+  Promise<{ signedIn: boolean; canPost: boolean; liked: string[]; mine: string[]; artworkPostId: string | null;
+            unpostedArtworkSlug: string | null }>  // their published obra, when it isn't on Comunidad yet
 
 publishArtwork(input: { artworkSlug: string; body?: string }):
   Promise<{ ok: true; id: string } | { error: CommunityError }>
@@ -734,6 +851,50 @@ Indicadores a mostrar en `/admin/estadisticas`, en una pestaña o sección «Com
 - Conversión de la oferta: `community_publish_artwork / community_publish_offer_view`.
 - Artistas que vuelven en 7 días (si ya hay un dato de retorno; si no, dejarlo anotado como pendiente).
 
+### 11.1 Metas y revisión a las 2 semanas
+
+El indicador principal es **artistas activos por semana en Comunidad**: quienes publicaron, comentaron o dieron me gusta al menos una vez. Todo lo demás explica por qué sube o baja.
+
+| Indicador | Meta a 30 días | Si a las 2 semanas no se llega |
+|---|---|---|
+| Artistas inscriptos que publicaron | 20 % | Revisar la conversión de la oferta. Si se ve y no se toca, cambiar el texto o mostrarla antes. Si no se ve, reenviar el mail de lanzamiento a quienes no lo abrieron. |
+| Conversión de la oferta (publicar / verla) | 30 % | Probar el botón directo, sin campo de texto. |
+| Publicaciones con al menos una respuesta | 50 % | La cuenta oficial responde a las nuevas, y el resumen diario muestra «3 publicaciones nuevas de artistas de tu país». |
+| Artistas que publican por segunda vez | 25 % de quienes publicaron | Ajustar la consigna semanal (más fácil, más visual) con el resumen de IA (§11 bis). |
+| Clics en la franja del inicio | 8 % de `home_view` | Subir la franja o mostrar menos tarjetas, más grandes. |
+| Inscripciones que llegan por el link de una publicación (`?ref=`) | Que existan y crezcan | Hacer más visible «Invitar a colegas» después de publicar. |
+
+Las metas son orientativas: no hay datos previos de este sitio para calibrarlas. El panel muestra cada indicador junto a su meta. La revisión la hace el dueño; quien implementa solo deja los números a la vista.
+
+---
+
+## 11 bis. Inteligencia artificial
+
+El repo ya usa la API de Anthropic para traducir mails (`lib/email-translator.ts`, con `ANTHROPIC_API_KEY` y salidas estructuradas). Comunidad la usa para cuatro cosas, todas en `lib/community-ai.ts` y con el mismo patrón: sin clave (`isTranslatorConfigured`) o con el interruptor `COMMUNITY_AI=off`, todo sigue funcionando sin IA.
+
+**Reglas de costo:**
+
+- La IA nunca corre por visita ni en `/api/comunidad`.
+- Corre una vez por publicación o comentario, después de responderle al usuario (con `after()` de `next/server`, como en `app/[locale]/(site)/auth/callback/route.ts`), o una vez por semana en un cron.
+- Esperar la respuesta de la API casi no gasta CPU de Vercel, pero se paga a Anthropic. Usar el modelo más chico que alcance (Haiku para clasificar, traducir y describir) y verificar el identificador vigente del modelo antes de escribirlo.
+- Al volumen esperado (cientos de publicaciones por mes) el gasto es chico, pero no está medido: dejar un contador de llamadas por semana en el resumen del admin.
+
+**Usos:**
+
+1. **Traducción (etapa 2).** Al publicar o comentar, una llamada devuelve el idioma detectado y el texto en los otros 8 idiomas. Se guarda en `posts.lang` y `posts.translations`, y en columnas iguales de `post_comments`, que se agregan en esa migración. Un texto vacío o de menos de 3 letras no se traduce. El feed lo sirve por `?lang=` (§9.1) y la tarjeta muestra «Traducido · Ver original».
+2. **Texto alternativo (etapa 2).** Para fotos y souvenirs, una descripción de la imagen en una línea, traducida igual que el texto: va en `image_alt`. Mejora la accesibilidad y hace que las páginas de publicación (§4.11) les digan algo a los buscadores. Para «Mi obra» se usa el título de la obra, sin IA.
+3. **Ayuda para moderar (etapa 3).** Antes de que el admin lo vea, cada foto libre y cada comentario pendiente recibe una etiqueta (`ok`, `dudoso` o `rechazar`) con el motivo en una línea: desnudo no artístico, spam, insulto, publicidad, no es collage ni proceso. Se guarda en columnas `ai_verdict` y `ai_reason`. `/admin/publicaciones` y `/admin/comentarios` muestran primero lo dudoso y permiten «Aprobar todo lo marcado ok». **La IA no publica ni rechaza sola**: propone, y decide el admin. Si después de un mes el admin coincide casi siempre con `ok`, el dueño puede decidir que las fotos `ok` se publiquen al instante.
+4. **Resumen semanal para el admin (etapa 3).** Un cron semanal (`app/api/cron/comunidad/route.ts`, protegido como los otros de `app/api/cron/` y agregado a `vercel.json`) arma un informe corto con los números de la semana y los textos de las publicaciones más y menos respondidas:
+   - qué temas y qué tipo de publicación generaron conversación;
+   - qué países participaron y quiénes publicaron por primera vez;
+   - **tres propuestas de consigna para la semana siguiente**.
+
+   Se guarda en una tabla `community_reports (week_start date primary key, report jsonb, created_at timestamptz)`, se muestra en `/admin/estadisticas` → Comunidad y llega por mail a los admins con `mailAdmins` (`lib/cron.ts`). Así, aprender qué funciona no depende de que alguien mire tablas.
+
+**Privacidad:** a la API se manda el texto y la imagen de la publicación, nunca emails ni identificadores. La Política de privacidad (etapa 3) lo menciona.
+
+**Pruebas:** `lib/community-ai.test.ts` con el cliente de Anthropic simulado. Sin clave no llama y devuelve vacío; una respuesta mal formada no rompe la publicación; un texto corto no se traduce.
+
 ---
 
 ## 12. Pruebas
@@ -750,6 +911,9 @@ Copiar la estructura de `hide-unreadable-obra.mjs`: `boot()`, `applyMigrations(d
 6. La sexta publicación en 24 h falla con `rate_limited`. Un admin no tiene límite.
 7. Cursor: con 25 publicaciones, la página 1 trae 20 y la 2 trae 5, sin repetir.
 8. Una foto `pending` no sale en el feed. Al pasar a `published` sale y se avisa al autor.
+9. Una publicación `official` de un perfil con `is_public = false` sí sale en el feed.
+10. Fijar una segunda publicación le quita `pinned_until` a la primera. `community_highlights()` devuelve primero la fijada, después la que tiene más respuestas en los últimos 14 días, y deja al final una vieja con muchos me gusta.
+11. La notificación `post_activity` guarda en `lastName` el primer nombre de quien respondió último.
 
 Correr con `npm install --no-save @electric-sql/pglite && node scripts/pglite/community.mjs`.
 
@@ -838,8 +1002,11 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 5. `feat(comunidad): show the artists' latest posts on the home` (`community-strip` en la home).
 6. `feat(share): offer to post the obra on Comunidad next to the story image` (`publish-artwork-offer`, `ShareLinks` y `ShareArtwork`).
 7. `feat(admin): moderate Comunidad posts` (`/admin/publicaciones` y su sección en el menú).
-8. `feat(comunidad): notify artists of likes on their posts` (registry: `post_activity`, `post_hidden`, `post_reported`, `posts_pending`).
-9. `feat(stats): track Comunidad` (eventos y sección en estadísticas).
+8. `feat(comunidad): notify artists of likes on their posts` (registry: `post_activity` con nombre, `post_hidden`, `post_reported`, `posts_pending`).
+9. `feat(comunidad): let the admins post as the Mundial and pin the week's prompt` (§4.9, y `community_highlights` en la franja).
+10. `feat(comunidad): open the offer from a link and invite artists by mail` (hash `#publicar`, plantilla de campaña sin enviar y línea en el resumen diario; §4.10).
+11. `feat(comunidad): invite visitors to join from the feed` (§4.12 y §4.13).
+12. `feat(stats): track Comunidad` (eventos e indicadores con sus metas; §11 y §11.1).
 
 **Criterios de aceptación:**
 
@@ -850,6 +1017,11 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 - El admin oculta una publicación y desaparece del feed en menos de 60 s.
 - `next build` muestra las rutas `anon` en `●`, y `/api/comunidad` responde con `s-maxage`.
 - El inicio no hace ninguna consulta nueva a la base en el servidor.
+- Un admin publica como «Mundial de Collage», fija la consigna y esa publicación sale primera en la franja.
+- Abrir `/obras/<slug>#publicar` con la sesión de su artista lleva directo a la oferta. La plantilla del mail de lanzamiento existe y no se envió.
+- El panel muestra el indicador principal y las metas.
+
+**Antes de pushear la etapa 1**, el dueño carga las publicaciones oficiales. Después del push manda el mail de lanzamiento. Sin eso, la franja no aparece.
 
 ### Etapa 2: conversación
 
@@ -859,19 +1031,29 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 4. Sección «Publicaciones» en el perfil del artista.
 5. Actividad de Comunidad en el mail diario (`lib/artist-digest.ts`): «Tu publicación sumó…» y, para quien nunca publicó, «Publicá tu obra en Comunidad (un toque)» con link a su obra.
 6. Notificaciones `post_comment_approved` y `post_comments_pending`.
+7. Página propia de cada publicación, con vista previa y link con `?ref=` (§4.11). Las notificaciones y «Compartir» pasan a usarla.
+8. Traducción automática y texto alternativo (§11 bis, usos 1 y 2).
 
 **Criterios de aceptación:**
 
 - Un artista comenta y el comentario aparece al instante. Un visitante comenta y queda en revisión.
 - Tres denuncias ocultan la publicación y avisan al admin.
 - Publicar un souvenir lo muestra en el feed.
+- Pegar el link de una publicación en WhatsApp muestra su imagen y su autor.
+- Con el sitio en inglés, una publicación escrita en español se lee en inglés y ofrece «Ver original».
 
 ### Etapa 3: contenido propio
 
 1. `post-composer` con foto libre y moderación previa.
 2. Actualización de Términos y Condiciones (contenido subido por usuarios, licencia no exclusiva para mostrarlo en el sitio y redes del Mundial, motivos de baja, denuncias) y de la Política de privacidad (qué se muestra públicamente). En los 9 idiomas, siguiendo cómo están hechas esas páginas. El texto legal lo revisa el dueño antes del push.
 
-**Criterio de aceptación:** una foto libre queda «En revisión», el admin la aprueba y el autor recibe aviso.
+3. Ayuda de IA para moderar y resumen semanal con propuestas de consigna (§11 bis, usos 3 y 4).
+
+**Criterios de aceptación:**
+
+- Una foto libre queda «En revisión», el admin la aprueba y el autor recibe aviso.
+- Cada pendiente le llega al admin con su etiqueta y su motivo. Nada se publica ni se rechaza sin el admin.
+- El lunes hay un resumen de la semana anterior en el panel, con tres consignas propuestas.
 
 ### Etapa 4: red (solo si el dueño la pide)
 
@@ -891,6 +1073,8 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 - No mandar `user_id` de `auth.users`, emails ni `author_email` al navegador. En las respuestas públicas, solo `profileId` de artistas públicos.
 - No convertir el texto en HTML ni en links.
 - No integrar la API de Instagram.
+- No llamar a la IA por visita ni desde el endpoint del feed. No dejar que la IA publique o rechace sola.
+- No enviar la campaña de lanzamiento: la manda el dueño.
 - No tocar `components/mobile-tab-bar.tsx`.
 - No pushear ni desplegar. No juntar varios temas en un commit.
 - No inventar números fijos en estadísticas: todo sale de la base.
@@ -901,7 +1085,10 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 
 | Riesgo | Mitigación |
 |---|---|
-| Feed vacío al principio | La franja no se muestra con menos de 6 publicaciones. El mail diario invita a publicar con un toque. La oferta aparece en `onboarding/confirmado`, justo después de inscribirse. |
+| Feed vacío al principio | Publicaciones oficiales cargadas antes del lanzamiento, mail a todos los inscriptos con link de un toque, y la franja no se muestra con menos de 6. La oferta aparece en `onboarding/confirmado`, justo después de inscribirse. |
+| Se publica una vez y nunca más | Consigna semanal fijada, notificaciones con nombre que también llegan por mail, y el resumen de IA que propone la consigna siguiente según lo que funcionó. |
+| Artistas de distintos idiomas no se responden | Traducción automática al idioma de quien lee. |
+| Costo o caída de la IA | Corre una vez por publicación, con el modelo más chico. Sin clave o con `COMMUNITY_AI=off`, todo funciona igual, sin traducir. |
 | Contenido inapropiado | Las fotos libres pasan por moderación previa, 3 denuncias ocultan solas y el admin puede borrar. |
 | Mucha carga de moderación | La foto libre recién llega en la etapa 3. Obra y souvenir no traen imágenes nuevas. |
 | CPU de Vercel | El feed sale del CDN y hay un test que vigila que el endpoint no lea la sesión. Las escrituras son una por acción, no por visita. |
@@ -916,3 +1103,5 @@ Cada punto es **un commit propio**. Al terminar cada etapa se corre la verificac
 2. Si las publicaciones de miembros del Club llevan un sello.
 3. Si más adelante quiere historias de 24 horas además de publicaciones.
 4. El texto legal de los Términos (etapa 3).
+5. Las 3 a 5 publicaciones oficiales de arranque y la primera consigna. Las escribe el dueño; bloquean el lanzamiento, no la construcción.
+6. Si acepta el gasto de IA o prefiere arrancar con `COMMUNITY_AI=off`.
