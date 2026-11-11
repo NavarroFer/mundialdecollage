@@ -23,7 +23,7 @@ async function loadFeed(params: URLSearchParams): Promise<FeedPage | null> {
   return response.json()
 }
 
-export function CommunityFeed({ callOpen, author }: { callOpen: boolean; author?: string }) {
+export function CommunityFeed({ callOpen, author, hideEmpty = false, title }: { callOpen: boolean; author?: string; hideEmpty?: boolean; title?: string }) {
   const { locale, m } = useI18n()
   const t = m.community
   const [posts, setPosts] = useState<FeedPost[] | null>(null)
@@ -160,12 +160,13 @@ export function CommunityFeed({ callOpen, author }: { callOpen: boolean; author?
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
 
-  if (posts === null) return <p className="py-16 text-center text-muted-foreground">{m.notifications.loading}</p>
-  if (!posts.length) return <p className="py-16 text-center text-muted-foreground">{error ? t.errors[error] : t.empty}</p>
+  if (posts === null) return hideEmpty ? null : <p className="py-16 text-center text-muted-foreground">{m.notifications.loading}</p>
+  if (!posts.length) return hideEmpty && !error ? null : <p className="py-16 text-center text-muted-foreground">{error ? t.errors[error] : t.empty}</p>
 
   return (
     <div>
-      <TrackView event="community_view" />
+      {title && <h2 className="font-display mb-6 text-2xl tracking-tight text-ink uppercase">{title}</h2>}
+      {!author && <TrackView event="community_view" />}
       {fresh && (
         <button type="button" className="sticky top-20 z-10 mx-auto mb-4 block rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper" onClick={showFresh}>
           {t.newPosts}
