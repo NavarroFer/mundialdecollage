@@ -994,6 +994,8 @@ const fr: Messages = {
   community: {
     title: 'Communauté',
     metaDescription: 'Ce que publient les artistes du Mundial de Collage : œuvres, parcours et processus.',
+    postShareTitle: '{name} dans la Communauté du Mundial de Collage',
+    translated: 'Traduit', seeOriginal: 'Voir l’original',
     stripTitle: 'Ce que partagent les artistes',
     seeAll: 'Tout voir',
     unposted: 'Ton œuvre n’est pas encore sur Comunidad',

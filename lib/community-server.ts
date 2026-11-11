@@ -3,6 +3,8 @@
 // is not public, and an auth id must not reach the browser.
 import { artistProfileSlug } from '@/lib/artist-slug'
 import { type FeedPost, type PostKind, isUuid } from '@/lib/community'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 export type FeedRow = {
   id: string
@@ -69,4 +71,16 @@ export function toFeedPost(row: FeedRow, lang: string, publicUrl: (path: string)
     tags: Array.isArray(row.tags) ? row.tags : [],
     original: translated ? written : null,
   }
+}
+
+/** One published post for its page. Null when it is missing, hidden or the service is off. */
+export async function loadPublicPost(id: string, lang: string): Promise<FeedPost | null> {
+  if (!isUuid(id) || !isSupabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null
+  const admin = createAdminClient()
+  const { data, error } = await admin.rpc('community_post', { post: id })
+  if (error) return null
+  const row = (Array.isArray(data) ? data[0] : data) as FeedRow | null
+  if (!row) return null
+  const publicUrl = (path: string) => admin.storage.from('posts').getPublicUrl(path).data.publicUrl
+  return toFeedPost(row, lang, publicUrl)
 }

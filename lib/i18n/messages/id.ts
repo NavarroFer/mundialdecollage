@@ -991,6 +991,8 @@ const id: Messages = {
   community: {
     title: 'Komunitas',
     metaDescription: 'Yang dibagikan seniman Mundial de Collage: karya, jelajah, dan proses.',
+    postShareTitle: '{name} di Komunitas Mundial de Collage',
+    translated: 'Diterjemahkan', seeOriginal: 'Lihat asli',
     stripTitle: 'Yang dibagikan para seniman',
     seeAll: 'Lihat semua',
     unposted: 'Karyamu belum ada di Comunidad',

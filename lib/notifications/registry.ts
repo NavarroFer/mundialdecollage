@@ -194,7 +194,7 @@ export const NOTIFICATION_TYPES = {
       const likes = data.likes
       const comments = data.comments
       if (likes + comments < 1) return null
-      const href = `/comunidad#post-${data.postId}`
+      const href = `/comunidad/p/${data.postId}`
       const name = data.lastName?.trim()
       if (name) {
         if (likes > 0 && comments > 0) {
@@ -217,7 +217,7 @@ export const NOTIFICATION_TYPES = {
   post_approved: define({
     schema: z.object({ postId: z.string().min(1) }),
     icon: 'image',
-    render: (data, { m }) => ({ text: m.types.postApproved, href: `/comunidad#post-${data.postId}` }),
+    render: (data, { m }) => ({ text: m.types.postApproved, href: `/comunidad/p/${data.postId}` }),
   }),
   post_hidden: define({
     schema: z.object({ postId: z.string().min(1), kind: z.string().nullish() }),
@@ -227,7 +227,7 @@ export const NOTIFICATION_TYPES = {
   post_comment_approved: define({
     schema: z.object({ postId: z.string().min(1) }),
     icon: 'comment',
-    render: (data, { m }) => ({ text: m.types.postCommentApproved, href: `/comunidad#post-${data.postId}` }),
+    render: (data, { m }) => ({ text: m.types.postCommentApproved, href: `/comunidad/p/${data.postId}` }),
   }),
 
   // --- For the admins (Spanish only) --------------------------------------

@@ -1016,6 +1016,8 @@ const ru: Messages = {
   community: {
     title: 'Сообщество',
     metaDescription: 'Что публикуют художники Mundial de Collage: работы, прогулки и процесс.',
+    postShareTitle: '{name} в сообществе Mundial de Collage',
+    translated: 'Переведено', seeOriginal: 'Показать оригинал',
     stripTitle: 'Чем делятся художники',
     seeAll: 'Смотреть всё',
     unposted: 'Твоей работы ещё нет в Comunidad',

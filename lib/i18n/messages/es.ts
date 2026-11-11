@@ -1033,6 +1033,8 @@ const es = {
   community: {
     title: 'Comunidad',
     metaDescription: 'Lo que publican los artistas del Mundial de Collage: obras, recorridos y procesos.',
+    postShareTitle: '{name} en la Comunidad del Mundial de Collage',
+    translated: 'Traducido', seeOriginal: 'Ver original',
     stripTitle: 'Lo que comparten los artistas',
     seeAll: 'Ver todo',
     unposted: 'Tu obra todavía no está en Comunidad',

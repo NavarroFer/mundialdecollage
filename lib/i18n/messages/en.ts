@@ -995,6 +995,8 @@ const en: Messages = {
   community: {
     title: 'Community',
     metaDescription: 'What the artists of the Collage World Cup share: artworks, walks through the gallery and process.',
+    postShareTitle: '{name} in the Collage World Cup Community',
+    translated: 'Translated', seeOriginal: 'See original',
     stripTitle: 'What the artists are sharing',
     seeAll: 'See all',
     unposted: 'Your artwork is not on Comunidad yet',

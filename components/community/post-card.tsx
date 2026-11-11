@@ -41,6 +41,7 @@ export function PostCard({
   const [reporting, setReporting] = useState(false)
   const [reason, setReason] = useState('')
   const [reported, setReported] = useState(false)
+  const [showOriginal, setShowOriginal] = useState(false)
   const href = communityPostPath(post.id, post.artwork?.slug)
   const signIn = useGoogleSignIn(href)
   const name = post.official ? t.officialName : post.author.name
@@ -164,9 +165,14 @@ export function PostCard({
         <button type="button" className="block w-full text-left" onClick={() => { setOpen(true); track('community_post_open') }}>{image}</button>
       )}
       {post.body && (
-        <p className={cn('px-4 pt-4 text-sm whitespace-pre-line text-ink', !open && 'line-clamp-4')}>
-          {post.body}
+        <p className={cn('px-4 pt-4 text-sm whitespace-pre-line text-ink', !open && !showOriginal && 'line-clamp-4')}>
+          {showOriginal && post.original ? post.original : post.body}
         </p>
+      )}
+      {post.original && (
+        <button type="button" className="px-4 pt-1 text-left text-sm font-semibold text-muted-foreground" onClick={() => setShowOriginal((value) => !value)}>
+          {showOriginal ? t.translated : `${t.translated} · ${t.seeOriginal}`}
+        </button>
       )}
       {post.body && !open && (
         <button type="button" className="px-4 pt-1 text-left text-sm font-semibold text-muted-foreground" onClick={() => { setOpen(true); track('community_post_open') }}>

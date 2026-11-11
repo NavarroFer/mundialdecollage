@@ -5,8 +5,8 @@ import { withReferral } from '@/lib/referral'
 
 /** Where a card links. The obra's ?ref= rides along when the author has one. */
 export function communityPostPath(id: string, artworkSlug?: string | null): string {
-  const base = artworkSlug ? withReferral('/comunidad', artworkSlug) : '/comunidad'
-  return `${base}#post-${id}`
+  const path = `/comunidad/p/${id}`
+  return artworkSlug ? withReferral(path, artworkSlug) : path
 }
 
 export const POST_BODY_MAX = 1000
