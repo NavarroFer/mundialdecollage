@@ -7,6 +7,7 @@ import { StampAlbum } from '@/components/stamp-album'
 import { ParticipationStatus } from '@/components/participation-status'
 import { ReferralInvite } from '@/components/referral-invite'
 import { BasesBanner } from '@/components/bases-banner'
+import { CommunityStrip } from '@/components/community/community-strip'
 import { AboutSection } from '@/components/about-section'
 import { DonationSection } from '@/components/donation-section'
 import { HomeStoreSection } from '@/components/home-store-section'
@@ -44,6 +45,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             hideForSignedIn
             className="mx-auto max-w-4xl px-5 pt-10 sm:px-8 sm:pt-14"
           />
+          <CommunityStrip />
           <BasesBanner />
           <EditionSection />
           {/* Before the obras: after them it sat 8–9 phone screens down,

@@ -1,5 +1,13 @@
+import { withReferral } from '@/lib/referral'
+
 // Comunidad (docs/red-social.md). Pure helpers shared by the CDN feed and the
 // server actions. No server imports: Vitest and the browser can both load it.
+
+/** Where a card links. The obra's ?ref= rides along when the author has one. */
+export function communityPostPath(id: string, artworkSlug?: string | null): string {
+  const base = artworkSlug ? withReferral('/comunidad', artworkSlug) : '/comunidad'
+  return `${base}#post-${id}`
+}
 
 export const POST_BODY_MAX = 1000
 export const COMMENT_BODY_MAX = 500

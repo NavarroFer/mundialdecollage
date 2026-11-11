@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+import { PublishArtworkOffer } from '@/components/community/publish-artwork-offer'
 import { ShareLinks } from '@/components/share-links'
 import { useI18n } from '@/lib/i18n/client'
 import { fmt } from '@/lib/i18n/format'
@@ -34,6 +36,7 @@ export function ShareArtwork({
 }) {
   const { m } = useI18n()
   const t = m.share
+  const [storyOpened, setStoryOpened] = useState(false)
   return (
     <ShareLinks
       heading={isOwn ? t.heading : t.headingOther}
@@ -42,7 +45,8 @@ export function ShareArtwork({
       path={withReferral(isPublic ? `/obras/${slug}` : '/', slug)}
       storyHref={`/obras/${slug}/historia`}
       events={EVENTS}
-      footer={isOwn && !isPublic ? <p className="mt-3 text-sm text-muted-foreground">{t.pending}</p> : undefined}
+      onStory={isOwn ? () => setStoryOpened(true) : undefined}
+      footer={isOwn ? <PublishArtworkOffer slug={slug} isPublic={isPublic} opened={storyOpened} /> : undefined}
     />
   )
 }
