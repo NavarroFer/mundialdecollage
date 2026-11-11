@@ -26,6 +26,8 @@ type PostRow = {
   artwork_id: string | null
   official: boolean
   report_count: number
+  ai_verdict: string | null
+  ai_reason: string | null
   created_at: string
 }
 
@@ -45,11 +47,17 @@ export default async function PublicacionesPage({
   const admin = createAdminClient()
   const listed = admin
     .from('posts')
-    .select('id, profile_id, kind, body, status, image_path, artwork_id, official, report_count, created_at')
+    .select('id, profile_id, kind, body, status, image_path, artwork_id, official, report_count, ai_verdict, ai_reason, created_at')
     .order(tab.id === 'denunciadas' ? 'report_count' : 'created_at', { ascending: false })
     .limit(40)
-  const { data, error: loadError } = await (tab.id === 'denunciadas' ? listed.gt('report_count', 0) : listed.eq('status', tab.status ?? 'pending'))
-  const posts = (data ?? []) as PostRow[]
+  const { data, error: loadError } = await (tab.id === 'denunciadas'
+    ? listed.gt('report_count', 0).neq('kind', 'artwork')
+    : listed.eq('status', tab.status ?? 'pending'))
+  const VERDICT = { dudoso: 0, rechazar: 1, ok: 2 } as Record<string, number>
+  const posts = ((data ?? []) as PostRow[]).sort((a, b) => {
+    if (tab.id !== 'revisar') return 0
+    return (VERDICT[a.ai_verdict ?? ''] ?? 3) - (VERDICT[b.ai_verdict ?? ''] ?? 3)
+  })
   const names = new Map<string, string>()
   const images = new Map<string, string>()
   const profileIds = [...new Set(posts.map((post) => post.profile_id))]
@@ -85,7 +93,7 @@ export default async function PublicacionesPage({
     <div>
       <AdminPageHeader eyebrow="Comunidad" title="Publicaciones" description={adminDescription('/admin/publicaciones')} />
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Las obras y los souvenirs se publican al instante. Las fotos libres esperan acá. Tres denuncias ocultan una publicación hasta que la mires.
+        Las obras y los souvenirs se publican al instante. Las fotos libres esperan acá. Tres denuncias ocultan una foto o un souvenir hasta que la mires. Las obras no se denuncian.
       </p>
 
       <form action={publishOfficial} className="mt-6 max-w-xl rounded-2xl border-2 border-ink/10 bg-card p-5">
@@ -126,6 +134,9 @@ export default async function PublicacionesPage({
                   <span className="text-muted-foreground"> · {dateFormat.format(new Date(post.created_at))} · {post.kind}</span>
                   {post.report_count > 0 && <span className="text-collage-red"> · {post.report_count} denuncias</span>}
                 </p>
+                {post.ai_verdict && (
+                  <p className="mt-1 text-xs text-muted-foreground">IA: {post.ai_verdict}{post.ai_reason ? ` · ${post.ai_reason}` : ''}</p>
+                )}
                 {post.body && <p className="mt-2 text-sm whitespace-pre-line text-ink">{post.body}</p>}
                 {reportReasons.get(post.id)?.length ? <p className="mt-2 text-xs text-muted-foreground">{reportReasons.get(post.id)?.join(' · ')}</p> : null}
                 <div className="mt-3 flex flex-wrap gap-2">

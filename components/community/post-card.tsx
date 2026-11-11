@@ -43,6 +43,7 @@ export function PostCard({
   const [reported, setReported] = useState(false)
   const [showOriginal, setShowOriginal] = useState(false)
   const href = communityPostPath(post.id, post.artwork?.slug)
+  const canReport = post.kind !== 'artwork' && !post.artwork
   const signIn = useGoogleSignIn(href)
   const name = post.official ? t.officialName : post.author.name
   const alt = post.imageAlt || (post.artwork?.title ? post.artwork.title : fmt(t.photoOf, { name }))
@@ -109,6 +110,7 @@ export function PostCard({
           </p>
         </div>
         {post.pinned && <span className="rounded-full bg-collage-yellow px-2 py-1 text-xs font-semibold text-ink">{t.prompt}</span>}
+        {(mine || canReport) && (
         <div className="relative">
           <button type="button" className="rounded-full p-2 text-ink hover:bg-ink/5" aria-label={t.more} aria-expanded={menu} onClick={() => setMenu((value) => !value)}>
             <MoreHorizontal className="size-4" aria-hidden="true" />
@@ -126,7 +128,7 @@ export function PostCard({
                 >
                   {t.delete}
                 </button>
-              ) : reported ? (
+              ) : canReport && reported ? (
                 <p className="px-3 py-2 text-sm text-muted-foreground">{t.reported}</p>
               ) : (
                 <form onSubmit={(event) => {
@@ -158,6 +160,7 @@ export function PostCard({
             </div>
           )}
         </div>
+        )}
       </header>
       {post.artwork ? (
         <Link href={post.artwork.href} onClick={() => track('community_to_obra')}>{image}</Link>
