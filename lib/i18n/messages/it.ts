@@ -1048,6 +1048,24 @@ const it: Messages = {
       unavailable: 'Non siamo riusciti a farlo ora. Riprova tra un po’.',
     },
   },
+  siteSections: {
+    label: 'Sezioni del sito',
+    community: 'Comunità',
+    show: 'La mostra',
+    mundial: 'Il Mundial',
+    clubShop: 'Club e negozio',
+    gallery: 'Galleria 3D',
+    participants: 'Partecipanti',
+    map: 'Mappa',
+    jury: 'Giuria',
+    bases: 'Basi',
+    edition: "L'edizione",
+    about: 'Chi siamo',
+    donate: 'Dona',
+    club: 'Club',
+    shop: 'Negozio',
+    magazine: 'Rivista',
+  },
 }
 
 export default it

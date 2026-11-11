@@ -1048,6 +1048,24 @@ const pt: Messages = {
       unavailable: 'Não conseguimos fazer isso agora. Tente de novo daqui a pouco.',
     },
   },
+  siteSections: {
+    label: 'Seções do site',
+    community: 'Comunidade',
+    show: 'A mostra',
+    mundial: 'O Mundial',
+    clubShop: 'Clube e loja',
+    gallery: 'Galeria 3D',
+    participants: 'Participantes',
+    map: 'Mapa',
+    jury: 'Júri',
+    bases: 'Regulamento',
+    edition: 'A edição',
+    about: 'Quem somos',
+    donate: 'Doar',
+    club: 'Clube',
+    shop: 'Loja',
+    magazine: 'Revista',
+  },
 }
 
 export default pt

@@ -1070,6 +1070,24 @@ const ru: Messages = {
       unavailable: 'Сейчас не получилось. Попробуй через некоторое время.',
     },
   },
+  siteSections: {
+    label: 'Разделы сайта',
+    community: 'Сообщество',
+    show: 'Выставка',
+    mundial: 'Mundial',
+    clubShop: 'Клуб и магазин',
+    gallery: '3D-галерея',
+    participants: 'Участники',
+    map: 'Карта',
+    jury: 'Жюри',
+    bases: 'Правила',
+    edition: 'Издание',
+    about: 'Кто мы',
+    donate: 'Поддержать',
+    club: 'Клуб',
+    shop: 'Магазин',
+    magazine: 'Журнал',
+  },
 }
 
 export default ru

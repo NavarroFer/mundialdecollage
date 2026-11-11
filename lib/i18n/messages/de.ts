@@ -1048,6 +1048,24 @@ const de: Messages = {
       unavailable: 'Das hat gerade nicht geklappt. Versuch es in ein paar Minuten noch einmal.',
     },
   },
+  siteSections: {
+    label: 'Bereiche der Seite',
+    community: 'Community',
+    show: 'Die Ausstellung',
+    mundial: 'Das Mundial',
+    clubShop: 'Club und Laden',
+    gallery: '3D-Galerie',
+    participants: 'Teilnehmende',
+    map: 'Karte',
+    jury: 'Jury',
+    bases: 'Ausschreibung',
+    edition: 'Die Ausgabe',
+    about: 'Wer wir sind',
+    donate: 'Spenden',
+    club: 'Club',
+    shop: 'Laden',
+    magazine: 'Magazin',
+  },
 }
 
 export default de

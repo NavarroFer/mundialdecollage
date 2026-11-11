@@ -5,7 +5,7 @@ import { getI18n } from '@/lib/i18n/server'
 export async function JurySection() {
   const { m } = await getI18n()
   return (
-    <section className="bg-grain border-t-2 border-ink/10 bg-collage-blue py-14 text-primary-foreground sm:py-18">
+    <section id="jurado" className="scroll-mt-28 bg-grain border-t-2 border-ink/10 bg-collage-blue py-14 text-primary-foreground sm:py-18">
       <div className="mx-auto max-w-3xl px-5 text-center sm:px-8">
         <FadeIn>
           <Sparkles className="mx-auto size-8 text-collage-yellow" strokeWidth={1.5} aria-hidden="true" />

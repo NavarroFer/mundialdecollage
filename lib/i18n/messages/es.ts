@@ -1087,6 +1087,24 @@ const es = {
       unavailable: 'No pudimos hacerlo ahora. Probá de nuevo en un rato.',
     },
   },
+  siteSections: {
+    label: 'Secciones del sitio',
+    community: 'Comunidad',
+    show: 'La muestra',
+    mundial: 'El Mundial',
+    clubShop: 'Club y tienda',
+    gallery: 'Galería 3D',
+    participants: 'Participantes',
+    map: 'Mapa',
+    jury: 'Jurado',
+    bases: 'Bases',
+    edition: 'La edición',
+    about: 'Quiénes somos',
+    donate: 'Donar',
+    club: 'Club',
+    shop: 'Tienda',
+    magazine: 'Revista',
+  },
 }
 
 export type Messages = typeof es

@@ -1045,6 +1045,24 @@ const id: Messages = {
       unavailable: 'Tidak berhasil sekarang. Coba lagi sebentar lagi.',
     },
   },
+  siteSections: {
+    label: 'Bagian situs',
+    community: 'Komunitas',
+    show: 'Pameran',
+    mundial: 'Mundial',
+    clubShop: 'Klub dan toko',
+    gallery: 'Galeri 3D',
+    participants: 'Peserta',
+    map: 'Peta',
+    jury: 'Juri',
+    bases: 'Ketentuan',
+    edition: 'Edisi',
+    about: 'Siapa kami',
+    donate: 'Donasi',
+    club: 'Klub',
+    shop: 'Toko',
+    magazine: 'Majalah',
+  },
 }
 
 export default id

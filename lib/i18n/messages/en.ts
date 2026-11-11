@@ -1049,6 +1049,24 @@ const en: Messages = {
       unavailable: 'We could not do that just now. Try again in a little while.',
     },
   },
+  siteSections: {
+    label: 'Site sections',
+    community: 'Community',
+    show: 'The exhibition',
+    mundial: 'The World Cup',
+    clubShop: 'Club and shop',
+    gallery: '3D Gallery',
+    participants: 'Participants',
+    map: 'Map',
+    jury: 'Jury',
+    bases: 'Rules',
+    edition: 'The edition',
+    about: 'Who we are',
+    donate: 'Donate',
+    club: 'Club',
+    shop: 'Shop',
+    magazine: 'Magazine',
+  },
 }
 
 export default en

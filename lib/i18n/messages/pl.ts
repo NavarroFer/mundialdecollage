@@ -1070,6 +1070,24 @@ const pl: Messages = {
       unavailable: 'Nie udało się teraz. Spróbuj za chwilę.',
     },
   },
+  siteSections: {
+    label: 'Sekcje strony',
+    community: 'Społeczność',
+    show: 'Wystawa',
+    mundial: 'Mundial',
+    clubShop: 'Klub i sklep',
+    gallery: 'Galeria 3D',
+    participants: 'Uczestnicy',
+    map: 'Mapa',
+    jury: 'Jury',
+    bases: 'Regulamin',
+    edition: 'Edycja',
+    about: 'Kim jesteśmy',
+    donate: 'Wesprzyj',
+    club: 'Klub',
+    shop: 'Sklep',
+    magazine: 'Magazyn',
+  },
 }
 
 export default pl

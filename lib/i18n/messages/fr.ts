@@ -1048,6 +1048,24 @@ const fr: Messages = {
       unavailable: 'On n’a pas pu le faire maintenant. Réessaie dans un moment.',
     },
   },
+  siteSections: {
+    label: 'Sections du site',
+    community: 'Communauté',
+    show: "L'exposition",
+    mundial: 'Le Mundial',
+    clubShop: 'Club et boutique',
+    gallery: 'Galerie 3D',
+    participants: 'Participants',
+    map: 'Carte',
+    jury: 'Jury',
+    bases: 'Règlement',
+    edition: "L'édition",
+    about: 'Qui nous sommes',
+    donate: 'Donner',
+    club: 'Club',
+    shop: 'Boutique',
+    magazine: 'Revue',
+  },
 }
 
 export default fr
