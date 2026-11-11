@@ -17,6 +17,7 @@ import {
   cleanBody,
   isOwnPostPath,
   isUuid,
+  tasteFromRows,
 } from '@/lib/community'
 
 function enrichLater(work: () => Promise<void>) {
@@ -76,8 +77,19 @@ export async function communityViewer(input: { postIds?: string[]; artworkSlug?:
     const user = await sessionUser()
     if (!user) return emptyViewer()
     const admin = createAdminClient()
-    const { data, error } = await admin.from('profiles').select('onboarded_at, is_public').eq('id', user.id).maybeSingle()
-    if (error) return { ...emptyViewer(), signedIn: true }
+    // One request for the profile and one for the taste: the taste is computed
+    // by the database from likes, comments, saved obras and gallery attention
+    // (docs/red-social-explorar.md). It stays empty until there is enough to
+    // read, and the feed ranks with it in the browser, never on the server.
+    const [profileResult, tasteResult] = await Promise.all([
+      admin.from('profiles').select('onboarded_at, is_public').eq('id', user.id).maybeSingle(),
+      admin.rpc('community_taste', { visitor: user.id }),
+    ])
+    const taste = tasteResult.error
+      ? {}
+      : tasteFromRows((tasteResult.data ?? []) as { tag: string; weight: number }[])
+    const { data, error } = profileResult
+    if (error) return { ...emptyViewer(), signedIn: true, taste }
     const profile = data as ProfileRow | null
     const artist = Boolean(profile?.onboarded_at && profile.is_public)
     const postIds = [...new Set((input.postIds ?? []).filter(isUuid))].slice(0, 50)
@@ -88,7 +100,7 @@ export async function communityViewer(input: { postIds?: string[]; artworkSlug?:
           admin.from('posts').select('id').eq('profile_id', user.id).in('id', postIds).neq('status', 'removed'),
         ])
       : [null, null]
-    if (likedRows?.error || mineRows?.error) return { ...emptyViewer(), signedIn: true, canPost: artist }
+    if (likedRows?.error || mineRows?.error) return { ...emptyViewer(), signedIn: true, canPost: artist, taste }
 
     let artworkPostId: string | null = null
     if (input.artworkSlug) {
@@ -126,7 +138,7 @@ export async function communityViewer(input: { postIds?: string[]; artworkSlug?:
       mine: ((mineRows?.data ?? []) as { id: string }[]).map((row) => row.id),
       artworkPostId,
       unpostedArtworkSlug,
-      taste: {},
+      taste,
     }
   } catch {
     return emptyViewer()
