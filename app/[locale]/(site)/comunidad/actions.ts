@@ -18,6 +18,8 @@ import {
   isOwnPostPath,
   isUuid,
   tasteFromRows,
+  toSuggestedArtists,
+  type SuggestedArtist,
 } from '@/lib/community'
 
 function enrichLater(work: () => Promise<void>) {
@@ -69,6 +71,22 @@ async function canPost(userId: string): Promise<boolean | null> {
   if (error) return null
   const profile = data as ProfileRow | null
   return Boolean(profile?.onboarded_at && profile.is_public)
+}
+
+// «Artistas que te pueden gustar»: asked once when the section opens, only for
+// a signed-in visitor, and answered by the database from their own taste. It
+// is empty without a taste or with personalize = false. Never cached or public.
+export async function suggestedArtists(): Promise<SuggestedArtist[]> {
+  if (!configured()) return []
+  try {
+    const user = await sessionUser()
+    if (!user) return []
+    const { data, error } = await createAdminClient().rpc('community_suggested_artists', { visitor: user.id, page_size: 6 })
+    if (error) return []
+    return toSuggestedArtists(data as Parameters<typeof toSuggestedArtists>[0])
+  } catch {
+    return []
+  }
 }
 
 export async function communityViewer(input: { postIds?: string[]; artworkSlug?: string } = {}): Promise<CommunityViewer> {

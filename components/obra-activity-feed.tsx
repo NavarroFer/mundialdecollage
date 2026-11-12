@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import { SuggestedArtists } from '@/components/community/suggested-artists'
 import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { addArtworkComment, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { startGoogleSignIn } from '@/components/auth/google-sign-in-button'
@@ -214,7 +215,7 @@ export function ObraActivityFeed() {
   if (!obras) {
     return (
       <ul className="flex flex-col gap-6" aria-hidden="true">
-        {[0, 1].map((item) => <li key={item} className="h-[28rem] animate-pulse rounded-3xl bg-ink/5" />)}
+        {[0, 1].map((item) => <li key={item} className="h-[28rem] motion-safe:animate-pulse rounded-3xl bg-ink/5" />)}
       </ul>
     )
   }
@@ -244,6 +245,8 @@ export function ObraActivityFeed() {
           </button>
         ))}
       </div>
+
+      {sort === 'foryou' && hasTaste && <SuggestedArtists />}
 
       {!visible.length ? (
         <p className="py-16 text-center text-muted-foreground">
@@ -278,6 +281,8 @@ export function ObraActivityFeed() {
                   <img
                     src={imageSrc(obra.imageUrl, 828)}
                     alt={obra.title ?? obra.authorName}
+                    loading="lazy"
+                    decoding="async"
                     className="aspect-square w-full object-cover"
                   />
                 </Link>
@@ -336,7 +341,7 @@ export function ObraActivityFeed() {
                       onChange={(event) => setDrafts((current) => ({ ...current, [obra.slug]: event.target.value }))}
                       placeholder={t.commentPlaceholder}
                       maxLength={500}
-                      className="min-h-11 flex-1 rounded-full border-2 border-ink/15 px-4 text-sm focus-visible:outline-2 focus-visible:outline-collage-blue"
+                      className="min-h-11 flex-1 rounded-full border-2 border-ink/15 px-4 text-base focus-visible:outline-2 focus-visible:outline-collage-blue"
                     />
                     <button
                       type="submit"

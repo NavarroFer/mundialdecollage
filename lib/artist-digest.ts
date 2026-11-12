@@ -133,3 +133,38 @@ export function fillDigestTags(html: string, row: DigestRow): string {
   out = fillTextTag(out, 'likes', String(row.likes_window))
   return fillTag(out, 'comentarios', commentsHtml(row.comments))
 }
+
+/** One suggestion for the mail: an obra and its artist, from community_suggested_artists(). */
+export type DigestPick = { obra_slug: string; obra_title: string | null; artist_name: string | null }
+
+export const DIGEST_PICKS = 3
+
+const SUGGESTIONS_TITLE: Record<Locale, string> = {
+  es: 'Artistas que te pueden gustar:',
+  en: 'Artists you might like:',
+  pt: 'Artistas de que você pode gostar:',
+  it: 'Artisti che potrebbero piacerti:',
+  fr: 'Artistes qui pourraient te plaire :',
+  de: 'Künstler, die dir gefallen könnten:',
+  pl: 'Artyści, którzy mogą Ci się spodobać:',
+  ru: 'Художники, которые могут тебе понравиться:',
+  id: 'Seniman yang mungkin kamu suka:',
+}
+
+/**
+ * Up to three links to obras that match the artist's taste. Empty string when
+ * there is nothing to suggest (no taste, personalize = false, or a failed
+ * lookup), so the mail goes out exactly as it did before. `?sugerida=mail`
+ * lets the obra page count the click (components/community/mail-suggestion-click).
+ */
+export function suggestionsHtml(locale: Locale, picks: DigestPick[] | null | undefined, siteUrl: string): string {
+  const usable = (picks ?? []).filter((pick) => pick?.obra_slug && pick.artist_name?.trim()).slice(0, DIGEST_PICKS)
+  if (!usable.length) return ''
+  const title = SUGGESTIONS_TITLE[locale] ?? SUGGESTIONS_TITLE[DEFAULT_LOCALE]
+  const items = usable.map((pick) => {
+    const url = `${siteUrl}/obras/${encodeURIComponent(pick.obra_slug)}?sugerida=mail`
+    const label = pick.obra_title?.trim() ? `${pick.obra_title.trim()} — ${pick.artist_name!.trim()}` : pick.artist_name!.trim()
+    return `<li><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></li>`
+  }).join('')
+  return `<p>${escapeHtml(title)}</p><ul>${items}</ul>`
+}

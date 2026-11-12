@@ -141,7 +141,7 @@ describe('the Club launch template', () => {
   it('sends to /club marked as coming from a mail, and states the price from the plan', () => {
     const html = renderEmailDocumentToHtml(definition.createDocument(SITE))
     expect(html).toContain(`${SITE}/club?desde=mail`)
-    expect(html).toContain('$29.000')
+    expect(html).toContain('$15.000')
     expect(html).toContain('USD 29')
   })
 

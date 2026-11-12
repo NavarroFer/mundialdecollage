@@ -181,10 +181,18 @@ export function CommunityFeed({ callOpen, author, hideEmpty = false, title }: { 
             </li>
           )
           if (canPost || index < 3 || (index - 3) % 10 !== 0) return [card]
+          // With the call open the card alternates between sending an obra and
+          // walking the 3D gallery, where most visitors arrive from: the feed
+          // is the way in and back out of it. Closed, it's always the gallery.
+          const toOnboarding = callOpen && ((index - 3) / 10) % 2 === 0
           return [card, (
             <li key={`invite-${post.id}`}>
-              <Link href={callOpen ? '/onboarding' : '/galeria-3d'} className="flex h-full items-end rounded-3xl border-2 border-ink bg-collage-yellow p-6 font-display text-2xl tracking-tight text-ink uppercase">
-                {callOpen ? t.inviteOpen : t.inviteClosed}
+              <Link
+                href={toOnboarding ? '/onboarding' : '/galeria-3d'}
+                onClick={() => { if (!toOnboarding) track('community_to_gallery') }}
+                className="flex h-full items-end rounded-3xl border-2 border-ink bg-collage-yellow p-6 font-display text-2xl tracking-tight text-ink uppercase"
+              >
+                {toOnboarding ? t.inviteOpen : t.inviteClosed}
               </Link>
             </li>
           )]

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isUuid } from '@/lib/community'
+import { isUuid, type SimilarObra } from '@/lib/community'
 import { toFeedPost, type FeedRow } from '@/lib/community-server'
 
 // Similar posts for everyone, so the CDN can keep the answer for a day.
@@ -23,15 +23,21 @@ export async function GET(request: Request) {
   }
   try {
     const admin = createAdminClient()
-    let tags: string[] = []
-    if (postId) {
-      const { data } = await admin.from('posts').select('tags').eq('id', postId).maybeSingle()
-      tags = ((data as { tags: string[] | null } | null)?.tags) ?? []
-    } else if (obra || slug) {
-      const query = admin.from('artworks').select('tags')
-      const { data } = await (obra ? query.eq('id', obra) : query.eq('slug', slug!)).maybeSingle()
-      tags = ((data as { tags: string[] | null } | null)?.tags) ?? []
+    // An obra (by slug or id) gets published obras that share its tags; a post
+    // gets posts. Both are the same for everyone.
+    if (!postId) {
+      const query = admin.from('artworks').select('slug, tags')
+      const { data: found } = await (obra ? query.eq('id', obra) : query.eq('slug', slug!)).maybeSingle()
+      const source = found as { slug: string | null; tags: string[] | null } | null
+      const tags = source?.tags ?? []
+      const { data, error } = await admin.rpc('obra_similar', { match_tags: tags, skip_slug: source?.slug ?? null, page_size: 6 })
+      if (error) return NextResponse.json({ error: 'unavailable' }, { status: 503, headers: { 'Cache-Control': NO_STORE } })
+      const obras: SimilarObra[] = ((data ?? []) as { slug: string; title: string | null; image_url: string; author_name: string | null }[])
+        .map((row) => ({ slug: row.slug, title: row.title ?? '', imageUrl: row.image_url, author: row.author_name ?? '' }))
+      return NextResponse.json({ obras }, { headers: { 'Cache-Control': CACHE } })
     }
+    const { data: source } = await admin.from('posts').select('tags').eq('id', postId).maybeSingle()
+    const tags = ((source as { tags: string[] | null } | null)?.tags) ?? []
     const { data, error } = await admin.rpc('community_similar', { match_tags: tags, skip: postId, page_size: 6 })
     if (error) return NextResponse.json({ error: 'unavailable' }, { status: 503, headers: { 'Cache-Control': NO_STORE } })
     const publicUrl = (path: string) => admin.storage.from('posts').getPublicUrl(path).data.publicUrl

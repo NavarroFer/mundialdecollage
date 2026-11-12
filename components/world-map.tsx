@@ -15,6 +15,7 @@ import { fmt, plural } from '@/lib/i18n/format'
 import { countryFromMapHash, MAP_COUNTRY_EVENT, scrollToMap } from '@/lib/map-country-link'
 import { countryPage } from '@/lib/country-pages'
 import { MapPager } from '@/components/map-pager'
+import { MapCountrySearch } from '@/components/map-country-search'
 import { StampConfetti } from '@/components/stamp-confetti'
 import { announceStampUnlocked } from '@/lib/stamps'
 
@@ -80,6 +81,20 @@ export function WorldMap({
     setPage(0)
     setTooltip(null)
   }
+
+  // A country picked from the search box opens its obras below the map, so
+  // bring them into view (a tap on the map itself already has them in sight).
+  const scrollToCountry = useRef(false)
+  function selectFromSearch(countryCode: string) {
+    if (countryCode === selectedCountryCode) { regionRef.current?.scrollIntoView({ block: 'start' }); return }
+    scrollToCountry.current = true
+    selectCountry(countryCode)
+  }
+  useEffect(() => {
+    if (!scrollToCountry.current || !selectedCountryCode) return
+    scrollToCountry.current = false
+    regionRef.current?.scrollIntoView({ block: 'start' })
+  }, [selectedCountryCode])
 
   function changePage(next: number) {
     setPage(next)
@@ -184,11 +199,19 @@ export function WorldMap({
   return (
     <div ref={containerRef} className="relative">
       <StampConfetti visible={celebrateStamp} />
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <MapCountrySearch
+          codes={[...artworkCountries]}
+          counts={countsByCode}
+          flags={flags}
+          selectedCode={selectedCountryCode}
+          onSelect={selectFromSearch}
+          className="w-full sm:max-w-xs"
+        />
         <button
           type="button"
           onClick={() => setExplorerOpen(true)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-sm font-bold text-ink shadow-[3px_3px_0_var(--color-ink)] transition hover:-translate-y-0.5 hover:bg-collage-yellow focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-sm font-bold text-ink shadow-[3px_3px_0_var(--color-ink)] transition hover:-translate-y-0.5 hover:bg-collage-yellow focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue"
         >
           <Expand className="size-4" aria-hidden />
           {m.map.openExplorer}

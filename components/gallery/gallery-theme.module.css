@@ -89,7 +89,7 @@
 }
 
 .garden .themeOption { background: rgba(255, 250, 224, .12); }
-.garden .themeOptionSelected { box-shadow: inset 3px 0 0 #ffcf45; }
+.garden .themeOptionSelected { box-shadow: inset 0 0 0 2px #ffcf45; }
 
 .swatch {
   display: block;
@@ -427,7 +427,9 @@
 }
 
 .windows98.modal { padding-top: 3.25rem !important; }
-.garden.modal { border-top: 5px solid #ffcf45 !important; }
+/* The yellow runs all the way round (the dialog's own 2px border), so it
+   follows the rounded corners instead of a thick bar on the top edge. */
+.garden.modal { border-color: #ffcf45 !important; }
 .collage.modal { border-style: dashed !important; }
 .modal :global(p), .modal :global(label) { color: var(--gallery-ink); }
 .modal :global(button) { border-radius: var(--gallery-radius); }
@@ -571,7 +573,7 @@
 .windows98 .controlCard { border: 2px solid; border-color: #fff #000 #000 #fff; background: #c0c0c0; }
 .windows98 .controlCard[data-selected='true'] { border-color: #000 #fff #fff #000; background: #d4d0c8; }
 .windows98 .controlCard[data-selected='true']::after { color: #000080; }
-.garden .controlCard[data-selected='true'] { box-shadow: inset 3px 0 0 #ffcf45; }
+.garden .controlCard[data-selected='true'] { box-shadow: inset 0 0 0 2px #ffcf45; }
 .collage .controlCard { border-style: dashed; }
 @media (max-width: 480px) {
   .controlCards { grid-template-columns: 1fr; }

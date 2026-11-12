@@ -37,7 +37,7 @@ The Mundial Internacional de Collage is an international collage competition and
 - **Real data only:** counts, rankings, the map and stats come from Supabase live. Never write invented numbers, testimonials or hard-coded snapshots.
 - **Low CPU cost:** the site runs on Vercel Hobby with a 4 h/month Active CPU budget. Public pages are served from the CDN, and nothing renders per request when it can be cached (see CLAUDE.md).
 - **Multilingual:** every page shows in the visitor's language, with Spanish as the base locale. Legal pages stay in Spanish.
-- **Open call status:** this edition no longer accepts artworks. The site now leads to the gallery and to the finalists.
+- **Open call status:** the call for this edition takes artworks until 15 November 2026. It is closed by hand from /admin/convocatoria (`lib/call-state.ts`), and the site switches on its own: while open it invites people to take part, once closed it leads to the gallery and to the finalists.
 
 ## Brand Commitments
 

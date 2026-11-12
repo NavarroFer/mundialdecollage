@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer'
 import { StorePromo } from '@/components/store-promo'
 import { getCallState } from '@/lib/call-state'
 import { ShareArtwork } from '@/components/share-artwork'
+import { MailSuggestionClick } from '@/components/community/mail-suggestion-click'
 import { SimilarPosts } from '@/components/community/similar-posts'
 import { ReferralInvite } from '@/components/referral-invite'
 import { TrackView, TrackedLink } from '@/components/track'
@@ -145,6 +146,7 @@ export default async function ObraPage({
             <div className="mt-10">
               <ShareArtwork slug={finalist.slug} title={title} name={finalist.name} {...shareState} />
               <SimilarPosts slug={finalist.slug} />
+              <MailSuggestionClick />
             </div>
           </div>
 

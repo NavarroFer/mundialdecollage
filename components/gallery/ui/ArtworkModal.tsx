@@ -12,6 +12,7 @@ import { ArtworkComments } from './ArtworkComments'
 import { ArtworkShare } from './ArtworkShare'
 import { ArtworkContact } from './ArtworkContact'
 import { ArtistInvite } from './ArtistInvite'
+import { SimilarPosts } from '@/components/community/similar-posts'
 import { ArtworkViewers } from './PresenceCounter'
 import { loadArtworkSocial, peekArtworkSocial, type SocialResult } from './artworkSocial'
 import type { Artwork } from '@/data/artworks'
@@ -133,6 +134,12 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
         <ArtworkSocialPanel key={artwork.id} artwork={artwork} showComments={commentsFor === artwork.id} />
         <footer className="flex shrink-0 flex-col gap-2 border-t border-ink/10 pt-4">
           <p className="text-xs font-semibold tracking-wide uppercase opacity-70">{m.gallery.closeToContinue}</p>
+          {/* A new tab, like the artist's profile: the walk isn't lost. Their
+              taste is already read from what they like and look at here, so
+              «Para vos» in Comunidad greets them with something. */}
+          <a href="/comunidad" target="_blank" rel="noopener" onClick={() => track('gallery_to_community')} className="self-start text-sm font-semibold underline">
+            {m.gallery.communityLink}<span className="sr-only"> {m.common.opensInNewTab}</span>
+          </a>
           <Link href="/" onClick={() => track('home_from_gallery')} className="self-start text-sm font-semibold underline">{m.gallery.homeLink}</Link>
         </footer>
       </DialogContent>
@@ -199,7 +206,13 @@ function ArtworkSocialPanel({ artwork, showComments }: { artwork: Artwork; showC
     return from
   }), [])
   // Stable, so ArtworkLike/ArtworkComments can keep them in their callbacks' deps.
-  const afterLike = useCallback(() => showInvite('like'), [showInvite])
+  // «Más como esta»: right after a like, the moment the visitor is most
+  // interested, and again on obras they had already liked.
+  const [justLiked, setJustLiked] = useState(false)
+  const afterLike = useCallback(() => {
+    setJustLiked(true)
+    showInvite('like')
+  }, [showInvite])
   const afterComment = useCallback(() => {
     setSentHere((count) => count + 1)
     showInvite('comment')
@@ -252,6 +265,7 @@ function ArtworkSocialPanel({ artwork, showComments }: { artwork: Artwork; showC
         <ArtworkContact artwork={artwork} />
       </div>
       {inviteUnder('like')}
+      {(justLiked || social?.like.liked) && <SimilarPosts slug={artwork.id} compact />}
       {social ? (
         <div className={cn('shrink-0', reveal)}>
           <ArtworkComments slug={artwork.id} initial={social.comments} onSent={afterComment} fieldRef={commentField} scrollIntoView={showComments} />

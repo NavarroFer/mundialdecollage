@@ -4,7 +4,7 @@ import { clubMembershipPlanById, clubMembershipPlans, coinPackById, coinPacks } 
 describe('Club catalogue', () => {
   it('keeps the monthly and annual membership decisions explicit', () => {
     expect(clubMembershipPlans).toEqual([
-      expect.objectContaining({ id: 'club-monthly', priceArs: 29000, priceUsd: 29, monthsCharged: 1, monthsIncluded: 1, monthlyCoins: 600 }),
+      expect.objectContaining({ id: 'club-monthly', priceArs: 15000, priceUsd: 29, monthsCharged: 1, monthsIncluded: 1, monthlyCoins: 600 }),
       expect.objectContaining({ id: 'club-annual', priceArs: 290000, priceUsd: 290, monthsCharged: 10, monthsIncluded: 12, monthlyCoins: 600 }),
     ])
     expect(clubMembershipPlanById('club-annual')?.billing).toBe('annual')
