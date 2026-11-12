@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowUpRight, Album, Map, Newspaper, Paperclip, Scissors, ScrollText, Stamp, StickyNote, Tag, Ticket } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { AppFrame } from '@/components/app-frame'
+import { getCallState } from '@/lib/call-state'
 import { getI18n } from '@/lib/i18n/server'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -56,10 +57,10 @@ function MosaicTile({ tile }: { tile: Tile }) {
 }
 
 export default async function MundialPage() {
-  const { m } = await getI18n()
+  const [{ m }, { open }] = await Promise.all([getI18n(), getCallState()])
   const t = m.siteSections
   const institution: Tile[] = [
-    { href: '/?sitio=1#primera-edicion', label: t.edition, icon: Scissors, span: 'col-span-2 row-span-2 lg:col-span-4', tone: 'bg-grain bg-collage-blue text-paper', size: 'text-3xl sm:text-5xl lg:text-6xl', headline: t.editionInvite },
+    { href: open ? '/onboarding' : '/?sitio=1#primera-edicion', label: t.edition, icon: Scissors, span: 'col-span-2 row-span-2 lg:col-span-4', tone: 'bg-grain bg-collage-blue text-paper', size: 'text-3xl sm:text-5xl lg:text-6xl', headline: open ? t.editionInvite : undefined },
     { href: '/?sitio=1#jurado', label: t.jury, icon: Stamp, span: 'col-span-1 lg:col-span-2', tone: 'bg-grain bg-collage-red text-paper', size: 'text-2xl sm:text-3xl' },
     { href: '/?sitio=1#mapa', label: t.map, icon: Map, span: 'col-span-1 lg:col-span-2', tone: 'bg-grain bg-collage-yellow text-ink', size: 'text-2xl sm:text-3xl' },
     { href: '/?sitio=1#bases', label: t.bases, icon: ScrollText, span: 'col-span-1 lg:col-span-2', tone: 'bg-grain bg-ink text-paper', size: 'text-xl sm:text-2xl' },
