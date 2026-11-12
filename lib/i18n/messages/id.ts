@@ -182,6 +182,7 @@ const id: Messages = {
     nextPage: 'Berikutnya',
     pagesLabel: 'Halaman karya',
     openExplorer: 'Jelajahi layar penuh', explorerEyebrow: 'Peta interaktif', explorerTitle: 'Jelajahi Piala Dunia', closeExplorer: 'Tutup penjelajah peta', zoomIn: 'Perbesar peta', zoomOut: 'Perkecil peta', resetView: 'Atur ulang tampilan dunia', explorerHint: 'Seret untuk menjelajah · gunakan roda untuk memperbesar', explorerEmptyTitle: 'Pilih negara', explorerEmpty: 'Perbesar, jelajahi peta, dan pilih negara dengan karya.', explorerCountryHint: 'Karya yang dipublikasikan dari komunitas ini.',
+    searchCountry: 'Cari negara…', searchCountryLabel: 'Cari negara di peta', searchCountryNone: 'Tidak ada negara dengan karya yang cocok.',
   },
   jury: {
     title1: 'Segera hadir',
@@ -1035,6 +1036,8 @@ const id: Messages = {
     officialName: 'Mundial de Collage',
     inviteOpen: 'Kamu membuat kolase? Tambahkan karyamu ke Mundial',
     inviteClosed: 'Jelajahi karya di galeri 3D',
+    magazineBanner: 'Mau ikut serta di majalah?',
+    magazineBannerCta: 'Klik di sini',
     loadError: 'Comunidad tidak bisa dimuat. Coba lagi.',
     more: 'Opsi lain',
     moderationTitle: 'Moderasi dengan AI',

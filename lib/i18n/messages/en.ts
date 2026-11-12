@@ -182,6 +182,7 @@ const en: Messages = {
     nextPage: 'Next',
     pagesLabel: 'Artwork pages',
     openExplorer: 'Explore fullscreen', explorerEyebrow: 'Interactive map', explorerTitle: 'Explore the World Cup', closeExplorer: 'Close map explorer', zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetView: 'Reset world view', explorerHint: 'Drag to explore · use the wheel to zoom', explorerEmptyTitle: 'Choose a country', explorerEmpty: 'Zoom in, explore the map, and select a country with artworks to meet its participants.', explorerCountryHint: 'Published artworks from this community.',
+    searchCountry: 'Search a country…', searchCountryLabel: 'Search a country on the map', searchCountryNone: 'No country with artworks matches.',
   },
   jury: {
     title1: 'Coming soon',
@@ -1039,6 +1040,8 @@ const en: Messages = {
     officialName: 'Collage World Cup',
     inviteOpen: 'Do you make collage? Add your artwork to the World Cup',
     inviteClosed: 'Walk through the artworks in the 3D gallery',
+    magazineBanner: 'Want to be in the magazine?',
+    magazineBannerCta: 'Click here',
     loadError: 'We could not load Comunidad. Try again.',
     more: 'More options',
     moderationTitle: 'AI moderation',

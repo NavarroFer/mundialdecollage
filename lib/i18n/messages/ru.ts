@@ -187,6 +187,7 @@ const ru: Messages = {
     nextPage: 'Следующие',
     pagesLabel: 'Страницы работ',
     openExplorer: 'Открыть на весь экран', explorerEyebrow: 'Интерактивная карта', explorerTitle: 'Исследуйте чемпионат', closeExplorer: 'Закрыть карту', zoomIn: 'Увеличить карту', zoomOut: 'Уменьшить карту', resetView: 'Сбросить вид карты', explorerHint: 'Перетаскивайте карту · используйте колесо для масштаба', explorerEmptyTitle: 'Выберите страну', explorerEmpty: 'Увеличьте карту и выберите страну с работами.', explorerCountryHint: 'Опубликованные работы этого сообщества.',
+    searchCountry: 'Найти страну…', searchCountryLabel: 'Найти страну на карте', searchCountryNone: 'Нет подходящих стран с работами.',
   },
   jury: {
     title1: 'Скоро',
@@ -1060,6 +1061,8 @@ const ru: Messages = {
     officialName: 'Mundial de Collage',
     inviteOpen: 'Делаешь коллаж? Добавь свою работу на Mundial',
     inviteClosed: 'Посмотри работы в 3D-галерее',
+    magazineBanner: 'Хочешь участвовать в журнале?',
+    magazineBannerCta: 'Нажми здесь',
     loadError: 'Не удалось загрузить Comunidad. Попробуй ещё раз.',
     more: 'Ещё',
     moderationTitle: 'Модерация с ИИ',

@@ -11,6 +11,7 @@ import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 're
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { CountryFlag } from '@/components/country-flag'
 import { MapPager } from '@/components/map-pager'
+import { MapCountrySearch } from '@/components/map-country-search'
 import type { ArtworkSummary } from '@/lib/finalists'
 import { COUNTRY_MARKER_COORDINATES } from '@/lib/country-codes'
 import { shapeCountryCode, worldTopology } from '@/lib/world-shapes'
@@ -86,6 +87,14 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
               {markerCodes.map((code) => { const selected = code === selectedCountryCode; const count = countsByCode.get(code); return <Marker key={code} coordinates={COUNTRY_MARKER_COORDINATES[code]} {...countryInteraction(code)} className="map-explorer-marker outline-none" style={{ cursor: artworkCountries.has(code) ? 'pointer' : 'grab' }}><circle r={18} fill="transparent" /><circle r={selected ? 7 : 5.5} fill={selected ? 'var(--collage-red)' : 'var(--collage-blue)'} fillOpacity={selected ? 1 : count ? 0.65 + 0.35 * (count / maxCount) : 0.65} stroke="var(--paper)" strokeWidth={1.75} /></Marker> })}
             </ZoomableGroup>
           </ComposableMap>
+          <MapCountrySearch
+            codes={[...artworkCountries]}
+            counts={countsByCode}
+            flags={flags}
+            selectedCode={selectedCountryCode}
+            onSelect={selectCountry}
+            className="absolute top-4 right-4 z-20 w-[min(20rem,calc(100%-2rem))] sm:top-6 sm:right-6"
+          />
           {hoveredCountryCode && (
             <div role="tooltip" className="pointer-events-none absolute top-4 left-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-lg border-2 border-ink bg-card px-3 py-2 text-sm font-medium text-ink shadow-md sm:top-6 sm:left-6">
               <span className="shrink-0 text-xl"><CountryFlag countryCode={hoveredCountryCode} svg={flags[hoveredCountryCode]} /></span>

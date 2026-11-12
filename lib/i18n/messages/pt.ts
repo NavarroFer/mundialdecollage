@@ -182,6 +182,7 @@ const pt: Messages = {
     nextPage: 'Próximas',
     pagesLabel: 'Páginas de obras',
     openExplorer: 'Explorar em tela cheia', explorerEyebrow: 'Mapa interativo', explorerTitle: 'Explore o Mundial', closeExplorer: 'Fechar explorador do mapa', zoomIn: 'Aproximar mapa', zoomOut: 'Afastar mapa', resetView: 'Restaurar visão mundial', explorerHint: 'Arraste para explorar · use a roda para aproximar', explorerEmptyTitle: 'Escolha um país', explorerEmpty: 'Aproxime, explore o mapa e selecione um país com obras.', explorerCountryHint: 'Obras publicadas desta comunidade.',
+    searchCountry: 'Buscar um país…', searchCountryLabel: 'Buscar país no mapa', searchCountryNone: 'Nenhum país com obras corresponde.',
   },
   jury: {
     title1: 'Em breve',
@@ -1038,6 +1039,8 @@ const pt: Messages = {
     officialName: 'Mundial de Collage',
     inviteOpen: 'Você faz colagem? Some sua obra ao Mundial',
     inviteClosed: 'Percorra as obras na galeria 3D',
+    magazineBanner: 'Quer participar da revista?',
+    magazineBannerCta: 'Clique aqui',
     loadError: 'Não conseguimos carregar a Comunidad. Tente de novo.',
     more: 'Mais opções',
     moderationTitle: 'Moderação com IA',

@@ -187,6 +187,7 @@ const pl: Messages = {
     nextPage: 'Następne',
     pagesLabel: 'Strony prac',
     openExplorer: 'Odkrywaj na pełnym ekranie', explorerEyebrow: 'Interaktywna mapa', explorerTitle: 'Odkrywaj Mundial', closeExplorer: 'Zamknij mapę', zoomIn: 'Powiększ mapę', zoomOut: 'Pomniejsz mapę', resetView: 'Przywróć widok świata', explorerHint: 'Przeciągnij, aby odkrywać · użyj kółka, aby przybliżyć', explorerEmptyTitle: 'Wybierz kraj', explorerEmpty: 'Przybliż mapę i wybierz kraj z pracami.', explorerCountryHint: 'Opublikowane prace tej społeczności.',
+    searchCountry: 'Szukaj kraju…', searchCountryLabel: 'Szukaj kraju na mapie', searchCountryNone: 'Żaden kraj z pracami nie pasuje.',
   },
   jury: {
     title1: 'Wkrótce',
@@ -1060,6 +1061,8 @@ const pl: Messages = {
     officialName: 'Mundial de Collage',
     inviteOpen: 'Robisz kolaż? Dodaj swoją pracę do Mundialu',
     inviteClosed: 'Przejdź prace w galerii 3D',
+    magazineBanner: 'Chcesz wziąć udział w magazynie?',
+    magazineBannerCta: 'Kliknij tutaj',
     loadError: 'Nie udało się wczytać Comunidad. Spróbuj ponownie.',
     more: 'Więcej opcji',
     moderationTitle: 'Moderacja z AI',

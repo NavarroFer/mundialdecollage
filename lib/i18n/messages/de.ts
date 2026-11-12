@@ -182,6 +182,7 @@ const de: Messages = {
     nextPage: 'Nächste',
     pagesLabel: 'Werkseiten',
     openExplorer: 'Vollbild erkunden', explorerEyebrow: 'Interaktive Karte', explorerTitle: 'Die Weltmeisterschaft erkunden', closeExplorer: 'Kartenansicht schließen', zoomIn: 'Karte vergrößern', zoomOut: 'Karte verkleinern', resetView: 'Weltansicht zurücksetzen', explorerHint: 'Zum Erkunden ziehen · mit dem Rad zoomen', explorerEmptyTitle: 'Land auswählen', explorerEmpty: 'Vergrößere die Karte und wähle ein Land mit Werken.', explorerCountryHint: 'Veröffentlichte Werke dieser Gemeinschaft.',
+    searchCountry: 'Land suchen…', searchCountryLabel: 'Land auf der Karte suchen', searchCountryNone: 'Kein Land mit Werken passt.',
   },
   jury: {
     title1: 'Demnächst',
@@ -1038,6 +1039,8 @@ const de: Messages = {
     officialName: 'Mundial de Collage',
     inviteOpen: 'Machst du Collage? Bring dein Werk ins Mundial',
     inviteClosed: 'Geh die Werke in der 3D-Galerie durch',
+    magazineBanner: 'Willst du im Magazin dabei sein?',
+    magazineBannerCta: 'Klick hier',
     loadError: 'Comunidad ließ sich nicht laden. Versuch es noch einmal.',
     more: 'Mehr Optionen',
     moderationTitle: 'KI-Moderation',
