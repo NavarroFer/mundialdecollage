@@ -1038,6 +1038,8 @@ const id: Messages = {
     inviteClosed: 'Jelajahi karya di galeri 3D',
     magazineBanner: 'Mau ikut serta di majalah?',
     magazineBannerCta: 'Klik di sini',
+    magazineBanner: 'Mau ikut serta di majalah?',
+    magazineBannerCta: 'Klik di sini',
     loadError: 'Comunidad tidak bisa dimuat. Coba lagi.',
     more: 'Opsi lain',
     moderationTitle: 'Moderasi dengan AI',

@@ -1063,6 +1063,8 @@ const pl: Messages = {
     inviteClosed: 'Przejdź prace w galerii 3D',
     magazineBanner: 'Chcesz wziąć udział w magazynie?',
     magazineBannerCta: 'Kliknij tutaj',
+    magazineBanner: 'Chcesz wziąć udział w magazynie?',
+    magazineBannerCta: 'Kliknij tutaj',
     loadError: 'Nie udało się wczytać Comunidad. Spróbuj ponownie.',
     more: 'Więcej opcji',
     moderationTitle: 'Moderacja z AI',

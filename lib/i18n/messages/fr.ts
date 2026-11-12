@@ -1041,6 +1041,8 @@ const fr: Messages = {
     inviteClosed: 'Parcours les œuvres dans la galerie 3D',
     magazineBanner: 'Envie de participer au magazine ?',
     magazineBannerCta: 'Clique ici',
+    magazineBanner: 'Envie de participer au magazine ?',
+    magazineBannerCta: 'Clique ici',
     loadError: 'On n’a pas pu charger Comunidad. Réessaie.',
     more: 'Plus d’options',
     moderationTitle: 'Modération par IA',

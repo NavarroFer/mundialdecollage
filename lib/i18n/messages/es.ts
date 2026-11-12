@@ -1080,6 +1080,8 @@ const es = {
     inviteClosed: 'Recorré las obras en la galería 3D',
     magazineBanner: '¿Querés participar de la revista?',
     magazineBannerCta: 'Hacé click acá',
+    magazineBanner: '¿Querés participar de la revista?',
+    magazineBannerCta: 'Hacé click acá',
     loadError: 'No pudimos cargar Comunidad. Probá de nuevo.',
     more: 'Más opciones',
     moderationTitle: 'Moderación con IA',

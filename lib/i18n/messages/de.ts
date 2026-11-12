@@ -1041,6 +1041,8 @@ const de: Messages = {
     inviteClosed: 'Geh die Werke in der 3D-Galerie durch',
     magazineBanner: 'Willst du im Magazin dabei sein?',
     magazineBannerCta: 'Klick hier',
+    magazineBanner: 'Willst du im Magazin dabei sein?',
+    magazineBannerCta: 'Klick hier',
     loadError: 'Comunidad ließ sich nicht laden. Versuch es noch einmal.',
     more: 'Mehr Optionen',
     moderationTitle: 'KI-Moderation',

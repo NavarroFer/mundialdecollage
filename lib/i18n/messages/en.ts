@@ -1042,6 +1042,8 @@ const en: Messages = {
     inviteClosed: 'Walk through the artworks in the 3D gallery',
     magazineBanner: 'Want to be in the magazine?',
     magazineBannerCta: 'Click here',
+    magazineBanner: 'Want to be in the magazine?',
+    magazineBannerCta: 'Click here',
     loadError: 'We could not load Comunidad. Try again.',
     more: 'More options',
     moderationTitle: 'AI moderation',

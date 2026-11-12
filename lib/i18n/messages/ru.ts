@@ -1063,6 +1063,8 @@ const ru: Messages = {
     inviteClosed: 'Посмотри работы в 3D-галерее',
     magazineBanner: 'Хочешь участвовать в журнале?',
     magazineBannerCta: 'Нажми здесь',
+    magazineBanner: 'Хочешь участвовать в журнале?',
+    magazineBannerCta: 'Нажми здесь',
     loadError: 'Не удалось загрузить Comunidad. Попробуй ещё раз.',
     more: 'Ещё',
     moderationTitle: 'Модерация с ИИ',
