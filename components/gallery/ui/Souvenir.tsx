@@ -255,7 +255,7 @@ export function Souvenir({ theme, isTouchDevice, active, onResume, inline = fals
               )}
               {publishError && <p role="alert" className="text-sm text-red-700">{m.community.errors[publishError]}</p>}
               {photo && (
-                <a href="/comunidad" target="_blank" rel="noopener" onClick={() => track('gallery_to_community')}
+                <a href="/" target="_blank" rel="noopener" onClick={() => track('gallery_to_community')}
                   className="inline-flex min-h-11 items-center px-5 py-2 text-center text-sm font-semibold underline">
                   {m.gallery.communityLink}<span className="sr-only"> {m.common.opensInNewTab}</span>
                 </a>

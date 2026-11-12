@@ -59,7 +59,7 @@ export default async function CommunityPostPage({ params }: { params: Promise<{ 
           )}
           <PostComments postId={post.id} />
           <SimilarPosts postId={post.id} />
-          <p className="mt-10"><Link href="/comunidad" className="text-sm font-semibold underline">{t.seeAll}</Link></p>
+          <p className="mt-10"><Link href="/" className="text-sm font-semibold underline">{t.seeAll}</Link></p>
         </article>
       </main>
       <Footer />

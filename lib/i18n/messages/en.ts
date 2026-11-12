@@ -1066,7 +1066,6 @@ const en: Messages = {
     feedConversation: 'With conversation',
     feedEmpty: 'No activity yet. When an artwork gets a like or a comment, it shows up here.',
     feedConversationEmpty: 'Nobody has commented on an artwork yet.',
-    feedSeeCommunity: 'See Community',
     errors: {
       signin: 'Sign in with Google to continue.',
       not_artist: 'Posting is for enrolled artists. You can still like and comment.',

@@ -1062,7 +1062,6 @@ const id: Messages = {
     feedConversation: 'Dengan percakapan',
     feedEmpty: 'Belum ada aktivitas. Saat sebuah karya mendapat suka atau komentar, karya itu muncul di sini.',
     feedConversationEmpty: 'Belum ada yang mengomentari sebuah karya.',
-    feedSeeCommunity: 'Lihat Komunitas',
     errors: {
       signin: 'Masuk dengan Google untuk lanjut.',
       not_artist: 'Membagikan untuk seniman yang sudah terdaftar. Kamu tetap bisa suka dan berkomentar.',

@@ -15,7 +15,7 @@ export async function SiteSections({ here }: { here: 'feed' | 'site' }) {
   const groups = [
     {
       label: t.community,
-      items: [{ href: here === 'feed' ? '/' : '/comunidad', label: t.community, current: here === 'feed' }],
+      items: [{ href: '/', label: t.community, current: here === 'feed' }],
     },
     {
       label: t.show,

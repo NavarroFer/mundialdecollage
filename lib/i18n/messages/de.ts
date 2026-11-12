@@ -1065,7 +1065,6 @@ const de: Messages = {
     feedConversation: 'Mit Gespräch',
     feedEmpty: 'Noch keine Aktivität. Wenn ein Werk ein Like oder einen Kommentar bekommt, erscheint es hier.',
     feedConversationEmpty: 'Noch hat niemand ein Werk kommentiert.',
-    feedSeeCommunity: 'Community ansehen',
     errors: {
       signin: 'Melde dich mit Google an, um weiterzumachen.',
       not_artist: 'Veröffentlichen ist für angemeldete Künstlerinnen und Künstler. Gefällt mir und Kommentare gehen trotzdem.',

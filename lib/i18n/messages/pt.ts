@@ -1065,7 +1065,6 @@ const pt: Messages = {
     feedConversation: 'Com conversa',
     feedEmpty: 'Ainda não há movimento. Quando uma obra receber uma curtida ou um comentário, ela aparece aqui.',
     feedConversationEmpty: 'Ninguém comentou uma obra ainda.',
-    feedSeeCommunity: 'Ver Comunidade',
     errors: {
       signin: 'Entre com o Google para continuar.',
       not_artist: 'Publicar é para artistas inscritos. Você pode curtir e comentar.',

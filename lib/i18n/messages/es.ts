@@ -1104,7 +1104,6 @@ const es = {
     feedConversation: 'Con conversación',
     feedEmpty: 'Todavía no hay movimiento. Cuando una obra reciba un me gusta o un comentario, aparece acá.',
     feedConversationEmpty: 'Todavía nadie comentó una obra.',
-    feedSeeCommunity: 'Ver Comunidad',
     errors: {
       signin: 'Ingresá con Google para seguir.',
       not_artist: 'Publicar es para artistas inscriptos. Podés dar me gusta y comentar.',
