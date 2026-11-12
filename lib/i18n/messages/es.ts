@@ -1051,6 +1051,8 @@ const es = {
     offerAlready: 'Ya está en Comunidad',
     similarTitle: 'Si te gustó esta, mirá estas',
     suggestedTitle: 'Artistas que te pueden gustar',
+    viewProfile: 'Ver perfil',
+    profileCard: 'Ficha de {name}',
     offerPending: 'Cuando aprobemos tu obra vas a poder publicarla en Comunidad.',
     viewPost: 'Ver publicación',
     inviteFriends: 'Invitar a colegas por WhatsApp',

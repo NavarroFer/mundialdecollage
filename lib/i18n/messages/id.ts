@@ -1009,6 +1009,8 @@ const id: Messages = {
     offerAlready: 'Sudah ada di Comunidad',
     similarTitle: 'Kalau suka yang ini, lihat yang ini',
     suggestedTitle: 'Seniman yang mungkin kamu suka',
+    viewProfile: 'Lihat profil',
+    profileCard: 'Kartu profil {name}',
     offerPending: 'Setelah karyamu disetujui, kamu bisa membagikannya di Comunidad.',
     viewPost: 'Lihat postingan',
     inviteFriends: 'Ajak rekan lewat WhatsApp',

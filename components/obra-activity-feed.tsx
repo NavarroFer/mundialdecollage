@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import { ArtistHoverCard } from '@/components/community/artist-hover-card'
 import { SuggestedArtists } from '@/components/community/suggested-artists'
 import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { addArtworkComment, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/actions'
@@ -258,20 +259,25 @@ export function ObraActivityFeed() {
           {visible.map((obra) => (
             <li key={obra.id}>
               <article className="overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">
-                <header className="flex items-center gap-3 px-4 py-3">
-                  <span
-                    className={cn('flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-ink', avatarBg(obra.authorName))}
-                    aria-hidden="true"
-                  >
-                    {initials(obra.authorName)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-ink">{obra.authorName}</p>
-                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      {obra.countryCode && <span aria-hidden="true">{countryCodeToFlag(obra.countryCode)}</span>}
-                      <time dateTime={obra.activityAt}>{formatRelative(locale, obra.activityAt)}</time>
-                    </p>
-                  </div>
+                <header className="flex items-center px-4 py-3">
+                  <ArtistHoverCard
+                    profileId={obra.authorId}
+                    name={obra.authorName}
+                    avatar={(
+                      <span
+                        className={cn('flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-ink', avatarBg(obra.authorName))}
+                        aria-hidden="true"
+                      >
+                        {initials(obra.authorName)}
+                      </span>
+                    )}
+                    meta={(
+                      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        {obra.countryCode && <span aria-hidden="true">{countryCodeToFlag(obra.countryCode)}</span>}
+                        <time dateTime={obra.activityAt}>{formatRelative(locale, obra.activityAt)}</time>
+                      </p>
+                    )}
+                  />
                 </header>
 
                 <Link

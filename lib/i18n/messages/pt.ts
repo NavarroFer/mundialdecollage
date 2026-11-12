@@ -1012,6 +1012,8 @@ const pt: Messages = {
     offerAlready: 'Já está na Comunidad',
     similarTitle: 'Se você gostou desta, veja estas',
     suggestedTitle: 'Artistas de que você pode gostar',
+    viewProfile: 'Ver perfil',
+    profileCard: 'Ficha de {name}',
     offerPending: 'Quando aprovarmos sua obra você vai poder publicá-la na Comunidad.',
     viewPost: 'Ver publicação',
     inviteFriends: 'Convidar colegas pelo WhatsApp',

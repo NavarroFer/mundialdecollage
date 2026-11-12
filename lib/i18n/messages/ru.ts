@@ -1034,6 +1034,8 @@ const ru: Messages = {
     offerAlready: 'Она уже в Comunidad',
     similarTitle: 'Если вам понравилась эта, посмотрите эти',
     suggestedTitle: 'Художники, которые могут вам понравиться',
+    viewProfile: 'Открыть профиль',
+    profileCard: 'Карточка профиля: {name}',
     offerPending: 'Когда мы одобрим вашу работу, вы сможете опубликовать её в Comunidad.',
     viewPost: 'Открыть публикацию',
     inviteFriends: 'Пригласить коллег в WhatsApp',

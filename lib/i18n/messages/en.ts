@@ -1013,6 +1013,8 @@ const en: Messages = {
     offerAlready: 'It is already on Comunidad',
     similarTitle: 'If you liked this one, see these',
     suggestedTitle: 'Artists you might like',
+    viewProfile: 'View profile',
+    profileCard: 'Profile card of {name}',
     offerPending: 'Once we approve your artwork you can post it on Comunidad.',
     viewPost: 'View post',
     inviteFriends: 'Invite colleagues on WhatsApp',

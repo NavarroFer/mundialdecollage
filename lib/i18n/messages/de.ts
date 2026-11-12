@@ -1012,6 +1012,8 @@ const de: Messages = {
     offerAlready: 'Es ist schon in Comunidad',
     similarTitle: 'Wenn dir dieses gefallen hat, schau dir diese an',
     suggestedTitle: 'Künstler, die dir gefallen könnten',
+    viewProfile: 'Profil ansehen',
+    profileCard: 'Profilkarte von {name}',
     offerPending: 'Sobald wir dein Werk freigeben, kannst du es in Comunidad veröffentlichen.',
     viewPost: 'Beitrag ansehen',
     inviteFriends: 'Kolleginnen und Kollegen über WhatsApp einladen',
