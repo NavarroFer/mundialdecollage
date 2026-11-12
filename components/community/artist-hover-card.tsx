@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { FocusEvent, KeyboardEvent, PointerEvent, ReactNode } from 'react'
 import Link from 'next/link'
 import { Globe, Instagram } from 'lucide-react'
@@ -15,7 +15,8 @@ import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 // desktop with a mouse, resting on it opens a card with what the profile
 // shows. On touch the tap just follows the link. The card is asked for once
 // per artist (lib/artist-card.ts) and comes from the CDN. Keyboard focus opens
-// it too, Escape closes it, and it never takes the focus.
+// it too, Escape closes it, and it never takes the focus. It opens only when it
+// has data to show.
 
 type Props = {
   profileId: string
@@ -25,31 +26,27 @@ type Props = {
   meta: ReactNode
 }
 
-type Loaded = { state: 'loading' } | { state: 'ready'; card: ArtistCard }
-
 export function ArtistHoverCard({ profileId, name, avatar, meta }: Props) {
   const { locale, m } = useI18n()
   const t = m.community
   const cardId = useId()
   const [open, setOpen] = useState(false)
-  const [loaded, setLoaded] = useState<Loaded | null>(null)
+  const [card, setCard] = useState<ArtistCard | null>(null)
   const wrapper = useRef<HTMLDivElement>(null)
-  const closeCard = useCallback(() => setOpen(false), [])
 
+  // `open` is what the pointer or the focus wants; the card shows only once it
+  // also has something to show: no empty frame that appears and disappears, and
+  // an answer that arrives after they left opens nothing. A profile that is not
+  // public, or a failed request, simply has no card.
   const intent = useMemo(() => createHoverIntent({
     onOpen: () => {
       setOpen(true)
-      setLoaded((current) => current ?? { state: 'loading' })
       loadArtistCard(profileId)
-        // A profile that is not public, or a failed request, simply has no card.
-        .then((card) => {
-          if (card) setLoaded({ state: 'ready', card })
-          else { setLoaded(null); closeCard() }
-        })
-        .catch(() => { setLoaded(null); closeCard() })
+        .then((loadedCard) => { if (loadedCard) setCard(loadedCard) })
+        .catch(() => {})
     },
-    onClose: closeCard,
-  }), [profileId, closeCard])
+    onClose: () => setOpen(false),
+  }), [profileId])
   useEffect(() => () => intent.dispose(), [intent])
 
   // Escape closes the card even when the pointer, not the focus, is on it.
@@ -76,8 +73,7 @@ export function ArtistHoverCard({ profileId, name, avatar, meta }: Props) {
     if (event.key === 'Escape') intent.escape()
   }
 
-  const card = open && loaded?.state === 'ready' ? loaded.card : null
-  const showing = open && Boolean(loaded)
+  const showing = open && card !== null
 
   return (
     <div
@@ -96,6 +92,7 @@ export function ArtistHoverCard({ profileId, name, avatar, meta }: Props) {
           href={`/artistas/${artistProfileSlug(name, profileId)}`}
           aria-expanded={showing}
           aria-controls={showing ? cardId : undefined}
+          aria-describedby={showing ? cardId : undefined}
           className="block truncate font-semibold text-ink before:absolute before:inset-0 before:content-[''] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"
         >
           {name}
@@ -103,10 +100,10 @@ export function ArtistHoverCard({ profileId, name, avatar, meta }: Props) {
         {meta}
       </div>
 
-      {showing && (
+      {showing && card && (
         <div id={cardId} role="dialog" aria-label={fmt(t.profileCard, { name })} className="absolute top-full left-0 z-30 w-80 max-w-[calc(100vw-2rem)] pt-2">
           <div className="rounded-2xl border-2 border-ink/10 bg-card p-4 shadow-xl">
-            {card ? <CardBody card={card} name={name} profileId={profileId} /> : <CardSkeleton />}
+            <CardBody card={card} name={name} profileId={profileId} />
           </div>
         </div>
       )}
@@ -114,7 +111,7 @@ export function ArtistHoverCard({ profileId, name, avatar, meta }: Props) {
   )
 }
 
-function CardBody({ card, name, profileId }: { card: ArtistCard; name: string; profileId: string }) {
+export function CardBody({ card, name, profileId }: { card: ArtistCard; name: string; profileId: string }) {
   const { locale, m } = useI18n()
   const t = m.community
   const links = [
@@ -133,7 +130,7 @@ function CardBody({ card, name, profileId }: { card: ArtistCard; name: string; p
       {card.techniques.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-1.5">
           {card.techniques.map((technique) => (
-            <li key={technique} className="rounded-full bg-ink/5 px-2.5 py-1 text-xs font-semibold text-ink">{technique}</li>
+            <li key={technique} className="rounded-full bg-ink/5 px-2.5 py-1 text-xs font-semibold text-ink">{m.common.techniques[technique] ?? technique}</li>
           ))}
         </ul>
       )}
@@ -141,8 +138,9 @@ function CardBody({ card, name, profileId }: { card: ArtistCard; name: string; p
         <ul className="mt-3 grid grid-cols-3 gap-1.5">
           {card.images.map((image, index) => (
             <li key={`${image}-${index}`}>
+              {/* The whole obra, never cropped: it sits in a square of paper. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image} alt="" loading="lazy" decoding="async" className="aspect-square w-full rounded-lg object-cover" />
+              <img src={image} alt="" loading="lazy" decoding="async" className="aspect-square w-full rounded-lg bg-muted object-contain" />
             </li>
           ))}
         </ul>
@@ -160,17 +158,5 @@ function CardBody({ card, name, profileId }: { card: ArtistCard; name: string; p
         </Link>
       </div>
     </>
-  )
-}
-
-function CardSkeleton() {
-  return (
-    <div aria-hidden="true" className="space-y-3">
-      <div className="h-6 w-2/3 rounded bg-ink/10 motion-safe:animate-pulse" />
-      <div className="h-4 w-1/2 rounded bg-ink/10 motion-safe:animate-pulse" />
-      <div className="grid grid-cols-3 gap-1.5">
-        {[0, 1, 2].map((item) => <div key={item} className="aspect-square rounded-lg bg-ink/10 motion-safe:animate-pulse" />)}
-      </div>
-    </div>
   )
 }
