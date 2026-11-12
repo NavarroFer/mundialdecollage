@@ -22,9 +22,10 @@ const artistHref = (artist: ArtistMatch) => `/artistas/${artistProfileSlug(artis
 
 const toSummary = ({ slug, title, name, countryCode, imageUrl }: ObraEntry) => ({ slug, artworkTitle: title, name, countryCode, imageUrl })
 
-// Homepage search over every published obra. Opening it also invites
-// signed-out artists to sign up and see their own obra.
-export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
+// Search over every published obra, on the homepage and (compact) in the
+// app header. Opening it also invites signed-out artists to sign up and see
+// their own obra.
+export function ArtworkSearch({ signedIn, compact = false }: { signedIn: boolean; compact?: boolean }) {
   const { locale, m } = useI18n()
   const router = useRouter()
   const openObra = useOpenObra()
@@ -100,9 +101,9 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
   const showList = typed && status === 'ready' && optionCount > 0
 
   return (
-    <div ref={rootRef} className="relative mx-auto w-full max-w-xl text-left" onPointerEnter={prepare}>
+    <div ref={rootRef} className={`relative w-full text-left ${compact ? 'max-w-lg' : 'mx-auto max-w-xl'}`} onPointerEnter={prepare}>
       <div role="search" className="relative">
-        <Search className="pointer-events-none absolute top-1/2 left-5 size-5 -translate-y-1/2 text-ink/60" aria-hidden="true" />
+        <Search className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink/60 ${compact ? 'left-4 size-4' : 'left-5 size-5'}`} aria-hidden="true" />
         <input
           type="search"
           role="combobox"
@@ -120,13 +121,17 @@ export function ArtworkSearch({ signedIn }: { signedIn: boolean }) {
           onFocus={() => { prepare(); setOpen(true) }}
           onChange={(event) => { setQuery(event.target.value); setActive(-1); setVisible(RESULTS_PAGE); setOpen(true) }}
           onKeyDown={onKeyDown}
-          className="h-14 w-full rounded-full border-2 border-ink bg-card pr-12 pl-13 text-base text-ink shadow-[4px_4px_0_0] shadow-ink placeholder:text-muted-foreground focus:border-collage-blue focus:shadow-collage-blue focus:outline-none sm:h-16 sm:text-lg [&::-webkit-search-cancel-button]:hidden"
+          className={`w-full rounded-full border-2 border-ink bg-card text-ink placeholder:text-muted-foreground focus:border-collage-blue focus:outline-none [&::-webkit-search-cancel-button]:hidden ${
+            compact
+              ? 'h-11 pr-11 pl-10 text-base shadow-[3px_3px_0_0] shadow-ink focus:shadow-collage-blue'
+              : 'h-14 pr-12 pl-13 text-base shadow-[4px_4px_0_0] shadow-ink focus:shadow-collage-blue sm:h-16 sm:text-lg'
+          }`}
         />
         {typed && (
           <button
             type="button"
             onClick={() => { setQuery(''); setActive(-1); setVisible(RESULTS_PAGE) }}
-            className="absolute top-1/2 right-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-ink/60 hover:text-ink"
+            className={`absolute top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full text-ink/60 hover:text-ink ${compact ? 'right-1.5 size-9' : 'right-3 size-10'}`}
           >
             <X className="size-5" aria-hidden="true" />
             <span className="sr-only">{m.search.clear}</span>

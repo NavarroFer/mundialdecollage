@@ -18,6 +18,7 @@ import { MobileTabBar } from '@/components/mobile-tab-bar'
 import { TermsPromptSlot } from '@/components/terms-prompt-slot'
 import { SignInButton } from '@/components/sign-in-button'
 import { ViewModeSwitch } from '@/components/view-mode-switch'
+import { ArtworkSearch } from '@/components/artwork-search'
 
 async function AccountSlot() {
   if (!isSupabaseConfigured) return null
@@ -74,7 +75,9 @@ async function AccountSlot() {
   return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} adminView={adminView} />
 }
 
-export async function SiteHeader({ deskNav = true }: { deskNav?: boolean } = {}) {
+// `search` puts the obra search in the header: in the slot the section nav
+// leaves empty on desktop, and as a second row on phones.
+export async function SiteHeader({ deskNav = true, search = false }: { deskNav?: boolean; search?: boolean } = {}) {
   // «Participar» becomes «Ver las obras» once the call closes.
   const [{ m }, { open: callOpen }, user] = await Promise.all([
     getI18n(),
@@ -116,6 +119,12 @@ export async function SiteHeader({ deskNav = true }: { deskNav?: boolean } = {})
             </Link>
           </nav>}
 
+          {search && (
+            <div className="hidden min-w-0 flex-1 justify-center lg:flex">
+              <ArtworkSearch compact signedIn={!!user} />
+            </div>
+          )}
+
           <div className="hidden items-center gap-2 lg:flex">
             <LanguageSwitcher className="px-2" />
             <NotificationsSlot />
@@ -137,6 +146,11 @@ export async function SiteHeader({ deskNav = true }: { deskNav?: boolean } = {})
             <AccountSlot />
           </div>
         </div>
+        {search && (
+          <div className="px-4 pb-3 sm:px-8 lg:hidden">
+            <ArtworkSearch compact signedIn={!!user} />
+          </div>
+        )}
       </SiteHeaderMotion>
       {/* Outside the <header>: its backdrop blur would pin a fixed child to the header instead of the screen. */}
       <MobileTabBar

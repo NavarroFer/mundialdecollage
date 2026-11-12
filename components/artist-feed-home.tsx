@@ -13,7 +13,7 @@ export async function ArtistFeedHome() {
   const firstName = (user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0]
 
   return (
-    <AppFrame narrow>
+    <AppFrame narrow search>
       <TrackView event="home_view" />
       <header className="border-b-2 border-ink/10 pb-5">
         <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
