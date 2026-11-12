@@ -1134,6 +1134,7 @@ const es = {
     exploreEmpty: 'Nada coincide con esa búsqueda.',
     exploreArtists: 'Artistas',
     mundialLead: 'La institución del Mundial, y aparte el Club, la tienda y la revista.',
+    editionInvite: '¿Querés ser parte de la primera edición del Mundial Internacional de Collage?',
     institution: 'La institución',
     places: 'Club, tienda y revista',
     showLead: 'La muestra se recorre en 3D.',

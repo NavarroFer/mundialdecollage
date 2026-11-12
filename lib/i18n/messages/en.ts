@@ -1096,6 +1096,7 @@ const en: Messages = {
     exploreEmpty: 'Nothing matches that search.',
     exploreArtists: 'Artists',
     mundialLead: 'The World Cup as an institution, and separately the Club, the shop and the magazine.',
+    editionInvite: 'Want to be part of the first edition of the International Collage World Cup?',
     institution: 'The institution',
     places: 'Club, shop and magazine',
     showLead: 'The exhibition is walked in 3D.',

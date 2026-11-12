@@ -1117,6 +1117,7 @@ const ru: Messages = {
     exploreEmpty: 'Ничего не нашлось.',
     exploreArtists: 'Художники',
     mundialLead: 'Институция Mundial, а отдельно клуб, магазин и журнал.',
+    editionInvite: 'Хотите стать частью первого Международного чемпионата мира по коллажу?',
     institution: 'Институция',
     places: 'Клуб, магазин и журнал',
     showLead: 'Выставку смотрят в 3D.',

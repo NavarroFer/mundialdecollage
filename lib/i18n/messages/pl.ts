@@ -1117,6 +1117,7 @@ const pl: Messages = {
     exploreEmpty: 'Nic nie pasuje do tego wyszukiwania.',
     exploreArtists: 'Artyści',
     mundialLead: 'Instytucja Mundialu, a osobno Klub, sklep i magazyn.',
+    editionInvite: 'Chcesz być częścią pierwszej edycji Międzynarodowego Mundialu Kolażu?',
     institution: 'Instytucja',
     places: 'Klub, sklep i magazyn',
     showLead: 'Wystawę ogląda się w 3D.',

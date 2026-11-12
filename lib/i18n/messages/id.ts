@@ -1092,6 +1092,7 @@ const id: Messages = {
     exploreEmpty: 'Tidak ada yang cocok.',
     exploreArtists: 'Seniman',
     mundialLead: 'Lembaga Mundial, dan terpisah Klub, toko, serta majalah.',
+    editionInvite: 'Mau jadi bagian dari edisi pertama Mundial Kolase Internasional?',
     institution: 'Lembaga',
     places: 'Klub, toko, dan majalah',
     showLead: 'Pameran dijelajahi dalam 3D.',

@@ -1095,6 +1095,7 @@ const de: Messages = {
     exploreEmpty: 'Nichts passt zu dieser Suche.',
     exploreArtists: 'Künstler:innen',
     mundialLead: 'Die Institution des Mundial und, getrennt davon, Club, Laden und Magazin.',
+    editionInvite: 'Willst du Teil der ersten Ausgabe des Internationalen Collage-Mundial sein?',
     institution: 'Die Institution',
     places: 'Club, Laden und Magazin',
     showLead: 'Die Ausstellung geht man in 3D.',

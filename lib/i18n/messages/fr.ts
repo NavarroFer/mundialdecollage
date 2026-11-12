@@ -1095,6 +1095,7 @@ const fr: Messages = {
     exploreEmpty: 'Rien ne correspond à cette recherche.',
     exploreArtists: 'Artistes',
     mundialLead: 'L’institution du Mundial et, à part, le Club, la boutique et la revue.',
+    editionInvite: 'Envie de faire partie de la première édition du Mundial International de Collage ?',
     institution: 'L’institution',
     places: 'Club, boutique et revue',
     showLead: 'L’exposition se parcourt en 3D.',

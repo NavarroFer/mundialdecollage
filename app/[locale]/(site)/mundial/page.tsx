@@ -26,6 +26,8 @@ type Tile = {
   tone: string
   /** Label size follows the tile's rank. */
   size: string
+  /** Editorial tile: the label becomes a small eyebrow and this line the headline. */
+  headline?: string
 }
 
 const tileBase = 'group relative flex h-full min-h-28 flex-col justify-between overflow-hidden rounded-3xl p-5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-collage-blue motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:hover:-translate-y-1 sm:p-6'
@@ -35,10 +37,17 @@ function MosaicTile({ tile }: { tile: Tile }) {
   return (
     <li className={tile.span}>
       <Link href={tile.href} className={`${tileBase} ${tile.tone}`}>
-        <Icon aria-hidden className="pointer-events-none absolute -right-4 -bottom-4 size-32 opacity-[0.14] sm:size-40" strokeWidth={1.25} />
-        <Icon aria-hidden className="size-6 sm:size-7" strokeWidth={2} />
-        <span className="mt-4 flex items-end justify-between gap-3">
-          <span className={`font-display leading-[0.95] tracking-tight uppercase text-balance ${tile.size}`}>{tile.label}</span>
+        <Icon aria-hidden className="pointer-events-none absolute -top-4 -right-4 size-32 opacity-[0.14] sm:size-40" strokeWidth={1.25} />
+        {tile.headline ? (
+          <span className="relative flex items-center gap-2 text-xs font-bold tracking-[0.16em] uppercase">
+            <Icon aria-hidden className="size-5" strokeWidth={2} />
+            {tile.label}
+          </span>
+        ) : (
+          <Icon aria-hidden className="relative size-6 sm:size-7" strokeWidth={2} />
+        )}
+        <span className="relative mt-4 flex items-end justify-between gap-3">
+          <span className={`font-display leading-[0.95] tracking-tight uppercase text-balance ${tile.size}`}>{tile.headline ?? tile.label}</span>
           <ArrowUpRight aria-hidden className="size-5 shrink-0 motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:translate-x-1 motion-safe:group-hover:-translate-y-1" strokeWidth={2.5} />
         </span>
       </Link>
@@ -50,12 +59,12 @@ export default async function MundialPage() {
   const { m } = await getI18n()
   const t = m.siteSections
   const institution: Tile[] = [
-    { href: '/?sitio=1#primera-edicion', label: t.edition, icon: Scissors, span: 'col-span-2 row-span-2 lg:col-span-4', tone: 'bg-collage-blue text-paper', size: 'text-4xl sm:text-6xl' },
-    { href: '/?sitio=1#jurado', label: t.jury, icon: Stamp, span: 'col-span-1 lg:col-span-2', tone: 'bg-collage-red text-paper', size: 'text-2xl sm:text-3xl' },
-    { href: '/?sitio=1#mapa', label: t.map, icon: Map, span: 'col-span-1 lg:col-span-2', tone: 'bg-collage-yellow text-ink', size: 'text-2xl sm:text-3xl' },
-    { href: '/?sitio=1#bases', label: t.bases, icon: ScrollText, span: 'col-span-1 lg:col-span-2', tone: 'bg-ink text-paper', size: 'text-xl sm:text-2xl' },
-    { href: '/?sitio=1#nosotros', label: t.about, icon: StickyNote, span: 'col-span-1 lg:col-span-2', tone: 'bg-collage-blue/15 text-ink', size: 'text-xl sm:text-2xl' },
-    { href: '/?sitio=1#donar', label: t.donate, icon: Ticket, span: 'col-span-2 lg:col-span-2', tone: 'bg-collage-red/15 text-ink', size: 'text-xl sm:text-2xl' },
+    { href: '/?sitio=1#primera-edicion', label: t.edition, icon: Scissors, span: 'col-span-2 row-span-2 lg:col-span-4', tone: 'bg-grain bg-collage-blue text-paper', size: 'text-3xl sm:text-5xl lg:text-6xl', headline: t.editionInvite },
+    { href: '/?sitio=1#jurado', label: t.jury, icon: Stamp, span: 'col-span-1 lg:col-span-2', tone: 'bg-grain bg-collage-red text-paper', size: 'text-2xl sm:text-3xl' },
+    { href: '/?sitio=1#mapa', label: t.map, icon: Map, span: 'col-span-1 lg:col-span-2', tone: 'bg-grain bg-collage-yellow text-ink', size: 'text-2xl sm:text-3xl' },
+    { href: '/?sitio=1#bases', label: t.bases, icon: ScrollText, span: 'col-span-1 lg:col-span-2', tone: 'bg-grain bg-ink text-paper', size: 'text-xl sm:text-2xl' },
+    { href: '/?sitio=1#nosotros', label: t.about, icon: StickyNote, span: 'col-span-1 lg:col-span-2', tone: 'bg-collage-blue/25 text-ink', size: 'text-xl sm:text-2xl' },
+    { href: '/?sitio=1#donar', label: t.donate, icon: Ticket, span: 'col-span-2 lg:col-span-2', tone: 'bg-collage-red/25 text-ink', size: 'text-xl sm:text-2xl' },
   ]
   const quiet = 'border-2 border-ink/15 bg-card text-ink hover:bg-ink/5'
   const places: Tile[] = [
