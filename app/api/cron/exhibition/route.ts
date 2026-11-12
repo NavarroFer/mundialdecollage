@@ -12,7 +12,7 @@ import {
   type ExhibitionQueueRow,
   type ExhibitionRecipient,
 } from '@/lib/exhibition-mail'
-import { communityActivityLine, communityDigestLine, digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from '@/lib/artist-digest'
+import { communityActivityLine, communityDigestLine, DIGEST_PICKS, digestWindow, fillDigestTags, planArtistDigests, suggestionsHtml, type DigestPick, type DigestRow } from '@/lib/artist-digest'
 import { ensureSystemTemplate, fillTextTag, renderSystemEmail, translationsForLocales } from '@/lib/system-templates'
 import { galleryArtworkPath } from '@/lib/gallery-return'
 import { getSiteUrl, site } from '@/lib/site'
@@ -200,6 +200,15 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
     }
   }
 
+  // Three obras that match each artist's taste. The database answers empty for
+  // someone without a taste or with personalize = false, and a failed lookup
+  // counts the same: the mail then goes out as it always did.
+  const picks = new Map<string, DigestPick[]>()
+  await Promise.all(recipients.map(async (r) => {
+    const { data, error } = await db.rpc('community_suggested_artists', { visitor: r.profile_id, page_size: DIGEST_PICKS })
+    if (!error && Array.isArray(data)) picks.set(r.profile_id, data as DigestPick[])
+  }))
+
   const results = await sendMails(recipients.map((r) => {
     const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
     let html = fillDigestTags(fillArtworkTitle(personalizeHtml(email.html, r.artist_name), r.artwork_title, email.locale), r)
@@ -207,6 +216,7 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
     const activityHtml = counts ? communityActivityLine(r.locale, counts.likes, counts.comments) : null
     if (activityHtml) html += activityHtml
     if (!postedError && !posted.has(r.profile_id)) html += communityDigestLine(r.locale, `${getSiteUrl()}/obras/${r.artwork_slug}#publicar`)
+    html += suggestionsHtml(r.locale, picks.get(r.profile_id), getSiteUrl())
     return { to: r.email, subject: email.subject, html: withUnsubscribeFooter(html, r.contact_id, email.locale) }
   }), { kind: 'bulk' })
 

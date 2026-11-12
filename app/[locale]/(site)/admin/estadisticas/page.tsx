@@ -565,6 +565,10 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           stripViews={funnelMonth?.get('community_strip_view') ?? 0}
           offerViews={funnelMonth?.get('community_publish_offer_view') ?? 0}
           published={funnelMonth?.get('community_publish_artwork') ?? 0}
+          views={funnelMonth?.get('community_view') ?? 0}
+          foryouViews={funnelMonth?.get('community_foryou_view') ?? 0}
+          responses={(funnelMonth?.get('community_like') ?? 0) + (funnelMonth?.get('community_comment') ?? 0)}
+          suggestionClicks={funnelMonth?.get('community_suggestion_click') ?? 0}
         />
       ),
     },

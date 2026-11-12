@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { commentsHtml, communityActivityLine, digestWindow, fillDigestTags, planArtistDigests, type DigestRow } from './artist-digest'
+import { commentsHtml, communityActivityLine, digestWindow, fillDigestTags, planArtistDigests, suggestionsHtml, type DigestRow } from './artist-digest'
 
 function row(overrides: Partial<DigestRow>): DigestRow {
   return {
@@ -51,5 +51,31 @@ describe('digest tags', () => {
     expect(communityActivityLine('es', 2, 1)).toBe('<p>Tu publicación sumó 2 me gusta y 1 comentarios.</p>')
     expect(communityActivityLine('es', 3, 0)).toBe('<p>Tu publicación sumó 3 me gusta.</p>')
     expect(communityActivityLine('es', 0, 0)).toBeNull()
+  })
+})
+
+describe('suggestionsHtml', () => {
+  const pick = (n: number, over = {}) => ({ obra_slug: `obra-${n}`, obra_title: `Obra ${n}`, artist_name: `Artista ${n}`, ...over })
+
+  it('is empty with no taste, so the mail is the same as before', () => {
+    expect(suggestionsHtml('es', [], 'https://x.test')).toBe('')
+    expect(suggestionsHtml('es', null, 'https://x.test')).toBe('')
+  })
+
+  it('lists at most three obras with a tagged link', () => {
+    const html = suggestionsHtml('es', [pick(1), pick(2), pick(3), pick(4)], 'https://x.test')
+    expect(html.match(/<li>/g)).toHaveLength(3)
+    expect(html).toContain('https://x.test/obras/obra-1?sugerida=mail')
+    expect(html).not.toContain('obra-4')
+  })
+
+  it('escapes names and speaks the contact language', () => {
+    const html = suggestionsHtml('en', [pick(1, { artist_name: '<b>Ana</b>' })], 'https://x.test')
+    expect(html).toContain('Artists you might like')
+    expect(html).not.toContain('<b>Ana')
+  })
+
+  it('skips picks that cannot be drawn', () => {
+    expect(suggestionsHtml('es', [pick(1, { obra_slug: '' }), pick(2, { artist_name: ' ' })], 'https://x.test')).toBe('')
   })
 })

@@ -21,7 +21,9 @@
 | Pestaña «Para vos» en Explorar | Hecha en `components/explore-browser.tsx` |
 | Pestaña «Para vos» en Inicio | Hecha en `components/obra-activity-feed.tsx`; `/api/obras/actividad` manda las etiquetas con la migración `20261113160000_obra_activity_tags.sql` |
 | Etiquetar las obras existentes | Corrido el 2026-11-11: 1258 de 1260 obras públicas. Quedan 2 con el archivo roto (una vacía y otra ilegible). Script `scripts/tag-artworks.mjs` y `tagArtwork()` al aprobar una obra |
-| Artistas sugeridos, mail, medición | Falta |
+| Artistas sugeridos y obras parecidas | Hechos: `components/community/suggested-artists.tsx` (Inicio y Explorar, solo con gusto), rama de obras en `/api/comunidad/parecidas`, migración `20261113180000_community_suggestions.sql` (escrita; falta aplicarla) |
+| Mail con tres sugerencias | Hecho: `suggestionsHtml()` en `lib/artist-digest.ts` y `sendArtistDigests()`; sin gusto el mail sale igual que antes |
+| Medición | Hecha: `community_foryou_view` y `community_suggestion_click` (`lib/funnel.ts`), panel en `/admin/estadisticas` → Comunidad |
 
 ## 2. Principio de diseño
 
@@ -145,8 +147,8 @@ score = Σ taste[etiqueta]                         // cada etiqueta una vez
 
 - **Inicio y Explorar.** «Para vos» solo se muestra con sesión y `taste` no vacío. En Inicio ordena las páginas ya cargadas (el feed sigue paginando por actividad), usando `activityAt` como fecha. En Explorar, los filtros se aplican antes de ordenar y «Recientes» es el orden actual.
 - **Artistas sugeridos.** Se calcula al abrir la sección, no por visita. Excluye al propio artista y a quienes ya tienen una respuesta suya (like o comentario). Devuelve nombre, slug, país y una miniatura; nunca email ni `auth.users.id`.
-- **Parecidas.** `s-maxage=86400`. Si recibe una obra devuelve obras; si recibe una publicación, publicaciones. Hoy solo resuelve posts (`community_similar`), así que con los posts apagados la sección en la ficha de una obra queda vacía: falta la rama de obras.
-- **Mail.** Tres obras con etiquetas del gusto, con link directo y `?ref=` si corresponde. Si el gusto está vacío, el mail sale como hoy, sin la línea.
+- **Parecidas.** `s-maxage=86400`. Si recibe una obra devuelve obras; si recibe una publicación, publicaciones. Con `id` resuelve posts (`community_similar`); con `obra` o `slug`, obras publicadas que comparten etiquetas (`obra_similar`), así que la ficha de una obra ya no queda vacía con los posts apagados.
+- **Mail.** Tres obras con etiquetas del gusto, con link directo y `?sugerida=mail`, que `components/community/mail-suggestion-click.tsx` cuenta como `community_suggestion_click` en el navegador (la ficha sigue estática). No lleva `?ref=`: ese es el de la inscripción. Si el gusto está vacío, el mail sale como hoy, sin la línea.
 
 ## 8. Arranque en frío y umbral
 
@@ -178,7 +180,7 @@ respuestas por vista = (community_like + community_comment) / vistas
 
 - «Recientes» se mide contra `community_view`; «Para vos», contra `community_foryou_view`.
 - Si después de dos semanas «Para vos» no supera a «Recientes» por un margen claro (10 % o más), se apaga la pestaña. Las etiquetas y «Si te gustó esta obra» se quedan: funcionan sin gusto.
-- El panel `/admin/estadisticas` muestra los dos números, no un porcentaje fijo.
+- El panel `/admin/estadisticas` muestra los dos números, no un porcentaje fijo. Límite conocido: los me gusta y comentarios no se separan por pestaña, así que ambos cocientes comparten numerador y la comparación es aproximada hasta que se midan las respuestas por pestaña.
 
 ## 11. Plan de trabajo en commits
 

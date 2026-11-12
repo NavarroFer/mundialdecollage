@@ -10,6 +10,12 @@ function pct(part: number, whole: number): string {
   return `${Math.round((part / whole) * 100)}%`
 }
 
+// Responses per view with one decimal; no views, no number.
+function ratio(part: number, whole: number): string {
+  if (!whole) return '—'
+  return (part / whole).toFixed(2)
+}
+
 const KIND: Record<string, string> = { artwork: 'Obra', souvenir: 'Souvenir', photo: 'Foto' }
 
 export function CommunityStatsPanel({
@@ -18,12 +24,24 @@ export function CommunityStatsPanel({
   stripViews,
   offerViews,
   published,
+  views,
+  foryouViews,
+  responses,
+  suggestionClicks,
 }: {
   stats: CommunityStats | null
   homeViews: number
   stripViews: number
   offerViews: number
   published: number
+  /** community_view: opened Comunidad. */
+  views: number
+  /** community_foryou_view: opened the «Para vos» tab. */
+  foryouViews: number
+  /** community_like + community_comment. */
+  responses: number
+  /** community_suggestion_click: suggested artist, similar obra or mail link. */
+  suggestionClicks: number
 }) {
   if (!stats) return <p className="text-sm text-muted-foreground">No pudimos leer Comunidad. Recargá la página.</p>
   return (
@@ -39,6 +57,11 @@ export function CommunityStatsPanel({
         <KpiCard label="Clics en la franja" value={pct(stripViews, homeViews)} context={`${stripViews} vieron la franja / ${homeViews} abrieron el inicio`} recent={`Meta: ${Math.round(GOALS.strip * 100)}% de home_view`} />
         <KpiCard label="Me gusta por publicación" value={stats.avgLikes.toFixed(1)} context="Promedio en las publicadas" />
         <KpiCard label="Comentarios por publicación" value={stats.avgComments.toFixed(1)} context="Promedio en las publicadas" />
+      </KpiStrip>
+      <KpiStrip label="Orden «Para vos» (docs/red-social-explorar.md §10)">
+        <KpiCard label="Respuestas por vista · Recientes" value={ratio(responses, views)} context={`${responses} respuestas / ${views} vieron Comunidad`} recent="Se apaga «Para vos» si no lo supera por 10% o más en dos semanas" />
+        <KpiCard label="Respuestas por vista · Para vos" value={ratio(responses, foryouViews)} context={`${responses} respuestas / ${foryouViews} abrieron la pestaña`} recent="Mismo numerador: los me gusta no se separan por pestaña" />
+        <KpiCard label="Clics en sugerencias" value={String(suggestionClicks)} context="Artistas sugeridos, obras parecidas y links del mail" />
       </KpiStrip>
       <p className="text-sm text-muted-foreground">
         Por tipo: {stats.byKind.length ? stats.byKind.map((row) => `${KIND[row.kind] ?? row.kind} ${row.count}`).join(' · ') : 'todavía no hay publicaciones'}.
