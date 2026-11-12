@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle } from 'lucide-react'
+import { SuggestedArtists } from '@/components/community/suggested-artists'
 import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { addArtworkComment, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/actions'
 import { startGoogleSignIn } from '@/components/auth/google-sign-in-button'
@@ -10,6 +11,7 @@ import { useI18n } from '@/lib/i18n/client'
 import { imageSrc } from '@/lib/image-src'
 import { countryCodeToFlag } from '@/lib/participants'
 import { fmt } from '@/lib/i18n/format'
+import { track } from '@/lib/track'
 import { rankForTaste } from '@/lib/community'
 import { tagsFromIndexes } from '@/lib/community-tags'
 import { createClient } from '@/lib/supabase/client'
@@ -163,13 +165,14 @@ export function ObraActivityFeed() {
           <button
             type="button"
             aria-pressed={sort === 'foryou'}
-            onClick={() => setSort('foryou')}
+            onClick={() => { setSort('foryou'); track('community_foryou_view') }}
             className={`min-h-11 rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-collage-blue ${sort === 'foryou' ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5'}`}
           >
             {tabs.exploreForYou}
           </button>
         </div>
       )}
+      {Object.keys(taste).length > 0 && <div className="mb-6"><SuggestedArtists /></div>}
       <ul className="flex flex-col gap-8">
         {ordered.map((obra) => (
         <li key={obra.id} className="overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">

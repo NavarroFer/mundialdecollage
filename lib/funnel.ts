@@ -270,6 +270,8 @@ export const COMMUNITY_EVENTS = [
   { name: 'community_report', label: 'Denunciaron' },
   { name: 'community_to_obra', label: 'Fueron de una publicación a la obra' },
   { name: 'community_to_profile', label: 'Fueron de una publicación al perfil' },
+  { name: 'community_foryou_view', label: 'Abrieron la pestaña «Para vos»' },
+  { name: 'community_suggestion_click', label: 'Tocaron un artista sugerido, una obra parecida o un link del mail' },
 ] as const
 
 // Donations (lib/donations.ts): who goes to give, from the home or the

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { SuggestedArtists } from '@/components/community/suggested-artists'
 import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { artistProfileSlug } from '@/lib/artist-slug'
 import { buildSearchIndex, searchArtists, searchIndex, type ObraEntry } from '@/lib/artwork-search'
@@ -11,6 +12,7 @@ import { useI18n } from '@/lib/i18n/client'
 import { imageSrc } from '@/lib/image-src'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/client'
+import { track } from '@/lib/track'
 
 // The whole published list comes from the CDN (/api/obras). Filters run here.
 export function ExploreBrowser() {
@@ -98,13 +100,14 @@ export function ExploreBrowser() {
           <button
             type="button"
             aria-pressed={sort === 'foryou'}
-            onClick={() => setSort('foryou')}
+            onClick={() => { setSort('foryou'); track('community_foryou_view') }}
             className={`min-h-11 rounded-full px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-collage-blue ${sort === 'foryou' ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5'}`}
           >
             {t.exploreForYou}
           </button>
         </div>
       )}
+      {Object.keys(taste).length > 0 && !query.trim() && <SuggestedArtists />}
       {artists.length > 0 && (
         <section className="mt-8" aria-label={t.exploreArtists}>
           <h2 className="text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">{t.exploreArtists}</h2>

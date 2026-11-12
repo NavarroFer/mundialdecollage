@@ -1,3 +1,4 @@
+import { artistProfileSlug } from '@/lib/artist-slug'
 import { withReferral } from '@/lib/referral'
 
 // Comunidad (docs/red-social.md). Pure helpers shared by the CDN feed and the
@@ -239,3 +240,50 @@ export function tasteFromRows(rows: { tag: string; weight: number }[]): Record<s
   }
   return taste
 }
+
+/** One artist suggested to a signed-in visitor: only what the card draws. */
+export type SuggestedArtist = {
+  name: string
+  countryCode: string | null
+  href: string
+  obraHref: string
+  imageUrl: string
+}
+
+export const SUGGESTED_ARTISTS_MAX = 6
+
+type SuggestedRow = {
+  profile_id: string
+  artist_name: string | null
+  country_code: string | null
+  obra_slug: string
+  image_url: string | null
+}
+
+/**
+ * Rows from community_suggested_artists() as cards. The profile id only builds
+ * the public /artistas link and is not sent on; rows without a name, an obra or
+ * an image are dropped and each artist shows once.
+ */
+export function toSuggestedArtists(rows: SuggestedRow[] | null | undefined): SuggestedArtist[] {
+  if (!Array.isArray(rows)) return []
+  const seen = new Set<string>()
+  const out: SuggestedArtist[] = []
+  for (const row of rows) {
+    if (!row || !isUuid(row.profile_id) || !row.artist_name?.trim() || !row.obra_slug || !row.image_url) continue
+    if (seen.has(row.profile_id)) continue
+    seen.add(row.profile_id)
+    out.push({
+      name: row.artist_name.trim(),
+      countryCode: row.country_code,
+      href: `/artistas/${artistProfileSlug(row.artist_name.trim(), row.profile_id)}`,
+      obraHref: `/obras/${row.obra_slug}`,
+      imageUrl: row.image_url,
+    })
+    if (out.length === SUGGESTED_ARTISTS_MAX) break
+  }
+  return out
+}
+
+/** What /api/comunidad/parecidas sends for an obra: the same list for everyone. */
+export type SimilarObra = { slug: string; title: string; imageUrl: string; author: string }

@@ -9,6 +9,7 @@ import {
   rankForTaste,
   tasteFromRows,
   tasteScore,
+  toSuggestedArtists,
 } from './community'
 
 const id = '11111111-2222-4333-8444-555555555555'
@@ -155,5 +156,29 @@ describe('taste', () => {
 
     expect(taste).toEqual({ retrato: 0.9, oscuro: 0.4 })
     expect(Object.getPrototypeOf(taste)).toBe(Object.prototype)
+  })
+})
+
+describe('toSuggestedArtists', () => {
+  const row = (over: Record<string, unknown> = {}) => ({
+    profile_id: id, artist_name: 'Ana Pérez', country_code: 'AR', obra_slug: 'mar-a', image_url: 'https://x.invalid/a.jpg', ...over,
+  })
+
+  it('builds the public links and drops the profile id from the card', () => {
+    const [card] = toSuggestedArtists([row()])
+    expect(card.href).toBe(`/artistas/ana-perez-${id}`)
+    expect(card.obraHref).toBe('/obras/mar-a')
+    expect(Object.keys(card)).not.toContain('profile_id')
+  })
+
+  it('drops rows that cannot be drawn and repeated artists', () => {
+    const rows = [row({ artist_name: ' ' }), row({ image_url: null }), row({ obra_slug: '' }), row({ profile_id: 'nope' }), row(), row()]
+    expect(toSuggestedArtists(rows)).toHaveLength(1)
+  })
+
+  it('keeps at most six and tolerates junk', () => {
+    const many = Array.from({ length: 9 }, (_, n) => row({ profile_id: `11111111-2222-4333-8444-5555555555${String(n).padStart(2, '0')}` }))
+    expect(toSuggestedArtists(many)).toHaveLength(6)
+    expect(toSuggestedArtists(null)).toEqual([])
   })
 })
