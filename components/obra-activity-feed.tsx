@@ -195,7 +195,7 @@ export function ObraActivityFeed() {
           </button>
         </div>
       )}
-      {Object.keys(taste).length > 0 && <div className="mb-6"><SuggestedArtists /></div>}
+      {sort === 'foryou' && Object.keys(taste).length > 0 && <div className="mb-6"><SuggestedArtists /></div>}
       <ul className="flex flex-col gap-8">
         {ordered.map((obra, position) => (
         <li key={obra.id} className="overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">

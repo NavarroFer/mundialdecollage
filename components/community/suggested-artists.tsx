@@ -23,8 +23,8 @@ export function SuggestedArtists() {
   if (!artists.length) return null
   return (
     <section className="mt-8" aria-label={m.community.suggestedTitle}>
-      <h2 className="text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">{m.community.suggestedTitle}</h2>
-      <ul className="mt-3 flex gap-3 overflow-x-auto pb-2">
+      <h2 className="font-display text-2xl tracking-tight text-ink uppercase">{m.community.suggestedTitle}</h2>
+      <ul className="mt-4 flex gap-3 overflow-x-auto pb-2">
         {artists.map((artist) => (
           <li key={artist.href} className="w-36 shrink-0">
             <Link
