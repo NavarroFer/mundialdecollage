@@ -118,7 +118,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
 
           <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-8 sm:pt-8">
             <Link
-              href="/#participantes"
+              href="/explorar"
               className={`inline-flex min-h-11 items-center gap-2 text-sm font-bold ${field.ink} ${field.back} focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-current`}
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />
