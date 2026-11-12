@@ -125,6 +125,11 @@ const de: Messages = {
     motto: 'Etwas zu machen ist schon ein Erfolg',
     body: 'In der Collage wie im Leben geht es darum, zu nehmen, was man hat – Schnipsel, Reste, Übriggebliebenes – und daraus etwas Ganzes zu machen. Diese WM feiert genau das: das Werk, das fertig wurde, abgeschickt, gemacht.',
     badges: ['Internationale Ausgabe', 'Fachjury', 'Community von Collagist:innen'],
+    team: {
+      portrait: 'Porträt von {name}',
+      fernando: ['Informatik-Ingenieur · UNMdP', 'Student im 1. Jahr Grafikdesign', 'Leitet den Fanzine-Workshop Todo es Fanzineable', 'Unternehmer bei Fersos'],
+      federico: ['Bildender Künstler: Te hace falta collage', 'Designer mit vielen Jahren Berufserfahrung', 'Berufskünstler ohne Abschluss', 'Workshopleiter, Unternehmer und Markthändler'],
+    },
   },
   donate: {
     title: 'Spende, damit es weitergeht',

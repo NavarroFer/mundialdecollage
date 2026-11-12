@@ -127,6 +127,11 @@ const es = {
     motto: 'Hacer algo es logro',
     body: 'En collage, como en la vida, se trata de agarrar lo que tenés — recortes, restos, lo que sobró — y hacer algo entero con eso. Este Mundial existe para celebrar exactamente eso: la obra que se terminó, se mandó, se hizo.',
     badges: ['Edición internacional', 'Jurado especializado', 'Comunidad de collagistas'],
+    team: {
+      portrait: 'Retrato de {name}',
+      fernando: ['Ingeniero en Informática · UNMdP', 'Estudiante de 1° año de Diseño Gráfico', 'Coordina el taller de fanzines Todo es Fanzineable', 'Emprendedor en Fersos'],
+      federico: ['Artista visual: Te hace falta collage', 'Diseñador con muchos años de oficio', 'Artista profesional sin título', 'Tallerista, emprendedor y feriante'],
+    },
   },
   donate: {
     title: 'Doná para que siga ocurriendo',
