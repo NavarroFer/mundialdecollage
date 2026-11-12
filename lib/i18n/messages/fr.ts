@@ -1056,6 +1056,13 @@ const fr: Messages = {
     moderationForcedKey: 'ANTHROPIC_API_KEY manque. La modération par IA reste éteinte même si cet interrupteur est allumé.',
     moderationActive: 'En ce moment, l’IA étiquette ce qui est en attente.',
     moderationManual: 'En ce moment, la modération est manuelle.',
+    feedSubtitle: 'Ce que partagent les artistes du Mondial : œuvres, likes et commentaires.',
+    feedRecent: 'Récents',
+    feedPopular: 'Populaires',
+    feedConversation: 'Avec conversation',
+    feedEmpty: 'Pas encore d’activité. Quand une œuvre reçoit un like ou un commentaire, elle apparaît ici.',
+    feedConversationEmpty: 'Personne n’a encore commenté une œuvre.',
+    feedSeeCommunity: 'Voir Communauté',
     errors: {
       signin: 'Entre avec Google pour continuer.',
       not_artist: 'Publier est réservé aux artistes inscrits. Tu peux aimer et commenter.',

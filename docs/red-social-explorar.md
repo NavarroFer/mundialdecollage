@@ -11,6 +11,8 @@
 - **Sugerencias** armadas con lo que cada persona ya hizo: likes, comentarios, guardados y tiempo de mirada en la galería.
 - Que todo eso **no cueste CPU ni consultas por visita**: la lista es pública y cacheada; el orden se arma en el navegador.
 
+**Estado y pendientes.** Lo hecho y lo que falta, con archivos y criterios de aceptación, está en `docs/comunidad-pendiente.md`.
+
 **Estado actual (2026-11-11).** Explorar ya existe: `app/[locale]/(site)/explorar/page.tsx` monta `components/explore-browser.tsx`, que baja `/api/obras` una vez y filtra en el navegador. Los posts de artistas están apagados (`COMMUNITY_POSTING = false` en `lib/community.ts`): el feed que se usa hoy es el de actividad de obras del inicio (`components/obra-activity-feed.tsx` contra `/api/obras/actividad`), y `/comunidad` sigue leyendo `/api/comunidad`, que no recibe publicaciones nuevas.
 
 | Pieza | Estado |

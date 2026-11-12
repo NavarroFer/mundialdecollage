@@ -1053,6 +1053,13 @@ const id: Messages = {
     moderationForcedKey: 'ANTHROPIC_API_KEY tidak ada. Moderasi AI tetap mati meskipun sakelar ini nyala.',
     moderationActive: 'Saat ini AI sedang memberi label pada yang menunggu.',
     moderationManual: 'Saat ini moderasinya manual.',
+    feedSubtitle: 'Apa yang dibagikan para seniman Piala Dunia: karya, suka, dan komentar.',
+    feedRecent: 'Terbaru',
+    feedPopular: 'Populer',
+    feedConversation: 'Dengan percakapan',
+    feedEmpty: 'Belum ada aktivitas. Saat sebuah karya mendapat suka atau komentar, karya itu muncul di sini.',
+    feedConversationEmpty: 'Belum ada yang mengomentari sebuah karya.',
+    feedSeeCommunity: 'Lihat Komunitas',
     errors: {
       signin: 'Masuk dengan Google untuk lanjut.',
       not_artist: 'Membagikan untuk seniman yang sudah terdaftar. Kamu tetap bisa suka dan berkomentar.',
