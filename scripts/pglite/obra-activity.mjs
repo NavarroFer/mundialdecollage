@@ -1,9 +1,10 @@
 // Likes and approved comments move an obra to the front. A pending comment does not.
-// The list also carries each obra's tags, for «Para vos» in the browser.
+// The list also carries each obra's tags, for «Para vos» in the browser, and
+// the id of its author, for the link and the profile card.
 import { readFileSync } from 'node:fs'
 import { boot, applyMigrations } from './harness.mjs'
 
-const FILE = '20261113160000_obra_activity_tags.sql'
+const FILE = '20261113200000_obra_activity_author.sql'
 const KNOWN = new Set(['20261009010000_home_stats_broadcast.sql'])
 const A = '00000000-0000-4000-8000-0000000000a1'
 const B = '00000000-0000-4000-8000-0000000000b1'
@@ -32,11 +33,12 @@ await db.exec(`
     ('${ART2}', '${B}', 'Dos', 'dos', 'https://x.invalid/dos.jpg', true, now() - interval '1 day', '{ciudad}');
 `)
 await db.exec(`update public.artworks set last_activity_at = created_at`)
-let rows = (await db.query(`select slug, tags from public.obra_activity_feed()`)).rows
+let rows = (await db.query(`select slug, tags, author_id from public.obra_activity_feed()`)).rows
 let order = rows.map((row) => row.slug)
 check('newer obra is first before any activity', order[0] === 'dos', order.join(','))
 check('every obra carries its tags', rows.every((row) => Array.isArray(row.tags)), JSON.stringify(rows))
 check('the tags are the obra ones', rows.find((row) => row.slug === 'una')?.tags?.[0] === 'mar', JSON.stringify(rows))
+check('every obra carries its author id', rows.find((row) => row.slug === 'una')?.author_id === A && rows.find((row) => row.slug === 'dos')?.author_id === B, JSON.stringify(rows))
 await db.exec(`insert into public.artwork_likes (artwork_id, email) values ('${ART1}', 'fan@x.invalid')`)
 order = (await db.query(`select slug from public.obra_activity_feed()`)).rows.map((row) => row.slug)
 check('a like moves that obra first', order[0] === 'una', order.join(','))

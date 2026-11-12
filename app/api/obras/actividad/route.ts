@@ -22,6 +22,7 @@ type Row = {
   last_activity_at: string
   recent: { author: string; body: string; createdAt: string }[] | null
   tags: string[] | null
+  author_id: string
 }
 
 export async function GET(request: Request) {
@@ -50,6 +51,7 @@ export async function GET(request: Request) {
         slug: row.slug,
         title: row.title,
         imageUrl: row.image_url,
+        authorId: row.author_id,
         authorName: row.author_name,
         countryCode: row.author_country,
         likes: row.like_count,

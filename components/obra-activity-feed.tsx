@@ -22,6 +22,7 @@ export type ObraCard = {
   slug: string
   title: string | null
   imageUrl: string
+  authorId: string
   authorName: string
   countryCode: string | null
   likes: number
