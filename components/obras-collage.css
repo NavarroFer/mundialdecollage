@@ -2,6 +2,10 @@
   max-width: 1220px;
   margin: 1.75rem auto 0;
   padding: 0 32px;
+  /* The cards tilt, shift and scale with the page scroll, and on a phone they
+     poke past the right edge and widen the page. Clip only that axis: the
+     paper stack still overlaps the sections above and below. */
+  overflow-x: clip;
 }
 
 .obras-collage__hint {
