@@ -151,24 +151,25 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
                   <ArtistStats slug={artist.slug} artworkCount={artist.artworks.length} />
                 </div>
 
-                {(artist.instagram || artist.website) && (
-                  <div className="mt-8 flex flex-wrap gap-4">
-                    {artist.instagram && (
-                      <a href={artist.instagram} target="_blank" rel="noopener noreferrer" className={`${note} -rotate-1`}>
-                        <Instagram className="h-4 w-4 text-collage-red" aria-hidden />
-                        Instagram
-                        <span className="sr-only"> {m.common.opensInNewTab}</span>
-                      </a>
-                    )}
-                    {artist.website && (
-                      <a href={artist.website} target="_blank" rel="noopener noreferrer" className={`${note} rotate-1`}>
-                        <Globe className="h-4 w-4 text-collage-blue" aria-hidden />
-                        {m.common.website}
-                        <span className="sr-only"> {m.common.opensInNewTab}</span>
-                      </a>
-                    )}
-                  </div>
-                )}
+                {/* Sharing is what an artist does with their profile: it sits with the other actions, not at the bottom. */}
+                <div className="mt-8 flex flex-wrap gap-4 empty:hidden">
+                  {artist.instagram && (
+                    <a href={artist.instagram} target="_blank" rel="noopener noreferrer" className={`${note} -rotate-1`}>
+                      <Instagram className="h-4 w-4 text-collage-red" aria-hidden />
+                      Instagram
+                      <span className="sr-only"> {m.common.opensInNewTab}</span>
+                    </a>
+                  )}
+                  {artist.website && (
+                    <a href={artist.website} target="_blank" rel="noopener noreferrer" className={`${note} rotate-1`}>
+                      <Globe className="h-4 w-4 text-collage-blue" aria-hidden />
+                      {m.common.website}
+                      <span className="sr-only"> {m.common.opensInNewTab}</span>
+                    </a>
+                  )}
+                  {/* An unpublished profile's link would 404 for everyone else. */}
+                  {!preview && <ShareProfile compact slug={artist.slug} name={artist.name} artworkSlug={artist.artworks[0].slug} isOwn={isOwn} />}
+                </div>
               </div>
             </div>
           </div>
@@ -185,7 +186,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             </div>
           )}
 
-          <section className="pb-14 sm:pb-20" aria-label={m.collage.label}>
+          <section className="pb-10 sm:pb-14" aria-label={m.collage.label}>
             <ArtistFeed
               slug={artist.slug}
               artistName={artist.name}
@@ -194,10 +195,8 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
             />
           </section>
 
-          {/* An unpublished profile's link would 404 for everyone else. */}
           {!preview && (
-            <section className="flex flex-col gap-5 pb-10 sm:pb-14">
-              <ShareProfile slug={artist.slug} name={artist.name} artworkSlug={artist.artworks[0].slug} isOwn={isOwn} />
+            <section className="flex flex-col gap-5 pb-10 empty:hidden sm:pb-14">
               {isOwn && <BioLink slug={artist.slug} />}
               <ClubOnProfile slug={artist.slug} name={artist.name} isOwn={isOwn} clubOpen={isClubOpen()} show="invite" texts={clubTexts} />
             </section>

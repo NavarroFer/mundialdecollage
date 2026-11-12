@@ -16,7 +16,7 @@ const EVENTS = {
 // The profile's own link, with ?ref= its latest obra so whoever arrives is
 // greeted as the artist's guest (lib/referral.ts). The story image is that
 // obra's, already drawn once and kept in R2 (/obras/[slug]/historia).
-export function ShareProfile({ slug, name, artworkSlug, isOwn }: { slug: string; name: string; artworkSlug: string; isOwn: boolean }) {
+export function ShareProfile({ slug, name, artworkSlug, isOwn, compact = false }: { slug: string; name: string; artworkSlug: string; isOwn: boolean; compact?: boolean }) {
   const { m } = useI18n()
   const t = m.share
   return (
@@ -27,6 +27,7 @@ export function ShareProfile({ slug, name, artworkSlug, isOwn }: { slug: string;
       path={withReferral(`/artistas/${slug}`, artworkSlug)}
       storyHref={`/obras/${artworkSlug}/historia`}
       events={EVENTS}
+      compact={compact}
     />
   )
 }

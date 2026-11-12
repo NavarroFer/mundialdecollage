@@ -262,7 +262,7 @@ const id: Messages = {
     showAllObras: 'Lihat semua karya ({count})',
     likes: p({ one: '{count} suka', other: '{count} suka' }),
     comments: p({ one: '{count} komentar', other: '{count} komentar' }),
-    noComments: 'Belum ada yang mengomentari karya-karya ini.',
+    noComments: 'Belum ada komentar. Bagikan profilnya dan percakapan pun dimulai.',
     onArtwork: 'di «{title}»',
     previewTitle: 'Pratinjau:',
     previewBody: 'profilmu belum dipublikasikan. Untuk sekarang hanya kamu yang bisa melihatnya.',

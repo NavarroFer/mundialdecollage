@@ -264,7 +264,7 @@ const es = {
     showAllObras: 'Ver todas las obras ({count})',
     likes: p({ one: '{count} me gusta', other: '{count} me gusta' }),
     comments: p({ one: '{count} comentario', other: '{count} comentarios' }),
-    noComments: 'Todavía nadie comentó sus obras.',
+    noComments: 'Nadie comentó todavía. Compartí el perfil y la conversación empieza.',
     onArtwork: 'en «{title}»',
     previewTitle: 'Vista previa:',
     previewBody: 'tu perfil todavía no está publicado. Por ahora solo lo ves vos.',

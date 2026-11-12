@@ -10,6 +10,11 @@ import { useI18n } from '@/lib/i18n/client'
 const pill =
   'inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink/15 bg-card px-4 py-2 text-sm font-semibold text-ink hover:border-ink/30'
 
+// The compact variant sits on a colour field (the artist profile's header), so
+// every button is a sheet of paper: legible on any field colour.
+const note =
+  'inline-flex min-h-11 items-center gap-2 px-4 py-2 text-sm font-bold shadow-[0_8px_12px_-8px_rgb(27_17_12/0.55)] motion-safe:transition-transform motion-safe:duration-200 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:shadow-[0_0_0_4px_var(--paper),0_0_0_7px_var(--ink)]'
+
 export type ShareEvents = {
   share: FunnelEvent
   handoff: FunnelEvent
@@ -32,6 +37,7 @@ export function ShareLinks({
   events,
   footer,
   onStory,
+  compact = false,
 }: {
   heading: string
   title: string
@@ -42,6 +48,8 @@ export function ShareLinks({
   footer?: ReactNode
   /** Fired with the story download, so Comunidad can offer to post the obra. */
   onStory?: () => void
+  /** Only the buttons, as paper notes with no card or heading, to sit beside other actions. */
+  compact?: boolean
 }) {
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
@@ -81,6 +89,31 @@ export function ShareLinks({
   function whatsapp() {
     track(events.whatsapp)
     window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${link()}`)}`, '_blank', 'noopener,noreferrer')
+  }
+
+  if (compact) {
+    return (
+      <>
+        <button type="button" className={`${note} -rotate-1 bg-ink text-paper`} onClick={() => void share()}>
+          <Share2 className="h-4 w-4" aria-hidden="true" />
+          {t.button}
+        </button>
+        <button type="button" className={`${note} rotate-1 bg-paper text-ink`} onClick={whatsapp}>
+          <MessageCircle className="h-4 w-4 text-collage-blue" aria-hidden="true" />
+          WhatsApp
+        </button>
+        <button type="button" className={`${note} -rotate-1 bg-paper text-ink`} onClick={() => void copyLink()}>
+          <Copy className="h-4 w-4" aria-hidden="true" />
+          {t.copyLink}
+        </button>
+        <a href={storyHref} download rel="nofollow" className={`${note} rotate-1 bg-paper text-ink`} onClick={() => { track(events.story); onStory?.() }}>
+          <Download className="h-4 w-4 text-collage-red" aria-hidden="true" />
+          {t.story}
+        </a>
+        {copied && <p role="status" className="basis-full bg-paper px-3 py-1 text-sm font-bold text-ink">{t.copied}</p>}
+        {copyError && <p role="alert" className="basis-full bg-paper px-3 py-1 text-sm font-bold text-collage-red">{t.copyFailed}</p>}
+      </>
+    )
   }
 
   return (

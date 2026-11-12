@@ -267,7 +267,7 @@ const pl: Messages = {
     showAllObras: 'Zobacz wszystkie prace ({count})',
     likes: p({ one: '{count} polubienie', few: '{count} polubienia', many: '{count} polubień', other: '{count} polubienia' }),
     comments: p({ one: '{count} komentarz', few: '{count} komentarze', many: '{count} komentarzy', other: '{count} komentarza' }),
-    noComments: 'Nikt jeszcze nie skomentował tych prac.',
+    noComments: 'Nikt jeszcze nie skomentował. Udostępnij profil, a rozmowa się zacznie.',
     onArtwork: 'do „{title}”',
     previewTitle: 'Podgląd:',
     previewBody: 'Twój profil nie jest jeszcze opublikowany. Na razie widzisz go tylko Ty.',

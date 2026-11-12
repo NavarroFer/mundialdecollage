@@ -262,7 +262,7 @@ const de: Messages = {
     showAllObras: 'Alle Werke ansehen ({count})',
     likes: p({ one: '{count} Like', other: '{count} Likes' }),
     comments: p({ one: '{count} Kommentar', other: '{count} Kommentare' }),
-    noComments: 'Noch hat niemand diese Werke kommentiert.',
+    noComments: 'Noch hat niemand kommentiert. Teile das Profil, und das Gespräch beginnt.',
     onArtwork: 'zu „{title}“',
     previewTitle: 'Vorschau:',
     previewBody: 'Dein Profil ist noch nicht veröffentlicht. Bis dahin siehst nur du es.',
