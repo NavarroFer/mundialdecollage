@@ -421,3 +421,20 @@
 @media (prefers-reduced-motion: reduce) {
   .paper-cut-sweep { display: none; }
 }
+
+/* Artist profile: the colour field ends in a torn paper edge (public/collage/torn-edge.svg),
+   and objects are held with masking tape. */
+@layer utilities {
+  .torn-b {
+    -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 17px) no-repeat, url('/collage/torn-edge.svg') bottom / 1200px 18px repeat-x;
+    mask: linear-gradient(#000 0 0) top / 100% calc(100% - 17px) no-repeat, url('/collage/torn-edge.svg') bottom / 1200px 18px repeat-x;
+  }
+  .tape {
+    position: absolute;
+    width: 5.5rem;
+    height: 1.6rem;
+    background: color-mix(in srgb, var(--collage-yellow) 55%, var(--paper) 45%);
+    opacity: 0.88;
+    box-shadow: 0 1px 2px rgb(27 17 12 / 0.18);
+  }
+}
