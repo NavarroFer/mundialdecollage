@@ -197,7 +197,7 @@ export function ObraActivityFeed() {
       )}
       {Object.keys(taste).length > 0 && <div className="mb-6"><SuggestedArtists /></div>}
       <ul className="flex flex-col gap-8">
-        {ordered.map((obra) => (
+        {ordered.map((obra, position) => (
         <li key={obra.id} className="overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">
           <div className="flex items-center gap-3 px-4 py-3">
             <span className="text-lg" aria-hidden="true">{obra.countryCode ? countryCodeToFlag(obra.countryCode) : ''}</span>
@@ -205,7 +205,7 @@ export function ObraActivityFeed() {
           </div>
           <Link href={`/obras/${obra.slug}`} className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageSrc(obra.imageUrl, 828)} alt={obra.title ?? obra.authorName} className="aspect-square w-full object-cover" />
+            <img src={imageSrc(obra.imageUrl, 828)} alt={obra.title ?? obra.authorName} loading={position === 0 ? 'eager' : 'lazy'} decoding="async" className="aspect-square w-full object-cover" />
           </Link>
           <div className="px-4 py-3">
             <div className="flex items-center gap-1">

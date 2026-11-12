@@ -14,6 +14,9 @@ import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/track'
 
+// The cached list has every published obra (1000+); the grid shows them a page at a time.
+const PAGE_SIZE = 48
+
 // The whole published list comes from the CDN (/api/obras). Filters run here.
 export function ExploreBrowser() {
   const { locale, m } = useI18n()
@@ -61,6 +64,11 @@ export function ExploreBrowser() {
     return rankForTaste(obras.map((entry) => ({ entry, tags: tagsFromIndexes(entry.tags) })), taste)
       .map(({ entry }) => entry)
   }, [obras, sort, taste])
+
+  // Back to the first page whenever the search, a filter or the order changes.
+  const viewKey = `${query}|${country}|${technique}|${sort}`
+  const [paging, setPaging] = useState({ key: viewKey, count: PAGE_SIZE })
+  const shown = paging.key === viewKey ? paging.count : PAGE_SIZE
 
   if (failed) return <p role="alert" className="py-16 text-center text-muted-foreground">{m.community.loadError}</p>
   if (!entries) return <div className="mt-8 h-64 motion-safe:animate-pulse rounded-3xl bg-ink/5" aria-hidden="true" />
@@ -124,17 +132,26 @@ export function ExploreBrowser() {
       )}
       {obras.length === 0 ? <p className="py-16 text-center text-muted-foreground">{t.exploreEmpty}</p> : (
         <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {ordered.map((obra) => (
+          {ordered.slice(0, shown).map((obra) => (
             <li key={obra.slug}>
               <Link href={`/obras/${obra.slug}`} className="block overflow-hidden rounded-2xl border-2 border-ink/10 bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageSrc(obra.imageUrl, 480)} alt="" className="aspect-[4/5] w-full object-cover" />
+                <img src={imageSrc(obra.imageUrl, 480)} alt="" loading="lazy" decoding="async" className="aspect-[4/5] w-full object-cover" />
                 <p className="truncate px-3 pt-3 text-sm font-semibold text-ink">{obra.title || obra.name}</p>
                 <p className="truncate px-3 pb-3 text-xs text-muted-foreground">{obra.countryCode ? `${countryCodeToFlag(obra.countryCode)} ` : ''}{obra.name}</p>
               </Link>
             </li>
           ))}
         </ul>
+      )}
+      {ordered.length > shown && (
+        <button
+          type="button"
+          onClick={() => setPaging({ key: viewKey, count: shown + PAGE_SIZE })}
+          className="mt-6 min-h-11 w-full rounded-full border-2 border-ink/15 text-sm font-semibold text-ink hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-collage-blue"
+        >
+          {m.community.loadMore}
+        </button>
       )}
     </div>
   )

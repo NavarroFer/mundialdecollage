@@ -46,7 +46,7 @@ export function SimilarPosts({ postId, obraId, slug, compact = false }: { postId
           <li key={obra.slug}>
             <Link href={`/obras/${obra.slug}`} {...(compact ? { target: '_blank', rel: 'noopener' } : {})} onClick={() => track(compact ? 'gallery_similar_click' : 'community_suggestion_click')}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageSrc(obra.imageUrl, 320)} alt={[obra.title, obra.author].filter(Boolean).join(' — ')} className="aspect-[4/5] w-full rounded-xl object-cover" />
+              <img src={imageSrc(obra.imageUrl, 320)} alt={[obra.title, obra.author].filter(Boolean).join(' — ')} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-xl object-cover" />
             </Link>
           </li>
         ))}
@@ -54,7 +54,7 @@ export function SimilarPosts({ postId, obraId, slug, compact = false }: { postId
           <li key={post.id}>
             <Link href={communityPostPath(post.id, post.artwork?.slug)} onClick={() => track('community_suggestion_click')}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageSrc(post.imageUrl, 320)} alt={post.imageAlt ?? fmt(m.community.photoOf, { name: post.author.name })} className="aspect-[4/5] w-full rounded-xl object-cover" />
+              <img src={imageSrc(post.imageUrl, 320)} alt={post.imageAlt ?? fmt(m.community.photoOf, { name: post.author.name })} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-xl object-cover" />
             </Link>
           </li>
         ))}
