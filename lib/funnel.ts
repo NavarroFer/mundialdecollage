@@ -16,6 +16,7 @@ export const FUNNEL_STEPS = [
   { name: 'comment_sent', label: 'Escribieron un comentario' },
   { name: 'share_click', label: 'Compartieron una obra' },
   { name: 'home_from_gallery', label: 'Fueron de la galería al inicio' },
+  { name: 'gallery_to_community', label: 'Fueron de la galería 3D a Comunidad' },
   { name: 'signup_prompt_view', label: 'Vieron «Terminá tu inscripción» o «Confirmá tus datos»' },
   { name: 'signup_prompt_click', label: 'Tocaron para terminar o confirmar' },
   { name: 'signup_done', label: 'Terminaron o confirmaron la inscripción' },
@@ -269,8 +270,7 @@ export const COMMUNITY_EVENTS = [
   { name: 'community_comment', label: 'Comentaron' },
   { name: 'community_report', label: 'Denunciaron' },
   { name: 'community_to_obra', label: 'Fueron de una publicación a la obra' },
-  { name: 'community_to_profile', label: 'Fueron de una publicación al perfil' },
-  { name: 'community_foryou_view', label: 'Abrieron la pestaña «Para vos»' },
+  { name: 'community_to_profile', label: 'Fueron de una publicación al perfil' },  { name: 'community_foryou_view', label: 'Abrieron la pestaña «Para vos»' },
   { name: 'community_suggestion_click', label: 'Tocaron un artista sugerido, una obra parecida o un link del mail' },
 ] as const
 

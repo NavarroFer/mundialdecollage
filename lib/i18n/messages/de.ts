@@ -530,6 +530,7 @@ const de: Messages = {
     artworkOfficial: 'Offizielles Werk der Collage-WM {year}.',
     closeToContinue: 'Schließ dieses Fenster, um weiterzugehen',
     homeLink: 'Zur Startseite der Collage-WM',
+    communityLink: 'Entdecke in der Community weitere Werke, die zu dir passen',
     partnersLink: "Du hast eine Marke? Zeig dich in der Galerie",
     share: {
       button: 'Dieses Werk teilen',

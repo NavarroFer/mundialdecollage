@@ -530,6 +530,7 @@ const id: Messages = {
     artworkOfficial: 'Karya resmi Piala Dunia Kolase {year}.',
     closeToContinue: 'Tutup jendela ini untuk melanjutkan tur',
     homeLink: 'Ke beranda Piala Dunia Kolase',
+    communityLink: 'Terus temukan karya pilihan untukmu di Komunitas',
     partnersLink: "Punya merek? Tampil di galeri",
     share: {
       button: 'Bagikan karya ini',

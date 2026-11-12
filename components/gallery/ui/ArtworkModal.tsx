@@ -133,6 +133,12 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
         <ArtworkSocialPanel key={artwork.id} artwork={artwork} showComments={commentsFor === artwork.id} />
         <footer className="flex shrink-0 flex-col gap-2 border-t border-ink/10 pt-4">
           <p className="text-xs font-semibold tracking-wide uppercase opacity-70">{m.gallery.closeToContinue}</p>
+          {/* A new tab, like the artist's profile: the walk isn't lost. Their
+              taste is already read from what they like and look at here, so
+              «Para vos» in Comunidad greets them with something. */}
+          <a href="/comunidad" target="_blank" rel="noopener" onClick={() => track('gallery_to_community')} className="self-start text-sm font-semibold underline">
+            {m.gallery.communityLink}<span className="sr-only"> {m.common.opensInNewTab}</span>
+          </a>
           <Link href="/" onClick={() => track('home_from_gallery')} className="self-start text-sm font-semibold underline">{m.gallery.homeLink}</Link>
         </footer>
       </DialogContent>

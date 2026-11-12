@@ -531,6 +531,7 @@ const en: Messages = {
     artworkOfficial: 'Official artwork of the {year} Collage World Cup.',
     closeToContinue: 'Close this window to keep exploring',
     homeLink: 'Go to the Collage World Cup home page',
+    communityLink: 'Keep discovering artworks picked for you in Community',
     partnersLink: "Have a brand? Get featured in the gallery",
     share: {
       button: 'Share this artwork',

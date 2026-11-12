@@ -537,6 +537,7 @@ const es = {
     artworkOfficial: 'Obra oficial del Mundial de Collage {year}.',
     closeToContinue: 'Cerrá esta ventana para seguir recorriendo',
     homeLink: 'Ir al inicio del Mundial',
+    communityLink: 'Seguí descubriendo obras para vos en Comunidad',
     partnersLink: "¿Tenés una marca? Aparecé en la galería",
     share: {
       button: 'Compartir esta obra',

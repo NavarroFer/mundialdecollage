@@ -530,6 +530,7 @@ const pt: Messages = {
     artworkOfficial: 'Obra oficial do Mundial de Colagem {year}.',
     closeToContinue: 'Feche esta janela para continuar o passeio',
     homeLink: 'Ir para o início do Mundial de Colagem',
+    communityLink: 'Continue descobrindo obras para você na Comunidade',
     partnersLink: "Tem uma marca? Apareça na galeria",
     share: {
       button: 'Compartilhar esta obra',

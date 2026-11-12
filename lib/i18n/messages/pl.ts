@@ -540,6 +540,7 @@ const pl: Messages = {
     artworkOfficial: 'Oficjalna praca Mistrzostw Świata w Kolażu {year}.',
     closeToContinue: 'Zamknij to okno, aby zwiedzać dalej',
     homeLink: 'Przejdź na stronę główną Mistrzostw Świata w Kolażu',
+    communityLink: 'Odkrywaj dalej prace dobrane dla Ciebie we Wspólnocie',
     partnersLink: "Masz markę? Pokaż się w galerii",
     share: {
       button: 'Udostępnij tę pracę',
