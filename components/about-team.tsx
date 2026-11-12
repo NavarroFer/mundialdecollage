@@ -33,7 +33,7 @@ function Photo({ member, tilt, alt }: { member: TeamMember; tilt: string; alt: s
           className="block size-full object-cover"
           style={{ objectPosition: member.photoPosition }}
         />
-        <span aria-hidden className={`absolute inset-0 mix-blend-color opacity-55 ${wash}`} />
+        <span aria-hidden className={`absolute inset-0 mix-blend-color ${wash}`} style={{ opacity: member.wash }} />
         <span aria-hidden className="grain-overlay pointer-events-none absolute inset-0" />
       </div>
     </figure>
@@ -63,6 +63,7 @@ export async function AboutTeam() {
                     >
                       <Instagram aria-hidden className="size-4 shrink-0" />
                       {member.handle}
+                      <span className="sr-only"> {m.common.opensInNewTab}</span>
                     </a>
                   </div>
                 </div>
