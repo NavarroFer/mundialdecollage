@@ -253,6 +253,7 @@ const it: Messages = {
     tabArtworks: 'Opere',
     tabComments: 'Commenti',
     tabsLabel: 'Contenuti del profilo',
+    moreWork: 'Altre opere',
     likes: p({ one: '{count} mi piace', other: '{count} mi piace' }),
     comments: p({ one: '{count} commento', other: '{count} commenti' }),
     noComments: 'Nessuno ha ancora commentato queste opere.',

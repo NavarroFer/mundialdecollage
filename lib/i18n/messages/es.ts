@@ -255,6 +255,7 @@ const es = {
     tabArtworks: 'Obras',
     tabComments: 'Comentarios',
     tabsLabel: 'Contenido del perfil',
+    moreWork: 'Más obras',
     likes: p({ one: '{count} me gusta', other: '{count} me gusta' }),
     comments: p({ one: '{count} comentario', other: '{count} comentarios' }),
     noComments: 'Todavía nadie comentó sus obras.',

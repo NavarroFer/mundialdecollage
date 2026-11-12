@@ -253,6 +253,7 @@ const pt: Messages = {
     tabArtworks: 'Obras',
     tabComments: 'Comentários',
     tabsLabel: 'Conteúdo do perfil',
+    moreWork: 'Mais obras',
     likes: p({ one: '{count} curtida', other: '{count} curtidas' }),
     comments: p({ one: '{count} comentário', other: '{count} comentários' }),
     noComments: 'Ainda ninguém comentou estas obras.',
