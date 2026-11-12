@@ -1075,7 +1075,7 @@ const pl: Messages = {
     inviteOpen: 'Robisz kolaż? Dodaj swoją pracę do Mundialu',
     inviteClosed: 'Przejdź prace w galerii 3D',
     magazineBanner: 'Chcesz wziąć udział w magazynie?',
-    magazineBannerCta: 'Kliknij tutaj',
+    magazineBannerCta: 'Chcę wziąć udział',
     loadError: 'Nie udało się wczytać Comunidad. Spróbuj ponownie.',
     more: 'Więcej opcji',
     moderationTitle: 'Moderacja z AI',

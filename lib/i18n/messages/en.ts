@@ -1054,7 +1054,7 @@ const en: Messages = {
     inviteOpen: 'Do you make collage? Add your artwork to the World Cup',
     inviteClosed: 'Walk through the artworks in the 3D gallery',
     magazineBanner: 'Want to be in the magazine?',
-    magazineBannerCta: 'Click here',
+    magazineBannerCta: 'I want to take part',
     loadError: 'We could not load Comunidad. Try again.',
     more: 'More options',
     moderationTitle: 'AI moderation',

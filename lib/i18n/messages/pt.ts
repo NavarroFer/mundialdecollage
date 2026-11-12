@@ -1053,7 +1053,7 @@ const pt: Messages = {
     inviteOpen: 'Você faz colagem? Some sua obra ao Mundial',
     inviteClosed: 'Percorra as obras na galeria 3D',
     magazineBanner: 'Quer participar da revista?',
-    magazineBannerCta: 'Clique aqui',
+    magazineBannerCta: 'Quero participar',
     loadError: 'Não conseguimos carregar a Comunidad. Tente de novo.',
     more: 'Mais opções',
     moderationTitle: 'Moderação com IA',

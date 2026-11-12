@@ -1092,7 +1092,7 @@ const es = {
     inviteOpen: '¿Hacés collage? Sumá tu obra al Mundial',
     inviteClosed: 'Recorré las obras en la galería 3D',
     magazineBanner: '¿Querés participar de la revista?',
-    magazineBannerCta: 'Hacé click acá',
+    magazineBannerCta: 'Quiero participar',
     loadError: 'No pudimos cargar Comunidad. Probá de nuevo.',
     more: 'Más opciones',
     moderationTitle: 'Moderación con IA',

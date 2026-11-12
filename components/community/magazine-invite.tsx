@@ -4,17 +4,24 @@ import { BookOpen } from 'lucide-react'
 /**
  * One invitation to the magazine, laid between two obras of the feed: close
  * enough to be seen while scrolling, but never above the tabs or in the way
- * of the navigation. It is a list item because the feed is a list.
+ * of the navigation. It is a sheet of ochre paper held with a piece of tape,
+ * like the rest of the site's collage objects, and it is a list item because
+ * the feed is a list. The whole sheet is the link.
  */
 export function MagazineInvite({ href, title, cta }: { href: string; title: string; cta: string }) {
   return (
-    <li>
+    <li className="px-1 py-2">
       <Link
         href={href}
-        className="group relative flex items-center gap-4 overflow-hidden rounded-3xl border-2 border-ink bg-collage-yellow px-5 py-5 text-ink shadow-[4px_4px_0_0_var(--ink)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-collage-blue motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-0.5 sm:px-6"
+        className="group relative flex -rotate-[0.6deg] items-center gap-4 bg-collage-yellow px-5 py-6 text-ink shadow-[0_14px_22px_-12px_rgb(27_17_12/0.55)] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-collage-blue motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-0.5 motion-safe:hover:rotate-0 sm:px-7"
       >
-        <BookOpen aria-hidden className="pointer-events-none absolute -right-3 -bottom-4 size-28 opacity-[0.14]" strokeWidth={1.25} />
-        <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-paper">
+        {/* White tape, because ochre tape would vanish on an ochre sheet. */}
+        <span aria-hidden className="tape -top-3 left-8 -rotate-[4deg]" style={{ background: 'color-mix(in srgb, var(--paper) 88%, transparent)' }} />
+        <span aria-hidden className="grain-overlay pointer-events-none absolute inset-0" />
+        <span aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <BookOpen className="absolute -right-3 -bottom-4 size-28 opacity-[0.14]" strokeWidth={1.25} />
+        </span>
+        <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-paper shadow-[0_6px_10px_-6px_rgb(27_17_12/0.5)]">
           <BookOpen aria-hidden className="size-6" strokeWidth={2} />
         </span>
         <span className="relative min-w-0 flex-1">

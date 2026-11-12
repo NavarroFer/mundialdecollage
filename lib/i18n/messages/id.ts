@@ -1050,7 +1050,7 @@ const id: Messages = {
     inviteOpen: 'Kamu membuat kolase? Tambahkan karyamu ke Mundial',
     inviteClosed: 'Jelajahi karya di galeri 3D',
     magazineBanner: 'Mau ikut serta di majalah?',
-    magazineBannerCta: 'Klik di sini',
+    magazineBannerCta: 'Saya mau ikut',
     loadError: 'Comunidad tidak bisa dimuat. Coba lagi.',
     more: 'Opsi lain',
     moderationTitle: 'Moderasi dengan AI',

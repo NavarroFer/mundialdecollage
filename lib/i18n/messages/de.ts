@@ -1053,7 +1053,7 @@ const de: Messages = {
     inviteOpen: 'Machst du Collage? Bring dein Werk ins Mundial',
     inviteClosed: 'Geh die Werke in der 3D-Galerie durch',
     magazineBanner: 'Willst du im Magazin dabei sein?',
-    magazineBannerCta: 'Klick hier',
+    magazineBannerCta: 'Ich will mitmachen',
     loadError: 'Comunidad ließ sich nicht laden. Versuch es noch einmal.',
     more: 'Mehr Optionen',
     moderationTitle: 'KI-Moderation',
