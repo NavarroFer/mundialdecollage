@@ -204,10 +204,14 @@ async function sendArtistDigests(db: SupabaseClient, dryRun: boolean) {
   // someone without a taste or with personalize = false, and a failed lookup
   // counts the same: the mail then goes out as it always did.
   const picks = new Map<string, DigestPick[]>()
-  await Promise.all(recipients.map(async (r) => {
-    const { data, error } = await db.rpc('community_suggested_artists', { visitor: r.profile_id, page_size: DIGEST_PICKS })
-    if (!error && Array.isArray(data)) picks.set(r.profile_id, data as DigestPick[])
-  }))
+  // In small batches: each call scans every obra, so asking for all the
+  // artists at once would open that many database queries together.
+  for (let i = 0; i < recipients.length; i += 10) {
+    await Promise.all(recipients.slice(i, i + 10).map(async (r) => {
+      const { data, error } = await db.rpc('community_suggested_artists', { visitor: r.profile_id, page_size: DIGEST_PICKS })
+      if (!error && Array.isArray(data)) picks.set(r.profile_id, data as DigestPick[])
+    }))
+  }
 
   const results = await sendMails(recipients.map((r) => {
     const email = renderSystemEmail(template, r.locale, translations, { dropBlocksWith: r.comments.length ? [] : ['comentarios'] })
