@@ -4,7 +4,7 @@
 
 ## Resumen
 
-El Club del Mundial de Collage es una membresía mensual que le da a cada artista su propia galería 3D, configurable y conectada con las de los demás en un mapa, junto con una economía de monedas para destrabar salas más grandes, temas con clima de taller o museo, marcos y ropa para su avatar. Cuesta $29.000 por Mercado Pago o USD 29 por PayPal, por mes.
+El Club del Mundial de Collage es una membresía mensual que le da a cada artista su propia galería 3D, configurable y conectada con las de los demás en un mapa, junto con una economía de monedas para destrabar salas más grandes, temas con clima de taller o museo, marcos y ropa para su avatar. Cuesta $15.000 por Mercado Pago o USD 29 por PayPal, por mes.
 
 - **Por qué un artista entra al Club:** en la galería general del Mundial hay más de 300 obras rotando en 37 lugares por día (`ensure_exhibition_today()`), así que cada obra aparece solo cuando le toca su turno en la fila diaria. En el Club, el artista tiene **su propia muestra permanente abierta las 24 horas**, con toda su serie de obras, su texto de sala y su enlace propio.
 - **Se paga por tener galería y personalizarla, no por visitar:** el artista paga para que lo vean. Cada visitante que entra suma valor a su membresía, así que las visitas quedan abiertas sin exigir inicio de sesión (solo se pide cuenta de Google cuando alguien quiere dar me gusta, guardar una estampilla en su álbum, comentar o pegar en el muro). Además, no pedir sesión al entrar permite servir la galería desde el CDN de Vercel sin gastar CPU.
@@ -125,7 +125,7 @@ Los montos de Vercel y Supabase son aproximados y hay que confirmarlos en sus p�
 
 El cobro usa las mismas suscripciones y compras únicas que ya funcionan en la tienda: Mercado Pago en pesos y PayPal en dólares.
 
-- **Pesos (suscripción Club):** $29.000 por mes con Mercado Pago. El precio se ajusta **cada 3 meses**, con aviso al socio **30 días antes**.
+- **Pesos (suscripción Club):** $15.000 por mes con Mercado Pago. El precio se ajusta **cada 3 meses**, con aviso al socio **30 días antes**.
 - **Dólares (suscripción Club):** USD 29 por mes con un plan de PayPal, para socios del exterior.
 - **Packs de monedas (compra única):** disponibles en pesos (Mercado Pago Checkout Pro) y en dólares (PayPal Orders), con los precios de la tabla de packs.
 - **Plan anual:** se paga **10 meses y se usan 12**: $290.000 o USD 290 por año, con el precio en pesos fijo durante ese año. Las 600 monedas se acreditan igual mes a mes, no las 7.200 juntas, para que una devolución dentro de los 10 días de arrepentimiento no deje monedas ya gastadas.
@@ -136,14 +136,14 @@ El cobro usa las mismas suscripciones y compras únicas que ya funcionan en la t
 
 Decisiones ya definidas:
 
-- [x] **Modelo de membresía y monedas (Camino A):** la cuota mensual de $29.000 / USD 29 mantiene activa la galería e incluye un depósito mensual de monedas; además se venden packs de monedas con plata.
+- [x] **Modelo de membresía y monedas (Camino A):** la cuota mensual de $15.000 / USD 29 mantiene activa la galería e incluye un depósito mensual de monedas; además se venden packs de monedas con plata.
 - [x] **Ganar monedas por actividad:** dar *Me gusta* y coleccionar estampillas en el Álbum otorga pequeñas cantidades de monedas para activar el «efecto alcancía».
 - [x] **Capacidad de salas:** la galería arranca con una sala para **6 u 8 obras**, y con monedas se destraban salas más grandes (14 y 22 obras).
 - [x] **Temas desbloqueables:** sumar temas con climas de *Taller de Artista* y *Museo Real* comprables con monedas.
 - [x] **Montaje de cuadros configurable:** el artista elige cómo se ven colgados sus cuadros (distintos marcos o pegados/clavados sin marco).
 - [x] **Ropa de avatar elegible y comprable con monedas:** personalización de prendas, telas y accesorios para el avatar.
-- [x] **Monedas de la cuota:** 600 por mes, también en el plan anual. Son un 21 % del valor de la cuota al precio de los packs.
-- [x] **Precio de la cuota:** $29.000 / USD 29 (antes $47.000 / USD 47). Queda por debajo del plan Miembro de la tienda ($36.000), que incluye envío físico, porque el Club es digital y sin envío. Con una comisión del 10 % (a confirmar con la cuenta real) cada socio deja unos $26.100, así que dos socios cubren los USD 45 fijos al cambio de $1.000 por dólar que usa el sitio.
+- [x] **Monedas de la cuota:** 600 por mes, también en el plan anual. Con la cuota en $15.000 son un 40 % de su valor al precio de los packs (eran un 21 % con $29.000).
+- [x] **Precio de la cuota:** $15.000 en pesos desde el 2026-11-11 (antes $29.000 y, antes, $47.000); en dólares sigue USD 29 hasta confirmar el valor del plan de PayPal. Queda por debajo del plan Miembro de la tienda ($36.000), que incluye envío físico, porque el Club es digital y sin envío. Con una comisión del 10 % (a confirmar con la cuenta real) cada socio deja unos $26.100, así que dos socios cubren los USD 45 fijos al cambio de $1.000 por dólar que usa el sitio.
 - [x] **Packs:** Chico, Mediano y Mecenas a $5.000 / $13.000 / $30.000 o USD 5 / 13 / 30.
 - [x] **Monedas por actividad y logros:** 1 por like y 3 por estampilla, con tope de 20 por día; 200 por cada logro del socio.
 - [x] **Precio en pesos y plan anual:** ajuste cada 3 meses con 30 días de aviso; plan anual de 10 meses por 12, en pesos y en dólares.
@@ -164,7 +164,7 @@ Al 29 de octubre de 2026 (actualizado el 30, con el mapa, las muestras, el resum
 **Hecho**
 
 - [x] **Base de datos del Club** (galerías, obras colgadas, billetera, monedas, inventario, estadísticas del socio y estampilla extra), probada en PGlite como cada rol.
-- [x] **Cobro:** cuota mensual de $29.000 / USD 29 por Mercado Pago y PayPal (PayPal en cuanto se cargue su plan) y packs de monedas. Con 600 monedas por mes.
+- [x] **Cobro:** cuota mensual de $15.000 / USD 29 por Mercado Pago y PayPal (PayPal en cuanto se cargue su plan) y packs de monedas. Con 600 monedas por mes.
 - [x] **Galería:** 3 salas, 4 temas nuevos, 4 marcos, ropa del avatar (lógica) y catálogo de precios.
 - [x] **Pantallas:** `/club` y su franja en la home, `/club/[slug]` (en el CDN), `/mi-galeria` y el editor (datos, obras colgadas, tienda de monedas y estadísticas de los últimos 30 días).
 - [x] **Interruptor `CLUB_OPEN`:** el Club arranca cerrado y los admins lo prueban en producción.
@@ -193,7 +193,7 @@ Al 29 de octubre de 2026 (actualizado el 30, con el mapa, las muestras, el resum
 - [x] Pasar el proyecto a Vercel Pro.
 - [x] Configurar Mercado Pago y PayPal (plan del Club y `PAYPAL_PLAN_ID_CLUB_MONTHLY`).
 - [ ] Subir los commits a `main` en una sola tanda. Ojo: `.github/workflows/supabase-migrations.yml` aplica las migraciones en paralelo al CI, sin esperarlo; por eso todo se verifica antes (ver arriba). El deploy deja el Club cerrado.
-- [ ] Probar un cobro real con una cuenta admin (`lib/admin.ts`). No hay entorno de Preview, así que la prueba es en producción con plata real y el Club cerrado. Orden sugerido: primero un Pack Chico ($5.000) y ver que lleguen las 500 monedas; después la cuota ($29.000) y ver que la galería pase a `active` con 600 monedas; cancelar y ver que quede en `paused`.
+- [ ] Probar un cobro real con una cuenta admin (`lib/admin.ts`). No hay entorno de Preview, así que la prueba es en producción con plata real y el Club cerrado. Orden sugerido: primero un Pack Chico ($5.000) y ver que lleguen las 500 monedas; después la cuota ($15.000) y ver que la galería pase a `active` con 600 monedas; cancelar y ver que quede en `paused`.
 - [ ] Revisar con alguien de lo legal la sección del Club, sobre todo el arrepentimiento, y si hace falta un botón de baja visible.
 - [ ] Armar 2 o 3 galerías de muestra con socios fundadores (pedirles permiso), con la cortesía de `/admin/club`. Si no hay fundadores, Fer arma la suya y la de un amigo con sus obras.
 - [ ] Abrir con `CLUB_OPEN=on` y un deploy; recién ahí mandar la campaña.
