@@ -264,6 +264,7 @@ const pl: Messages = {
     tabComments: 'Komentarze',
     tabsLabel: 'Zawartość profilu',
     moreWork: 'Więcej prac',
+    showAllObras: 'Zobacz wszystkie prace ({count})',
     likes: p({ one: '{count} polubienie', few: '{count} polubienia', many: '{count} polubień', other: '{count} polubienia' }),
     comments: p({ one: '{count} komentarz', few: '{count} komentarze', many: '{count} komentarzy', other: '{count} komentarza' }),
     noComments: 'Nikt jeszcze nie skomentował tych prac.',

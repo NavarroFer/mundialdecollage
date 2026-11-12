@@ -264,6 +264,7 @@ const ru: Messages = {
     tabComments: 'Комментарии',
     tabsLabel: 'Содержимое профиля',
     moreWork: 'Другие работы',
+    showAllObras: 'Показать все работы ({count})',
     likes: p({ one: '{count} лайк', few: '{count} лайка', many: '{count} лайков', other: '{count} лайка' }),
     comments: p({ one: '{count} комментарий', few: '{count} комментария', many: '{count} комментариев', other: '{count} комментария' }),
     noComments: 'Пока никто не прокомментировал эти работы.',

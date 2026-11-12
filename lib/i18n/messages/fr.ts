@@ -259,6 +259,7 @@ const fr: Messages = {
     tabComments: 'Commentaires',
     tabsLabel: 'Contenu du profil',
     moreWork: 'Plus d’œuvres',
+    showAllObras: 'Voir toutes les œuvres ({count})',
     likes: p({ one: '{count} j’aime', other: '{count} j’aime' }),
     comments: p({ one: '{count} commentaire', other: '{count} commentaires' }),
     noComments: 'Personne n’a encore commenté ces œuvres.',

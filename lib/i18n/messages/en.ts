@@ -259,6 +259,7 @@ const en: Messages = {
     tabComments: 'Comments',
     tabsLabel: 'Profile content',
     moreWork: 'More work',
+    showAllObras: 'See all artworks ({count})',
     likes: p({ one: '{count} like', other: '{count} likes' }),
     comments: p({ one: '{count} comment', other: '{count} comments' }),
     noComments: 'No one has commented on these artworks yet.',

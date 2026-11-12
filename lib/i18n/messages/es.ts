@@ -261,6 +261,7 @@ const es = {
     tabComments: 'Comentarios',
     tabsLabel: 'Contenido del perfil',
     moreWork: 'Más obras',
+    showAllObras: 'Ver todas las obras ({count})',
     likes: p({ one: '{count} me gusta', other: '{count} me gusta' }),
     comments: p({ one: '{count} comentario', other: '{count} comentarios' }),
     noComments: 'Todavía nadie comentó sus obras.',

@@ -259,6 +259,7 @@ const id: Messages = {
     tabComments: 'Komentar',
     tabsLabel: 'Konten profil',
     moreWork: 'Karya lainnya',
+    showAllObras: 'Lihat semua karya ({count})',
     likes: p({ one: '{count} suka', other: '{count} suka' }),
     comments: p({ one: '{count} komentar', other: '{count} komentar' }),
     noComments: 'Belum ada yang mengomentari karya-karya ini.',

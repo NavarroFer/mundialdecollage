@@ -3,7 +3,7 @@
 /* Supabase Storage URLs vary by environment and are not restricted to one Next Image host. */
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { ObraLink, useOpenObra } from '@/components/obra-modal'
 import type { ArtistProfileArtwork } from '@/lib/artist-profiles'
@@ -15,6 +15,10 @@ import { imageSrc } from '@/lib/image-src'
 import { armProfileReturn, readProfileReturn, withoutReturnParams } from '@/lib/profile-return'
 import { WallPiece } from './collage-piece'
 import { useArtistSocial } from './use-artist-social'
+
+// How many pieces the wall hangs before offering the rest: with a very
+// prolific artist the wall would otherwise be thousands of pixels of scroll.
+const WALL_FIRST = 12
 
 // What sits under the lead obra: the rest of the artist's work as a wall of
 // pieces (only when there is more than one obra), and the comments their obras
@@ -36,6 +40,21 @@ export function ArtistFeed({
   const openObra = useOpenObra()
   const t = m.artistProfile
   const more = artworks.slice(1)
+  const [showAll, setShowAll] = useState(false)
+  const shown = showAll ? more : more.slice(0, WALL_FIRST)
+  // The wall's shape follows how many pieces it has, so it never has a hole
+  // bigger than a piece: one is centred on a narrow board, two split it in
+  // half, three take a column each, four or five fit two columns (in three they
+  // would leave a gap under the middle piece), and from six on it fills three.
+  const wallShape = more.length === 1
+    ? 'mx-auto max-w-md'
+    : more.length === 2
+      ? 'mx-auto max-w-3xl sm:columns-2'
+      : more.length === 3
+        ? 'sm:columns-2 lg:columns-3'
+        : more.length <= 5
+          ? 'mx-auto max-w-4xl sm:columns-2'
+          : 'sm:columns-2 lg:columns-3'
 
   // Back from Google after liking or commenting here: reopen that obra, where
   // the action finishes. The address is read in the browser (this page is
@@ -57,18 +76,32 @@ export function ArtistFeed({
   })
 
   return (
-    <div className="space-y-16 sm:space-y-20">
+    <div className="space-y-12 sm:space-y-16">
       {more.length > 0 && (
         <section aria-labelledby="wall-title">
           <h2 id="wall-title" className="font-display text-3xl tracking-tight text-ink uppercase sm:text-4xl">{t.moreWork}</h2>
-          {/* Columns, not a grid: every piece keeps its own proportions and the wall fills like a wall. */}
-          <ul className="mt-6 columns-1 gap-x-4 bg-muted px-2 pt-6 pb-2 sm:columns-2 sm:px-6 lg:columns-3">
-            {more.map((artwork, index) => (
+          {/* Columns, not a grid: every piece keeps its own proportions and the wall
+              fills like a wall. The price is the reading order, which goes down each
+              column; the lead obra is already above, so the newest piece of the wall
+              sits at the top of the first column. */}
+          <ul className={`mt-6 columns-1 gap-x-4 bg-muted px-2 pt-6 pb-2 sm:px-6 ${wallShape}`}>
+            {shown.map((artwork, index) => (
               <li key={artwork.slug} className="break-inside-avoid px-4 pt-6 pb-10">
                 <WallPiece slug={slug} artistName={artistName} countryCode={countryCode} artwork={artwork} index={index} />
               </li>
             ))}
           </ul>
+          {more.length > WALL_FIRST && !showAll && (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAll(true)}
+                className="inline-flex min-h-12 items-center rounded-full border-2 border-ink px-6 py-2 text-base font-bold text-ink hover:bg-ink hover:text-paper focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-collage-blue"
+              >
+                {fmt(t.showAllObras, { count: more.length })}
+              </button>
+            </div>
+          )}
         </section>
       )}
 
