@@ -17,6 +17,7 @@ export const FUNNEL_STEPS = [
   { name: 'share_click', label: 'Compartieron una obra' },
   { name: 'home_from_gallery', label: 'Fueron de la galería al inicio' },
   { name: 'gallery_to_community', label: 'Fueron de la galería 3D a Comunidad' },
+  { name: 'gallery_similar_click', label: 'Tocaron una obra parecida desde la ficha de la galería 3D' },
   { name: 'signup_prompt_view', label: 'Vieron «Terminá tu inscripción» o «Confirmá tus datos»' },
   { name: 'signup_prompt_click', label: 'Tocaron para terminar o confirmar' },
   { name: 'signup_done', label: 'Terminaron o confirmaron la inscripción' },

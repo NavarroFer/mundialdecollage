@@ -12,6 +12,7 @@ import { ArtworkComments } from './ArtworkComments'
 import { ArtworkShare } from './ArtworkShare'
 import { ArtworkContact } from './ArtworkContact'
 import { ArtistInvite } from './ArtistInvite'
+import { SimilarPosts } from '@/components/community/similar-posts'
 import { ArtworkViewers } from './PresenceCounter'
 import { loadArtworkSocial, peekArtworkSocial, type SocialResult } from './artworkSocial'
 import type { Artwork } from '@/data/artworks'
@@ -205,7 +206,13 @@ function ArtworkSocialPanel({ artwork, showComments }: { artwork: Artwork; showC
     return from
   }), [])
   // Stable, so ArtworkLike/ArtworkComments can keep them in their callbacks' deps.
-  const afterLike = useCallback(() => showInvite('like'), [showInvite])
+  // «Más como esta»: right after a like, the moment the visitor is most
+  // interested, and again on obras they had already liked.
+  const [justLiked, setJustLiked] = useState(false)
+  const afterLike = useCallback(() => {
+    setJustLiked(true)
+    showInvite('like')
+  }, [showInvite])
   const afterComment = useCallback(() => {
     setSentHere((count) => count + 1)
     showInvite('comment')
@@ -258,6 +265,7 @@ function ArtworkSocialPanel({ artwork, showComments }: { artwork: Artwork; showC
         <ArtworkContact artwork={artwork} />
       </div>
       {inviteUnder('like')}
+      {(justLiked || social?.like.liked) && <SimilarPosts slug={artwork.id} compact />}
       {social ? (
         <div className={cn('shrink-0', reveal)}>
           <ArtworkComments slug={artwork.id} initial={social.comments} onSent={afterComment} fieldRef={commentField} scrollIntoView={showComments} />
