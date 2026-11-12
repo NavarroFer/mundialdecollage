@@ -92,7 +92,7 @@ export function PublishArtworkOffer({ slug, isPublic, opened }: { slug: string; 
 
   function invite() {
     if (!postId) return
-    const url = `${window.location.origin}${withReferral('/comunidad', slug)}#post-${postId}`
+    const url = `${window.location.origin}${withReferral(`/comunidad/p/${postId}`, slug)}`
     window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer')
   }
 

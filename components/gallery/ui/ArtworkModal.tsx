@@ -137,7 +137,7 @@ export function ArtworkModal({ artworks, theme }: { artworks: Artwork[]; theme: 
           {/* A new tab, like the artist's profile: the walk isn't lost. Their
               taste is already read from what they like and look at here, so
               «Para vos» in Comunidad greets them with something. */}
-          <a href="/comunidad" target="_blank" rel="noopener" onClick={() => track('gallery_to_community')} className="self-start text-sm font-semibold underline">
+          <a href="/" target="_blank" rel="noopener" onClick={() => track('gallery_to_community')} className="self-start text-sm font-semibold underline">
             {m.gallery.communityLink}<span className="sr-only"> {m.common.opensInNewTab}</span>
           </a>
           <Link href="/" onClick={() => track('home_from_gallery')} className="self-start text-sm font-semibold underline">{m.gallery.homeLink}</Link>

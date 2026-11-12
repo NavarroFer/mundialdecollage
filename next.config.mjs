@@ -25,6 +25,10 @@ const nextConfig = {
       // redirect is answered before any Function runs, unlike a page that
       // calls redirect() (which cost an invocation per visit).
       { source: '/edicion-2026', destination: '/#participantes', permanent: false },
+      // The feed lives on the home now (one feed for everyone who can see it);
+      // /comunidad/p/[id] keeps its own pages.
+      { source: '/comunidad', destination: '/', permanent: false },
+      { source: '/:locale(es|en|pt|it|fr|de|pl|ru|id)/comunidad', destination: '/', permanent: false },
     ]
   },
   images: {

@@ -96,7 +96,7 @@ export function CommunityStrip() {
           <TrackVisible event="community_strip_view" />
           <div className="mb-5 flex items-end justify-between gap-4">
             <h2 className="font-display text-3xl tracking-tight text-ink uppercase sm:text-4xl">{t.stripTitle}</h2>
-            <Link href="/comunidad" className="text-sm font-semibold text-ink underline">{t.seeAll}</Link>
+            <Link href="/" className="text-sm font-semibold text-ink underline">{t.seeAll}</Link>
           </div>
           {error && <p role="alert" className="mb-3 text-sm text-collage-red">{t.errors[error]}</p>}
           <ul className="flex snap-x snap-mandatory gap-4 overflow-x-auto motion-reduce:snap-none md:grid md:grid-cols-3 md:overflow-visible">

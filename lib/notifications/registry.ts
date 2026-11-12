@@ -222,7 +222,7 @@ export const NOTIFICATION_TYPES = {
   post_hidden: define({
     schema: z.object({ postId: z.string().min(1), kind: z.string().nullish() }),
     icon: 'alert',
-    render: (_data, { m }) => ({ text: m.types.postHidden, href: '/comunidad' }),
+    render: (_data, { m }) => ({ text: m.types.postHidden, href: '/' }),
   }),
   post_comment_approved: define({
     schema: z.object({ postId: z.string().min(1) }),

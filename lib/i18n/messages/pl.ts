@@ -1087,7 +1087,6 @@ const pl: Messages = {
     feedConversation: 'Z rozmową',
     feedEmpty: 'Jeszcze nic się nie dzieje. Gdy praca dostanie polubienie lub komentarz, pojawi się tutaj.',
     feedConversationEmpty: 'Nikt jeszcze nie skomentował pracy.',
-    feedSeeCommunity: 'Zobacz Społeczność',
     errors: {
       signin: 'Zaloguj się przez Google, żeby iść dalej.',
       not_artist: 'Publikować mogą artyści zapisani do konkursu. Polubić i skomentować możesz już teraz.',
