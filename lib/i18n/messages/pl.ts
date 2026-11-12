@@ -125,6 +125,11 @@ const pl: Messages = {
     motto: 'Zrobić coś to już sukces',
     body: 'W kolażu, jak w życiu, chodzi o to, by wziąć to, co masz — wycinki, resztki, to, co zostało — i zrobić z tego całość. Te Mistrzostwa istnieją, by świętować właśnie to: pracę, która została skończona, wysłana, zrobiona.',
     badges: ['Edycja międzynarodowa', 'Profesjonalne jury', 'Społeczność kolażystów'],
+    team: {
+      portrait: 'Portret: {name}',
+      fernando: ['Inżynier informatyki · UNMdP', 'Student 1. roku grafiki', 'Prowadzi warsztaty fanzinów Todo es Fanzineable', 'Przedsiębiorca w Fersos'],
+      federico: ['Artysta wizualny: Te hace falta collage', 'Projektant z wieloletnim doświadczeniem', 'Zawodowy artysta bez dyplomu', 'Prowadzący warsztaty, przedsiębiorca i wystawca na jarmarkach'],
+    },
   },
   donate: {
     title: 'Wesprzyj, żeby to trwało',

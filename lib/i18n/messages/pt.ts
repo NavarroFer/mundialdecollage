@@ -125,6 +125,11 @@ const pt: Messages = {
     motto: 'Fazer algo já é uma conquista',
     body: 'Na colagem, como na vida, trata-se de pegar o que você tem — recortes, restos, o que sobrou — e fazer algo inteiro com isso. Este Mundial existe para celebrar exatamente isso: a obra que foi terminada, enviada, feita.',
     badges: ['Edição internacional', 'Júri especializado', 'Comunidade de colagistas'],
+    team: {
+      portrait: 'Retrato de {name}',
+      fernando: ['Engenheiro em Informática · UNMdP', 'Estudante do 1º ano de Design Gráfico', 'Coordena a oficina de fanzines Todo es Fanzineable', 'Empreendedor na Fersos'],
+      federico: ['Artista visual: Te hace falta collage', 'Designer com muitos anos de ofício', 'Artista profissional sem diploma', 'Oficineiro, empreendedor e feirante'],
+    },
   },
   donate: {
     title: 'Doe para que continue acontecendo',

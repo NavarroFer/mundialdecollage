@@ -125,6 +125,11 @@ const en: Messages = {
     motto: 'Making something is an achievement',
     body: "In collage, as in life, it's about taking what you have — cut-outs, scraps, leftovers — and making something whole out of it. This World Cup exists to celebrate exactly that: the work that got finished, sent, made.",
     badges: ['International edition', 'Expert jury', 'Community of collage artists'],
+    team: {
+      portrait: 'Portrait of {name}',
+      fernando: ['Computer Science Engineer · UNMdP', 'First-year Graphic Design student', 'Runs the zine workshop Todo es Fanzineable', 'Entrepreneur at Fersos'],
+      federico: ['Visual artist: Te hace falta collage', 'Designer with many years in the trade', 'Professional artist, no degree', 'Workshop leader, entrepreneur and craft-fair vendor'],
+    },
   },
   donate: {
     title: 'Donate to keep it happening',

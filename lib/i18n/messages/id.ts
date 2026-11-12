@@ -125,6 +125,11 @@ const id: Messages = {
     motto: 'Membuat sesuatu adalah pencapaian',
     body: 'Dalam kolase, seperti dalam hidup, intinya adalah mengambil apa yang kamu punya — guntingan, sisa, yang tersisa — lalu membuat sesuatu yang utuh darinya. Piala Dunia ini ada untuk merayakan tepat itu: karya yang selesai, dikirim, dibuat.',
     badges: ['Edisi internasional', 'Juri spesialis', 'Komunitas seniman kolase'],
+    team: {
+      portrait: 'Potret {name}',
+      fernando: ['Insinyur Informatika · UNMdP', 'Mahasiswa tahun pertama Desain Grafis', 'Mengoordinasi lokakarya fanzine Todo es Fanzineable', 'Wirausahawan di Fersos'],
+      federico: ['Seniman visual: Te hace falta collage', 'Desainer dengan bertahun-tahun pengalaman', 'Seniman profesional tanpa gelar', 'Pengajar lokakarya, wirausahawan, dan pedagang bazar'],
+    },
   },
   donate: {
     title: 'Berdonasi agar terus berlangsung',

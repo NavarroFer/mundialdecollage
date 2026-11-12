@@ -125,6 +125,11 @@ const it: Messages = {
     motto: 'Fare qualcosa è già un traguardo',
     body: "Nel collage, come nella vita, si tratta di prendere quello che hai — ritagli, scarti, avanzi — e farne qualcosa di intero. Questo Mondiale esiste per celebrare proprio questo: l'opera che è stata finita, inviata, fatta.",
     badges: ['Edizione internazionale', 'Giuria specializzata', 'Comunità di collagisti'],
+    team: {
+      portrait: 'Ritratto di {name}',
+      fernando: ['Ingegnere informatico · UNMdP', 'Studente del 1° anno di Graphic Design', 'Coordina il laboratorio di fanzine Todo es Fanzineable', 'Imprenditore in Fersos'],
+      federico: ['Artista visivo: Te hace falta collage', 'Designer con molti anni di mestiere', 'Artista professionista senza titolo di studio', 'Conduttore di laboratori, imprenditore ed espositore in fiera'],
+    },
   },
   donate: {
     title: 'Dona perché continui ad accadere',

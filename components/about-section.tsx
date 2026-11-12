@@ -1,3 +1,4 @@
+import { AboutTeam } from '@/components/about-team'
 import { FadeIn } from '@/components/fade-in'
 import { getI18n } from '@/lib/i18n/server'
 
@@ -7,7 +8,7 @@ export async function AboutSection() {
     <section id="nosotros" className="relative scroll-mt-28 overflow-hidden border-t-2 border-ink/10 bg-background py-20 sm:py-28">
       <div className="relative mx-auto max-w-3xl px-5 text-center sm:px-8">
         <FadeIn>
-          <p className="text-sm font-bold tracking-[0.25em] text-collage-blue uppercase">
+          <p className="inline-block -rotate-2 bg-collage-blue px-3 py-1.5 text-sm font-bold tracking-[0.2em] text-paper uppercase shadow-[0_3px_6px_-3px_rgb(27_17_12/0.5)]">
             {m.about.eyebrow}
           </p>
         </FadeIn>
@@ -39,6 +40,7 @@ export async function AboutSection() {
           </div>
         </FadeIn>
       </div>
+      <AboutTeam />
     </section>
   )
 }
