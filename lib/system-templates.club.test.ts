@@ -142,7 +142,7 @@ describe('the Club launch template', () => {
     const html = renderEmailDocumentToHtml(definition.createDocument(SITE))
     expect(html).toContain(`${SITE}/club?desde=mail`)
     expect(html).toContain('$15.000')
-    expect(html).toContain('USD 29')
+    expect(html).toContain('USD 15')
   })
 
   it('is for artists, and is created whether or not the Club is open', () => {

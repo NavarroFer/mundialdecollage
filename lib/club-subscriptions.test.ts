@@ -26,7 +26,7 @@ function setup(existing: { id: string; status: string } | null = null, failPreap
     if (failPreapproval) throw new Error('boom')
     return { id: 'pre-1', checkoutUrl: 'https://mp.example/checkout' }
   })
-  const deps = { admin, upsertCustomer: vi.fn(async () => 'cust-1'), createSubscription, paypalPlanId: 'P-CLUB-USD-29' } as unknown as ClubSubscriptionDeps
+  const deps = { admin, upsertCustomer: vi.fn(async () => 'cust-1'), createSubscription, paypalPlanId: 'P-CLUB-USD-15' } as unknown as ClubSubscriptionDeps
   return { calls, deps, createSubscription }
 }
 
@@ -58,8 +58,8 @@ describe('startClubSubscription', () => {
     const result = await startClubSubscription({ ...input, provider: 'paypal' }, deps)
 
     expect(result).toEqual({ ok: true, checkoutUrl: 'https://mp.example/checkout', subscriptionId: 'sub-1' })
-    expect(calls.subscriptionInsert).toEqual([{ customer_id: 'cust-1', provider: 'paypal', provider_plan_id: 'P-CLUB-USD-29', shipping_address: null }])
-    expect(createSubscription).toHaveBeenCalledWith(expect.objectContaining({ amount: 29, currency: 'USD', localId: 'sub-1' }))
+    expect(calls.subscriptionInsert).toEqual([{ customer_id: 'cust-1', provider: 'paypal', provider_plan_id: 'P-CLUB-USD-15', shipping_address: null }])
+    expect(createSubscription).toHaveBeenCalledWith(expect.objectContaining({ amount: 15, currency: 'USD', localId: 'sub-1' }))
   })
 
   it('creates nothing for PayPal while its plan is not set up', async () => {
