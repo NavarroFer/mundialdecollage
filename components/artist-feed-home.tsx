@@ -2,13 +2,14 @@ import { AppFrame } from '@/components/app-frame'
 import { ObraActivityFeed } from '@/components/obra-activity-feed'
 import { TrackView } from '@/components/track'
 import { fmt } from '@/lib/i18n/format'
+import { getCallState } from '@/lib/call-state'
 import { getI18n } from '@/lib/i18n/server'
 import { getCurrentUser } from '@/lib/supabase/server'
 
 // Participating artists only. The page that renders this already checked
 // the session; the feed request checks again.
 export async function ArtistFeedHome() {
-  const [{ m }, user] = await Promise.all([getI18n(), getCurrentUser()])
+  const [{ m }, user, { open }] = await Promise.all([getI18n(), getCurrentUser(), getCallState()])
   const firstName = (user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0]
 
   return (
@@ -22,7 +23,7 @@ export async function ArtistFeedHome() {
         <p className="mt-2 max-w-xl text-muted-foreground">{m.community.feedSubtitle}</p>
       </header>
       <div className="mt-5">
-        <ObraActivityFeed />
+        <ObraActivityFeed callOpen={open} />
       </div>
     </AppFrame>
   )

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import { ArtistHoverCard } from '@/components/community/artist-hover-card'
+import { MagazineInvite } from '@/components/community/magazine-invite'
 import { SuggestedArtists } from '@/components/community/suggested-artists'
 import { communityViewer } from '@/app/[locale]/(site)/comunidad/actions'
 import { addArtworkComment, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/actions'
@@ -35,6 +36,9 @@ export type ObraCard = {
 }
 
 type Page = { obras: ObraCard[]; next: { at: string; id: string } | null }
+// The magazine invite sits after this many obras (after the last one when fewer).
+const MAGAZINE_AFTER = 3
+
 type Sort = 'foryou' | 'recent' | 'popular' | 'conversation'
 
 const AVATAR_BG = ['bg-collage-blue/15', 'bg-collage-yellow/30', 'bg-collage-red/15'] as const
@@ -80,7 +84,9 @@ function load(cursor?: { at: string; id: string }) {
   })
 }
 
-export function ObraActivityFeed() {
+// `callOpen` decides where the magazine invite leads: onboarding while the
+// call takes obras, the magazine page once it is closed.
+export function ObraActivityFeed({ callOpen = true }: { callOpen?: boolean }) {
   const { locale, m } = useI18n()
   const t = m.community
   const tabs = m.siteSections
@@ -222,6 +228,8 @@ export function ObraActivityFeed() {
     )
   }
 
+  const magazine = <MagazineInvite href={callOpen ? '/onboarding' : '/revista'} title={t.magazineBanner} cta={t.magazineBannerCta} />
+
   const tabList: { key: Sort; label: string }[] = [
     ...(hasTaste ? [{ key: 'foryou' as const, label: tabs.exploreForYou }] : []),
     { key: 'recent', label: t.feedRecent },
@@ -256,8 +264,9 @@ export function ObraActivityFeed() {
         </p>
       ) : (
         <ul className="mt-4 flex flex-col gap-6">
-          {visible.map((obra) => (
-            <li key={obra.id}>
+          {visible.map((obra, index) => (
+            <Fragment key={obra.id}>
+            <li>
               <article className="overflow-hidden rounded-3xl border-2 border-ink/10 bg-card">
                 <header className="flex items-center px-4 py-3">
                   <ArtistHoverCard
@@ -360,7 +369,10 @@ export function ObraActivityFeed() {
                 </div>
               </article>
             </li>
+            {index === MAGAZINE_AFTER - 1 && magazine}
+            </Fragment>
           ))}
+          {visible.length < MAGAZINE_AFTER && magazine}
           {next && sort === 'recent' && (
             <li>
               <button
