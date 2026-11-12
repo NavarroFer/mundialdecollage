@@ -1,447 +1,370 @@
+---
+last_mapped_commit: 6f52dfd
+---
+
 # Codebase Structure
 
-**Analysis Date:** 2026-09-29
+**Analysis Date:** 2026-11-08
 
 ## Directory Layout
 
 ```
 mundialdecollage/
-├── app/                          # Next.js App Router pages and layouts
-│   ├── admin/                    # Moderator panel (auth-protected)
-│   │   ├── layout.tsx            # Admin shell, auth guard
-│   │   ├── page.tsx              # Redirects to /admin/obras
-│   │   ├── campanas/             # Email campaigns
-│   │   ├── comentarios/          # Comments/feedback admin
-│   │   ├── contactos/            # Contact form submissions
-│   │   ├── estadisticas/         # Analytics dashboard
-│   │   ├── inscripciones/        # Workshop registrations
-│   │   ├── obras/                # Artwork curation gallery
-│   │   ├── pagos/                # Payment logs
-│   │   └── plantillas/           # Email template manager
-│   ├── api/                      # Route handlers
-│   │   ├── cron/                 # Scheduled jobs
-│   │   ├── mercadopago/webhook/  # Payment notifications
-│   │   ├── resend/webhook/       # Email delivery tracking
-│   │   ├── obras/                # GET /api/obras - search index
-│   │   ├── track/                # POST /api/track - analytics
-│   │   └── unsubscribe/          # Email unsubscribe link
-│   ├── ar/[slug]/                # AR viewer for prints/artworks
-│   ├── auth/callback/            # OAuth callback handler
-│   ├── edicion-2026/             # Special edition page
-│   ├── galeria-3d/               # Interactive 3D gallery
-│   ├── onboarding/               # Artist signup flow
-│   │   ├── page.tsx              # Sign-in or form
-│   │   ├── obras/                # Artwork upload/edit
-│   │   └── confirmado/           # Success confirmation
-│   ├── obras/[slug]/             # Individual artwork pages
-│   ├── participantes/            # Participants map/list
-│   ├── taller/                   # Workshop registration
-│   ├── politica-de-privacidad/   # Privacy policy
-│   ├── terminos-y-condiciones/   # Terms & conditions
-│   ├── monitoring/               # Health check endpoints
-│   ├── layout.tsx                # Root layout (fonts, providers)
-│   ├── page.tsx                  # Homepage
-│   ├── globals.css               # Global styles (Tailwind)
-│   ├── robots.ts                 # Robots.txt
-│   └── sitemap.ts                # Sitemap.xml
-├── components/                   # React components (organized by feature)
-│   ├── admin/                    # Admin-only UI components
-│   │   ├── admin-nav.tsx         # Admin sidebar/nav
-│   │   ├── admin-sections.ts     # Admin menu structure
-│   │   ├── page-header.tsx       # Page title + stats
-│   │   ├── campaign-composer.tsx # Email builder UI
-│   │   ├── submissions-gallery.tsx # Artwork grid
-│   │   ├── artwork-edit-form.tsx # Artwork details form
-│   │   ├── email-block-editor.tsx # Email block drag-drop
-│   │   ├── obra-viewer.tsx       # Artwork detail modal
-│   │   ├── template-form.tsx     # Email template editor
-│   │   ├── translation-badge.tsx # Translation status indicator
-│   │   ├── stat-bar.tsx          # Stats bar for pages
-│   │   └── submission-types.ts   # Type definitions
-│   ├── ar/                       # AR viewer components
-│   │   └── ar-viewer.tsx         # MindAR integration
-│   ├── auth/                     # Auth-related components
-│   ├── gallery/                  # 3D gallery (Three.js/Rapier)
-│   │   ├── Game.tsx              # Main game loop
-│   │   ├── artwork/              # Artwork card in gallery
-│   │   ├── camera/               # Camera control
-│   │   ├── interaction/          # Mouse/touch input + Zustand store
-│   │   ├── minimap/              # Minimap + player position store
-│   │   ├── mobile/               # Mobile touch controls
-│   │   ├── player/               # Player avatar/mesh
-│   │   ├── presence/             # Multiplayer presence (Realtime)
-│   │   ├── tutorial/             # Tutorial UI
-│   │   ├── world/                # World mesh/lighting
-│   │   ├── ui/                   # Gallery UI panels
-│   │   ├── themes.ts             # Color themes
-│   │   └── gallery-theme.module.css # Scoped gallery styles
-│   ├── ui/                       # Reusable UI primitives (buttons, dialogs, etc.)
-│   ├── about-section.tsx         # Homepage: About Festival
-│   ├── bases-banner.tsx          # Homepage: Rules callout
-│   ├── countdown.tsx             # Countdown timer
-│   ├── depth-carousel.tsx        # Carousel with parallax
-│   ├── edition-section.tsx       # Homepage: Edition info
-│   ├── fade-in.tsx               # Fade-in animation wrapper
-│   ├── flag-ribbon.tsx           # Homepage: Flag banner of countries
-│   ├── footer.tsx                # Site footer
-│   ├── gallery-tour.tsx          # Homepage: 3D gallery preview link
-│   ├── hero-section.tsx          # Homepage: Hero banner
-│   ├── jury-section.tsx          # Homepage: Jury bios
-│   ├── map-section.tsx           # Homepage: Country map
-│   ├── participants-section.tsx  # Homepage: Participant count/stats
-│   ├── participation-status.tsx  # User account status (signed out/in)
-│   ├── site-header.tsx           # Site navigation header
-│   ├── splash-screen.tsx         # Loading splash overlay
-│   ├── workshop-section.tsx      # Homepage: Workshop info
-│   ├── world-map.tsx             # Interactive country map
-│   ├── artwork-search.tsx        # Homepage search bar
-│   ├── share-artwork.tsx         # Share buttons for artwork
-│   ├── clarity.tsx               # Clarity Analytics script
-│   ├── vercel-analytics.tsx      # Vercel Analytics script
-│   ├── referral-capture.tsx      # Capture referral param in session
-│   └── track.tsx                 # Analytics event tracking
-├── lib/                          # Server-side business logic & utilities
-│   ├── supabase/                 # Database client factories
-│   │   ├── server.ts             # createClient() for Server Components
-│   │   ├── public.ts             # createPublicClient() (anon role)
-│   │   ├── admin.ts              # Admin-specific client (service key)
-│   │   ├── config.ts             # isSupabaseConfigured check
-│   │   └── client.ts             # Browser client setup
-│   ├── ar/                       # AR experience helpers
-│   │   ├── mindar.ts             # MindAR setup + detection
-│   │   ├── pieces.ts             # AR model definitions
-│   │   ├── print-cards.tsx       # Print card PDF generation
-│   │   └── targets.ts            # AR target image paths
-│   ├── i18n/                     # Internationalization
-│   │   ├── server.ts             # getI18n() for Server Components
-│   │   ├── client.tsx            # I18nProvider for Client Components
-│   │   ├── locales.ts            # Locale metadata (codes, names, flags)
-│   │   ├── format.ts             # Format helpers (dates, numbers)
-│   │   ├── messages/             # Message catalogs per language
-│   │   │   ├── index.ts          # Export all messages
-│   │   │   ├── client.ts         # Messages sent to browser
-│   │   │   └── es.ts / en.ts / ... # Per-language translations
-│   │   ├── messages.test.ts      # Test message loading
-│   │   └── locales.test.ts       # Test locale detection
-│   ├── data/                     # Static/imported data files
-│   ├── admin.ts                  # ADMIN_EMAILS list
-│   ├── site.ts                   # Site config (deadline, name, url)
-│   ├── pricing.ts                # Entry fee calculations
-│   ├── artwork-search.ts         # Search index building
-│   ├── artwork-share-image.tsx   # OG image generation
-│   ├── artwork-stats.ts          # Count stats (finalist, by country)
-│   ├── campaign-audience.ts      # Filter profiles for email campaigns
-│   ├── country-codes.ts          # ISO country code utilities
-│   ├── country-breakdown.ts      # Aggregate stats by country
-│   ├── entries.ts                # Submission entry management
-│   ├── entry-payments.ts         # Payment amount lookup
-│   ├── email-blocks.ts           # Reusable email template blocks
-│   ├── email-translation.ts      # Email translation helpers
-│   ├── email-translator.ts       # Translate email content
-│   ├── exhibition-mail.ts        # Exhibition notification template
-│   ├── finalists.ts              # Fetch published artworks (cached)
-│   ├── funnel.ts                 # Funnel analytics & progression
-│   ├── gallery-artworks.ts       # Daily selection for 3D gallery
-│   ├── gallery-identity.ts       # Session identity for gallery
-│   ├── gallery-return.ts         # Gallery return link generation
-│   ├── google-sheets.ts          # Apps Script webhook handler
-│   ├── instagram.ts              # Instagram URL parsing
-│   ├── iso-numeric-country-codes.ts # ISO-3166-1 numeric codes
-│   ├── legacy-submissions.ts     # Import from old system
-│   ├── map-country-link.ts       # Map country → artist link
-│   ├── mercadopago-signature.ts  # Webhook signature verification
-│   ├── mercadopago.ts            # MercadoPago client setup
-│   ├── name-format.ts            # Artist name normalization
-│   ├── onboarding-input.ts       # Validation for onboarding form
-│   ├── onboarding-image.ts       # Image upload URL generation
-│   ├── participants.ts           # Country code ↔ name utilities
-│   ├── referral-server.ts        # Referral link tracking (server)
-│   ├── referral.ts               # Referral link utilities
-│   ├── registro-sync.ts          # Sync with old Registro system
-│   ├── registro.ts               # Registro client & parsing
-│   ├── resend-signature.ts       # Resend webhook verification
-│   ├── resend.ts                 # Resend email client
-│   ├── reuse-registro-artwork.ts # Import artwork from Registro
-│   ├── safe-next.ts              # Next.js internals workaround
-│   ├── slug.ts                   # URL slug generation from title
-│   ├── submissions.ts            # Submission status queries
-│   ├── system-templates.ts       # Built-in email templates
-│   ├── track-server.ts           # Analytics event logging (server)
-│   ├── track.ts                  # Analytics event tracking
-│   ├── flag-svg.ts               # Flag emoji/SVG utilities
-│   ├── publish-legacy.ts         # Bulk publish imported artworks
-│   ├── utils.ts                  # Misc utilities
-│   ├── artist-digest.ts          # Artist email digest summary
-│   ├── artist-digest.test.ts     # Tests for digest
-│   ├── artwork-search.test.ts    # Tests for search
-│   └── [many more .test.ts files] # Unit tests for lib functions
-├── public/                       # Static assets
-│   ├── ar/                       # AR target images (for MindAR)
-│   ├── email/                    # Email template assets
-│   ├── logo-mark.png             # Logo icon
-│   └── [other images]
-├── supabase/                     # Supabase config & migrations
-│   ├── migrations/               # SQL migration files (timestamp_description.sql)
-│   └── .temp/                    # Temporary migration files
-├── scripts/                      # Utility scripts
-│   ├── apps-script/              # Google Apps Script backups/code
-│   └── [other scripts]
-├── .github/workflows/            # CI/CD pipeline definitions
-├── .local/                       # Local development data & backups
-│   ├── contact-backups/          # Backup of contact submissions
-│   ├── duplicate-audit/          # Data cleanup logs
-│   ├── manual-fixes/             # Manual correction records
-│   └── registro-backups/         # Old system data exports
-├── .planning/codebase/           # This directory - codebase analysis docs
-├── .claude/                      # Claude Code project config
-│   └── worktrees/                # Claude Code agent isolation directories
-├── .codex/                       # Codex/memory storage (if used)
-├── .vercel/                      # Vercel deployment config
-├── .env.example                  # Example environment variables
-├── .env.local                    # (NOT committed) Actual secrets
-├── .gitignore                    # Git ignore rules
-├── package.json                  # Dependencies & scripts
-├── package-lock.json             # Dependency lockfile
-├── next.config.js                # Next.js configuration
-├── tsconfig.json                 # TypeScript configuration
-├── tailwind.config.ts            # Tailwind CSS configuration
-├── postcss.config.js             # PostCSS configuration
-├── vitest.config.ts              # Vitest (test runner) config
-├── eslint.config.mjs             # ESLint configuration
-└── README.md                     # Project documentation
+├── app/                        # Next.js App Router: pages, layouts, route handlers, metadata routes
+│   ├── [locale]/               # Locale segment (9 locales), filled in by proxy.ts
+│   │   ├── layout.tsx          # <html>, fonts, I18nProvider, analytics
+│   │   ├── opengraph-image.tsx # Site-wide link preview (ISR 3600 s)
+│   │   ├── icon.png, apple-icon.png
+│   │   └── (site)/             # Every page of the site
+│   │       ├── layout.tsx      # ObraModalProvider + RouteTransition
+│   │       ├── page.tsx        # Home (force-dynamic; anon copy in anon/)
+│   │       ├── anon/           # Prebuilt copies of STATIC_PAGES (never edit by hand to diverge)
+│   │       ├── admin/          # Admin panel (layout gates on ADMIN_EMAILS)
+│   │       ├── obras/[slug]/   # Obra page, share image, certificate, history
+│   │       ├── artistas/[slug]/
+│   │       ├── galeria-3d/     # 3D gallery entry (signed in)
+│   │       ├── club/           # Club map and /club/[slug] galleries
+│   │       ├── mi-galeria/     # Artist's own gallery and editor
+│   │       ├── onboarding/     # Artist sign-up and obra upload
+│   │       ├── jurado/         # Jury scoring
+│   │       ├── tienda/         # Store and subscriptions
+│   │       ├── taller/         # Workshop registration
+│   │       ├── donar/          # Donations
+│   │       ├── revista/        # Magazine
+│   │       ├── museomar/       # MAR museum page
+│   │       ├── ar/[slug]/      # AR viewer and print cards
+│   │       ├── notificaciones/ # Notification list
+│   │       ├── auth/callback/  # Google OAuth code exchange
+│   │       ├── partners/, politica-de-privacidad/, terminos-y-condiciones/, aviso/, edicion-2026/, gracias/
+│   │       └── [...missing]/   # Catch-all → notFound()
+│   ├── api/                    # Route handlers (29 route.ts)
+│   │   ├── cron/               # Vercel Cron jobs (registro, exhibition, campanas, certificados, infra)
+│   │   ├── mercadopago/, paypal/, resend/, brevo/   # Webhooks and payment endpoints
+│   │   ├── img/                # Photo resizer for next/image
+│   │   ├── obras/, artworks/, artistas/, club/, gallery/, shipping/, stamps/, track/, unsubscribe/
+│   ├── monitoring/[...path]/   # Clarity proxy (legacy tabs)
+│   ├── globals.css
+│   ├── sitemap.ts, robots.ts   # Generated metadata routes
+│   └── *.test.ts               # robots.test.ts
+├── components/                 # React components (client and server)
+│   ├── ui/                     # Primitives: button, dialog, skeleton, call-chip, country-select
+│   ├── admin/                  # Admin widgets, admin-sections.ts (nav), stats/ (charts)
+│   ├── gallery/                # 3D gallery (Three.js / R3F), one folder per feature
+│   ├── club/                   # Club map, samples, houses on the home and /club
+│   ├── ar/                     # AR viewer
+│   ├── auth/                   # Google sign-in and sign-out buttons
+│   ├── notifications/          # Bell, panel, list
+│   └── *.tsx                   # Site sections and widgets (hero, footer, map, store, share, track …)
+├── lib/                        # Domain logic and services (304 files)
+│   ├── supabase/               # config.ts, server.ts, public.ts, admin.ts, client.ts
+│   ├── i18n/                   # locales.ts, server.ts, client.tsx, format.ts, messages/
+│   ├── payments/               # provider.ts, apply.ts, purchases.ts, providers/, paypal/
+│   ├── mail/                   # index.ts, transports.ts, events.ts, webhook.ts
+│   ├── notifications/          # repository.ts, server.ts, registry.ts, state.ts, time.ts
+│   ├── ar/                     # AR targets, pieces, print cards (PDF)
+│   ├── data/                   # Geography for the map: world-countries-110m.json, malvinas-50m.json
+│   └── *.ts / *.tsx            # One module per concept, usually with *.test.ts beside it
+├── data/                       # artworks.ts (Artwork type, gallery slots), artworks.test.ts
+├── proxy.ts                    # Request edge: locale, anon rewrite, session refresh
+├── proxy.test.ts               # Matcher and rewrite tests
+├── supabase/
+│   └── migrations/             # 107 SQL migrations, YYYYMMDDHHMMSS_name.sql
+├── scripts/                    # Operational CLIs and DB test harnesses (see below)
+│   ├── pglite/                 # Embedded-Postgres harness and club/registro scenarios
+│   ├── avatars/                # Avatar build (build.mjs, page.ts)
+│   └── apps-script/            # Registro.gs (Google Apps Script)
+├── public/                     # Static files served as-is
+│   ├── ar/, brand/, data/, email/, music/   # AR assets, brand images, data, mail images, tracks
+│   └── *.png, *.mp4, *.mp3, *.pdf, logo*.png, mundial-de-collage.pdf
+├── assets/                     # Fonts read at build (share image template hash) and by drawing code
+├── docs/                       # Project docs (bases, Club, Correo, gallery notes, patrocinio)
+├── .github/workflows/          # ci.yml, supabase-migrations.yml
+├── .planning/codebase/         # These analysis documents
+├── next.config.mjs             # Image loader, share-image template hash, redirects
+├── vercel.json                 # Cron schedules; Git auto-deploy off for main
+├── vitest.config.mts, vitest.setup.ts
+├── eslint.config.mjs, tsconfig.json, postcss.config.mjs, components.json
+├── AGENTS.md, CLAUDE.md, README.md, ROADMAP.md
+└── package.json
 ```
+
+Local, not in git (see Special Directories): `.local/`, `output/`, `.codex/`, `.next/`, `.vercel/`, `node_modules/`, `supabase/.temp/`, `.claude/settings.local.json`.
 
 ## Directory Purposes
 
-**`app/`:**
-- Purpose: Next.js App Router pages, layouts, and API routes
-- Pattern: Directory structure mirrors public URLs (e.g., `app/obras/[slug]/page.tsx` → `/obras/[slug]`)
-- Auth: `app/admin/` is guarded by `layout.tsx` redirect if user not in ADMIN_EMAILS
+**`app/[locale]/(site)/`:**
+- Purpose: every page the visitor sees, in one tree the proxy rewrites into.
+- Contains: 61 `page.tsx`, `loading.tsx`, `error.tsx` and `not-found.tsx` files, `actions.ts` (Server Actions), route handlers, `opengraph-image.tsx`.
+- Key files: `app/[locale]/(site)/layout.tsx`, `app/[locale]/(site)/page.tsx`, `app/[locale]/(site)/not-found.tsx`, `app/[locale]/(site)/error.tsx`.
+
+**`app/[locale]/(site)/anon/`:**
+- Purpose: prebuilt copies of the public pages in `lib/static-pages.ts`, served from the CDN to visitors with nothing personal.
+- Contains: 12 `page.tsx` files, plus `anon/obras/[slug]/opengraph-image.tsx` and `loading.tsx`. Each file calls `renderAsAnonymous()` and re-exports the real page (`../../club/page`, `../../galeria-3d/page`, and so on).
+- Key files: `anon/page.tsx` (home), `anon/obras/[slug]/page.tsx`, `anon/galeria-3d/page.tsx`, `anon/club/[slug]/page.tsx`.
+- Rule: a new public page gets a copy here, and the copy keeps the same path shape as its real page.
+
+**`app/[locale]/(site)/admin/`:**
+- Purpose: operations panel for the organizers.
+- Contains: `layout.tsx` (access gate), `page.tsx` (redirects to `estadisticas`), one folder per section: `campanas`, `club`, `comentarios`, `contactos`, `convocatoria`, `envios`, `estadisticas`, `inscripciones`, `jurado`, `muro`, `obras`, `pagos`, `plantillas`, `revista`, `tienda` (with `errores`). Each has `page.tsx`, often `actions.ts` and `loading.tsx`.
+- Key files: `admin/layout.tsx`, `admin/obras/actions.ts`, `admin/campanas/actions.ts`, `admin/estadisticas/page.tsx`.
+
+**`app/api/`:**
+- Purpose: HTTP endpoints for webhooks, cron, client `fetch` calls and images.
+- Contains: 29 `route.ts`. The proxy never runs for `/api/**` (matcher), so each route checks its own session when it needs one (`app/api/track/route.ts`, `app/api/stamps/route.ts`).
+- Key files: `app/api/img/route.ts`, `app/api/cron/*/route.ts`, `app/api/mercadopago/webhook/route.ts`, `app/api/paypal/webhook/route.ts`, `app/api/resend/webhook/route.ts`, `app/api/brevo/webhook/route.ts`.
 
 **`components/`:**
-- Purpose: Reusable React components organized by feature or domain
-- Pattern: Subdirectories for major features (admin, gallery, ar); flat list for shared UI
-- Import as: `import { ComponentName } from '@/components/feature-name'`
+- Purpose: UI. The site sections sit at the top level; features with more than a few files get a folder.
+- Contains: about 299 files. Top-level files use kebab-case (`site-header.tsx`, `obra-modal.tsx`). `components/gallery/` uses PascalCase for its entry components (`Game.tsx`, `Scene.tsx`, `GalleryAccess.tsx`, `ClubGame.tsx`) and kebab/camel names for helpers.
+- Key files: `components/site-header.tsx`, `components/route-transition.tsx`, `components/obra-modal.tsx`, `components/admin/admin-sections.ts`, `components/gallery/Game.tsx`.
+
+**`components/gallery/`:**
+- Purpose: the 3D gallery and the Club's galleries.
+- Contains: one folder per feature, each with a `store.ts` (zustand) where state is shared:
+  - `arcade/` (cabinet and snake game), `artwork/` (frames, artwork meshes), `attention/` (raycast and dwell recorder), `camera/` (first-person camera, edge look), `club/` (Club door, host, map dialog, stamps), `graphics/` (quality settings), `interaction/`, `minimap/`, `mobile/` (touch controls), `navigation/` (pathing, pointer navigation), `passport/`, `player/` (body, jump, spawn), `preferences/`, `presence/` (Realtime), `souvenir/` (photo capture), `tutorial/`, `ui/` (HUD: passport, minimap, start screen, presence counter, artwork modal), `vinyl/` (music player and tracks), `wall/` (collage wall), `world/` (rooms, architecture, MAR museum, people, visitors).
+- Top-level files: `Game.tsx` (orchestrates everything, loaded with `ssr: false`), `Scene.tsx` (R3F scene), `GalleryAccess.tsx` (sign-in gate), `ClubGame.tsx`, `themes.ts`, `venue.ts`, `fonts.ts`, `gallery-theme.module.css`.
 
 **`lib/`:**
-- Purpose: Server-side business logic, queries, utilities, helpers
-- Pattern: Mix of files—each module handles one concern (e.g., `gallery-artworks.ts`, `email-blocks.ts`)
-- Used from: Pages (`async` components), API routes, Server Actions, other lib files
-- Exports mostly async functions or data structures
+- Purpose: everything that is not UI or routing. About 304 files, most with a colocated `*.test.ts`.
+- Subfolders:
+  - `lib/supabase/`: the five Supabase clients and the config gate (see Key File Locations).
+  - `lib/i18n/`: `locales.ts` (list and detection), `server.ts` (`getI18n`), `client.tsx` (`I18nProvider`, `useI18n`), `format.ts`, `messages/` (one file per locale plus `index.ts` and `client.ts`).
+  - `lib/payments/`: `provider.ts` (interface), `apply.ts` (`syncPayment`), `purchases.ts`, `references.ts`, `recover.ts`, `validation.ts`, `customers.ts`, `providers/mercadopago.ts`, `providers/paypal.ts`, `paypal/` (store subscriptions: `client.ts`, `handlers.ts`, `plans.ts`), `fake-supabase.ts` (test double).
+  - `lib/mail/`: `index.ts` (`sendMail`, `sendMails`), `transports.ts`, `events.ts`, `webhook.ts`.
+  - `lib/notifications/`: `repository.ts`, `server.ts`, `registry.ts`, `state.ts`, `time.ts`.
+  - `lib/ar/`: `pieces.ts`, `targets.ts`, `mindar.ts`, `print-cards.tsx` (PDF cards).
+  - `lib/data/`: JSON geography for the map.
+- Top-level modules by theme (not exhaustive):
+  - Caching and images: `public-data-cache.ts`, `public-cache-tags.ts`, `share-image-cache.ts`, `artwork-share-image.tsx`, `r2.ts`, `image-src.ts`, `image-loader.ts`, `image-widths.mjs`, `downscale-image.ts`, `render-mode.ts`, `static-pages.ts`, `brand-images.mjs`.
+  - Obras and galleries: `finalists.ts`, `gallery-artworks.ts`, `gallery-attention.ts`, `gallery-catalog.ts`, `gallery-identity.ts`, `obra-detail.ts`, `public-obra-neighbors.ts`, `artwork-search.ts`, `artwork-stats.ts`, `artwork-slug.ts`, `slug.ts`, `collage-wall.ts`, `exhibition-day.ts`, `call-state.ts`.
+  - Registration and imports: `registro.ts`, `registro-sync.ts`, `registro-image-fingerprint.ts`, `legacy-submissions.ts`, `publish-legacy.ts`, `reuse-registro-artwork.ts`, `entries.ts`, `submissions.ts`, `google-sheets.ts`, `onboarding-*.ts`, `participants.ts`.
+  - Club: `club-*.ts` (galleries, editor, map, plans, payments, subscriptions, courtesy, launch, samples, contact, next-gallery).
+  - Money: `pricing.ts`, `donations.ts`, `donation-payments.ts`, `coin-pack-*.ts`, `entry-payments.ts`, `magazine*.ts`, `workshop-payments.ts`, `store.ts`, `mercadopago*.ts`, `mp-subscriptions*.ts`, `receipts.ts`, `subscription-receipts.ts`, `correo*.ts` (Correo Argentino shipping).
+  - Mail and campaigns: `mail-quota.ts`, `resend.ts`, `campaign-*.ts`, `countdown-campaigns.ts`, `email-*.ts`, `system-templates.ts`, `template-audiences.ts`, `certificate-*.ts`, `exhibition-mail.ts`, `artist-digest.ts`, `supporter-welcome.ts`, `jury-mail.ts`, `shipment-notices.ts`, `mail-links.ts`.
+  - Analytics and referrals: `funnel.ts`, `track.ts`, `track-server.ts`, `referral.ts`, `referral-server.ts`, `visit-source.ts`, `in-app-browser.ts`, `income.ts`, `home-stats.ts`, `country-breakdown.ts`, `chart-math.ts`, `supabase-monitor.ts`.
+  - Auth and security: `admin.ts`, `safe-next.ts`, `mercadopago-signature.ts`, `resend-signature.ts`, `certificate-token.ts`, `moderation.ts`, `terms*.ts`, `terms-version.ts`.
+  - Site-wide: `site.ts` (deadline, contact, sender), `utils.ts`, `cron.ts`, `stamps.ts`, `splash.ts`, `flag-svg.ts`, `paper-fabric.ts`, `phone.ts`, `name-format.ts`, `country-codes.ts`.
 
-**`lib/supabase/`:**
-- Purpose: Supabase client initialization and configuration
-- Key files:
-  - `server.ts` — `createClient()` for Server Components (uses session cookie)
-  - `public.ts` — `createPublicClient()` for anonymous queries (anon key)
-  - `config.ts` — `isSupabaseConfigured()` check before any Supabase call
-
-**`lib/i18n/`:**
-- Purpose: Internationalization infrastructure and message catalogs
-- Key files:
-  - `server.ts` — `getI18n()` returns `{ locale, m }` in Server Components
-  - `client.tsx` — `I18nProvider` for Client Components
-  - `messages/` — Message catalogs per language (es.ts, en.ts, etc.)
-  - `locales.ts` — Locale metadata (display names, flags, locale codes)
-
-**`lib/ar/`:**
-- Purpose: Augmented Reality helpers for print cards and artwork viewing
-- Key files:
-  - `mindar.ts` — MindAR setup and configuration
-  - `pieces.ts` — AR model/3D object definitions
-  - `print-cards.tsx` — PDF generation for print cards
-  - `targets.ts` — AR target image paths
-
-**`public/`:**
-- Purpose: Static assets served directly
-- Subdirs: `ar/` (AR targets), `email/` (email template images)
-- Note: Image uploads are in Supabase Storage, not here
+**`data/`:**
+- Purpose: static typed data used by the gallery.
+- Contains: `artworks.ts` (`Artwork` type, `GALLERY_FRAME_STYLES`, `gallerySlots`, `clubGallerySlots`), `artworks.test.ts`.
 
 **`supabase/migrations/`:**
-- Purpose: Database schema changes (SQL)
-- Pattern: Timestamped files (e.g., `20260921040000_artworks.sql`)
-- Applied on deploy via Supabase CLI
+- Purpose: the whole database schema, RLS policies and SQL functions.
+- Contains: 107 SQL files, from `20260916000000_profiles.sql` to the newest `20261029240000_club_guest_boards.sql` in this tree. Names are `YYYYMMDDHHMMSS_<topic>.sql`.
+- Each migration reaches production through `.github/workflows/supabase-migrations.yml` after the checks pass on `main`.
+
+**`scripts/`:**
+- Purpose: operations run by hand, plus DB tests.
+- Contains:
+  - Importers and syncs (run with `node --env-file=.env.local --import ./scripts/node-project-imports.mjs scripts/<name>.mts`): `import-obras.mts`, `import-contactos.mts`, `sync-registro.mts`, `sync-contactos-sheets.mts`, `audit-contactos.mts`, `setup-multiple-artwork-campaign.mts`.
+  - Asset builds: `brand-images.mjs` (WebP copies of logos), `build-bases-pdf.mts` (`public/mundial-de-collage.pdf`), `avatars/build.mjs`, `paypal-setup.mjs`.
+  - Probes: `probe-mp-subscription.mjs`.
+  - DB tests (run inside a rolled-back transaction): `test-club-galleries-db.mts`, `test-contact-sanitize-db.mts`, `test-legacy-publication-db.mts`, `test-optional-title-db.mts`, `test-registro-*-db.mts`, `test-relink-orphans-db.mts`.
+  - Unit tests: `registro.test.mts`, `registro-image-fingerprint.test.mts`, `apps-script-registro.test.mts`.
+  - `pglite/`: `harness.mjs` applies every migration to PGlite in order; `club-*.mjs` and `store-regression.mjs` are scenario scripts.
+  - `apps-script/Registro.gs`: the Google Apps Script bound to the registration sheet.
+  - `node-project-imports.mjs`: Node loader hook that resolves the `@/` alias for scripts.
+
+**`public/`:**
+- Purpose: files served at fixed URLs.
+- Contains: `logo*.png`, `wordmark.png`, `banner-mundial.png`, `header.png`/`header.mp4`, `cancion.mp3`, `mundial-de-collage.pdf`, `tienda-productos.webp`, `brand/` (WebP brand images from `scripts/brand-images.mjs`), `ar/` (AR markers and assets), `data/` (`argentina/`, `tarjeta-marca.png`), `email/` (images used in mail), `music/` (gallery tracks).
+
+**`assets/`:**
+- Purpose: font files (`Anton-Regular.ttf`, `Oswald-Cyrillic-700.woff`, EB Garamond WOFF) read by the drawing code and by `next.config.mjs` (hash of the share-image template).
+
+**`docs/`:**
+- Purpose: project notes read by humans: `bases/` (contest rules HTML and fonts, input for the PDF), `patrocinio/` (sponsorship material), `club-del-mundial-galerias-virtuales.md`, `correo-argentino.md`, `galeria-atencion.md`, `gallery-graphics.md`, `mar-gallery.md`, `vercel-performance-review-2026-10-10.md`.
+
+**`.github/workflows/`:**
+- `ci.yml`: lint, typegen, `tsc --noEmit`, tests, build; then migrations and the Vercel deploy hook on `main`.
+- `supabase-migrations.yml`: `supabase db push --remote`, reusable and manually runnable.
+
+## Special Directories
+
+**`.next/`:**
+- Purpose: Next build output and cache.
+- Generated: Yes. Committed: No (`.gitignore`).
+
+**`.vercel/`:**
+- Purpose: Vercel project link.
+- Generated: Yes. Committed: No (`.gitignore`).
 
 **`.local/`:**
-- Purpose: Local development artifacts, backups, manual fixes
-- Not committed; specific to developer machine
-- Examples: backup CSVs of contact submissions, audit logs
+- Purpose: private snapshots of the Registro sheet and contact backups used by the importers (`registro-backups/`, `contact-backups/`, `duplicate-audit/`, `manual-fixes/`, `contacts-sanitize/`).
+- Generated: Yes, by scripts and cron. Committed: No (`/.local/` in `.gitignore`).
+
+**`output/`:**
+- Purpose: generated marketing images (carousels, covers, `imagegen/`) and PDFs (`output/pdf/`).
+- Generated: Yes. Committed: No (`/output/` in `.gitignore`). About 167 MB locally.
+
+**`tmp/`:**
+- Purpose: scratch files (`tmp/pdfs/`).
+- Generated: Yes. Committed: Not in `.gitignore`; check before staging.
+
+**`generated_images/`, `Claude outputs/`:**
+- Purpose: empty output folders from earlier tooling. Not referenced by code. Not in `.gitignore`.
+
+**`propuestas/`:**
+- Purpose: proposal material (`tienda-suscripciones.html`).
+- Generated: No. Committed: Yes (check `git ls-files propuestas`).
+
+**`.claude/`:**
+- Purpose: Claude Code project settings. `worktrees/` holds full checkouts of other branches; `vitest.config.mts` excludes `.claude/**` so their tests do not run here.
+- Committed: `.claude/worktrees` is local. `settings.local.json` is gitignored.
+
+**`.codex/`:**
+- Purpose: Codex local configuration (may hold a payment token). Gitignored; never read or commit.
+
+**`supabase/.temp/`:**
+- Purpose: Supabase CLI link cache (project ref, CLI version). Gitignored.
+
+**`node_modules/`:**
+- Generated: Yes. Committed: No.
 
 ## Key File Locations
 
 **Entry Points:**
-
-| Route | File | Purpose |
-|-------|------|---------|
-| `/` | `app/page.tsx` | Homepage with sections |
-| `/onboarding` | `app/onboarding/page.tsx` | Artist signup/form |
-| `/admin` | `app/admin/layout.tsx` | Admin panel auth guard |
-| `/admin/obras` | `app/admin/obras/page.tsx` | Artwork curation |
-| `/obras/[slug]` | `app/obras/[slug]/page.tsx` | Individual artwork |
-| `/galeria-3d` | `app/galeria-3d/page.tsx` | 3D gallery |
-| `/ar/[slug]` | `app/ar/[slug]/page.tsx` | AR viewer |
+- `proxy.ts`: request edge (locale, anon rewrite, session refresh, matcher).
+- `app/[locale]/layout.tsx`: root layout and `generateStaticParams` for the nine locales.
+- `app/[locale]/(site)/layout.tsx`: site layout.
+- `app/[locale]/(site)/page.tsx`: home.
+- `app/[locale]/(site)/auth/callback/route.ts`: OAuth callback.
+- `app/api/cron/*/route.ts`: scheduled jobs (times in `vercel.json`).
+- `app/api/*/webhook/route.ts`: provider notifications.
 
 **Configuration:**
-
-| Purpose | File |
-|---------|------|
-| Runtime secrets | `.env.local` |
-| Environment example | `.env.example` |
-| TypeScript paths | `tsconfig.json` → `@/*` = project root |
-| Tailwind theming | `tailwind.config.ts` |
-| Next.js config | `next.config.js` |
-| ESLint rules | `eslint.config.mjs` |
+- `next.config.mjs`: custom image loader, `deviceSizes`/`imageSizes` from `lib/image-widths.mjs`, Supabase Storage remote pattern, `SHARE_IMAGE_TEMPLATE` build hash, `/participantes` redirect.
+- `vercel.json`: cron schedules and `git.deploymentEnabled.main = false`.
+- `tsconfig.json`: `@/*` → `./*`.
+- `vitest.config.mts`: `@` alias, node environment, `vitest.setup.ts` (mocks `next/root-params` and `@/lib/public-data-cache`).
+- `eslint.config.mjs`: lint rules (run by CI).
+- `components.json`: shadcn/ui settings.
+- `postcss.config.mjs`: Tailwind v4 through `@tailwindcss/postcss`.
+- `lib/site.ts`: deadline, contact address, sender, workshop copy; edit here for copy used across the site.
+- `lib/admin.ts`: admin emails.
+- `lib/club-launch.ts`: `CLUB_OPEN` switch.
+- `lib/supabase/config.ts`, `lib/mercadopago.ts`, `lib/resend.ts`, `lib/r2.ts`: environment gates.
 
 **Core Logic:**
-
-| Concern | File |
-|---------|------|
-| Get published artworks | `lib/finalists.ts` |
-| Gallery daily selection | `lib/gallery-artworks.ts` |
-| Email templates | `lib/system-templates.ts`, `lib/email-blocks.ts` |
-| Payment verification | `lib/mercadopago-signature.ts`, `app/api/mercadopago/webhook/route.ts` |
-| i18n setup | `lib/i18n/server.ts`, `lib/i18n/client.tsx` |
-| Admin check | `lib/admin.ts` (list), `app/admin/layout.tsx` (guard) |
-| Slug generation | `lib/slug.ts` |
-| Country utilities | `lib/country-codes.ts`, `lib/participants.ts` |
+- `lib/supabase/server.ts`: `createClient()`, `getCurrentUser()`.
+- `lib/supabase/public.ts`, `lib/supabase/admin.ts`, `lib/supabase/client.ts`: the other Supabase clients.
+- `lib/render-mode.ts`: anonymous-render flag.
+- `lib/static-pages.ts`: which pages have an `anon/` copy.
+- `lib/public-data-cache.ts`, `lib/public-cache-tags.ts`: cache wrappers and tags.
+- `lib/share-image-cache.ts`, `lib/r2.ts`: draw-once image cache.
+- `lib/cron.ts`: cron framework.
+- `lib/payments/provider.ts`, `lib/payments/apply.ts`: payments.
+- `lib/mail/index.ts`, `lib/mail-quota.ts`: mail.
+- `lib/registro-sync.ts`, `lib/registro.ts`: sheet import.
+- `lib/i18n/server.ts`, `lib/i18n/locales.ts`, `lib/i18n/messages/es.ts`: locale and Spanish source copy.
+- `components/gallery/Game.tsx`, `components/gallery/Scene.tsx`: 3D gallery.
+- `components/gallery/presence/protocol.ts`: Realtime message validation.
 
 **Testing:**
+- `proxy.test.ts`: matcher and rewrite rules.
+- `lib/static-pages.test.ts`: every listed page has a copy that calls `renderAsAnonymous()`.
+- `lib/cost-guards.test.ts`: image renderer allowlist.
+- `lib/*.test.ts`, `app/**/*.test.ts(x)`, `components/**/*.test.ts(x)`, `scripts/*.test.mts`, `data/artworks.test.ts`.
+- `scripts/pglite/harness.mjs` and `scripts/pglite/*.mjs`: database checks without a Supabase instance.
 
-| Type | Location |
-|------|----------|
-| Unit tests | `lib/*.test.ts` (colocated with implementation) |
-| Test runner config | `vitest.config.ts` |
-| Test command | `npm test` (runs `vitest run`) |
+**Database:**
+- `supabase/migrations/`: schema, RLS policies, `is_admin()`, `call_state`, `exhibition_day`, `funnel_events`, `mail_usage`, Club tables.
 
 ## Naming Conventions
 
 **Files:**
-- **Components**: `PascalCase.tsx` (e.g., `Hero Section.tsx`, `AdminNav.tsx`)
-- **Utilities/functions**: `kebab-case.ts` (e.g., `gallery-artworks.ts`, `email-blocks.ts`)
-- **Tests**: `kebab-case.test.ts` (e.g., `artwork-stats.test.ts`)
-- **Styles**: `kebab-case.module.css` for scoped styles (e.g., `gallery-theme.module.css`)
+- Next.js special files: lowercase (`page.tsx`, `layout.tsx`, `route.ts`, `actions.ts` is project convention for Server Actions, `loading.tsx`, `error.tsx`, `not-found.tsx`, `opengraph-image.tsx`).
+- Library modules: kebab-case, named by concept: `club-galleries.ts`, `share-image-cache.ts`, `mail-quota.ts`, `coin-pack-payments.ts`.
+- Provider or client code under `lib/payments/providers/`: lowercase provider name: `mercadopago.ts`, `paypal.ts`.
+- Tests: colocated, `<name>.test.ts` or `.test.tsx`. Scripts tests `*.test.mts`; DB checks `test-<area>-db.mts`.
+- Migrations: `YYYYMMDDHHMMSS_<snake_case_topic>.sql`.
+- Scripts: kebab-case `.mts` or `.mjs`.
 
 **Directories:**
-- **Feature-based**: Lowercase, plural for collections (e.g., `components/gallery/`, `lib/ar/`)
-- **Route segments**: Lowercase, with brackets for dynamic segments (e.g., `app/obras/[slug]/`)
+- Route segments: lowercase Spanish words, kebab-case when multi-word (`galeria-3d`, `mi-galeria`, `politica-de-privacidad`, `terminos-y-condiciones`). Dynamic segments `[slug]`, `[id]`, `[...missing]`, `[...path]`.
+- Feature folders in `components/gallery/`: lowercase single words (`arcade`, `presence`, `world`).
+- Locale folder: `[locale]` (never hardcoded in code, use `getI18n()`).
 
-**Functions:**
-- **Async queries**: `get*()` (e.g., `getFinalists()`, `getI18n()`)
-- **Actions/mutations**: Verb + noun (e.g., `createClient()`, `selectArtwork()`, `sendEmail()`)
-- **Handlers**: `handle*()` or `on*()` (e.g., `handleSubmit()`, `onScrollChange()`)
-- **Predicates**: `is*()`, `should*()` (e.g., `isSupabaseConfigured()`, `shouldPublish()`)
-- **Formatters**: `format*()` or `*ToString()` (e.g., `formatDayMonth()`, `countryCodeToName()`)
+**Identifiers:**
+- Components: PascalCase exports (`GalleryAccess`, `ClubGame`, `ObraModalProvider`).
+- Functions and values: camelCase (`getCurrentUser`, `renderAsAnonymous`, `cachedShareImage`).
+- Constants: UPPER_SNAKE (`STATIC_PAGES`, `REFERRAL_COOKIE`, `ADMIN_EMAILS`, `IMAGE_RENDERERS`, `LOCALE_COOKIE`).
+- Server Actions: verbs in camelCase, named after the action (`importLegacySubmissions`, `refreshPublicData`); files named `actions.ts` in the route folder.
+- Cache tags: `public-data:<key>`, `artwork:<hash>`, `artist:<id>`, `club-gallery:<hash>`.
+- Locale codes: lowercase ISO 639-1 (`es`, `en`, `pt`, `it`, `fr`, `de`, `ru`, `pl`, `id`).
 
-**Variables:**
-- **Constants**: `SCREAMING_SNAKE_CASE` (e.g., `ADMIN_EMAILS`, `SELECT_COLUMNS`)
-- **Other**: camelCase (e.g., `artworks`, `selectedProfile`)
-
-**Types:**
-- **Exported types**: PascalCase (e.g., `Finalist`, `ArtworkRow`)
-- **Component props**: `{ComponentName}Props` (e.g., `GameProps`)
+**Copy and messages:**
+- User-facing strings live in `lib/i18n/messages/<locale>.ts` (Spanish is the source). Do not hardcode strings in components, except where a page is Spanish-only (admin panel labels are in Spanish directly in admin files).
 
 ## Where to Add New Code
 
-**New Feature (e.g., voting system):**
-1. **Server logic**: Create `lib/voting.ts` with `getVoteCount()`, `submitVote()` functions
-2. **API endpoint**: Create `app/api/voting/route.ts` with POST handler
-3. **Component**: Create `components/voting-widget.tsx` to display votes and submit form
-4. **Page integration**: Import component in relevant page (e.g., `app/obras/[slug]/page.tsx`)
-5. **Tests**: Add `lib/voting.test.ts` with test cases
+**A new public page:**
+1. Page: `app/[locale]/(site)/<route>/page.tsx`. Read session with `getCurrentUser()`, locale with `getI18n()`. Use `export const dynamic = 'force-dynamic'` only when the data really changes per request; otherwise prefer `revalidate`.
+2. If it is public, personal-free and should be served from the CDN: add the path to `STATIC_PAGES` in `lib/static-pages.ts`, create `app/[locale]/(site)/anon/<route>/page.tsx` that calls `renderAsAnonymous()` and re-exports the page, with `export const revalidate`. `lib/static-pages.test.ts` checks it.
+3. Keep the page out of the proxy matcher only if it never reads the session (`proxy.test.ts`).
+4. Strings: `lib/i18n/messages/es.ts` and the other locale files (`lib/i18n/messages.test.ts`).
 
-**New Admin Page:**
-1. **Directory**: Create `app/admin/newfeature/`
-2. **Page file**: Add `page.tsx` with Server Component + async data fetching
-3. **Components**: Extract UI into `components/admin/new-feature-*.tsx`
-4. **Navigation**: Add link to `components/admin/admin-sections.ts` object
-5. **Tests**: Add component tests in `components/admin/new-feature.test.tsx`
+**A new admin section:**
+- Page: `app/[locale]/(site)/admin/<name>/page.tsx` (+ `loading.tsx`), writes in `app/[locale]/(site)/admin/<name>/actions.ts`.
+- Each Server Action that uses `createAdminClient()` must check admin-ness first (`assertIsAdmin` pattern in `admin/obras/actions.ts`).
+- Navigation: add an entry to `adminSections` in `components/admin/admin-sections.ts`.
+- Components: `components/admin/<name>.tsx`; charts in `components/admin/stats/`.
 
-**New Utility Function:**
-1. **File**: Create `lib/feature-name.ts` if single function, or directory `lib/feature-name/` if multi-file
-2. **Implementation**: Write pure function with JSDoc comments
-3. **Export**: Named export (not default)
-4. **Tests**: Colocate as `lib/feature-name.test.ts` with 100% branch coverage
+**A new Server Action:**
+- Co-locate in the page folder as `actions.ts` with `'use server'` at the top. Read the user with `createClient()` and `getUser()` (not `getCurrentUser()`, which is not memoized there). Refresh public data after writes with `refreshArtworkData()`, `refreshPublicData()` or `refreshClubGallery()` from `lib/public-data-cache.ts`.
 
-**New Component:**
-1. **File**: `components/feature-name.tsx` (if shared) or `components/feature/feature-name.tsx` (if domain-specific)
-2. **Props interface**: Define `interface FeatureNameProps { ... }`
-3. **Styling**: Inline Tailwind classes, or create `.module.css` if complex
-4. **Export**: Named export
-5. **Storybook**: (Optional) Consider adding to component library
+**A new API route:**
+- `app/api/<area>/<name>/route.ts`. The proxy skips `/api/**`, so the route handles its own session and origin checks (see `app/api/gallery/attention/route.ts`). Set `Cache-Control` with `s-maxage` if the response is the same for everyone (see `app/api/img/route.ts`).
+- Webhooks: verify the signature with a helper beside the route (`lib/mercadopago-signature.ts` pattern), answer 200 for topics you do not need, and add a `route.test.ts` (see `app/api/mercadopago/webhook/route.test.ts`).
 
-**New Supabase Table/Field:**
-1. **Migration file**: Create `supabase/migrations/TIMESTAMP_description.sql` with `CREATE TABLE` or `ALTER TABLE`
-2. **Timestamp**: Use ISO 8601 format in filename (e.g., `20260930120000_`)
-3. **RLS policies**: Add `CREATE POLICY` statements for row-level security
-4. **Types**: Update `lib/supabase/` if creating client types (or rely on runtime inference)
+**A new cron job:**
+- Route: `app/api/cron/<name>/route.ts` using `cronRoute()` and `runCronJobs()` from `lib/cron.ts`.
+- Schedule: add to `vercel.json` `crons`.
+- Logic: `lib/<name>.ts` with a colocated test. Use `dryRun` for previews.
 
-**New Email Template:**
-1. **Block library**: Add reusable block to `lib/email-blocks.ts` if not already present
-2. **System template**: Add function to `lib/system-templates.ts` returning email structure
-3. **Admin UI**: No code needed if using `campaign-composer.tsx` which loads blocks from DB
-4. **Test**: Add test in `lib/email-blocks.test.ts` or new template test file
+**A new server-side image renderer:**
+- Cache its output first (`cachedShareImage()` from `lib/share-image-cache.ts`, or ISR). Then add the file to `IMAGE_RENDERERS` in `lib/cost-guards.test.ts`, with how it avoids redrawing. The test fails until it is listed.
 
-**New 3D Gallery Component:**
-1. **File**: Create `components/gallery/feature-name.tsx` or `components/gallery/feature-name/index.tsx`
-2. **State**: If ephemeral state needed, create Zustand store in same directory (e.g., `components/gallery/feature-name/store.ts`)
-3. **Styling**: Create `.module.css` for scoped styles or use inline Tailwind
-4. **Threaded**: Use `<mesh>` from `@react-three/fiber`, wrap in `<Suspense>` if heavy
+**A new payment purchase kind:**
+- Logic: `lib/<kind>-payments.ts` that returns a purchase strategy, registered in `lib/payments/apply.ts`. Provider-specific code stays in `lib/payments/providers/`.
+- Tests beside it (see `lib/entry-payments.ts` with `lib/payments/apply.ts` tests in `lib/payments/apply.test.ts`).
 
-## Special Directories
+**A new mail template or campaign:**
+- Template: `lib/system-templates.ts` (`ensureSystemTemplate`, `renderSystemEmail`). Sending: `lib/mail/index.ts` (`transactional` or `bulk`). Audience: `lib/campaign-audience.ts`, `lib/template-audiences.ts`. Translations: `lib/email-translation.ts`.
 
-**`app/api/cron/`:**
-- Purpose: Scheduled background jobs triggered by external services (Vercel Cron, Google Cloud Scheduler)
-- Timing: Configured in Vercel project settings or via environment triggers
-- Example: `app/api/cron/exhibition/route.ts` — runs daily to compute gallery selection
-- Pattern: Each job is a `GET` route with `export const maxDuration = 60` (seconds)
+**A new database change:**
+- Migration: `supabase/migrations/<YYYYMMDDHHMMSS>_<topic>.sql`. The migration reaches production when CI passes on `main`, so test it first with `scripts/pglite/harness.mjs` (`npm install --no-save @electric-sql/pglite`) and, if it has invariants, a rolled-back check script like `scripts/test-club-galleries-db.mts`.
+- Access rules: RLS in the same migration. Admin rules use `is_admin()`.
 
-**`components/gallery/`:**
-- Purpose: 3D gallery (Three.js + Rapier physics + Zustand state)
-- Complexity: High—coordinates renderer, physics, input, UI, realtime
-- Key files:
-  - `Game.tsx` — Main entry point, initializes scene
-  - `world/` — Meshes, lighting, scene setup
-  - `player/` — Player avatar mesh
-  - `camera/` — Camera controller
-  - `interaction/` + `store.ts` — Input handling + UI state
-  - `minimap/` + `store.ts` — Minimap rendering + position tracking
-  - `presence/` + `store.ts` — Multiplayer presence (Supabase Realtime)
-  - `ui/` — UI panels, buttons, overlays (not Three.js meshes)
+**A new gallery feature (3D):**
+- Folder: `components/gallery/<feature>/` with `store.ts` (zustand) and the component. Mount it from `components/gallery/Game.tsx`. Keep Three.js code behind `Scene.tsx` (client-only dynamic import).
+- Messages to other visitors: validate in `components/gallery/presence/protocol.ts` style (anyone can publish on the channel).
+- Club-only behavior: `components/gallery/club/`.
 
-**`lib/i18n/messages/`:**
-- Purpose: Nested translation object per language
-- Structure: Each language file exports `Messages` type with nested keys (e.g., `m.common.untitled`, `m.onboarding.signInTitle`)
-- Pattern: `getI18n()` returns `m` object; components use JSX `{m.section.key}` for strings
-- Adding a new key: Update all language files to maintain parity
+**A new Club feature:**
+- Data and rules: `lib/club-<topic>.ts` with a `*.test.ts`. Actions: `app/[locale]/(site)/mi-galeria/editar/actions.ts` (owner) or `app/[locale]/(site)/admin/club/actions.ts` (admin). UI: `components/club/*` (site) or `components/gallery/club/*` (inside the gallery).
 
-**`.env.local` (not committed):**
-- Purpose: Store runtime secrets
-- Example vars:
-  - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY` (secret)
-  - `MERCADOPAGO_ACCESS_TOKEN` (secret)
-  - `RESEND_API_KEY` (secret)
-  - `ANTHROPIC_API_KEY` (if used)
-- Rule: Never commit `.env.local`; use `.env.example` for template
+**A new shared utility:**
+- `lib/<concept>.ts` for pure logic (framework-free if the Node scripts need it: no `@/` imports), with `lib/<concept>.test.ts` next to it.
 
-**`supabase/migrations/`:**
-- Purpose: Version-controlled database schema
-- Usage: Applied in order by Supabase CLI on deploy
-- Template:
-  ```sql
-  create table if not exists public.artworks (
-    id uuid primary key,
-    profile_id uuid not null,
-    title text,
-    is_selected boolean default false,
-    created_at timestamp default now(),
-    foreign key (profile_id) references profiles(id)
-  );
+**A new React component:**
+- Primitive (no domain logic): `components/ui/<name>.tsx`.
+- Site section: `components/<name>.tsx` (kebab-case).
+- Feature: `components/<feature>/<Name>.tsx` in a folder.
 
-  create policy "artworks: owner read own" on artworks
-    for select using (auth.uid() = profile_id);
-  ```
+**A new script:**
+- `scripts/<name>.mts` (TypeScript, runs with `node --env-file=.env.local --import ./scripts/node-project-imports.mjs`). Read-only audits say so in the header. DB checks run inside `BEGIN … ROLLBACK`.
+
+**Tests:**
+- Colocate `<module>.test.ts` next to the module. For UI, `*.test.tsx` beside the component. Route tests mock Supabase with `vi.mock('@supabase/ssr', …)` as in `proxy.test.ts`.
+
+## Special Directories Rules
+
+- **Never commit:** `.local/`, `output/`, `.codex/`, `.env*`, `supabase/.temp/`, `.claude/settings.local.json`.
+- **Before staging:** check `tmp/`, `generated_images/`, `Claude outputs/`, `propuestas/` (not gitignored).
+- **Keep in sync:** `ADMIN_EMAILS` in `lib/admin.ts` with `is_admin()` in the migrations; `lib/exhibition-day.ts` with `exhibition_day()` in its migration; `lib/club-map.ts` rounding with the Club migration.
 
 ---
 
-*Structure analysis: 2026-09-29*
+*Structure analysis: 2026-11-08*
