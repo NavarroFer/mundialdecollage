@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { suggestedArtists } from '@/app/[locale]/(site)/comunidad/actions'
 import { useI18n } from '@/lib/i18n/client'
+import { fmt } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
 import { countryCodeToFlag } from '@/lib/participants'
 import type { SuggestedArtist } from '@/lib/community'
@@ -32,7 +33,7 @@ export function SuggestedArtists() {
               className="block overflow-hidden rounded-2xl border-2 border-ink/10 bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageSrc(artist.imageUrl, 320)} alt="" className="aspect-[4/5] w-full object-cover" />
+              <img src={imageSrc(artist.imageUrl, 320)} alt={fmt(m.community.photoOf, { name: artist.name })} className="aspect-[4/5] w-full object-cover" />
             </Link>
             <Link
               href={artist.href}

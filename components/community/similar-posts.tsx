@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/client'
+import { fmt } from '@/lib/i18n/format'
 import { imageSrc } from '@/lib/image-src'
 import { communityPostPath, type FeedPost, type SimilarObra } from '@/lib/community'
 import { track } from '@/lib/track'
@@ -53,7 +54,7 @@ export function SimilarPosts({ postId, obraId, slug, compact = false }: { postId
           <li key={post.id}>
             <Link href={communityPostPath(post.id, post.artwork?.slug)} onClick={() => track('community_suggestion_click')}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageSrc(post.imageUrl, 320)} alt="" className="aspect-[4/5] w-full rounded-xl object-cover" />
+              <img src={imageSrc(post.imageUrl, 320)} alt={post.imageAlt ?? fmt(m.community.photoOf, { name: post.author.name })} className="aspect-[4/5] w-full rounded-xl object-cover" />
             </Link>
           </li>
         ))}

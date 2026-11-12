@@ -56,6 +56,11 @@ export function ObraActivityFeed() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [pendingNote, setPendingNote] = useState<Record<string, string>>({})
+  // Obras this visitor liked in this visit (a like is one per person), and the
+  // last failure per obra, announced next to the card that failed.
+  const [liked, setLiked] = useState<Record<string, true>>({})
+  const [notes, setNotes] = useState<Record<string, string>>({})
+  const [moreFailed, setMoreFailed] = useState(false)
   // «Para vos»: the database computes the taste, the browser orders what it
   // already has. Hidden until there is a taste to read.
   const [sort, setSort] = useState<'recent' | 'foryou'>('recent')
@@ -104,15 +109,29 @@ export function ObraActivityFeed() {
     })
   }
 
+  function note(slug: string, text: string | null) {
+    setNotes((current) => {
+      const next = { ...current }
+      if (text) next[slug] = text
+      else delete next[slug]
+      return next
+    })
+  }
+
   async function like(slug: string) {
+    if (liked[slug]) return
     const result = await likeArtwork(slug)
     if ('error' in result) {
       if (result.error === 'sign_in_required') {
         const here = `${window.location.pathname}${window.location.search}${window.location.hash}`
         void startGoogleSignIn(here || '/')
+        return
       }
+      note(slug, t.errors.unavailable)
       return
     }
+    note(slug, null)
+    setLiked((current) => ({ ...current, [slug]: true }))
     bump(slug, (obra) => ({ ...obra, likes: obra.likes + 1, activityAt: new Date().toISOString() }))
   }
 
@@ -124,9 +143,13 @@ export function ObraActivityFeed() {
       if (result.error === 'sign_in_required') {
         const here = `${window.location.pathname}${window.location.search}${window.location.hash}`
         void startGoogleSignIn(here || '/')
+        return
       }
+      const known = result.error === 'too_long' ? t.errors.too_long : result.error === 'rate_limited' ? t.errors.rate_limited : t.errors.unavailable
+      note(slug, known)
       return
     }
+    note(slug, null)
     setDrafts((current) => ({ ...current, [slug]: '' }))
     if (result.comment.pending) {
       setPendingNote((current) => ({ ...current, [slug]: result.comment.body }))
@@ -144,7 +167,7 @@ export function ObraActivityFeed() {
   if (!obras) {
     return (
       <ul className="flex flex-col gap-6" aria-hidden="true">
-        {[0, 1].map((item) => <li key={item} className="h-[28rem] animate-pulse rounded-3xl bg-ink/5" />)}
+        {[0, 1].map((item) => <li key={item} className="h-[28rem] motion-safe:animate-pulse rounded-3xl bg-ink/5" />)}
       </ul>
     )
   }
@@ -186,8 +209,8 @@ export function ObraActivityFeed() {
           </Link>
           <div className="px-4 py-3">
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => void like(obra.slug)} className="inline-flex min-h-11 items-center gap-2 rounded-full px-2 font-semibold text-ink hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-collage-blue" aria-label={t.like}>
-                <Heart className="h-5 w-5" aria-hidden="true" />
+              <button type="button" onClick={() => void like(obra.slug)} aria-pressed={Boolean(liked[obra.slug])} className="inline-flex min-h-11 items-center gap-2 rounded-full px-2 font-semibold text-ink hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-collage-blue" aria-label={t.like}>
+                <Heart className={`h-5 w-5 ${liked[obra.slug] ? 'fill-collage-red text-collage-red' : ''}`} aria-hidden="true" />
                 {obra.likes > 0 && <span>{fmt(t.likes, { count: obra.likes })}</span>}
               </button>
               <span className="inline-flex min-h-11 items-center gap-2 px-2 font-semibold text-ink">
@@ -206,9 +229,10 @@ export function ObraActivityFeed() {
             </ul>
             <form className="mt-3 flex gap-2" onSubmit={(event) => { event.preventDefault(); void comment(obra.slug) }}>
               <label className="sr-only" htmlFor={`comment-${obra.id}`}>{t.commentPlaceholder}</label>
-              <input id={`comment-${obra.id}`} value={drafts[obra.slug] ?? ''} onChange={(event) => setDrafts((current) => ({ ...current, [obra.slug]: event.target.value }))} placeholder={t.commentPlaceholder} maxLength={500} className="min-h-11 flex-1 rounded-full border-2 border-ink/15 px-4 text-sm focus-visible:outline-2 focus-visible:outline-collage-blue" />
+              <input id={`comment-${obra.id}`} value={drafts[obra.slug] ?? ''} onChange={(event) => setDrafts((current) => ({ ...current, [obra.slug]: event.target.value }))} placeholder={t.commentPlaceholder} maxLength={500} className="min-h-11 flex-1 rounded-full border-2 border-ink/15 px-4 text-base focus-visible:outline-2 focus-visible:outline-collage-blue" />
               <button type="submit" className="min-h-11 rounded-full px-3 text-sm font-semibold text-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-collage-blue">{t.send}</button>
             </form>
+            {notes[obra.slug] && <p role="alert" className="mt-2 text-sm font-semibold text-collage-red">{notes[obra.slug]}</p>}
           </div>
         </li>
       ))}
@@ -220,14 +244,16 @@ export function ObraActivityFeed() {
             className="min-h-11 w-full rounded-full border-2 border-ink/15 text-sm font-semibold text-ink hover:bg-ink/5 disabled:opacity-60"
             onClick={() => {
               setLoadingMore(true)
+              setMoreFailed(false)
               void load(next).then((page) => {
                 setObras((current) => [...(current ?? []), ...page.obras])
                 setNext(page.next)
-              }).finally(() => setLoadingMore(false))
+              }).catch(() => setMoreFailed(true)).finally(() => setLoadingMore(false))
             }}
           >
-            {t.seeMore}
+            {t.loadMore}
           </button>
+          {moreFailed && <p role="alert" className="mt-2 text-center text-sm font-semibold text-collage-red">{t.errors.unavailable}</p>}
         </li>
       )}
       </ul>

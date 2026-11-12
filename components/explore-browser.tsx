@@ -63,7 +63,7 @@ export function ExploreBrowser() {
   }, [obras, sort, taste])
 
   if (failed) return <p role="alert" className="py-16 text-center text-muted-foreground">{m.community.loadError}</p>
-  if (!entries) return <div className="mt-8 h-64 animate-pulse rounded-3xl bg-ink/5" aria-hidden="true" />
+  if (!entries) return <div className="mt-8 h-64 motion-safe:animate-pulse rounded-3xl bg-ink/5" aria-hidden="true" />
 
   return (
     <div>
