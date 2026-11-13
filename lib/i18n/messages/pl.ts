@@ -380,6 +380,9 @@ const pl: Messages = {
     doneBody: 'Twoje dane zostały zapisane, a Twoja praca jest u nas. Ten krok masz za sobą.',
     doneNext: 'Zespół Mistrzostw zajmuje się wyborem i publikacją. W międzyczasie możesz obejrzeć swoją pracę i dalej odkrywać stronę.',
     backToMundial: 'Wróć do Mistrzostw',
+    overviewTitle: 'Jest tu jeszcze wiele do odkrycia',
+    overviewBody: 'Odwiedzaj inne części strony, kiedy chcesz. W każdej chwili możesz tu wrócić z menu.',
+    overviewOpen: 'Otwórz tę sekcję',
   },
   // «Mis datos» (/mi-perfil): where an artist corrects their own details.
   profileEditor: {

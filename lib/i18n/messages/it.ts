@@ -375,6 +375,9 @@ const it: Messages = {
     doneBody: 'I tuoi dati sono stati salvati e abbiamo la tua opera. Hai completato questo passaggio.',
     doneNext: 'Il team del Mondiale si occupa della selezione e della pubblicazione. Nel frattempo puoi rivedere la tua opera e continuare a esplorare.',
     backToMundial: 'Torna al Mondiale',
+    overviewTitle: 'C’è molto altro da scoprire',
+    overviewBody: 'Quando vuoi, visita le altre sezioni del sito. Puoi tornare qui dal menu in qualsiasi momento.',
+    overviewOpen: 'Apri questa sezione',
   },
   // «Mis datos» (/mi-perfil): where an artist corrects their own details.
   profileEditor: {

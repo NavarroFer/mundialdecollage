@@ -376,6 +376,9 @@ const en: Messages = {
     doneNext:
       'The World Cup team takes care of selection and publication. In the meantime, you can review your artwork and keep exploring.',
     backToMundial: 'Back to the World Cup',
+    overviewTitle: 'There’s more to explore',
+    overviewBody: 'Whenever you like, visit other parts of the site. You can come back here from the menu at any time.',
+    overviewOpen: 'Open this section',
   },
   // «Mis datos» (/mi-perfil): where an artist corrects their own details.
   profileEditor: {

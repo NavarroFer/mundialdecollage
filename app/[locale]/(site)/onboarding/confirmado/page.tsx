@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Compass, Images, Search, CheckCircle2 } from 'lucide-react'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { Button } from '@/components/ui/button'
@@ -49,6 +49,30 @@ export default async function ConfirmationPage() {
           <Button asChild size="lg" variant={profileHref ? 'outline' : undefined}><Link href={`/obras/${artwork.slug}`}>{m.common.viewMyArtwork}</Link></Button>
           <Button asChild variant="outline"><Link href="/">{m.confirmation.backToMundial}</Link></Button>
         </div>
+        <section className="mt-10 border-t-2 border-ink/10 pt-8 text-left" aria-labelledby="confirmation-overview-title">
+          <h2 id="confirmation-overview-title" className="font-display text-2xl tracking-tight text-ink uppercase sm:text-3xl">{m.confirmation.overviewTitle}</h2>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{m.confirmation.overviewBody}</p>
+          <ul className="mt-5 grid gap-3">
+            {[
+              { href: '/explorar', title: m.siteSections.explore, body: m.siteSections.exploreLead, Icon: Search },
+              { href: '/muestra', title: m.siteSections.show, body: m.siteSections.showLead, Icon: Images },
+              { href: '/mundial', title: m.siteSections.mundial, body: m.siteSections.mundialLead, Icon: Compass },
+            ].map(({ href, title, body, Icon }) => (
+              <li key={href}>
+                <Link href={href} className="group flex min-h-24 items-center gap-4 rounded-2xl border-2 border-ink/10 bg-paper p-4 text-left transition-colors hover:border-collage-blue/40 hover:bg-collage-blue/5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-collage-blue sm:p-5">
+                  <Icon className="size-7 shrink-0 text-collage-blue" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-lg font-bold leading-snug text-ink">{title}</span>
+                    <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">{body}</span>
+                    <span className="mt-3 inline-flex min-h-11 items-center gap-2 font-semibold text-collage-blue underline underline-offset-4">
+                      {m.confirmation.overviewOpen}<ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
         {/* What to look forward to while the jury works, the Club first: a
             room of their own is the next step after a profile. */}
         <div className="mt-8 space-y-3">

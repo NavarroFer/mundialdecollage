@@ -381,6 +381,9 @@ const es = {
     doneNext:
       'El equipo del Mundial se ocupa de la selección y publicación. Mientras tanto, podés revisar tu obra y seguir explorando.',
     backToMundial: 'Volver al Mundial',
+    overviewTitle: 'También podés hacer mucho más',
+    overviewBody: 'Cuando quieras, recorré otras partes del sitio. Podés volver acá en cualquier momento desde el menú.',
+    overviewOpen: 'Entrar a esta sección',
   },
   // «Mis datos» (/mi-perfil): where an artist corrects their own details.
   profileEditor: {
