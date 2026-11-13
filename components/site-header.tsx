@@ -130,11 +130,13 @@ export async function SiteHeader({ deskNav = true, search = false }: { deskNav?:
             <NotificationsSlot />
             {viewSwitch()}
             {signIn()}
-            <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
-              <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
-                {callOpen ? m.header.participate : m.closed.headerCta}
-              </TrackedLink>
-            </Button>
+            {!isAdmin && (
+              <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
+                <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
+                  {callOpen ? m.header.participate : m.closed.headerCta}
+                </TrackedLink>
+              </Button>
+            )}
             <AccountSlot />
           </div>
 
@@ -154,6 +156,7 @@ export async function SiteHeader({ deskNav = true, search = false }: { deskNav?:
       </SiteHeaderMotion>
       {/* Outside the <header>: its backdrop blur would pin a fixed child to the header instead of the screen. */}
       <MobileTabBar
+        showParticipate={!isAdmin}
         callOpen={callOpen}
         labels={{
           nav: m.header.nav,

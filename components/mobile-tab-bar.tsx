@@ -30,7 +30,6 @@ type Tab = {
   newTab?: boolean
 }
 
-const CENTER = 2
 // How far a finger travels before a press becomes a drag across the tabs.
 const DRAG_SLOP = 8
 
@@ -47,7 +46,7 @@ function activeTab(pathname: string): Tab['key'] | null {
 // «Participar» raised in the middle. A finger can press one and slide across
 // the others; a lens follows it and the tab under it on release is the one
 // that opens. A plain tap is just the link's own click.
-export function MobileTabBar({ callOpen, labels }: { callOpen: boolean; labels: MobileTabBarLabels }) {
+export function MobileTabBar({ callOpen, showParticipate = true, labels }: { callOpen: boolean; showParticipate?: boolean; labels: MobileTabBarLabels }) {
   const pathname = usePathname()
   const rowRef = useRef<HTMLDivElement>(null)
   const lensRef = useRef<HTMLSpanElement>(null)
@@ -61,9 +60,9 @@ export function MobileTabBar({ callOpen, labels }: { callOpen: boolean; labels: 
   const tabs: Tab[] = [
     { key: 'home', href: '/', label: labels.home, icon: House },
     { key: 'explore', href: '/explorar', label: labels.explore, icon: Search },
-    callOpen
-      ? { key: 'participate', href: '/onboarding', label: labels.participate, icon: Plus, event: 'submit_click_tabbar' }
-      : { key: 'participate', href: '/galeria-3d', label: labels.participate, icon: Eye, event: 'submit_click_tabbar' },
+    ...(showParticipate ? [callOpen
+      ? { key: 'participate' as const, href: '/onboarding', label: labels.participate, icon: Plus, event: 'submit_click_tabbar' as const }
+      : { key: 'participate' as const, href: '/galeria-3d', label: labels.participate, icon: Eye, event: 'submit_click_tabbar' as const }] : []),
     { key: 'show', href: '/muestra', label: labels.show, icon: Landmark, event: 'gallery_click_tabbar' },
     { key: 'mundial', href: '/mundial', label: labels.mundial, icon: Compass },
   ]
@@ -160,6 +159,7 @@ export function MobileTabBar({ callOpen, labels }: { callOpen: boolean; labels: 
       aria-label={labels.nav}
       className="mobile-tab-bar fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink/10 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden"
       data-dragging={dragging}
+      data-tabs={tabs.length}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -171,11 +171,11 @@ export function MobileTabBar({ callOpen, labels }: { callOpen: boolean; labels: 
         event.stopPropagation()
       }}
     >
-      <div ref={rowRef} className="relative mx-auto grid h-16 max-w-md grid-cols-5">
+      <div ref={rowRef} className={`relative mx-auto grid h-16 max-w-md ${showParticipate ? 'grid-cols-5' : 'grid-cols-4'}`}>
         <span ref={lensRef} aria-hidden="true" className="mobile-tab-bar__lens" />
         {tabs.map((tab, index) => {
           const Icon = tab.icon
-          const featured = index === CENTER
+          const featured = tab.key === 'participate'
           const active = index === activeIndex
           const lit = dragging ? hovered === index : index === restIndex
           // SectionLink scrolls to the home's section when already there.

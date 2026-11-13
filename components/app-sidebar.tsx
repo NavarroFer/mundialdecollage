@@ -22,8 +22,9 @@ const ITEMS = [
   { href: '/onboarding', key: 'participate', icon: Plus },
 ] as const
 
-export function AppSidebar({ labels }: { labels: AppNavLabels }) {
+export function AppSidebar({ labels, showParticipate = true }: { labels: AppNavLabels; showParticipate?: boolean }) {
   const pathname = usePathname()
+  const items = showParticipate ? ITEMS : ITEMS.filter((item) => item.key !== 'participate')
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r-2 border-ink/10 bg-paper px-4 py-6 lg:flex">
       <Link href="/" className="flex items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue">
@@ -31,7 +32,7 @@ export function AppSidebar({ labels }: { labels: AppNavLabels }) {
         <Image src="/wordmark.png" alt="Mundial de Collage" width={120} height={40} className="h-7 w-auto" />
       </Link>
       <nav aria-label={labels.home} className="mt-8 flex flex-col gap-1">
-        {ITEMS.map((item) => {
+        {items.map((item) => {
           const active = item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(`${item.href}/`)
             || (item.href === '/muestra' && (pathname.startsWith('/galeria-3d') || pathname.startsWith('/museomar')))
             || (item.href === '/mundial' && (pathname.startsWith('/club') || pathname.startsWith('/tienda') || pathname.startsWith('/revista')))
