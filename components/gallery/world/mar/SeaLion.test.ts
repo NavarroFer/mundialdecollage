@@ -1,24 +1,56 @@
 import { describe, expect, it } from 'vitest'
+import * as THREE from 'three'
 import { LOBO } from './layout'
-import { sweptBodyGeometry } from './SeaLion'
+import { seaLionBodyGeometry, seaLionFaceGeometries, seaLionForeflipperGeometry, seaLionHindflipperGeometry } from './seaLionGeometry'
 
-describe('sweptBodyGeometry', () => {
-  it('stays inside the sea lion slab, about nine metres to the top of its head and a broad column up there', () => {
-    const geometry = sweptBodyGeometry()
-    geometry.computeBoundingBox()
-    const box = geometry.boundingBox!
-    const { head, x0, x1, z0, z1 } = LOBO
-    expect(box.min.x + head.x).toBeGreaterThan(x0)
-    expect(box.max.x + head.x).toBeLessThan(x1)
-    expect(box.min.z + head.z).toBeGreaterThan(z0)
-    expect(box.max.z + head.z).toBeLessThan(z1)
-    expect(box.max.y).toBeGreaterThan(9)
-    expect(box.max.y).toBeLessThan(11)
-    // Seven metres up, the neck is more than three metres across: a column, not a muzzle.
-    let widest = 0
+function sculpture() {
+  const face = seaLionFaceGeometries()
+  return [seaLionBodyGeometry(), seaLionForeflipperGeometry(1), seaLionForeflipperGeometry(-1), seaLionHindflipperGeometry(1), seaLionHindflipperGeometry(-1), ...face.gold, ...face.recesses]
+}
+
+describe('MAR sea lion', () => {
+  it('keeps every body part inside the solid walk-map footprint and above its plinth', () => {
+    const geometries = sculpture()
+    const bounds = new THREE.Box3()
+    for (const geometry of geometries) {
+      geometry.computeBoundingBox()
+      const box = geometry.boundingBox!
+      expect(box.min.x + LOBO.head.x).toBeGreaterThan(LOBO.x0)
+      expect(box.max.x + LOBO.head.x).toBeLessThan(LOBO.x1)
+      expect(box.min.z + LOBO.head.z).toBeGreaterThan(LOBO.z0)
+      expect(box.max.z + LOBO.head.z).toBeLessThan(LOBO.z1)
+      expect(box.min.y).toBeGreaterThanOrEqual(0)
+      bounds.union(box)
+      for (const name of ['position', 'normal', 'uv']) {
+        const attribute = geometry.getAttribute(name)
+        for (const value of attribute.array) expect(Number.isFinite(value)).toBe(true)
+      }
+      geometry.dispose()
+    }
+    expect(bounds.max.y + LOBO.height).toBeGreaterThan(10)
+    expect(bounds.max.y + LOBO.height).toBeLessThan(11)
+  })
+
+  it('has outward normals on the closed chest and a broad, tapered neck', () => {
+    const geometry = seaLionBodyGeometry()
     const position = geometry.getAttribute('position')
-    for (let i = 0; i < position.count; i++) if (Math.abs(position.getY(i) - 7.2) < 0.3) widest = Math.max(widest, Math.abs(position.getZ(i)))
-    expect(widest * 2).toBeGreaterThan(3)
-    for (let i = 0; i < position.count; i++) expect(Number.isFinite(position.getX(i) + position.getY(i) + position.getZ(i))).toBe(true)
+    const normals = geometry.getAttribute('normal')
+    let neckWidth = 0
+    let chestWidth = 0
+    let checked = 0
+    for (let i = 0; i < position.count; i++) {
+      const y = position.getY(i)
+      const z = position.getZ(i)
+      if (Math.abs(y - 7.2) < 0.1) neckWidth = Math.max(neckWidth, Math.abs(z) * 2)
+      if (Math.abs(y - 4.9) < 0.1) chestWidth = Math.max(chestWidth, Math.abs(z) * 2)
+      if (y > 5 && y < 9 && Math.abs(z) > 0.5) {
+        expect(normals.getZ(i) * z).toBeGreaterThan(0)
+        checked++
+      }
+    }
+    expect(checked).toBeGreaterThan(100)
+    expect(neckWidth).toBeGreaterThan(3)
+    expect(chestWidth).toBeGreaterThan(neckWidth)
+    geometry.dispose()
   })
 })

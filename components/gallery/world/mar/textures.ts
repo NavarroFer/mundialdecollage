@@ -169,53 +169,8 @@ export function cobbleTexture() {
   return canvasTexture(canvas)
 }
 
-/** The sculpture's weave: one repeat is this many metres of body. */
-export const WEAVE_TILE = 2.4
-
-/**
- * Basket weave of flat pale strips, as in the close-up photograph: blocks of
- * two strips, alternately lying across and along, each strip about 5 cm wide
- * and twice as long. Straw-coloured, with a gold sheen on some strips.
- */
-export function weaveTexture() {
-  const size = 512
-  const { canvas, context } = canvasOf(size, size)
-  const random = seeded(23)
-  const u = 16
-  context.fillStyle = '#ab9760'
-  context.fillRect(0, 0, size, size)
-  const blocks = size / (2 * u)
-  const strip = (x: number, y: number, w: number, h: number, horizontal: boolean) => {
-    const tone = 206 + random() * 34
-    const gold = random() < 0.28 ? 22 : 0
-    context.fillStyle = `rgb(${tone + gold}, ${tone - 8 + gold * 0.45}, ${tone - 46 - gold * 0.6})`
-    context.fillRect(x + 0.7, y + 0.7, w - 1.4, h - 1.4)
-    // Grain along the strip, and a lit edge.
-    context.fillStyle = 'rgba(255, 244, 196, 0.22)'
-    context.fillRect(x + 0.7, y + 0.7, horizontal ? w - 1.4 : 1.2, horizontal ? 1.2 : h - 1.4)
-    context.fillStyle = 'rgba(96, 74, 30, 0.16)'
-    for (let g = 0; g < 3; g++) {
-      if (horizontal) context.fillRect(x + 1, y + 3 + g * 4.4, w - 2, 0.7)
-      else context.fillRect(x + 3 + g * 4.4, y + 1, 0.7, h - 2)
-    }
-  }
-  for (let by = 0; by < blocks; by++) {
-    for (let bx = 0; bx < blocks; bx++) {
-      const x = bx * 2 * u
-      const y = by * 2 * u
-      if ((bx + by) % 2 === 0) {
-        // Two strips lying across, one above the other.
-        strip(x, y, 2 * u, u, true)
-        strip(x, y + u, 2 * u, u, true)
-      } else {
-        // Two strips standing up, side by side.
-        strip(x, y, u, 2 * u, false)
-        strip(x + u, y, u, 2 * u, false)
-      }
-    }
-  }
-  return canvasTexture(canvas)
-}
+/** 16 × 8 wrappers per repeat: approximately 10 × 20 cm per packet. */
+export const WEAVE_TILE = 1.6
 
 /** Dark steps along an escalator. */
 export function escalatorTexture() {

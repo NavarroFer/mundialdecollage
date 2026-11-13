@@ -4,7 +4,7 @@ Open it at `/museomar`. That address starts in MAR. `/galeria-3d` stays the Coll
 
 A second public building in the 3D gallery, chosen next to the theme list (or with `?museo=mar`). The Collage World Cup rooms are unchanged. This is a first reconstruction from the plan, the three sections, the published sheet and the site photographs. It is not a measured survey. Every metre below is an estimate and lives in `components/gallery/world/mar/layout.ts`, so a later photo with one known dimension can move a wall without hunting through the meshes.
 
-The daily obras are the same ones as the other gallery. They are rehung on MAR's walls in the browser. Nothing here reproduces the artworks visible in the reference photographs. The woven sea lion on the plaza is a temporary installation, but it is in every photograph of the front and dominates the plaza, so it is modelled (`SeaLion.tsx`) and can be deleted in one line when it is taken down.
+The daily obras are the same ones as the other gallery. They are rehung on MAR's walls in the browser. Nothing here reproduces the artworks visible in the reference photographs. The golden sea lion on the plaza is modelled in `SeaLion.tsx`. Its shape and covering were revised against the user’s close-up photographs on 13 November 2026; see `docs/mar-sea-lion.md` for the reference observations and texture provenance.
 
 ## What the sheets and photos actually show
 
@@ -24,7 +24,7 @@ Facade fidelity was reworked from a second set of photographs (plaza, entrance, 
 - **Vinyl volume.** About 11 m. Its ground floor is set back behind a long printed vinyl; the floors above overhang it; a tall narrow window runs up its east end.
 - **Tower** at the east end, about 16 m: a black door and a ground window at its foot, the louvred vent housing in front of them, and the sunken stair beside it (walled off; the shaft is drawn below the paving).
 - **Plaza.** Granite setts in overlapping fans (`cobbleTexture`), a low granite kerb across it, an orange tactile pad, two concrete street lamps, and a deep-blue sky dome.
-- **Sea lion.** On a low beige slab with white gravel, rocks and a stainless rail on angled brackets. About 10 m to the top of its head, 11 m long, from the photographs; not surveyed. The head and neck are a broad, nearly cylindrical column with a rounded top (the front photographs show no pointed muzzle), the body trails low behind it, and the front flippers are straight-edged plates with softened corners hanging from the chest. Its skin is a basket weave of pale straw strips (blocks of two, alternately across and along, about 5 cm wide) read off the close-up; the front flippers hang from the chest as flat panels. The slab is solid in the walk map and the plaza goes round it.
+- **Sea lion.** A continuous, pear-shaped chest and tapered trailing body, planted curved foreflippers and splayed rear flippers. The stone original supplied by the user clarifies the raised muzzle, partly open mouth and small lateral eyes under MAR’s gold covering. The covering consists of individual concave gold alfajor wrappers, with sealed edges and fine printed dots. It is not straw or woven ribbons. A generated 16 × 8 wrapper colour tile is paired with aligned height/roughness maps and triplanar projection; a local outdoor reflection map gives the metal its sheen at every graphics quality. Pale stones are instanced on the existing solid platform. The complete sculpture stays inside that footprint and above the slab. Scale remains estimated, about 10.7 m high including the plinth. See `docs/mar-sea-lion.md`.
 
 The concrete is board-formed: panels 2.4 × 1.2 m, rows not aligned, each panel its own shade, hairline joints, pin holes and water streaks. One texture repeat covers 4 × 4 panels.
 
@@ -93,7 +93,7 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 | Volume over the doors | 13.4 m | Lower than the west volume in the same frame |
 | Tower | 16 m | Same panel-row count |
 | Soffit over the doors | 4.6 m | Door head 2.6 m plus two transom rows |
-| Sea lion | 9.7 m high, 11 m long | Against the 20 m box behind it in the front photograph |
+| Sea lion | About 10.7 m high including the plinth; 13.3 m long | Estimated from the supplied frontal and side photographs, not surveyed |
 | East room clear height | 5.6 m | Darker room, lighting rails just under the ceiling |
 | Vinyl volume | 11 m | The right-hand box in the frontal photo |
 | Auditorium clear height | 7.4 m | Section, not a counted seat riser |
