@@ -69,8 +69,10 @@ export function HeroPiece({ slug, artistName, countryCode, artwork, tilt = -1.5 
   return (
     <figure
       className="mx-auto w-full rotate-(--tilt) motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out motion-safe:hover:rotate-0"
-      // Whole picture within ~62% of the screen's height, whatever its shape.
-      style={{ '--tilt': `${tilt}deg`, maxWidth: ratio ? `calc(${ratio.toFixed(3)} * 62vh + 1.5rem)` : undefined } as React.CSSProperties}
+      // Whole picture within ~62% of the screen's height, whatever its shape —
+      // but never so narrow that the title label breaks words (a very tall,
+      // thin collage would otherwise leave a ~200px card).
+      style={{ '--tilt': `${tilt}deg`, maxWidth: ratio ? `max(calc(${ratio.toFixed(3)} * 62vh + 1.5rem), min(100%, 20rem))` : undefined } as React.CSSProperties}
     >
       <ObraLink
         obra={summaryOf({ artwork, artistName, countryCode })}
