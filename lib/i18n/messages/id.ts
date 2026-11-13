@@ -375,6 +375,9 @@ const id: Messages = {
     doneBody: 'Datamu sudah tersimpan dan karyamu sudah kami terima. Kamu sudah menyelesaikan langkah ini.',
     doneNext: 'Tim Piala Dunia akan mengurus seleksi dan publikasi. Sementara itu, kamu bisa melihat karyamu dan terus menjelajah.',
     backToMundial: 'Kembali ke Piala Dunia',
+    overviewTitle: 'Masih banyak yang bisa dijelajahi',
+    overviewBody: 'Kapan pun, kunjungi bagian lain di situs ini. Kamu bisa kembali ke sini dari menu kapan saja.',
+    overviewOpen: 'Buka bagian ini',
   },
   // «Mis datos» (/mi-perfil): where an artist corrects their own details.
   profileEditor: {
