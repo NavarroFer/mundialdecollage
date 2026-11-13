@@ -1,5 +1,6 @@
 import { CircleAlert, ExternalLink, RefreshCw, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { readAllRows } from '@/lib/read-all-rows'
 import { guessCountryCodeFromName } from '@/lib/participants'
 import { AdminPageHeader, StatPill } from '@/components/admin/page-header'
 import { SubmissionsGallery } from '@/components/admin/submissions-gallery'
@@ -16,6 +17,25 @@ import {
   retryLegacyImageFetch,
 } from './actions'
 import { adminDescription } from '@/components/admin/admin-sections'
+
+type LegacyRow = {
+  id: string
+  email: string
+  name: string | null
+  drive_url: string | null
+  country_raw: string | null
+  title: string | null
+  technique: string | null
+  selected: boolean
+  promoted: boolean
+  claimed_by: string | null
+  claimed_at: string | null
+  created_at: string
+  image_url: string | null
+  image_fetch_failed_at: string | null
+  instagram: string | null
+  review_status: 'unreviewed' | 'preselected' | 'rejected'
+}
 
 type ArtworkRow = {
   id: string
@@ -51,7 +71,9 @@ export default async function ObrasPage({
   // One row per artwork, grouped by profile below — a profile can now have
   // more than one (see supabase/migrations/20260921040000_artworks.sql),
   // each admin-curated via `is_selected` (selectArtwork/deleteArtwork).
-  const { data: artworkData } = await supabase
+  // Every page of it: Supabase caps a request at 1000 rows and there are more
+  // obras than that, so a single read hid the newest ones from the search.
+  const artworkData = await readAllRows((from, to) => supabase
     .from('artworks')
     .select(
       'id, profile_id, slug, title, image_url, technique, is_selected, is_entered, created_at, legacy_submission_id, review_status, profiles!inner(name, country_code, is_public, onboarded_at, instagram, entries_chosen_at)',
@@ -60,8 +82,10 @@ export default async function ObrasPage({
     .is('archived_at', null)
     .is('duplicate_of', null)
     .order('created_at', { ascending: true })
+    .order('id')
+    .range(from, to))
 
-  const artworkRows = (artworkData ?? []) as unknown as ArtworkRow[]
+  const artworkRows = artworkData as unknown as ArtworkRow[]
   const artworksByProfile = new Map<string, ArtworkRow[]>()
   for (const row of artworkRows) {
     const list = artworksByProfile.get(row.profile_id) ?? []
@@ -78,7 +102,7 @@ export default async function ObrasPage({
   // artists sent more than one obra under the same email, so this is grouped
   // by email below; one per artist is confirmed automatically and an admin
   // can switch it from the gallery viewer.
-  const { data: legacyData } = await supabase
+  const legacyRows = await readAllRows<LegacyRow>((from, to) => supabase
     .from('legacy_submissions')
     .select(
       'id, email, name, drive_url, country_raw, title, technique, selected, promoted, claimed_by, claimed_at, created_at, image_url, image_fetch_failed_at, instagram, review_status',
@@ -87,8 +111,8 @@ export default async function ObrasPage({
     .is('duplicate_of', null)
     .order('email', { ascending: true })
     .order('created_at', { ascending: true })
-
-  const legacyRows = legacyData ?? []
+    .order('id')
+    .range(from, to))
   const legacyGroups = new Map<string, typeof legacyRows>()
   for (const row of legacyRows) {
     const list = legacyGroups.get(row.email) ?? []
@@ -206,9 +230,9 @@ export default async function ObrasPage({
   // reused from artworksByProfile above: a profile can in principle exist
   // without an artwork row yet (e.g. onboarding failed partway through), and
   // its name is still worth cleaning up.
-  const { data: allProfiles } = await supabase.from('profiles').select('id, name')
+  const allProfiles = await readAllRows<{ id: string; name: string | null }>((from, to) => supabase.from('profiles').select('id, name').order('id').range(from, to))
   const nameCleanupItems: NameCleanupItem[] = []
-  for (const profile of allProfiles ?? []) {
+  for (const profile of allProfiles) {
     if (!profile.name) continue
     const after = normalizeArtistName(profile.name)
     if (after !== profile.name) {
