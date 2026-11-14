@@ -11,6 +11,7 @@ import {
 } from './decals'
 import { brandBannerTexture } from './brandBanners'
 import { louvreTexture } from './textures'
+import { entranceBannerTexture } from './EntranceDetails'
 
 // Everything printed, painted or fitted on the faces of the volumes: the mark
 // over the doors, the banners, the revolving door, the vent housing and the
@@ -25,6 +26,7 @@ function useBannerTextures(banners: MarBanner[]) {
       texture.anisotropy = 8
       return texture
     }
+    if (banner.id === 'standee-a' || banner.id === 'standee-b') return entranceBannerTexture(banner.id === 'standee-b')
     return brandBannerTexture(banner.id)
   }), [banners])
   useEffect(() => () => textures.forEach((texture) => texture?.dispose()), [textures])

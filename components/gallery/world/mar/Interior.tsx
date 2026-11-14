@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_TABLES, GALLERY, MAR, MAR_ESCALATORS, SHOP } from './layout'
+import { CAFE_TABLES, GALLERY, MAR, SHOP } from './layout'
 import {
   boardTexture,
   fasciaTexture,
@@ -14,6 +14,7 @@ import {
   vitrineTexture,
 } from './interiorDecals'
 import { seeded } from './textures'
+import { EntranceDetails } from './EntranceDetails'
 
 // The ground floor, as the interior photographs show it: a hall under deep
 // concrete beams and skylights, stainless escalators, the café and the shop
@@ -73,45 +74,6 @@ function HallRoof({ materials }: { materials: InteriorMaterials }) {
       <mesh position={[HALL.x1 - 0.2, 4.4, -3]} material={materials.lamp}>
         <boxGeometry args={[0.06, 8, 0.06]} />
       </mesh>
-    </group>
-  )
-}
-
-/** Stainless escalators: a clad underside, side skirts, glass balustrades and black handrails that follow the slope. */
-function EscalatorSides({ materials }: { materials: InteriorMaterials }) {
-  const lanes = MAR_ESCALATORS
-  return (
-    <group>
-      {lanes.map((lane) => {
-        const run = lane.zBottom - lane.zTop
-        const length = Math.hypot(run, lane.rise)
-        const angle = Math.atan2(lane.rise, run)
-        const centre: [number, number, number] = [(lane.x0 + lane.x1) / 2, lane.rise / 2, (lane.zBottom + lane.zTop) / 2]
-        const width = lane.x1 - lane.x0
-        return (
-          <group key={lane.id} position={centre} rotation={[angle, 0, 0]}>
-            <mesh position={[0, -0.34, 0]} material={materials.steel}>
-              <boxGeometry args={[width + 0.1, 0.55, length]} />
-            </mesh>
-            {[lane.x0 - 0.04, lane.x1 + 0.04].map((x) => {
-              const dx = x - centre[0]
-              return (
-                <group key={x} position={[dx, 0, 0]}>
-                  <mesh position={[0, 0.22, 0]} material={materials.steel}>
-                    <boxGeometry args={[0.1, 0.5, length]} />
-                  </mesh>
-                  <mesh position={[0, 0.9, 0]} material={materials.glass}>
-                    <boxGeometry args={[0.03, 0.8, length]} />
-                  </mesh>
-                  <mesh position={[0, 1.34, 0]} material={materials.mullion}>
-                    <boxGeometry args={[0.09, 0.07, length]} />
-                  </mesh>
-                </group>
-              )
-            })}
-          </group>
-        )
-      })}
     </group>
   )
 }
@@ -351,22 +313,13 @@ function HallProps() {
   useEffect(() => () => grate.dispose(), [grate])
   return (
     <group>
-      {/* Fire hose cabinet and its reel, on the west wall. */}
-      <mesh position={[-11.72, 1.35, -16]}>
-        <boxGeometry args={[0.24, 0.8, 0.7]} />
-        <meshStandardMaterial color="#c6221d" roughness={0.5} />
-      </mesh>
-      <mesh position={[-11.58, 1.35, -16]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.28, 0.28, 0.06, 18]} />
-        <meshStandardMaterial color="#f2eee8" roughness={0.8} />
-      </mesh>
       {/* Marble-topped table on gold legs. */}
-      <mesh position={[-7.7, 0.78, -1.85]}>
-        <boxGeometry args={[2.4, 0.04, 0.8]} />
+      <mesh position={[-10.9, 0.78, -1.7]}>
+        <boxGeometry args={[0.8, 0.04, 2.4]} />
         <meshStandardMaterial color="#ece8e1" roughness={0.3} />
       </mesh>
       {[[-1.1, -0.34], [1.1, -0.34], [-1.1, 0.34], [1.1, 0.34]].map(([dx, dz]) => (
-        <mesh key={`${dx}${dz}`} position={[-7.7 + dx, 0.38, -1.85 + dz]}>
+        <mesh key={`${dx}${dz}`} position={[-10.9 + dz, 0.38, -1.7 + dx]}>
           <boxGeometry args={[0.04, 0.76, 0.04]} />
           <meshStandardMaterial color="#c8a05a" roughness={0.35} metalness={0.4} />
         </mesh>
@@ -517,13 +470,13 @@ export function Interior({ materials }: { materials: InteriorMaterials }) {
   return (
     <group>
       <HallRoof materials={materials} />
-      <EscalatorSides materials={materials} />
       <WestCeiling materials={materials} />
       <Cafe />
       <Shop />
       <Laboratorio />
       <LaIsla />
       <HallProps />
+      <EntranceDetails />
       <Track />
       <GalleryRoom materials={materials} />
       <Lounge />

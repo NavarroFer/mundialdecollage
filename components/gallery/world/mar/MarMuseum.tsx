@@ -11,7 +11,6 @@ import { playerBody } from '../../player/body'
 import { SPAWN_HEIGHT } from '../../player/spawn'
 import {
   MAR,
-  MAR_ESCALATORS,
   blocksBody,
   marBoxes,
   marCenter,
@@ -24,6 +23,8 @@ import {
 import { Facade } from './Facade'
 import { HallFlag } from './HallFlag'
 import { Interior } from './Interior'
+import { Escalators } from './Escalators'
+import { InteriorFloor } from './InteriorFloor'
 import { boardTexture, slatTexture } from './interiorDecals'
 import { SeaLion } from './SeaLion'
 import { CONCRETE_TILE, cobbleTexture, concreteTexture, escalatorTexture } from './textures'
@@ -170,41 +171,22 @@ function Sky() {
   )
 }
 
-function EscalatorDecks({ material }: { material: THREE.Material }) {
-  const meshes = useMemo(() => MAR_ESCALATORS.map((lane) => {
-    const run = lane.zBottom - lane.zTop
-    const length = Math.hypot(run, lane.rise)
-    const geometry = new THREE.BoxGeometry(lane.x1 - lane.x0, 0.08, length)
-    const uv = geometry.getAttribute('uv')
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 2, uv.getY(i) * (length / 0.45))
-    uv.needsUpdate = true
-    return { geometry, lane, length }
-  }), [])
-  useEffect(() => () => meshes.forEach(({ geometry }) => geometry.dispose()), [meshes])
-  return meshes.map(({ geometry, lane }) => (
-    <mesh
-      key={lane.id}
-      geometry={geometry}
-      material={material}
-      position={[(lane.x0 + lane.x1) / 2, lane.rise / 2, (lane.zBottom + lane.zTop) / 2]}
-      rotation={[Math.atan2(lane.rise, lane.zBottom - lane.zTop), 0, 0]}
-      receiveShadow
-    />
-  ))
-}
-
 function Floors({ materials }: { materials: Record<(typeof marFloors)[number]['kind'], THREE.Material> }) {
   const geometries = useMemo(() => marFloors.map((floor) => {
     const tile = floor.kind === 'cobble' ? MAR.cobble : floor.kind === 'grass' ? 4 : 3
     return tiledPlane(floor.x1 - floor.x0, floor.z1 - floor.z0, tile)
   }), [])
   useEffect(() => () => geometries.forEach((geometry) => geometry.dispose()), [geometries])
-  return geometries.map((geometry, index) => {
-    const floor = marFloors[index]
-    return (
-      <mesh key={floor.id} geometry={geometry} material={materials[floor.kind]} position={[(floor.x0 + floor.x1) / 2, floor.kind === 'cobble' || floor.kind === 'grass' ? 0.02 : 0.035, (floor.z0 + floor.z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow />
-    )
-  })
+  return (
+    <>
+      <InteriorFloor fallback={materials.polish} />
+      {geometries.map((geometry, index) => {
+        const floor = marFloors[index]
+        if (floor.kind === 'polish') return null
+        return <mesh key={floor.id} geometry={geometry} material={materials[floor.kind]} position={[(floor.x0 + floor.x1) / 2, floor.kind === 'cobble' || floor.kind === 'grass' ? 0.02 : 0.035, (floor.z0 + floor.z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow />
+      })}
+    </>
+  )
 }
 
 const TREES: Array<[number, number]> = [[-32, 26], [-18, 28], [6, 27], [22, 26], [34, 23]]
@@ -236,10 +218,10 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
       black: new THREE.MeshStandardMaterial({ color: '#0f1113', roughness: 0.14, metalness: 0.35 }),
       board: new THREE.MeshStandardMaterial({ map: boardMap, roughness: 0.95 }),
       louvre: new THREE.MeshStandardMaterial({ map: slatMap, roughness: 0.6 }),
-      blueglass: new THREE.MeshStandardMaterial({ color: '#2f93d6', transparent: true, opacity: 0.82, roughness: 0.2, emissive: '#0f4f86', emissiveIntensity: 0.35 }),
+      blueglass: new THREE.MeshStandardMaterial({ color: '#2f93d6', transparent: true, opacity: 0.82, roughness: 0.2, emissive: '#0f4f86', emissiveIntensity: 0.08 }),
       darkglass: new THREE.MeshStandardMaterial({ color: '#27343f', roughness: 0.12, metalness: 0.35 }),
       interior: new THREE.MeshStandardMaterial({ color: '#4a4f54', roughness: 0.7 }),
-      steel: new THREE.MeshStandardMaterial({ color: '#cfd3d6', roughness: 0.4, metalness: 0.3 }),
+      steel: new THREE.MeshStandardMaterial({ color: '#cfd3d6', roughness: 0.28, metalness: 0.68 }),
       granite: new THREE.MeshStandardMaterial({ color: '#85827b', roughness: 0.9 }),
       void: new THREE.MeshStandardMaterial({ color: '#0e0f11', roughness: 0.9 }),
       distant: new THREE.MeshStandardMaterial({ color: '#d5cfc4', roughness: 0.9 }),
@@ -327,7 +309,7 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
         </mesh>
       ))}
 
-      <EscalatorDecks material={materials.steps} />
+      <Escalators materials={materials} steps={materials.steps} />
       <Facade materials={materials} />
       <Interior materials={materials} />
       <HallFlag seed={obraImages} />

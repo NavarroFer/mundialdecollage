@@ -162,6 +162,27 @@ describe('MAR layout', () => {
     expect(mid).toBeLessThan(MAR.mezzanine)
   })
 
+  it('connects both escalators to the same reachable mezzanine and ground floor', () => {
+    const ground = reachableFrom(MAR_SPAWN)
+    const upper = reachableFrom(marGalleryTemplate.upper!.link.exit, marUpperTemplate)
+    for (const lane of MAR_ESCALATORS) {
+      const x = (lane.x0 + lane.x1) / 2
+      const direction = Math.sign(lane.zTop - lane.zBottom)
+      expect(marEscalatorHeight(x, lane.zBottom)).toBeCloseTo(0)
+      expect(marEscalatorHeight(x, lane.zTop)).toBeCloseTo(MAR.mezzanine)
+      expect(ground(Math.round(x * 2) / 2, Math.round((lane.zBottom - direction * 0.85) * 2) / 2), lane.id).toBe(true)
+      expect(upper(Math.round(x * 2) / 2, Math.round((lane.zTop + direction * 0.7) * 2) / 2), lane.id).toBe(true)
+    }
+  })
+
+  it('keeps the entry, café passage and shop approach connected around the furniture', () => {
+    const reached = reachableFrom(MAR_SPAWN)
+    for (const point of [{ x: 0, z: -2 }, { x: 6.5, z: -3 }, { x: -12, z: -3.5 }, { x: -20, z: 0 }, { x: -18, z: -2 }]) {
+      expect(reached(point.x, point.z), JSON.stringify(point)).toBe(true)
+    }
+    expect(walkable({ x: -5.2, z: -0.95 }, false, marGalleryTemplate, false)).toBe(false)
+  })
+
   it('puts the escalators left of the entrance, with open floor between their foot and the front wall', () => {
     for (const lane of MAR_ESCALATORS) {
       // Entering the door you face -Z, so left is -X.

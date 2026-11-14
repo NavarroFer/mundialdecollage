@@ -153,8 +153,8 @@ export const MAR_BANNERS: MarBanner[] = [
   // The long vinyl at the foot of the volume right of the slot.
   { id: 'vinyl', center: [14.15, 1.78, 2.02], width: 11.1, height: 2.8 },
   // Roll-up banners in the hall, either side of the door as you come in.
-  { id: 'standee-a', center: [-8.3, 1.05, -3.4], width: 0.85, height: 2, standee: true },
-  { id: 'standee-b', center: [-7.2, 1.05, -3.4], width: 0.85, height: 2, standee: true },
+  { id: 'standee-a', center: [7.55, 1.05, -5.5], width: 0.85, height: 2, standee: true, yaw: -Math.PI / 2 },
+  { id: 'standee-b', center: [7.5, 1.35, -6.7], width: 0.75, height: 1.1, standee: true, yaw: -Math.PI / 2 },
   // At the foot of the gallery's portal, on the mezzanine, turned to face the escalators.
   { id: 'standee-c', center: [-10.6, MAR.mezzanine + 1.05, -13.6], width: 0.85, height: 2, standee: true, yaw: Math.PI / 2 },
 ]
@@ -162,7 +162,7 @@ export const MAR_BANNERS: MarBanner[] = [
 export const MAR_DOORS = {
   /** South glass wall of the hall, the only way in from the plaza. */
   entrance: { x0: -2.6, x1: 2.6, z: 0 },
-  west: { x: -12, z0: -3.45, z1: -0.35 },
+  west: { x: -12, z0: -5.2, z1: -0.35 },
   east: { x: 14, z0: -13.6, z1: -10.4 },
   auditorium: { z: -20, x0: -1.6, x1: 2.4 },
 } as const
@@ -171,18 +171,18 @@ export const MAR_DOORS = {
 export const MAR_SPAWN = { x: 0, z: 16, yaw: 0 }
 
 /**
- * The two escalators on the east side of the hall. zBottom is the plaza end
+ * The two escalators on the west side of the hall. zBottom is the plaza end
  * (height 0); zTop meets the mezzanine. Rise and run are provisional.
  */
 export const MAR_ESCALATORS = [
   { id: 'up', x0: -8.9, x1: -7.45, zBottom: -5, zTop: -12.05, rise: MAR.mezzanine },
-  { id: 'down', x0: -7.2, x1: -5.75, zBottom: -5, zTop: -12.05, rise: MAR.mezzanine },
+  { id: 'down', x0: -7.2, x1: -5.75, zBottom: -12.05, zTop: -5, rise: MAR.mezzanine },
 ] as const
 
 /** Height of the escalator deck at this floor point, or null when you're beside it. */
 export function marEscalatorHeight(x: number, z: number): number | null {
   for (const lane of MAR_ESCALATORS) {
-    if (x < lane.x0 || x > lane.x1 || z > lane.zBottom || z < lane.zTop) continue
+    if (x < lane.x0 || x > lane.x1 || z > Math.max(lane.zBottom, lane.zTop) || z < Math.min(lane.zBottom, lane.zTop)) continue
     const span = lane.zBottom - lane.zTop
     return (lane.rise * (lane.zBottom - z)) / span
   }
@@ -390,16 +390,25 @@ export const marBoxes: MarBox[] = [
   ...mullionsX('mar-mullion-west-glass', -30, -12, 8.08, 0, SOFFIT, 1.25),
   ...mullionsZ('mar-mullion-hall-e', -7.8, -0.2, 14.08, 0.35, 8.2, 1.25),
 
+  // Low entrance vestibule and the service wall immediately to the visitor's right.
+  box('mar-entry-ceiling', -11.86, 4.35, -4.35, 8.3, 4.6, -0.08, 'concrete'),
+  wallZ('mar-entry-right', -7.5, -0.14, 8.3, 4.6),
+  // Concrete back to the small waiting recess by the glass entrance.
+  box('mar-entry-seat-back', -7.2, 0, -0.3, -3, 4.35, -0.14, 'concrete'),
+  box('mar-entry-seat-a', -6.95, 0, -1.4, -5.85, 0.85, -0.4, 'seat', { visual: false }),
+  box('mar-entry-seat-b', -4.45, 0, -1.4, -3.35, 0.85, -0.4, 'seat', { visual: false }),
+  box('mar-entry-low-table', -5.65, 0, -1.25, -4.75, 0.4, -0.65, 'table', { visual: false }),
+
   // --- Ground floor dressing, from the interior photographs. Everything here keeps clear of the
   // strips in front of hung walls (about 2.5 m), so every obra can still be walked up to.
   // Over the door to the west room: a louvred band under the concrete.
-  box('mar-west-louvre', -12.14, 3.4, -3.45, -11.86, 4.7, -0.35, 'louvre', seeThrough),
-  box('mar-west-lintel', -12.14, 4.7, -3.45, -11.86, WEST_H, -0.35, 'concrete', seeThrough),
+  box('mar-west-louvre', -12.14, 3.4, MAR_DOORS.west.z0, -11.86, 4.35, MAR_DOORS.west.z1, 'louvre', seeThrough),
+  box('mar-west-lintel', -12.14, 4.35, MAR_DOORS.west.z0, -11.86, WEST_H, MAR_DOORS.west.z1, 'concrete', seeThrough),
   // The blue glass box in the hall's west corner, and the reception counter beside it.
-  box('mar-blue-box', -11.8, 0, -9.4, -9.6, 4.2, -6.8, 'blueglass'),
-  box('mar-reception', -11.7, 0, -5.9, -9.7, 1.1, -4, 'black'),
+  box('mar-blue-box', -9.9, 0, -1.8, -7.3, 4.2, -1.65, 'blueglass'),
+  box('mar-reception', -11.55, 0, -6.5, -9.4, 1.1, -5.65, 'black'),
   // A marble-topped table in front of the poster glass; visual only, its legs are drawn in Interior.tsx.
-  box('mar-hall-table', -8.9, 0, -2.3, -6.5, 0.8, -1.4, 'table', { visual: false }),
+  box('mar-hall-table', -11.3, 0, -2.9, -10.5, 0.8, -0.5, 'table', { visual: false }),
   // The shop: a fascia hung from the ceiling, a black counter on two sides and a board-formed backdrop.
   box('mar-shop-counter-w', SHOP.x0, 0, SHOP.z0 + 0.3, SHOP.x0 + 0.7, 1.1, SHOP.z1 - 0.3, 'black'),
   box('mar-shop-counter-n', SHOP.x0, 0, SHOP.z0 + 0.3, SHOP.x1 - 0.2, 1.1, SHOP.z0 + 1, 'black'),
@@ -450,9 +459,18 @@ export const marBoxes: MarBox[] = [
   box('mar-bridge', -11.86, MAR.mezzanine - 0.25, -19.8, 13.86, MAR.mezzanine, -12.05, 'deck'),
   box('mar-landing', 6.5, MAR.mezzanine - 0.25, -12.05, 13.86, MAR.mezzanine, -8.2, 'deck'),
   box('mar-rail-bridge-s-w', -11.86, MAR.mezzanine, -12.13, -9.1, MAR.mezzanine + 1.1, -12.01, 'glass'),
-  box('mar-rail-bridge-s-e', -5.55, MAR.mezzanine, -12.13, 6.5, MAR.mezzanine + 1.1, -12.01, 'glass'),
+  box('mar-rail-bridge-s-e', -3.45, MAR.mezzanine, -12.13, 6.5, MAR.mezzanine + 1.1, -12.01, 'glass'),
   box('mar-rail-land-w', 6.46, MAR.mezzanine, -12.05, 6.58, MAR.mezzanine + 1.1, -8.2, 'glass'),
   box('mar-rail-land-s', 6.5, MAR.mezzanine, -8.28, 13.86, MAR.mezzanine + 1.1, -8.16, 'glass'),
+
+  // Return escalator lands at the other end of the same mezzanine. A side
+  // walkway joins both landings; there is no additional exhibition level.
+  box('mar-return-deck', -5.55, U - 0.25, -12.05, -3.55, U, -3.5, 'deck'),
+  box('mar-return-landing', -7.4, U - 0.25, -5.05, -5.55, U, -3.5, 'deck'),
+  box('mar-return-rail-e', -3.61, U, -12.05, -3.49, U + 1.1, -3.5, 'glass'),
+  box('mar-return-rail-s', -7.4, U, -3.56, -3.55, U + 1.1, -3.44, 'glass'),
+  box('mar-return-rail-w', -7.46, U, -5.05, -7.34, U + 1.1, -3.5, 'glass'),
+  box('mar-return-rail-inner', -5.61, U, -11.95, -5.49, U + 1.1, -5.15, 'glass'),
 
   // Escalator side rails. The lanes themselves are open so you can walk on.
   box('mar-esc-rail-w', -9.2, 0, -11.3, -8.95, 1.15, -5.6, 'concrete', { visual: false }),
@@ -549,6 +567,7 @@ export const marFloors = [
   { id: 'cobble', kind: 'cobble' as const, x0: -48, x1: 40, z0: STAIR.z1, z1: 23 },
   { id: 'grass', kind: 'grass' as const, x0: -48, x1: 40, z0: 23, z1: 32 },
   { id: 'hall', kind: 'polish' as const, x0: -11.84, x1: 13.84, z0: -19.84, z1: 0.2 },
+  { id: 'cafe-threshold', kind: 'polish' as const, x0: -12.17, x1: -11.83, z0: MAR_DOORS.west.z0, z1: MAR_DOORS.west.z1 },
   { id: 'west', kind: 'polish' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },
   { id: 'east', kind: 'dark' as const, x0: 14.16, x1: 31.84, z0: -17.84, z1: -8.16 },
   { id: 'auditorium', kind: 'auditorium' as const, x0: -7.84, x1: 15.84, z0: -37.84, z1: -20.16 },
@@ -568,6 +587,8 @@ export const marRooms = [
 const UPPER_FLOORS: Array<[number, number, number, number]> = [
   [-11.86, -19.8, 13.86, -12.05],
   [6.5, -12.05, 13.86, -8.2],
+  [-5.55, -12.05, -3.55, -3.5],
+  [-7.4, -5.05, -5.55, -3.5],
   [GALLERY.x0, GALLERY.z0, -12.14, GALLERY.z1],
   [-12.14, GALLERY.door.z0, -11.86, GALLERY.door.z1],
 ]
