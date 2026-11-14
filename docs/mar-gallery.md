@@ -1,6 +1,6 @@
 # Museo MAR — provisional walk
 
-Open it at `/museomar`. That address starts in MAR. `/galeria-3d` stays the Collage World Cup unless the address also says `?museo=mar` or `?museo=mundial`. Dimensions remain provisional. A local browser session drew the MAR plan on the minimap; the 3D pixels themselves stayed blank in that machine's software WebGL, so the frames are not proof of the picture.
+Open it at `/museomar`. That address starts in MAR. `/galeria-3d` stays the Collage World Cup unless the address also says `?museo=mar` or `?museo=mundial`. Dimensions remain provisional. The revised sculpture and ground floor have been inspected in local Chrome renders. The latest interior reference observations, reconstruction choices and limitations are recorded in `docs/mar-ground-floor.md`.
 
 A second public building in the 3D gallery, chosen next to the theme list (or with `?museo=mar`). The Collage World Cup rooms are unchanged. This is a first reconstruction from the plan, the three sections, the published sheet and the site photographs. It is not a measured survey. Every metre below is an estimate and lives in `components/gallery/world/mar/layout.ts`, so a later photo with one known dimension can move a wall without hunting through the meshes.
 
@@ -39,7 +39,7 @@ In the real museum the obras are on the upper floor, so the daily obras now hang
 
 ### Escalators, mezzanine and wall text
 
-In the photographs the escalators stand **left of the entrance** (you enter facing −Z, so −X), well inside the hall with open floor between their foot and the front wall. They are at x −8.9..−5.75, feet at z −5, heads at z −12.05. The mezzanine is a deck across the hall's north end where they land; the portal into the gallery is in the hall's west wall at its north end (z −18..−15), a few steps from the landing. The glass slot of the lounge (display cases, white chairs) is on the east end of that deck. The hall flag hangs east of the escalators.
+In the photographs the escalators stand **left of the entrance** (you enter facing −Z, so −X), well inside the hall with open floor between their foot and the front wall. They are at x −8.9..−5.75. The ascending run starts at z −5 and lands at z −12.05; the return run is opposed, with its upper landing at z −5 and ground end at z −12.05. Both connect the same 5.2 m floor, as confirmed by the user. A side walkway connects the two landings. The mezzanine includes a deck across the hall's north end; the portal into the gallery is in the hall's west wall at its north end (z −18..−15), a few steps from the landing. The glass slot of the lounge (display cases, white chairs) is on the east end of that deck. The hall flag hangs east of the escalators.
 
 Each obra in MAR has a wall label beside its frame: title in italics (up to three lines), the artist, the flag and the year, on a 0.5 m plate. The main gallery keeps its single line under the frame (the artist's name): `Artworks` takes a `placard` prop and only MAR turns it on.
 
@@ -52,9 +52,9 @@ A point (x, z) does not say which floor you mean, so the lower floor's template 
 No obras hang here any more (see above), so the café and the shop can use the whole room.
 
 - **Floor:** dark polished concrete, glossy; a drain grate along the hall's north wall.
-- **Hall:** deep concrete beams with a glowing skylight between them (the sun throws their shadows on the walls); stainless escalators with glass balustrades and black handrails that follow the slope; a blue glass box and a black reception counter by the west corner; a marble table on gold legs; a fire hose cabinet; two roll-up banners by the door.
-- **West room = café, shop and lab:** expanded-metal ceiling in white frames with fluorescent tubes and two crystal chandeliers; four café tables with wire chairs; **Tienda FINDE** (lettered black fascia, black counters, board-formed backdrop, shelves and goods); the **Espacio Laboratorio** as a 4.2 m black wall with white lettering ; La Isla as a carpet, a pale blue bench and surfboards at the SW glass corner; a track with spots on the north wall; a louvred band over the door to the hall.
-- Where each thing stands is an arrangement chosen to fit the hanging strips, not read off a plan.
+- **Hall:** deep concrete beams with a glowing skylight between them (the sun throws their shadows on the walls); stainless escalators with glass balustrades and black handrails that follow the slope; a framed flat blue-glass partition, brown butterfly chairs and a low table beside the entrance; a black reception counter and marble table by the café portal; fire equipment, a drain, an institutional roll-up and a framed poster on the right-hand service wall.
+- **West room = café, shop and lab:** expanded-metal ceiling in white frames with fluorescent tubes and two crystal chandeliers; seven café tables with round cane-textured chair backs; **Tienda FINDE** (lettered black fascia, black counters, board-formed backdrop, shelves and goods); the **Espacio Laboratorio** as a 4.2 m black wall with white lettering ; La Isla as a carpet, a pale blue bench and surfboards at the SW glass corner; a track with spots on the north wall; a louvred band over the door to the hall.
+- Updated positions follow the supplied entry-to-café photo sequence. Dimensions and the precise structural layout remain estimates; see `docs/mar-ground-floor.md`.
 
 ### The flag in the hall
 
@@ -66,13 +66,13 @@ A click (or a tap) on a picture of the flag, from up to 14 m away, opens a card 
 
 ## Branding
 
-The signs that stand in for printed banners wear the Mundial de Collage's identity (`brand.ts`, `brandBanners.ts`): the paper, ink, blue, red and yellow of the September 2026 guide (a test reads `app/globals.css` so they cannot drift), torn-paper blocks, the real logo and wordmark, headlines in the site's Anton, and the domain. The logo's letters have no fill of their own (cream with a dark shadow), so it sits on paper and the blue block carries the headline. The wall labels beside each obra use the same colours: a blue, red and yellow strip, the artist in blue, "MUNDIAL DE COLLAGE" in red (an SVG drawn as an image cannot use the page's fonts, so those labels keep system type).
+The facade and upper-gallery signs that stand in for printed banners wear the Mundial de Collage's identity (`brand.ts`, `brandBanners.ts`): the paper, ink, blue, red and yellow of the September 2026 guide (a test reads `app/globals.css` so they cannot drift), torn-paper blocks, the real logo and wordmark, headlines in the site's Anton, and the domain. The logo's letters have no fill of their own (cream with a dark shadow), so it sits on paper and the blue block carries the headline. The wall labels beside each obra use the same colours: a blue, red and yellow strip, the artist in blue, "MUNDIAL DE COLLAGE" in red (an SVG drawn as an image cannot use the page's fonts, so those labels keep system type).
 
-Left as they are, because they are the museum's own signs and not banners: Buenos Aires Provincia, SALIDA, TIENDA FINDE, the Laboratorio lettering, the archive cases and the sea lion's plaque, and the café emblem. The texts on the banners (headlines, lines) are placeholders in the site's voice, written to be replaced.
+Left as they are, because they are the museum's own signs and not banners: Buenos Aires Provincia, SALIDA, TIENDA FINDE, the Laboratorio lettering, the archive cases and the sea lion's plaque, the café emblem, and the two institutional signs at the ground-floor service wall. The texts on the banners (headlines, lines) are placeholders in the site's voice, written to be replaced.
 
 ## Banners are slots
 
-Posters and vinyl are `MAR_BANNERS` in `layout.ts`: a centre, a width and a height on the wall, and an optional `image`. Without `image` a branded stand-in drawn in `brandBanners.ts` shows. The two roll-up banners in the hall (`standee-a`, `standee-b`) are slots too. To print a Collage World Cup banner, put the file under `public/` and set `image: '/mar/banner-a.jpg'` on that slot. Nothing else needs to move. Keep the picture's aspect ratio equal to the slot's width ÷ height or it stretches.
+Posters and vinyl are `MAR_BANNERS` in `layout.ts`: a centre, a width and a height on the wall, and an optional `image`. Without `image` a branded stand-in drawn in `brandBanners.ts` shows. The institutional roll-up and visitor poster in the hall (`standee-a`, `standee-b`) are slots too; their defaults follow the latest reference photos. To print a Collage World Cup banner, put the file under `public/` and set `image: '/mar/banner-a.jpg'` on that slot. Nothing else needs to move. Keep the picture's aspect ratio equal to the slot's width ÷ height or it stretches.
 
 ## Estimated dimensions
 
@@ -86,8 +86,8 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 | Entrance clear width | 5.2 m | Still the walkable door bank. Concrete returns now stop about 1.6 m from each jamb, so the slot reads like the frontal photo. Steps stay flush so the walk does not catch a lip |
 | Door head | 3.2 m | Glass continues above the doors to the hall ceiling |
 | Hall, floor to ceiling | 9.0 m | The interior photo is about two stories |
-| Mezzanine walk surface | 4.45 m | About halfway up that photo |
-| Escalator run | 7.05 m horizontal, 4.45 m rise (~32°) | Placed on the east side of the hall, where the photo shows the pair. A real escalator is usually 30° |
+| Mezzanine walk surface | 5.2 m | Estimated from the interior photographs |
+| Escalator run | 7.05 m horizontal, 5.2 m rise (~36°) | Two opposed runs on the west side of the hall; both reach the same floor. Provisional dimensions |
 | West room clear height | 5.2 m | Bright gallery photograph |
 | West volume exterior | 16 m | Counted from panel rows in the photographs, 1.2 m a row |
 | Volume over the doors | 13.4 m | Lower than the west volume in the same frame |
@@ -108,7 +108,7 @@ Footprints (interior side of the walls):
 - Vinyl volume: x 7.2..20, z 0.15..3.4 (ground floor set back to z 2.0); tower x 20..34
 - Basin: about x −28..−16, z 12..20, rim 0.42 m so you walk around it
 
-Doors, all open in both the mesh and the walk map: entrance (the swing doors) x −2.6..2.6 at z = 0; west room z −3.45..−0.35 at x = −12; east room z −13.6..−10.4 at x = 14; auditorium x −1.6..2.4 at z = −20.
+Doors, all open in both the mesh and the walk map: entrance (the swing doors) x −2.6..2.6 at z = 0; west room z −5.2..−0.35 at x = −12; east room z −13.6..−10.4 at x = 14; auditorium x −1.6..2.4 at z = −20.
 
 ## What this visit can and cannot do
 

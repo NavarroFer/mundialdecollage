@@ -51,10 +51,9 @@ export function labTexture() {
 export function meshCeilingTexture() {
   const size = 512
   const { canvas, context } = canvasOf(size, size)
-  context.fillStyle = '#9b9c9a'
-  context.fillRect(0, 0, size, size)
+  context.clearRect(0, 0, size, size)
   // Diamond mesh.
-  context.strokeStyle = 'rgba(40, 42, 44, 0.45)'
+  context.strokeStyle = 'rgba(135, 138, 135, 0.95)'
   context.lineWidth = 1
   for (let i = -size; i < size * 2; i += 9) {
     context.beginPath()

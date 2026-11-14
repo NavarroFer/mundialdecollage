@@ -13,7 +13,7 @@ import {
   slatTexture,
   vitrineTexture,
 } from './interiorDecals'
-import { seeded } from './textures'
+import { canvasOf, canvasTexture, seeded } from './textures'
 import { cafeEmblemTexture } from './decals'
 import { EntranceDetails } from './EntranceDetails'
 
@@ -117,7 +117,7 @@ function WestCeiling({ materials }: { materials: InteriorMaterials }) {
   const mesh = useMemo(() => {
     const map = meshCeilingTexture()
     map.repeat.set(17.6 / 2.4, 19.6 / 2.4)
-    return { map, material: new THREE.MeshStandardMaterial({ map, roughness: 0.7, metalness: 0.2 }) }
+    return { map, material: new THREE.MeshStandardMaterial({ map, roughness: 0.7, metalness: 0.2, transparent: true, alphaTest: 0.2, side: THREE.DoubleSide }) }
   }, [])
   useEffect(() => () => {
     mesh.map.dispose()
@@ -128,11 +128,12 @@ function WestCeiling({ materials }: { materials: InteriorMaterials }) {
       <mesh position={[-21, MAR.westInterior - 0.02, -2]} rotation={[Math.PI / 2, 0, 0]} material={mesh.material}>
         <planeGeometry args={[17.6, 19.6]} />
       </mesh>
-      {[-8, -3, 2, 6].map((z) => (
-        <mesh key={z} position={[-21, MAR.westInterior - 0.06, z]} material={materials.lamp}>
-          <boxGeometry args={[9, 0.04, 0.12]} />
+      {[-9, -5, -1, 3, 6].flatMap((z, row) => [-27, -23, -19, -15].map((x, column) => (
+        <mesh key={`${x}:${z}`} position={[x, MAR.westInterior + 0.01, z]}>
+          <boxGeometry args={[1.45, 0.045, 0.065]} />
+          <meshStandardMaterial color={row % 2 === column % 2 ? '#fff0bd' : '#e7f2ff'} emissive={row % 2 === column % 2 ? '#ffc76c' : '#dceaff'} emissiveIntensity={1.4} toneMapped={false} />
         </mesh>
-      ))}
+      )))}
       <Chandelier position={[-24.4, 4.35, 5]} seed={3} />
       <Chandelier position={[-18, 4.35, 0.5]} seed={9} />
     </group>
@@ -141,10 +142,27 @@ function WestCeiling({ materials }: { materials: InteriorMaterials }) {
 
 /** Tables and wire chairs in the café, one set of instanced meshes for all of them. */
 function Cafe() {
+  const cane = useMemo(() => {
+    const { canvas, context } = canvasOf(256, 256)
+    context.fillStyle = '#a38c62'
+    context.fillRect(0, 0, 256, 256)
+    context.strokeStyle = '#d8c49a'
+    context.lineWidth = 2.1
+    for (let i = -256; i < 512; i += 9) {
+      context.beginPath()
+      context.moveTo(i, 0); context.lineTo(i + 256, 256)
+      context.moveTo(i + 256, 0); context.lineTo(i, 256)
+      context.stroke()
+    }
+    const map = canvasTexture(canvas)
+    return map
+  }, [])
+  useEffect(() => () => cane.dispose(), [cane])
   const tops = useRef<THREE.InstancedMesh>(null)
   const legs = useRef<THREE.InstancedMesh>(null)
   const seats = useRef<THREE.InstancedMesh>(null)
   const backs = useRef<THREE.InstancedMesh>(null)
+  const rims = useRef<THREE.InstancedMesh>(null)
   const chairLegs = useRef<THREE.InstancedMesh>(null)
   const tableItems = useMemo(() => CAFE_TABLES.map(([x, z]) => ({ position: [x, 0.74, z] as [number, number, number] })), [])
   const legItems = useMemo(() => CAFE_TABLES.flatMap(([x, z]) => [[-0.55, -0.32], [0.55, -0.32], [-0.55, 0.32], [0.55, 0.32]].map(([dx, dz]) => ({ position: [x + dx, 0.37, z + dz] as [number, number, number] }))), [])
@@ -167,6 +185,7 @@ function Cafe() {
   useInstances(legs, legItems)
   useInstances(seats, seatItems)
   useInstances(backs, backItems)
+  useInstances(rims, backItems)
   useInstances(chairLegs, chairs)
   return (
     <group>
@@ -179,12 +198,16 @@ function Cafe() {
         <meshStandardMaterial color="#1d1e20" roughness={0.5} metalness={0.4} />
       </instancedMesh>
       <instancedMesh ref={seats} args={[undefined, undefined, seatItems.length]}>
-        <boxGeometry args={[0.42, 0.05, 0.42]} />
-        <meshStandardMaterial color="#2f3a2b" roughness={0.8} />
+        <cylinderGeometry args={[0.23, 0.23, 0.045, 24]} />
+        <meshStandardMaterial color="#967854" roughness={0.82} />
       </instancedMesh>
       <instancedMesh ref={backs} args={[undefined, undefined, backItems.length]}>
-        <boxGeometry args={[0.42, 0.4, 0.03]} />
-        <meshStandardMaterial color="#1b1c1e" roughness={0.5} metalness={0.4} />
+        <circleGeometry args={[0.24, 24]} />
+        <meshStandardMaterial map={cane} roughness={0.82} side={THREE.DoubleSide} />
+      </instancedMesh>
+      <instancedMesh ref={rims} args={[undefined, undefined, backItems.length]}>
+        <torusGeometry args={[0.24, 0.018, 8, 32]} />
+        <meshStandardMaterial color="#795333" roughness={0.65} />
       </instancedMesh>
       <instancedMesh ref={chairLegs} args={[legGeometry, undefined, chairs.length]}>
         <meshStandardMaterial color="#1b1c1e" roughness={0.5} metalness={0.4} />

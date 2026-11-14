@@ -91,7 +91,7 @@ export const LOBO = { x0: 7.6, x1: 21.8, z0: 8.4, z1: 14.8, height: 0.35, /** Wh
 /** The shop in the west room (Tienda FIND): footprint of its fascia. */
 export const SHOP = { x0: -22.8, x1: -15, z0: -9.3, z1: -3.2 } as const
 /** Café tables in the west room, centres on the floor. */
-export const CAFE_TABLES: Array<[number, number]> = [[-25.8, 4.1], [-22.9, 4.1], [-25.8, 6.5], [-22.9, 6.5]]
+export const CAFE_TABLES: Array<[number, number]> = [[-26, 3.2], [-22.8, 3.2], [-19.6, 3.2], [-26, 6.2], [-22.8, 6.2], [-19.6, 6.2], [-27.5, -0.5]]
 /** The sunken stair beside the vent housing: a hole in the paving, walled off. */
 export const STAIR = { x0: 20, x1: 22.6, z0: 3.4, z1: 7.6, depth: 2.7 } as const
 
@@ -298,7 +298,9 @@ export const marBoxes: MarBox[] = [
 
   // West exhibition volume (the café). Ground floor glazed to the plaza, tucked under the upper floor.
   // The café's own walls stop at the gallery's floor; above them the gallery's skin is the volume.
-  wallZ('mar-west-w', -12, 8, -30, U - 0.25),
+  wallZ('mar-west-w', -12, -5, -30, U - 0.25),
+  wallZ('mar-cafe-end-glass', -5, 8, -30, U - 0.25, 'glass'),
+  ...mullionsZ('mar-cafe-end-frame', -5, 8, -30.08, 0, U - 0.25, 1.3),
   wallX('mar-west-n', -30, -12, -12, U - 0.25),
   wallX('mar-west-s-glass', -30, -12, 8, SOFFIT, 'glass'),
   box('mar-west-s-up', -30, SOFFIT, 8 - T / 2, -12, WEST_H, 8 + T / 2, 'concrete'),
@@ -425,7 +427,8 @@ export const marBoxes: MarBox[] = [
   // a floor slab, white lining inside a concrete skin, a roof with light strips (drawn in Interior.tsx), five
   // partitions (their obras: MAR_HANGINGS).
   box('mar-portal-sill', -12.14, U - 0.25, GALLERY.door.z0, -11.86, U, GALLERY.door.z1, 'deck'),
-  box('mar-ext-base-w', GX0 - L - T, 0, GZ0 - L - T, -30.14, U - 0.25, GZ1 + L + T, 'concrete'),
+  box('mar-ext-base-w', GX0 - L - T, 0, GZ0 - L - T, -30.14, U - 0.25, -5, 'concrete'),
+  ...[-40, -35].flatMap((x) => [0, 7].map((z) => box(`mar-cafe-portico-${x}-${z}`, x - 0.22, 0, z - 0.22, x + 0.22, U - 0.25, z + 0.22, 'concrete'))),
   box('mar-ext-base-n', -30.14, 0, GZ0 - L - T, -12.14, U - 0.25, -12.14, 'concrete'),
   box('mar-gal-floor', GX0 - L, U - 0.25, GZ0 - L, -12.14, U, GZ1 + L, 'deck'),
   up('mar-gal-w', GX0 - L, GZ0, GX0, GZ1, GALLERY.height),
