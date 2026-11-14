@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_TABLES, GALLERY, MAR, SHOP, marBoxes } from './layout'
+import { CAFE_TABLES, GALLERY, MAR, SHOP, UPPER_ROOFLIGHT, marBoxes } from './layout'
 import {
   boardTexture,
   fasciaTexture,
@@ -59,26 +59,32 @@ function HallRoof({ materials }: { materials: InteriorMaterials }) {
   const beams = useMemo(() => Array.from({ length: 8 }, (_, i) => -10.4 + i * 3.4), [])
   const roofY = MAR.hallHeight
   const ringY = roofY - 1.82
+  // The lower glazed entrance bay has a real opening above it, not glass
+  // placed underneath an opaque slab. Keep the main hall's other bays intact.
+  const roofSpan = (x: number) => {
+    const end = x < UPPER_ROOFLIGHT.x1 ? UPPER_ROOFLIGHT.z0 : -0.05
+    return { center: (-19.75 + end) / 2, length: end + 19.75 }
+  }
   return (
     <group>
       {/* Opaque concrete bays with a narrow daylight slit along one edge. */}
       {beams.slice(0, -1).map((x) => (
         <group key={`bay-${x}`}>
-          <mesh position={[x + 1.55, roofY + 0.08, -9.9]} material={materials.beam} receiveShadow>
-            <boxGeometry args={[2.3, 0.16, 19.7]} />
+          <mesh position={[x + 1.55, roofY + 0.08, roofSpan(x + 1.55).center]} material={materials.beam} receiveShadow>
+            <boxGeometry args={[2.3, 0.16, roofSpan(x + 1.55).length]} />
           </mesh>
-          <mesh position={[x + 2.85, roofY + 0.01, -9.9]} rotation={[Math.PI / 2, 0, 0]} material={rooflight}>
-            <planeGeometry args={[0.3, 19.7]} />
+          <mesh position={[x + 2.85, roofY + 0.01, roofSpan(x + 2.85).center]} rotation={[Math.PI / 2, 0, 0]} material={rooflight}>
+            <planeGeometry args={[0.3, roofSpan(x + 2.85).length]} />
           </mesh>
         </group>
       ))}
       {beams.map((x) => (
         <group key={x}>
-          <mesh position={[x, roofY - 0.8, -9.9]} material={materials.beam} castShadow receiveShadow>
-            <boxGeometry args={[0.8, 1.6, 19.7]} />
+          <mesh position={[x, roofY - 0.8, roofSpan(x).center]} material={materials.beam} castShadow receiveShadow>
+            <boxGeometry args={[0.8, 1.6, roofSpan(x).length]} />
           </mesh>
           {/* Small groups of warm spots tucked under the concrete beams. */}
-          {[-17.9, -2.1].map((z) => (
+          {[-17.9, x < UPPER_ROOFLIGHT.x1 ? UPPER_ROOFLIGHT.z0 - 0.5 : -2.1].map((z) => (
             <group key={z} position={[x, roofY - 1.64, z]}>
               <mesh material={materials.mullion}><boxGeometry args={[0.25, 0.035, 0.6]} /></mesh>
               {[-0.19, 0, 0.19].map((dz) => (

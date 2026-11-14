@@ -126,6 +126,13 @@ const GZ0 = GALLERY.z0
 const GZ1 = GALLERY.z1
 const L = GALLERY.lining
 
+/** Glazed entrance bay beside the artwork gallery, inferred from IMG_3972. */
+export const UPPER_ROOFLIGHT = {
+  x0: -11.86, x1: -7.4,
+  z0: -3.5, z1: -0.05,
+  y: MAR.mezzanine + GALLERY.door.height + 0.28,
+} as const
+
 /**
  * Printed banners on the facade. Each is a rectangle on a wall; \`image\` is the
  * picture on it. Without one the slot shows a stand-in drawn in decals.ts.
