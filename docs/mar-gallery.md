@@ -32,14 +32,14 @@ The concrete is board-formed: panels 2.4 × 1.2 m, rows not aligned, each panel 
 
 In the real museum the obras are on the upper floor, so the daily obras now hang there and nothing hangs on the ground floor. The mezzanine round the hall's void is at 5.2 m (it was 4.45 m; the escalator now rises 5.2 m over the same run, about 36°, steeper than before). Walking onto either escalator lifts you to it, and click-to-walk takes the same ride.
 
-- **Entrance to the gallery** (last photograph): a portal in the hall's west wall at the mezzanine, 3 m wide and 3.6 m high, with a roll-up banner at its foot. Past it, a **30 × 30 m room** (x −42.18..−12.18, z −22..8, 6 m clear) with a cream resin floor, white walls, light strips in the roof and track lights. It sits over the café and spreads out past it to the west and north, so the west volume is bigger than the café below it: solid concrete under the part that sticks out, a concrete skin up to 16 m, and the site grows to x −48. There are no photographs of the room itself: its size is what was asked for and its look is the entrance's.
+- **Entrance to the gallery** (last photograph): a portal in the hall's west wall at the mezzanine, 3 m wide and 3.6 m high, with a roll-up banner at its foot. Past it, a **30 × 30 m room** (x −42.18..−12.18, z −22..8, 6 m clear) with a pale grey slab floor, white walls, light strips in the roof and track lights. It sits over the café and spreads out past it to the west and north, so the west volume is bigger than the café below it: solid concrete under the part that sticks out, a concrete skin up to 16 m, and the site grows to x −48. There are no photographs of the room itself: its size is what was asked for and its look is the entrance's.
 - **Five freestanding partitions** (3.4 m high, 24 m long) with 5 m aisles between them and 3 m at each end. With the four walls that makes 37 hanging spots (the daily exhibition's wall count), in the main gallery's frame sizes, with at least half a metre of bare wall between frames (tested).
 - **Lounge on the landing:** two lettered display cases ("Lobo Marino de Alfajores, Marta Minujin — Material de archivo") and two white leather lounge chairs, from the photographs of that corner.
 - **Not modelled:** the open void's far side and the upper floors of the other volumes; the tall cloth lettering on the hall's walls ("EN ESTE…", "ESCRIT…"), which is a fabric-letter installation.
 
 ### Escalators, mezzanine and wall text
 
-In the photographs the escalators stand **left of the entrance** (you enter facing −Z, so −X), well inside the hall with open floor between their foot and the front wall. They are at x −8.9..−5.75. The ascending run starts at z −5 and lands at z −12.05; the return run is opposed, with its upper landing at z −5 and ground end at z −12.05. Both connect the same 5.2 m floor, as confirmed by the user. A side walkway connects the two landings. The mezzanine includes a deck across the hall's north end; the portal into the gallery is in the hall's west wall at its north end (z −18..−15), a few steps from the landing. The glass slot of the lounge (display cases, white chairs) is on the east end of that deck. The hall flag hangs east of the escalators.
+In the photographs the escalators stand **left of the entrance** (you enter facing −Z, so −X), well inside the hall with open floor between their foot and the front wall. They are at x −8.9..−5.75. The ascending run starts at z −5 and lands at z −12.05; the return run is opposed, with its upper landing at z −5 and ground end at z −12.05. Both connect the same 5.2 m floor, as confirmed by the user. A continuous perimeter walkway now connects the two landings around the void. After the user identified the window beside the artwork gallery entrance, its portal was moved to the front end of the west wall (z −3.5..−0.5). The former rear portal is closed. Two additional recessed exhibition entrances occupy the right-hand side of the rear wall when looking away from the front; a smaller unlabelled service door is provisional. Temporary upstairs display cases and chairs have been removed. The hall flag hangs east of the escalators.
 
 Each obra in MAR has a wall label beside its frame: title in italics (up to three lines), the artist, the flag and the year, on a 0.5 m plate. The main gallery keeps its single line under the frame (the artist's name): `Artworks` takes a `placard` prop and only MAR turns it on.
 
@@ -85,7 +85,7 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 | Wall thickness | 0.28 m | Reads as a solid concrete wall at eye height |
 | Entrance clear width | 5.2 m | Still the walkable door bank. Concrete returns now stop about 1.6 m from each jamb, so the slot reads like the frontal photo. Steps stay flush so the walk does not catch a lip |
 | Door head | 3.2 m | Glass continues above the doors to the hall ceiling |
-| Hall, floor to ceiling | 9.0 m | The interior photo is about two stories |
+| Hall, floor to ceiling | 11.8 m | Adjusted to the upper-floor photos with people for scale; not measured |
 | Mezzanine walk surface | 5.2 m | Estimated from the interior photographs |
 | Escalator run | 7.05 m horizontal, 5.2 m rise (~36°) | Two opposed runs on the west side of the hall; both reach the same floor. Provisional dimensions |
 | West room clear height | 5.2 m | Bright gallery photograph |
@@ -126,3 +126,7 @@ One known length is enough to scale the rest: a door leaf, a panel, a floor-to-f
 4. Stairs, escalators, levels. The escalator pair from below and from the landing; any public stair the sections imply; a vertical shot that shows floor, mezzanine rail and ceiling together. A person in frame gives the scale.
 5. Concrete, glass, paving. One straight-on panel bay with a joint crossing a corner; the glass mullion at the entrance; cobbles with something of known size; the basin edge.
 6. The known dimension. Photograph the tape (or the door, panel or floor height you measured) so the number and the thing are in the same picture. Write the number down. That single figure replaces the matching constant in `layout.ts`.
+
+## Upper landing reference update — 14 November 2026
+
+See [mar-upper-floor.md](mar-upper-floor.md) for the upper circulation, relocated gallery portal, transparent plaza window, reference interpretation and remaining dimensional assumptions. These supersede the earlier rear-portal and partial-mezzanine assumptions.

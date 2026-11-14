@@ -57,7 +57,7 @@ export const MAR = {
   /** Clear height of the central doors. The photos show a full-height glass wall with a door bank under a head. */
   doorHeight: 3.2,
   /** Double-height hall, floor to ceiling. The mezzanine sits about halfway up in the interior photo. */
-  hallHeight: 9,
+  hallHeight: 11.8,
   /** Walk surface of the upper floor: the mezzanine round the hall's void and the gallery beside it. */
   mezzanine: 5.2,
   /** Ceiling of the café and the shop, under the upper floor's slab. */
@@ -114,7 +114,7 @@ export const GALLERY = {
   /** Thickness of the white lining; the concrete skin is another MAR.wall outside it. */
   lining: 0.24,
   /** The opening in the hall's west wall, which the room's east wall is. */
-  door: { z0: -18, z1: -15, height: 3.6 },
+  door: { z0: -3.5, z1: -0.5, height: 3.6 },
   /** x of each freestanding partition; they run z0..z1, leaving three metres at either end to walk round and five between. */
   partitions: { xs: [-37.2, -32.2, -27.2, -22.2, -17.2], z0: -19, z1: 5, height: 3.4 },
   /** Frame sizes in here, [width, height]: the main gallery's. */
@@ -156,7 +156,7 @@ export const MAR_BANNERS: MarBanner[] = [
   { id: 'standee-a', center: [7.55, 1.05, -5.5], width: 0.85, height: 2, standee: true, yaw: -Math.PI / 2 },
   { id: 'standee-b', center: [7.5, 1.35, -6.7], width: 0.75, height: 1.1, standee: true, yaw: -Math.PI / 2 },
   // At the foot of the gallery's portal, on the mezzanine, turned to face the escalators.
-  { id: 'standee-c', center: [-10.6, MAR.mezzanine + 1.05, -13.6], width: 0.85, height: 2, standee: true, yaw: Math.PI / 2 },
+  { id: 'standee-c', center: [-10.9, MAR.mezzanine + 1.05, -4.3], width: 0.85, height: 2, standee: true, yaw: Math.PI / 2 },
 ]
 
 export const MAR_DOORS = {
@@ -166,6 +166,13 @@ export const MAR_DOORS = {
   east: { x: 14, z0: -13.6, z1: -10.4 },
   auditorium: { z: -20, x0: -1.6, x1: 2.4 },
 } as const
+
+/** Upper rear entrances read from the photos. Only their recessed thresholds are modeled. */
+export const MAR_UPPER_ENTRIES = [
+  { id: 'room-a', x0: 4.1, x1: 7.6, height: 3.3 },
+  { id: 'room-b', x0: 10.1, x1: 13.1, height: 3.3 },
+] as const
+export const MAR_UPPER_SERVICE = { x0: 1.3, x1: 2.4, height: 2.25 } as const
 
 /** Where a visit to MAR starts: on the plaza, facing the entrance (yaw 0 looks toward -Z). */
 export const MAR_SPAWN = { x: 0, z: 16, yaw: 0 }
@@ -280,18 +287,29 @@ const AUD_H = MAR.auditorium
  * it; the lane itself has no solid, so walking onto it still climbs.
  */
 export const marBoxes: MarBox[] = [
-  // Hall, double height. The south side is glass (below), not a concrete wall.
-  wallX('mar-hall-n-w', -12, MAR_DOORS.auditorium.x0, MAR_DOORS.auditorium.z, H),
-  wallX('mar-hall-n-e', MAR_DOORS.auditorium.x1, 14, MAR_DOORS.auditorium.z, H),
-  // The hall's west wall at its north end, with the portal into the upper gallery cut through it.
-  wallZ('mar-hall-w-n-a', -20, GALLERY.door.z0, -12, H),
-  box('mar-hall-w-n-low', -12.14, 0, GALLERY.door.z0, -11.86, U, GALLERY.door.z1, 'concrete'),
-  box('mar-hall-w-n-head', -12.14, U + GALLERY.door.height, GALLERY.door.z0, -11.86, H, GALLERY.door.z1, 'concrete'),
-  wallZ('mar-hall-w-n-b', GALLERY.door.z1, -12, -12, H),
-  // The hall's west wall north of the café door. Up to the roof of the west volume, with a portal
-  // into the upper gallery (the wall under it stays solid on the ground floor).
+  // Ground openings remain below the upper landing. Upper rear wall has two
+  // exhibition entrances on the visitor's right when looking away from the plaza.
+  wallX('mar-hall-n-w', -12, MAR_DOORS.auditorium.x0, MAR_DOORS.auditorium.z, U),
+  wallX('mar-hall-n-e', MAR_DOORS.auditorium.x1, 14, MAR_DOORS.auditorium.z, U),
+  box('mar-aud-door-head', MAR_DOORS.auditorium.x0, 3.5, -20.14, MAR_DOORS.auditorium.x1, U, -19.86, 'concrete'),
+  ...[[-12, 1.3], [2.4, 4.1], [7.6, 10.1], [13.1, 14]].map(([x0, x1], i) =>
+    box(`mar-upper-rear-pier-${i}`, x0, U, -20.14, x1, H, -19.86, 'concrete')),
+  ...[...MAR_UPPER_ENTRIES, { id: 'service', ...MAR_UPPER_SERVICE }].flatMap((entry) => [
+    box(`mar-upper-${entry.id}-head`, entry.x0, U + entry.height, -20.14, entry.x1, H, -19.86, 'concrete'),
+    box(`mar-upper-${entry.id}-reveal-w`, entry.x0 - 0.08, U, -20.48, entry.x0, U + entry.height, -19.86, 'concrete'),
+    box(`mar-upper-${entry.id}-reveal-e`, entry.x1, U, -20.48, entry.x1 + 0.08, U + entry.height, -19.86, 'concrete'),
+    box(`mar-upper-${entry.id}-reveal-top`, entry.x0, U + entry.height, -20.48, entry.x1, U + entry.height + 0.08, -19.86, 'concrete'),
+    box(`mar-upper-${entry.id}-threshold`, entry.x0, U - 0.25, -20.45, entry.x1, U, -19.8, 'deck'),
+    box(`mar-upper-${entry.id}-closure`, entry.x0, U, -20.48, entry.x1, U + entry.height, -20.45, entry.id === 'service' ? 'interior' : 'void'),
+  ]),
+  // The existing gallery entrance now opens beside the front window. Ground
+  // café portal and its lintel remain independent of this upper opening.
+  wallZ('mar-hall-w-n', -20, -12, -12, H),
   wallZ('mar-west-e-n', -12, MAR_DOORS.west.z0, MAR_DOORS.west.x, WEST_H),
   wallZ('mar-west-e-s', MAR_DOORS.west.z1, 8, MAR_DOORS.west.x, WEST_H),
+  box('mar-upper-gallery-jamb-n', -12.14, U, MAR_DOORS.west.z0, -11.86, WEST_H, GALLERY.door.z0, 'concrete'),
+  box('mar-upper-gallery-jamb-s', -12.14, U, GALLERY.door.z1, -11.86, WEST_H, MAR_DOORS.west.z1, 'concrete'),
+  box('mar-upper-gallery-head', -12.14, U + GALLERY.door.height, GALLERY.door.z0, -11.86, WEST_H, GALLERY.door.z1, 'concrete'),
   wallZ('mar-hall-e-n', -20, MAR_DOORS.east.z0, MAR_DOORS.east.x, H),
   wallZ('mar-hall-e-s', MAR_DOORS.east.z1, -7.8, MAR_DOORS.east.x, H),
   wallZ('mar-hall-e-pier', -0.2, 0, 14, H),
@@ -360,11 +378,14 @@ export const marBoxes: MarBox[] = [
   // (slab, a recessed window band, blank concrete above), the door bank under its soffit, a tall glass slot
   // with concrete above, then the vinyl-faced volume. Glass walls here are the real stop; frames are just drawn.
   wallX('mar-hall-s-concrete-w', -12, -11.4, 0, LOGO_H),
-  box('mar-logo-slab', -11.4, SOFFIT, 0, 4.2, 5.8, 3.4, 'concrete'),
-  box('mar-logo-win-back', -11.4, 5.8, 0, 4.2, 8, 2.95, 'interior'),
-  box('mar-logo-up', -11.4, 8, 0, 4.2, LOGO_H, 3.2, 'concrete'),
-  box('mar-logo-win-glass', -11, 5.85, 2.96, 3.8, 7.95, 3, 'glass', seeThrough),
-  ...mullionsX('mar-logo-win-mullion', -11, 3.8, 3.05, 5.85, 7.95, 1.95),
+  box('mar-logo-slab', -11.4, SOFFIT, 0, 4.2, U, 3.4, 'concrete'),
+  // Real reveal to the plaza window, replacing the former opaque backing block.
+  box('mar-logo-win-reveal-w', -11.4, U, 0, -11.15, 8.8, 3, 'concrete'),
+  box('mar-logo-win-reveal-e', 3.95, U, 0, 4.2, 8.8, 3, 'concrete'),
+  box('mar-upper-window-reveal-floor', -11.15, U - 0.25, -0.14, 3.95, U, 2.96, 'deck'),
+  box('mar-logo-up', -11.4, 8.8, 0, 4.2, LOGO_H, 3.2, 'concrete'),
+  box('mar-logo-win-glass', -11.15, U + 0.05, 2.96, 3.95, 8.75, 3, 'glass'),
+  ...mullionsX('mar-logo-win-mullion', -11.15, 3.95, 3.05, U + 0.05, 8.75, 1.95),
   wallX('mar-hall-s-glass-w1', -11.4, -5.25, 0, MAR.doorLeaf, 'glass', 0.08),
   wallX('mar-hall-s-glass-w2', -5.25, MAR_DOORS.entrance.x0, 0, MAR.doorLeaf, 'glass', 0.08),
   wallX('mar-hall-s-glass-e', MAR_DOORS.entrance.x1, 4.2, 0, MAR.doorLeaf, 'glass', 0.08),
@@ -405,7 +426,7 @@ export const marBoxes: MarBox[] = [
   // strips in front of hung walls (about 2.5 m), so every obra can still be walked up to.
   // Over the door to the west room: a louvred band under the concrete.
   box('mar-west-louvre', -12.14, 3.4, MAR_DOORS.west.z0, -11.86, 4.35, MAR_DOORS.west.z1, 'louvre', seeThrough),
-  box('mar-west-lintel', -12.14, 4.35, MAR_DOORS.west.z0, -11.86, WEST_H, MAR_DOORS.west.z1, 'concrete', seeThrough),
+  box('mar-west-lintel', -12.14, 4.35, MAR_DOORS.west.z0, -11.86, U, MAR_DOORS.west.z1, 'concrete', seeThrough),
   // The blue glass box in the hall's west corner, and the reception counter beside it.
   box('mar-blue-box', -9.9, 0, -1.8, -7.3, 4.2, -1.65, 'blueglass'),
   box('mar-reception', -11.55, 0, -6.5, -9.4, 1.1, -5.65, 'black'),
@@ -446,34 +467,28 @@ export const marBoxes: MarBox[] = [
   box('mar-gal-skin-e-n', -12.14, 0, GZ0 - L - T, -11.86, WEST_H, -20, 'concrete'),
   box('mar-gal-roof', GX0 - L, GALLERY.top, GZ0 - L, -12.14, GALLERY.top + 0.3, GZ1 + L, 'white'),
   box('mar-gal-top', GX0 - L - T, GALLERY.top + 0.3, GZ0 - L - T, -11.86, WEST_H, GZ1 + L + T, 'concrete'),
-  // The lounge on the landing: two display cases and two white leather chairs. Drawn in Interior.tsx.
-  up('mar-vitrine-a', 8.1, -16.7, 10.5, -15.5, 0.95, 'table', { visual: false }),
-  up('mar-vitrine-b', 11.6, -13.4, 13.6, -12.3, 0.95, 'table', { visual: false }),
-  up('mar-chair-a', 11.6, -10.9, 12.5, -10, 0.8, 'table', { visual: false }),
-  up('mar-chair-b', 12.8, -11.1, 13.6, -10.2, 0.8, 'table', { visual: false }),
-
   // Temporary white partitions. They are a typical exhibition fit-out, not a copy of a particular show.
   wallZ('mar-west-p1', -11.8, -9.7, -25, MAR.labHeight, 'black', 0.16),
   wallX('mar-east-p1', 20, 28.5, -13, MAR.partitionHeight, 'white', MAR.partition),
 
-  // Mezzanine deck and glass balustrade around the void. Above the walk, so the ground floor stays open.
-  // The mezzanine: a deck across the hall's north end, where the escalators land, and a step of it down the
-  // east side to the lounge. Its south edge over the void has a glass rail, open where the escalators come up.
-  box('mar-bridge', -11.86, MAR.mezzanine - 0.25, -19.8, 13.86, MAR.mezzanine, -12.05, 'deck'),
-  box('mar-landing', 6.5, MAR.mezzanine - 0.25, -12.05, 13.86, MAR.mezzanine, -8.2, 'deck'),
-  box('mar-rail-bridge-s-w', -11.86, MAR.mezzanine, -12.13, -9.1, MAR.mezzanine + 1.1, -12.01, 'glass'),
-  box('mar-rail-bridge-s-e', -3.45, MAR.mezzanine, -12.13, 6.5, MAR.mezzanine + 1.1, -12.01, 'glass'),
-  box('mar-rail-land-w', 6.46, MAR.mezzanine, -12.05, 6.58, MAR.mezzanine + 1.1, -8.2, 'glass'),
-  box('mar-rail-land-s', 6.5, MAR.mezzanine, -8.28, 13.86, MAR.mezzanine + 1.1, -8.16, 'glass'),
-
-  // Return escalator lands at the other end of the same mezzanine. A side
-  // walkway joins both landings; there is no additional exhibition level.
-  box('mar-return-deck', -5.55, U - 0.25, -12.05, -3.55, U, -3.5, 'deck'),
+  // Continuous upper circulation around the hall void. The north bridge keeps
+  // rear entrances; the front walkway leads to the relocated artwork gallery portal.
+  box('mar-bridge', -11.86, U - 0.25, -19.8, 13.86, U, -12.05, 'deck'),
+  box('mar-landing', 6.5, U - 0.25, -12.05, 13.86, U, -3.5, 'deck'),
+  box('mar-upper-front', -11.86, U - 0.25, -3.5, 13.86, U, -0.14, 'deck'),
+  box('mar-upper-west', -11.86, U - 0.25, -12.05, -9.4, U, -3.5, 'deck'),
   box('mar-return-landing', -7.4, U - 0.25, -5.05, -5.55, U, -3.5, 'deck'),
-  box('mar-return-rail-e', -3.61, U, -12.05, -3.49, U + 1.1, -3.5, 'glass'),
-  box('mar-return-rail-s', -7.4, U, -3.56, -3.55, U + 1.1, -3.44, 'glass'),
+
+  // Rails stop at both escalator heads. The return landing joins the front
+  // walkway instead of a freestanding strip across the central void.
+  box('mar-rail-bridge-s-w', -9.4, U, -12.13, -9.1, U + 1.1, -12.01, 'glass'),
+  box('mar-rail-bridge-s-e', -7.25, U, -12.13, 6.5, U + 1.1, -12.01, 'glass'),
+  box('mar-rail-land-w', 6.46, U, -12.05, 6.58, U + 1.1, -3.5, 'glass'),
+  box('mar-rail-west', -9.46, U, -12.05, -9.34, U + 1.1, -3.5, 'glass'),
+  box('mar-rail-front-w', -9.4, U, -3.56, -7.4, U + 1.1, -3.44, 'glass'),
+  box('mar-rail-front-e', -5.55, U, -3.56, 6.5, U + 1.1, -3.44, 'glass'),
   box('mar-return-rail-w', -7.46, U, -5.05, -7.34, U + 1.1, -3.5, 'glass'),
-  box('mar-return-rail-inner', -5.61, U, -11.95, -5.49, U + 1.1, -5.15, 'glass'),
+  box('mar-return-rail-e', -5.61, U, -5.05, -5.49, U + 1.1, -3.5, 'glass'),
 
   // Escalator side rails. The lanes themselves are open so you can walk on.
   box('mar-esc-rail-w', -9.2, 0, -11.3, -8.95, 1.15, -5.6, 'concrete', { visual: false }),
@@ -589,8 +604,10 @@ export const marRooms = [
 /** The upper floor's walk map: the mezzanine round the hall's void and the gallery, joined by the portal. */
 const UPPER_FLOORS: Array<[number, number, number, number]> = [
   [-11.86, -19.8, 13.86, -12.05],
-  [6.5, -12.05, 13.86, -8.2],
-  [-5.55, -12.05, -3.55, -3.5],
+  [6.5, -12.05, 13.86, -3.5],
+  [-11.86, -3.5, 13.86, -0.14],
+  [-11.15, -0.14, 3.95, 2.96],
+  [-11.86, -12.05, -9.4, -3.5],
   [-7.4, -5.05, -5.55, -3.5],
   [GALLERY.x0, GALLERY.z0, -12.14, GALLERY.z1],
   [-12.14, GALLERY.door.z0, -11.86, GALLERY.door.z1],
@@ -634,11 +651,11 @@ export const marGalleryTemplate: GalleryRoomTemplate = {
 // frame sizes and the upper floor's height.
 const upstairs = { sizes: GALLERY.sizes, baseY: U + 1.55 }
 export const MAR_HANGINGS: Hanging[] = [
-  // The four walls: 20 spots (the east wall's short stretch north of the portal stays bare).
+  // The four walls: 20 spots (the short east stretch south of the front portal stays bare).
   { roomId: 'mar-gallery', wall: 'mar-gal-n', facing: 'south', count: 5, presetOffset: 0, ...upstairs },
   { roomId: 'mar-gallery', wall: 'mar-gal-w', facing: 'east', count: 5, presetOffset: 1, ...upstairs },
   { roomId: 'mar-gallery', wall: 'mar-gal-s', facing: 'north', count: 5, presetOffset: 2, ...upstairs },
-    { roomId: 'mar-gallery', wall: 'mar-gal-e-s', facing: 'west', count: 5, presetOffset: 1, ...upstairs },
+  { roomId: 'mar-gallery', wall: 'mar-gal-e-n', facing: 'west', count: 5, presetOffset: 1, ...upstairs },
   // Five partitions, both faces: 17 spots.
   { roomId: 'mar-gallery', wall: 'mar-gal-p1', facing: 'west', count: 2, presetOffset: 2, ...upstairs },
   { roomId: 'mar-gallery', wall: 'mar-gal-p1', facing: 'east', count: 2, presetOffset: 0, ...upstairs },

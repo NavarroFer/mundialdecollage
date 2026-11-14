@@ -175,6 +175,33 @@ describe('MAR layout', () => {
     }
   })
 
+  it('connects all four upper walkways while keeping the atrium void closed to walking', () => {
+    const reached = reachableFrom(marGalleryTemplate.upper!.link.exit, marUpperTemplate)
+    for (const [x, z] of [[-10.5, -8], [-10.5, -2], [0, -2], [10, -2], [10, -8], [10, -16]]) {
+      expect(reached(x, z), `${x},${z}`).toBe(true)
+    }
+    expect(walkable({ x: 0, z: -8 }, false, marUpperTemplate, false)).toBe(false)
+    expect(walkable({ x: 6.5, z: -7 }, false, marUpperTemplate, false)).toBe(false)
+  })
+
+  it('opens the artwork gallery beside the front window and seals its former rear entrance', () => {
+    const reached = reachableFrom(marGalleryTemplate.upper!.link.exit, marUpperTemplate)
+    expect(reached(-12, -2)).toBe(true)
+    expect(reached(-13.5, -2)).toBe(true)
+    // A decorative ground-floor lintel must not visually seal the upper doorway,
+    // even when it is excluded from the navigation map.
+    const eye = { x: -12, y: MAR.mezzanine + 1.7, z: -2 }
+    const opaqueAtDoor = marBoxes.filter((box) => box.visual !== false && ['concrete', 'white'].includes(box.kind)
+      && eye.x >= box.minX && eye.x <= box.maxX
+      && eye.y >= box.minY && eye.y <= box.maxY
+      && eye.z >= box.minZ && eye.z <= box.maxZ)
+    expect(opaqueAtDoor.map((box) => box.id)).toEqual([])
+    expect(walkable({ x: -12, z: -16.5 }, false, marUpperTemplate, false)).toBe(false)
+    expect(reached(-4, 1.5)).toBe(true)
+    expect(walkable({ x: -4, z: 3 }, false, marUpperTemplate, false)).toBe(false)
+    expect(marBoxes.find((box) => box.id === 'mar-logo-win-glass')?.solid).not.toBe(false)
+  })
+
   it('keeps the entry, café passage and shop approach connected around the furniture', () => {
     const reached = reachableFrom(MAR_SPAWN)
     for (const point of [{ x: 0, z: -2 }, { x: 6.5, z: -3 }, { x: -12, z: -3.5 }, { x: -20, z: 0 }, { x: -18, z: -2 }]) {

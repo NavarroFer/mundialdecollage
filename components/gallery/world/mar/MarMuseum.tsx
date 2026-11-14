@@ -27,7 +27,7 @@ import { Escalators } from './Escalators'
 import { InteriorFloor } from './InteriorFloor'
 import { boardTexture, slatTexture } from './interiorDecals'
 import { SeaLion } from './SeaLion'
-import { CONCRETE_TILE, cobbleTexture, concreteTexture, escalatorTexture } from './textures'
+import { CONCRETE_TILE, cobbleTexture, concreteTexture, escalatorTexture, upperFloorTexture } from './textures'
 
 // BoxGeometry face order: +x, -x, +y, -y, +z, -z. Each face's UVs run 0..1
 // across that face, so scaling them by the face size tiles one panel module.
@@ -202,6 +202,7 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
     const concreteMap = concreteTexture()
     const cobbleMap = cobbleTexture()
     const stepMap = escalatorTexture()
+    const upperFloorMap = upperFloorTexture()
     const boardMap = boardTexture()
     const slatMap = slatTexture()
     return {
@@ -210,8 +211,9 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
       slatMap,
       cobbleMap,
       stepMap,
+      upperFloorMap,
       concrete: new THREE.MeshStandardMaterial({ map: concreteMap, roughness: 0.92, metalness: 0.02 }),
-      deck: new THREE.MeshStandardMaterial({ color: '#d2cbb9', roughness: 0.42, metalness: 0.04 }),
+      deck: new THREE.MeshStandardMaterial({ map: upperFloorMap, roughness: 0.28, metalness: 0.04 }),
       white: new THREE.MeshStandardMaterial({ color: '#f4f3ef', roughness: 0.9 }),
       glass: new THREE.MeshStandardMaterial({ color: '#c5d7e4', transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12, side: THREE.DoubleSide, depthWrite: false }),
       mullion: new THREE.MeshStandardMaterial({ color: '#1c1e21', roughness: 0.45, metalness: 0.35 }),
@@ -249,6 +251,7 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
     materials.concreteMap.dispose()
     materials.cobbleMap.dispose()
     materials.stepMap.dispose()
+    materials.upperFloorMap.dispose()
     materials.boardMap.dispose()
     materials.slatMap.dispose()
     for (const value of Object.values(materials)) if (value instanceof THREE.Material) value.dispose()
@@ -278,7 +281,7 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
 
       <Floors materials={floorMaterials} />
       <KindMeshes kind="concrete" material={materials.concrete} tile cast />
-      <KindMeshes kind="deck" material={materials.deck} />
+      <KindMeshes kind="deck" material={materials.deck} tile={[1.2, 1.2]} />
       <KindMeshes kind="white" material={materials.white} />
       <KindMeshes kind="glass" material={materials.glass} cast={false} />
       <KindMeshes kind="darkglass" material={materials.darkglass} cast={false} />

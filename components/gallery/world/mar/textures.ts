@@ -207,3 +207,19 @@ export function louvreTexture() {
   }
   return canvasTexture(canvas, false)
 }
+
+/** Pale polished upper-floor slabs: a subtle joint every estimated 1.2 metres. */
+export function upperFloorTexture() {
+  const { canvas, context } = canvasOf(512, 512)
+  context.fillStyle = '#c7c8c4'
+  context.fillRect(0, 0, 512, 512)
+  const random = seeded(73)
+  for (let i = 0; i < 14000; i++) {
+    context.fillStyle = random() > 0.5 ? 'rgba(255,255,255,0.025)' : 'rgba(60,60,55,0.025)'
+    context.fillRect(random() * 512, random() * 512, 1, 1)
+  }
+  context.strokeStyle = '#a3a5a1'
+  context.lineWidth = 1.1
+  context.strokeRect(0, 0, 512, 512)
+  return canvasTexture(canvas)
+}

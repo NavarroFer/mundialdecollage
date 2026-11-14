@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_TABLES, GALLERY, MAR, SHOP } from './layout'
+import { CAFE_TABLES, GALLERY, MAR, SHOP, marBoxes } from './layout'
 import {
   boardTexture,
   fasciaTexture,
@@ -11,11 +11,11 @@ import {
   labTexture,
   meshCeilingTexture,
   slatTexture,
-  vitrineTexture,
 } from './interiorDecals'
 import { canvasOf, canvasTexture, seeded } from './textures'
 import { cafeEmblemTexture } from './decals'
 import { EntranceDetails } from './EntranceDetails'
+import { UpperHall } from './UpperHall'
 
 // The ground floor, as the interior photographs show it: a hall under deep
 // concrete beams and skylights, stainless escalators, the café and the shop
@@ -105,13 +105,13 @@ function HallRoof({ materials }: { materials: InteriorMaterials }) {
       ))}
       {/* Slim light rails below the mezzanine, with individual adjustable fixtures. */}
       {[-12.05, -3.5].map((z, index) => {
-        const x0 = index === 0 ? -11.7 : -7.4
-        const x1 = index === 0 ? 13.7 : -3.55
+        const x0 = index === 0 ? -11.7 : -9.4
+        const x1 = index === 0 ? 13.7 : 6.5
         return <group key={z}>
           <mesh position={[(x0 + x1) / 2, MAR.mezzanine - 0.29, z]} material={light}>
             <boxGeometry args={[x1 - x0, 0.025, 0.035]} />
           </mesh>
-          {Array.from({ length: index === 0 ? 9 : 2 }, (_, i) => (
+          {Array.from({ length: index === 0 ? 9 : 6 }, (_, i) => (
             <group key={i} position={[x0 + 0.5 + i * (index === 0 ? 2.9 : 2.5), MAR.mezzanine - 0.38, z]}>
               <mesh material={materials.steel}><boxGeometry args={[0.12, 0.07, 0.12]} /></mesh>
               <mesh position={[0, -0.1, 0]} rotation={[0.35, 0, 0]} material={materials.steel}>
@@ -422,7 +422,6 @@ function Track() {
   )
 }
 
-const U = MAR.mezzanine
 
 /**
  * The 30 × 30 m upper gallery: a bright strip in the roof down every aisle
@@ -474,66 +473,23 @@ function GalleryRoom({ materials }: { materials: InteriorMaterials }) {
   )
 }
 
-/** A white display case on four legs, its grey fascia lettered. Metres: 2.2 × 1.0, top at 0.95. */
-function Vitrine({ position, texture }: { position: [number, number, number]; texture: THREE.Texture }) {
-  return (
-    <group position={position}>
-      <mesh position={[0, 0.65, 0]}>
-        <boxGeometry args={[2.2, 0.55, 0.95]} />
-        <meshStandardMaterial color="#f3f2ef" roughness={0.6} />
-      </mesh>
-      <mesh position={[0, 0.65, 0.4755]}>
-        <planeGeometry args={[2.1, 0.45]} />
-        <meshStandardMaterial map={texture} roughness={0.7} />
-      </mesh>
-      <mesh position={[0, 0.94, 0]}>
-        <boxGeometry args={[2.0, 0.03, 0.78]} />
-        <meshStandardMaterial color="#bcd2dc" transparent opacity={0.35} roughness={0.1} />
-      </mesh>
-      {[[-1, -0.4], [1, -0.4], [-1, 0.4], [1, 0.4]].map(([dx, dz]) => (
-        <mesh key={`${dx}${dz}`} position={[dx, 0.19, dz]}>
-          <boxGeometry args={[0.08, 0.38, 0.08]} />
-          <meshStandardMaterial color="#f3f2ef" roughness={0.6} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
-/** A white leather lounge chair on a chrome frame, yaw about the vertical. */
-function LoungeChair({ position, yaw }: { position: [number, number, number]; yaw: number }) {
-  return (
-    <group position={position} rotation={[0, yaw, 0]}>
-      <mesh position={[0, 0.4, 0]}>
-        <boxGeometry args={[0.78, 0.2, 0.7]} />
-        <meshStandardMaterial color="#efece6" roughness={0.5} />
-      </mesh>
-      <mesh position={[0, 0.66, -0.3]} rotation={[-0.15, 0, 0]}>
-        <boxGeometry args={[0.78, 0.5, 0.14]} />
-        <meshStandardMaterial color="#efece6" roughness={0.5} />
-      </mesh>
-      {[[-0.34, -0.28], [0.34, -0.28], [-0.34, 0.28], [0.34, 0.28]].map(([dx, dz]) => (
-        <mesh key={`${dx}${dz}`} position={[dx, 0.15, dz]}>
-          <boxGeometry args={[0.03, 0.3, 0.03]} />
-          <meshStandardMaterial color="#cfd3d6" roughness={0.3} metalness={0.4} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
-/** The lounge on the landing: two lettered display cases and two chairs, as in the upper-floor photographs. */
-function Lounge() {
-  const texture = useMemo(() => vitrineTexture(), [])
-  useEffect(() => () => texture.dispose(), [texture])
-  return (
-    <group>
-      <Vitrine position={[9.3, U, -16.1]} texture={texture} />
-      <Vitrine position={[12.6, U, -12.85]} texture={texture} />
-      <LoungeChair position={[12.05, U, -10.45]} yaw={0.5} />
-      <LoungeChair position={[13.2, U, -10.65]} yaw={-0.35} />
-    </group>
-  )
+/** Thin steel caps and panel joints on the continuous upper glass balustrade. */
+function UpperBalustrades({ materials }: { materials: InteriorMaterials }) {
+  const rails = marBoxes.filter((box) => box.kind === 'glass' && box.minY === MAR.mezzanine)
+  return <group>
+    {rails.map((rail) => {
+      const alongX = rail.maxX - rail.minX > rail.maxZ - rail.minZ
+      const length = alongX ? rail.maxX - rail.minX : rail.maxZ - rail.minZ
+      const count = Math.max(1, Math.ceil(length / 1.5))
+      return <group key={rail.id} position={[(rail.minX + rail.maxX) / 2, MAR.mezzanine, (rail.minZ + rail.maxZ) / 2]} rotation={[0, alongX ? 0 : Math.PI / 2, 0]}>
+        <mesh position={[0, 1.1, 0]} material={materials.steel}><boxGeometry args={[length, 0.045, 0.055]} /></mesh>
+        <mesh position={[0, 0.025, 0]} material={materials.steel}><boxGeometry args={[length, 0.05, 0.065]} /></mesh>
+        {Array.from({ length: count - 1 }, (_, i) => <mesh key={i} position={[-length / 2 + (i + 1) * length / count, 0.55, 0]} material={materials.steel}>
+          <boxGeometry args={[0.009, 1.05, 0.02]} />
+        </mesh>)}
+      </group>
+    })}
+  </group>
 }
 
 export function Interior({ materials }: { materials: InteriorMaterials }) {
@@ -549,7 +505,8 @@ export function Interior({ materials }: { materials: InteriorMaterials }) {
       <EntranceDetails />
       <Track />
       <GalleryRoom materials={materials} />
-      <Lounge />
+      <UpperBalustrades materials={materials} />
+      <UpperHall materials={materials} />
     </group>
   )
 }
