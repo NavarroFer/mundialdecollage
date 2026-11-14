@@ -14,6 +14,7 @@ import {
   vitrineTexture,
 } from './interiorDecals'
 import { seeded } from './textures'
+import { cafeEmblemTexture } from './decals'
 import { EntranceDetails } from './EntranceDetails'
 
 // The ground floor, as the interior photographs show it: a hall under deep
@@ -204,8 +205,8 @@ function Decal({ texture, position, size, rotationY = 0 }: { texture: THREE.Text
 /** Tienda FINDE: lettered fascia, a board-formed backdrop, shelves and goods on the counters. */
 function Shop() {
   const textures = useMemo(() => ({
-    north: fasciaTexture('TIENDA FINDE', ['MAR  Museo de Arte Contemporáneo Buenos Aires', 'INSTITUTO CULTURAL  ·  GOBIERNO DE LA PROVINCIA DE BUENOS AIRES']),
-    west: fasciaTexture('TIENDA FINDE', ['INSTITUTO CULTURAL']),
+    north: fasciaTexture('TIENDA finde', ['MAR  Museo de Arte Contemporáneo Buenos Aires', 'INSTITUTO CULTURAL  ·  GOBIERNO DE LA PROVINCIA DE BUENOS AIRES']),
+    west: cafeEmblemTexture(),
     board: boardTexture(),
   }), [])
   useEffect(() => () => Object.values(textures).forEach((texture) => texture.dispose()), [textures])
@@ -216,8 +217,8 @@ function Shop() {
       const onNorth = index % 2 === 0
       return {
         position: (onNorth
-          ? [SHOP.x0 + 0.4 + random() * 3.5, 1.2, SHOP.z0 + 0.55]
-          : [SHOP.x0 + 0.35, 1.2, SHOP.z0 + 1.2 + random() * 3.6]) as [number, number, number],
+          ? [SHOP.x0 + 0.4 + random() * (SHOP.x1 - SHOP.x0 - 0.8), 1.2, SHOP.z1 - 0.55]
+          : [SHOP.x1 - 0.35, 1.2, SHOP.z0 + 0.6 + random() * (SHOP.z1 - SHOP.z0 - 1.2)]) as [number, number, number],
         rotation: random() * 3,
         scale: [0.6 + random() * 0.9, 0.5 + random() * 1.4, 0.6 + random() * 0.9] as [number, number, number],
       }
@@ -239,17 +240,17 @@ function Shop() {
   }, [textures.board])
   return (
     <group>
-      <Decal texture={textures.north} position={[(SHOP.x0 - 0.2 + SHOP.x1 + 0.1) / 2, 3.65, SHOP.z0 - 0.002]} size={[SHOP.x1 - SHOP.x0 + 0.3, 1.3]} rotationY={Math.PI} />
-      <Decal texture={textures.west} position={[SHOP.x0 - 0.202, 3.65, (SHOP.z0 + SHOP.z1) / 2]} size={[SHOP.z1 - SHOP.z0, 1.3]} rotationY={-Math.PI / 2} />
+      <Decal texture={textures.north} position={[(SHOP.x0 - 0.2 + SHOP.x1 + 0.1) / 2, 3.65, SHOP.z1 + 0.002]} size={[SHOP.x1 - SHOP.x0 + 0.3, 1.3]} />
+      <Decal texture={textures.west} position={[SHOP.x1 + 0.102, 3.65, (SHOP.z0 + SHOP.z1) / 2]} size={[1.16, 1.16]} rotationY={Math.PI / 2} />
       {/* Backdrop's printed face, on the side the staff and the shelves see. */}
-      <mesh position={[SHOP.x1 - 0.2 - 0.005, 1.7, (SHOP.z0 + 1 + SHOP.z1 - 0.3) / 2]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[SHOP.z1 - SHOP.z0 - 1.3, 3.4]} />
+      <mesh position={[(SHOP.x0 + SHOP.x1) / 2, 1.7, SHOP.z0 + 0.205]}>
+        <planeGeometry args={[SHOP.x1 - SHOP.x0, 3.4]} />
         <meshStandardMaterial map={backdropMap} roughness={0.95} />
       </mesh>
       {/* White shelves on the backdrop. */}
       {[1.6, 2.2].map((y) => (
-        <mesh key={y} position={[SHOP.x1 - 0.45, y, (SHOP.z0 + SHOP.z1) / 2 + 0.3]}>
-          <boxGeometry args={[0.3, 0.03, 3.2]} />
+        <mesh key={y} position={[(SHOP.x0 + SHOP.x1) / 2, y, SHOP.z0 + 0.45]}>
+          <boxGeometry args={[SHOP.x1 - SHOP.x0 - 0.5, 0.03, 0.3]} />
           <meshStandardMaterial color="#f2f1ee" roughness={0.6} />
         </mesh>
       ))}
@@ -265,12 +266,12 @@ function Shop() {
 function Laboratorio() {
   const text = useMemo(() => labTexture(), [])
   useEffect(() => () => text.dispose(), [text])
-  const x = -21
+  const x = -25
   const half = MAR.partition * 0.67
   return (
     <>
-      <Decal texture={text} position={[x + half, 3.5, -2.5]} size={[8.6, 1.5]} rotationY={Math.PI / 2} />
-      <Decal texture={text} position={[x - half, 3.5, -2.5]} size={[8.6, 1.5]} rotationY={-Math.PI / 2} />
+      <Decal texture={text} position={[x + half, 3.5, -10.75]} size={[2, 0.8]} rotationY={Math.PI / 2} />
+      <Decal texture={text} position={[x - half, 3.5, -10.75]} size={[2, 0.8]} rotationY={-Math.PI / 2} />
     </>
   )
 }

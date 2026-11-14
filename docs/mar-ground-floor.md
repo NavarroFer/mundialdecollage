@@ -12,3 +12,7 @@ The user supplied a sequence from inside the entrance: the right-hand service wa
 - One shared floor reflection pass inside the hall/café at high desktop quality. Standard material outdoors, upstairs, on mobile and at lower quality avoids the additional scene pass there.
 
 Validation: MAR navigation tests cover both escalator approaches and landings, the entry-to-café/shop route and solid furniture. Browser views checked at the service wall, waiting area and escalators. TypeScript and ESLint checked for the updated implementation.
+
+## Shop
+
+Tienda finde sits on the right when looking through the café passage. Its enlarged L-shaped black counter and suspended fascia face the visitor aisle, with the WEISS emblem on the end, a board-formed backdrop and shelves behind. The Laboratorio partition is moved clear of the counter. Merchandise remains simplified display geometry; it does not reproduce specific products from the photographs. The shop approach remains reachable from the entrance.

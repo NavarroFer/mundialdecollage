@@ -89,7 +89,7 @@ const T = MAR.wall
 export const LOBO = { x0: 7.6, x1: 21.8, z0: 8.4, z1: 14.8, height: 0.35, /** Where the sculpture's head stands, on the slab. */ head: { x: 10.8, z: 11.6 } } as const
 
 /** The shop in the west room (Tienda FIND): footprint of its fascia. */
-export const SHOP = { x0: -19.4, x1: -15, z0: 2.7, z1: 7.7 } as const
+export const SHOP = { x0: -22.8, x1: -15, z0: -9.3, z1: -3.2 } as const
 /** Café tables in the west room, centres on the floor. */
 export const CAFE_TABLES: Array<[number, number]> = [[-25.8, 4.1], [-22.9, 4.1], [-25.8, 6.5], [-22.9, 6.5]]
 /** The sunken stair beside the vent housing: a hole in the paving, walled off. */
@@ -410,11 +410,11 @@ export const marBoxes: MarBox[] = [
   // A marble-topped table in front of the poster glass; visual only, its legs are drawn in Interior.tsx.
   box('mar-hall-table', -11.3, 0, -2.9, -10.5, 0.8, -0.5, 'table', { visual: false }),
   // The shop: a fascia hung from the ceiling, a black counter on two sides and a board-formed backdrop.
-  box('mar-shop-counter-w', SHOP.x0, 0, SHOP.z0 + 0.3, SHOP.x0 + 0.7, 1.1, SHOP.z1 - 0.3, 'black'),
-  box('mar-shop-counter-n', SHOP.x0, 0, SHOP.z0 + 0.3, SHOP.x1 - 0.2, 1.1, SHOP.z0 + 1, 'black'),
-  box('mar-shop-backdrop', SHOP.x1 - 0.2, 0, SHOP.z0 + 1, SHOP.x1, 3.4, SHOP.z1 - 0.3, 'board'),
-  box('mar-shop-fascia-n', SHOP.x0 - 0.2, 3, SHOP.z0, SHOP.x1 + 0.1, 4.3, SHOP.z0 + 0.1, 'black', seeThrough),
-  box('mar-shop-fascia-w', SHOP.x0 - 0.2, 3, SHOP.z0, SHOP.x0 - 0.1, 4.3, SHOP.z1, 'black', seeThrough),
+  box('mar-shop-counter-w', SHOP.x1 - 0.7, 0, SHOP.z0 + 0.3, SHOP.x1, 1.1, SHOP.z1 - 0.3, 'black'),
+  box('mar-shop-counter-n', SHOP.x0, 0, SHOP.z1 - 1, SHOP.x1, 1.1, SHOP.z1 - 0.3, 'black'),
+  box('mar-shop-backdrop', SHOP.x0, 0, SHOP.z0, SHOP.x1, 3.4, SHOP.z0 + 0.2, 'board'),
+  box('mar-shop-fascia-n', SHOP.x0 - 0.2, 3, SHOP.z1 - 0.1, SHOP.x1 + 0.1, 4.3, SHOP.z1, 'black', seeThrough),
+  box('mar-shop-fascia-w', SHOP.x1, 3, SHOP.z0, SHOP.x1 + 0.1, 4.3, SHOP.z1, 'black', seeThrough),
   // Café: a table's footprint each; the chairs are drawn but not collidable.
   ...CAFE_TABLES.map(([x, z], index) => box(`mar-cafe-table-${index}`, x - 0.65, 0, z - 0.4, x + 0.65, 0.76, z + 0.4, 'table', { visual: false })),
   // La Isla, the children's corner at the glass: a carpet and a bench, kept off the wall's viewing strip.
@@ -450,7 +450,7 @@ export const marBoxes: MarBox[] = [
   up('mar-chair-b', 12.8, -11.1, 13.6, -10.2, 0.8, 'table', { visual: false }),
 
   // Temporary white partitions. They are a typical exhibition fit-out, not a copy of a particular show.
-  wallZ('mar-west-p1', -7, 2, -21, MAR.labHeight, 'black', 0.16),
+  wallZ('mar-west-p1', -11.8, -9.7, -25, MAR.labHeight, 'black', 0.16),
   wallX('mar-east-p1', 20, 28.5, -13, MAR.partitionHeight, 'white', MAR.partition),
 
   // Mezzanine deck and glass balustrade around the void. Above the walk, so the ground floor stays open.
