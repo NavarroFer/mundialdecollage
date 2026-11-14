@@ -22,3 +22,7 @@ Tienda finde sits on the right when looking through the café passage. Its enlar
 Seven table groups replace the original four, with round cane-textured chair backs and curved wooden rims. The suspended expanded-metal ceiling is transparent between the strands; alternating warm and white tubes sit above it, with the two chandeliers retained below. The far wall is now glazed like the supplied photo. Beneath the upper gallery extension, the corresponding solid base is opened into a column-supported portico so it does not immediately obstruct that window. This structural arrangement is provisional because the photos do not establish the extension’s exact construction.
 
 The final combined scene was inspected in local Chrome renders from the plaza, service wall, escalator hall, waiting corner, café entrance and shop aisle. All 36 MAR tests pass; ESLint and TypeScript checks pass. These are rendered-model and navigation checks, not a claim that the reconstruction is a photographic scan.
+
+## Additional wide hall reference
+
+The subsequent wide photograph clarifies the ceiling: deep parallel concrete beams, mostly opaque bays with narrow rooflight strips, a continuous warm light line at the wall perimeter, small grouped fixtures beneath the beams, and slim lighting rails below the mezzanine. These replace the former completely luminous roof plane and isolated vertical light bar. Existing floor heights remain provisional; this photograph alone does not establish new measured heights.

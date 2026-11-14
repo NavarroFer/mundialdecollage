@@ -51,30 +51,76 @@ function useInstances(ref: React.RefObject<THREE.InstancedMesh | null>, items: A
   }, [ref, items])
 }
 
-/** Deep concrete beams across the hall, the skylight between them glowing above. */
+/** Narrow rooflights, deep parallel beams and continuous perimeter lighting, from the wide hall photo. */
 function HallRoof({ materials }: { materials: InteriorMaterials }) {
-  const skylight = useMemo(() => new THREE.MeshBasicMaterial({ color: '#dfeaf6', toneMapped: false }), [])
-  useEffect(() => () => skylight.dispose(), [skylight])
+  const light = useMemo(() => new THREE.MeshBasicMaterial({ color: '#fff4db', toneMapped: false }), [])
+  const rooflight = useMemo(() => new THREE.MeshBasicMaterial({ color: '#e1e8ea', toneMapped: false }), [])
+  useEffect(() => () => { light.dispose(); rooflight.dispose() }, [light, rooflight])
   const beams = useMemo(() => Array.from({ length: 8 }, (_, i) => -10.4 + i * 3.4), [])
+  const roofY = MAR.hallHeight
+  const ringY = roofY - 1.82
   return (
     <group>
-      <mesh position={[(HALL.x0 + HALL.x1) / 2, MAR.hallHeight + 0.05, (HALL.z0 + HALL.z1) / 2]} rotation={[Math.PI / 2, 0, 0]} material={skylight}>
-        <planeGeometry args={[HALL.x1 - HALL.x0, HALL.z1 - HALL.z0]} />
-      </mesh>
+      {/* Opaque concrete bays with a narrow daylight slit along one edge. */}
+      {beams.slice(0, -1).map((x) => (
+        <group key={`bay-${x}`}>
+          <mesh position={[x + 1.55, roofY + 0.08, -9.9]} material={materials.beam} receiveShadow>
+            <boxGeometry args={[2.3, 0.16, 19.7]} />
+          </mesh>
+          <mesh position={[x + 2.85, roofY + 0.01, -9.9]} rotation={[Math.PI / 2, 0, 0]} material={rooflight}>
+            <planeGeometry args={[0.3, 19.7]} />
+          </mesh>
+        </group>
+      ))}
       {beams.map((x) => (
-        <mesh key={x} position={[x, MAR.hallHeight - 0.75, -9.9]} material={materials.beam} castShadow receiveShadow>
-          <boxGeometry args={[0.55, 1.5, 19.7]} />
-        </mesh>
+        <group key={x}>
+          <mesh position={[x, roofY - 0.8, -9.9]} material={materials.beam} castShadow receiveShadow>
+            <boxGeometry args={[0.8, 1.6, 19.7]} />
+          </mesh>
+          {/* Small groups of warm spots tucked under the concrete beams. */}
+          {[-17.9, -2.1].map((z) => (
+            <group key={z} position={[x, roofY - 1.64, z]}>
+              <mesh material={materials.mullion}><boxGeometry args={[0.25, 0.035, 0.6]} /></mesh>
+              {[-0.19, 0, 0.19].map((dz) => (
+                <mesh key={dz} position={[0, -0.025, dz]} rotation={[Math.PI / 2, 0, 0]} material={light}>
+                  <circleGeometry args={[0.048, 12]} />
+                </mesh>
+              ))}
+            </group>
+          ))}
+        </group>
       ))}
-      {/* Two long cross beams, and the warm light tube down the east column. */}
-      {[-14, -5].map((z) => (
-        <mesh key={z} position={[1, MAR.hallHeight - 0.3, z]} material={materials.beam}>
-          <boxGeometry args={[25.8, 0.6, 0.5]} />
-        </mesh>
+      {/* The roof's luminous outline follows all four walls. */}
+      {[HALL.z0 + 0.22, HALL.z1 - 0.22].map((z) => (
+        <group key={z} position={[1, ringY, z]}>
+          <mesh material={materials.mullion}><boxGeometry args={[25.55, 0.12, 0.14]} /></mesh>
+          <mesh position={[0, -0.065, 0]} material={light}><boxGeometry args={[25.55, 0.025, 0.055]} /></mesh>
+        </group>
       ))}
-      <mesh position={[HALL.x1 - 0.2, 4.4, -3]} material={materials.lamp}>
-        <boxGeometry args={[0.06, 8, 0.06]} />
-      </mesh>
+      {[HALL.x0 + 0.22, HALL.x1 - 0.22].map((x) => (
+        <group key={x} position={[x, ringY, -10]}>
+          <mesh material={materials.mullion}><boxGeometry args={[0.14, 0.12, 19.55]} /></mesh>
+          <mesh position={[0, -0.065, 0]} material={light}><boxGeometry args={[0.055, 0.025, 19.55]} /></mesh>
+        </group>
+      ))}
+      {/* Slim light rails below the mezzanine, with individual adjustable fixtures. */}
+      {[-12.05, -3.5].map((z, index) => {
+        const x0 = index === 0 ? -11.7 : -7.4
+        const x1 = index === 0 ? 13.7 : -3.55
+        return <group key={z}>
+          <mesh position={[(x0 + x1) / 2, MAR.mezzanine - 0.29, z]} material={light}>
+            <boxGeometry args={[x1 - x0, 0.025, 0.035]} />
+          </mesh>
+          {Array.from({ length: index === 0 ? 9 : 2 }, (_, i) => (
+            <group key={i} position={[x0 + 0.5 + i * (index === 0 ? 2.9 : 2.5), MAR.mezzanine - 0.38, z]}>
+              <mesh material={materials.steel}><boxGeometry args={[0.12, 0.07, 0.12]} /></mesh>
+              <mesh position={[0, -0.1, 0]} rotation={[0.35, 0, 0]} material={materials.steel}>
+                <cylinderGeometry args={[0.065, 0.075, 0.16, 12]} />
+              </mesh>
+            </group>
+          ))}
+        </group>
+      })}
     </group>
   )
 }
