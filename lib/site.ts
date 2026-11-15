@@ -15,6 +15,10 @@ export const site = {
   // Extended on 15 November 2026 (announced on Instagram) from the 15th to the 20th.
   deadlineISO: '2026-11-20T23:59:59-03:00',
   deadlineLabel: '20 de noviembre',
+  // The deadline announced before the extension (null: never extended). The
+  // last-day reminder for that date already went out, so the new date gets
+  // its own (lib/countdown-campaigns.ts).
+  extendedFromISO: '2026-11-15T23:59:59-03:00' as string | null,
   // Bases del concurso (PDF), servido desde public/mundial-de-collage.pdf.
   basesPdfUrl: '/mundial-de-collage.pdf',
   // Requires mundialdecollage.com.ar verified as a sending domain in Resend —

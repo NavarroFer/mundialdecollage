@@ -24,7 +24,7 @@ import type { TemplateAudience } from '@/lib/template-audiences'
 export type SystemTemplateKey = 'elegir_obra' | 'perfil_artista' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento' | 'comunidad_lanzamiento'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
-export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1'
+export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1' | 'cuenta_regresiva_prorroga'
 
 type SystemTemplateDefinition = {
   name: string
@@ -329,6 +329,18 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
     createDocument: countdown(
       'Hola {{nombre}}, mañana cierra la convocatoria',
       `Es tu última oportunidad: el ${site.deadlineLabel} a medianoche (hora argentina) cerramos la recepción de obras del Mundial Internacional de Collage.`,
+    ),
+  },
+  // The last day again, after the call was extended (site.extendedFromISO):
+  // most of its readers already got «mañana cierra» for the first date.
+  cuenta_regresiva_prorroga: {
+    name: 'Cuenta regresiva: último día de la prórroga',
+    audiences: ['interesados', 'hinchas'],
+    subject: 'Extendimos la convocatoria: mañana es el último día',
+    description: COUNTDOWN_DESCRIPTION,
+    createDocument: countdown(
+      'Hola {{nombre}}, tenés hasta mañana',
+      `Extendimos la convocatoria del Mundial Internacional de Collage: el ${site.deadlineLabel} a medianoche (hora argentina) cerramos la recepción de obras. Es la última oportunidad de sumar la tuya.`,
     ),
   },
   confirmar_datos: {
