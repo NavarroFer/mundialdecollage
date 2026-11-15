@@ -6,7 +6,7 @@ import { site } from '@/lib/site'
 // Al cambiar el texto de forma sustancial, subí TERMS_VERSION
 // (lib/terms-version.ts) y TERMS_UPDATED_LABEL.
 export { TERMS_PDF_URL, TERMS_VERSION } from '@/lib/terms-version'
-export const TERMS_UPDATED_LABEL = '29 de octubre de 2026'
+export const TERMS_UPDATED_LABEL = '15 de noviembre de 2026'
 
 export type TermsBlock = string | { list: string[] }
 export type TermsSection = { id: string; title: string; blocks: TermsBlock[] }

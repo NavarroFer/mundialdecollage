@@ -1203,7 +1203,7 @@ Muchas gracias por tu interés en sumarte al Mundial Internacional de Collage. T
 • CANTIDAD DE OBRAS: 1 obra por artista.
 • FORMATO Y MEDIDAS: Medidas y soporte libres. Para postularte solo necesitás adjuntar una fotografía clara o archivo digital de la obra (formato JPG o PNG).
 • COSTO: 100% libre y gratuito. Convocatoria abierta a artistas de cualquier país.
-• FECHA LÍMITE: 15 de noviembre.
+• FECHA LÍMITE: 20 de noviembre.
 
 DERECHOS DE AUTOR Y USO DE OBRA:
 • La autoría te pertenece al 100%: Conservás la totalidad de los derechos intelectuales y patrimoniales sobre tu trabajo.
