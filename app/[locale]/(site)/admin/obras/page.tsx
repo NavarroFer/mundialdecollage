@@ -10,7 +10,7 @@ import { LegacyImageUpload } from '@/components/admin/legacy-image-upload'
 import { NameCleanup, type NameCleanupItem } from '@/components/admin/name-cleanup'
 import { normalizeArtistName } from '@/lib/name-format'
 import { instagramUrl } from '@/lib/instagram'
-import { pendingArtworkGroups, submissionSearchEntry, isArtworkPublished } from '@/lib/admin-artwork-controls'
+import { pendingArtworkGroups, submissionSearchEntry, isArtworkPublished, unpublishedReason, UNPUBLISHED_REASONS, type UnpublishedReason } from '@/lib/admin-artwork-controls'
 import { PendingArtworkChoices } from '@/components/admin/pending-artwork-choices'
 import {
   importLegacySubmissions,
@@ -156,9 +156,17 @@ export default async function ObrasPage({
   // `artworks` row is deliberately represented by this source row only, so
   // it cannot appear twice after the artist completes onboarding.
   const linkedArtworks = new Map(artworkRows.filter(row => row.legacy_submission_id).map(row => [row.legacy_submission_id!, row]))
+  // An entered obra of an artist who paid is on show like the main one.
+  const isPaidEntry = (row: ArtworkRow | undefined) => Boolean(row && !row.is_selected && row.is_entered && paidIds.has(row.profile_id))
   const legacyGalleryItems = legacyRowsWithImage
     .map((row) => {
       const groupRows = legacyGroups.get(row.email) ?? [row]
+      const linked = linkedArtworks.get(row.id)
+      const profileIsPublic = row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false
+      const isPublic = isArtworkPublished(profileIsPublic, linked?.is_selected, isPaidEntry(linked))
+      // Linked to an account: what counts is that artwork. Not yet: the row
+      // picked for its email.
+      const chosen = linked ? linked.is_selected || isPaidEntry(linked) : row.selected
       return {
         id: `legacy-${row.id}`,
         name: row.name ?? 'Sin nombre',
@@ -173,8 +181,9 @@ export default async function ObrasPage({
         imageUrl: row.image_url as string,
         createdAt: row.created_at,
         driveUrl: row.drive_url ?? undefined,
-        isPublic: isArtworkPublished(row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false, linkedArtworks.get(row.id)?.is_selected),
-        profileIsPublic: row.claimed_by ? (claimedPublicById.get(row.claimed_by) ?? false) : false,
+        isPublic,
+        unpublishedReason: unpublishedReason({ isPublic, chosen, artworkCount: groupRows.length }),
+        profileIsPublic,
         source: 'legacy' as const,
         reviewStatus: row.review_status,
         legacyId: row.id,
@@ -204,6 +213,7 @@ export default async function ObrasPage({
     .map((row) => {
       const profile = row.profiles
       const siblings = artworksByProfile.get(row.profile_id) ?? []
+      const isPublic = isArtworkPublished(Boolean(profile?.is_public), row.is_selected, isPaidEntry(row))
       return {
         id: row.id,
         name: profile?.name ?? 'Sin nombre',
@@ -213,7 +223,8 @@ export default async function ObrasPage({
         imageUrl: row.image_url!,
         createdAt: row.created_at,
         slug: row.slug ?? undefined,
-        isPublic: isArtworkPublished(Boolean(profile?.is_public), row.is_selected, row.is_entered && paidIds.has(row.profile_id)),
+        isPublic,
+        unpublishedReason: unpublishedReason({ isPublic, chosen: row.is_selected || isPaidEntry(row), artworkCount: siblings.length }),
         profileIsPublic: Boolean(profile?.is_public),
         artworkCount: siblings.length,
         source: 'real' as const,
@@ -227,6 +238,10 @@ export default async function ObrasPage({
     })
   const submissions = [...legacyGalleryItems, ...nativeGalleryItems]
   const publicCount = submissions.filter((s) => s.isPublic).length
+  const unpublishedBy = new Map<UnpublishedReason, number>()
+  for (const { unpublishedReason: reason } of submissions) {
+    if (reason) unpublishedBy.set(reason, (unpublishedBy.get(reason) ?? 0) + 1)
+  }
 
   // "Limpieza de nombres" (ROADMAP.md item 5) — every artist name that would
   // change under normalizeArtistName(), across both real registrations and
@@ -310,6 +325,28 @@ export default async function ObrasPage({
         <StatPill label="Publicadas" value={publicCount} />
         <StatPill label="Sin publicar" value={submissions.length - publicCount} />
       </div>
+
+      {unpublishedBy.size > 0 && (
+        <div className="mt-4 max-w-3xl rounded-2xl border-2 border-ink/10 bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink">Por qué no están publicadas</h2>
+          <ul className="mt-3 space-y-3">
+            {(Object.keys(UNPUBLISHED_REASONS) as UnpublishedReason[]).flatMap((reason) => {
+              const count = unpublishedBy.get(reason)
+              if (!count) return []
+              return [(
+                <li key={reason} className="flex gap-3 text-sm">
+                  <span className="font-display min-w-12 text-right text-xl leading-none text-ink tabular-nums">{count}</span>
+                  <span>
+                    <span className="font-semibold text-ink">{UNPUBLISHED_REASONS[reason].label}</span>
+                    <span className="block text-muted-foreground">{UNPUBLISHED_REASONS[reason].description}</span>
+                  </span>
+                </li>
+              )]
+            })}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">En la grilla, «Sin publicar» se puede filtrar por cada motivo.</p>
+        </div>
+      )}
 
       <div className="mt-8">
         <SubmissionsGallery submissions={submissions.map(submissionSearchEntry)} />

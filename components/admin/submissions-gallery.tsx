@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
 import { instagramHandle } from '@/lib/instagram'
 import { deleteSubmissions, setSubmissionsReviewStatus, setSubmissionsTechnique, setSubmissionsVisibility } from '@/app/[locale]/(site)/admin/obras/actions'
-import { hasSubmissionSearch, matchesSubmissionSearch } from '@/lib/admin-artwork-controls'
+import { hasSubmissionSearch, matchesSubmissionSearch, UNPUBLISHED_REASONS, type UnpublishedReason } from '@/lib/admin-artwork-controls'
 
 const SubmissionViewerLoader = dynamic(() => import('./submission-viewer-loader').then(module => module.SubmissionViewerLoader))
 import type { Submission, SubmissionSearchEntry } from '@/components/admin/submission-types'
@@ -56,6 +56,8 @@ type TechniqueFilter = 'all' | 'none' | (typeof TECHNIQUES)[number]
 
 export function SubmissionsGallery({ submissions }: { submissions: SubmissionSearchEntry[] }) {
   const [filter, setFilter] = useState<Filter>('all')
+  // Only within «Sin publicar»: why they aren't on the site.
+  const [reason, setReason] = useState<'all' | UnpublishedReason>('all')
   const [technique, setTechnique] = useState<TechniqueFilter>('all')
   const [country, setCountry] = useState<string>('all')
   const [origin, setOrigin] = useState<OriginFilter>('all')
@@ -81,12 +83,14 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
     return [...codes].sort((a, b) => countryCodeToName(a).localeCompare(countryCodeToName(b)))
   }, [submissions])
 
+  const reasonFilter = filter === 'pending' ? reason : 'all'
   const searching = hasSubmissionSearch(search, [filter, technique, country, origin, review, data])
   const visible = useMemo(() => {
     if (!searching) return []
     let list = submissions
     if (filter === 'pending') list = list.filter((s) => !s.isPublic)
     else if (filter === 'public') list = list.filter((s) => s.isPublic)
+    if (reasonFilter !== 'all') list = list.filter((s) => s.unpublishedReason === reasonFilter)
     if (technique === 'none') list = list.filter((s) => !s.technique)
     else if (technique !== 'all') list = list.filter((s) => s.technique === technique)
     if (country === 'none') list = list.filter((s) => !s.countryCode)
@@ -101,9 +105,9 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
       const difference = Date.parse(a.createdAt ?? '') - Date.parse(b.createdAt ?? '')
       return dateOrder === 'newest' ? -difference : difference
     })
-  }, [submissions, filter, technique, country, origin, review, data, search, dateOrder, searching])
+  }, [submissions, filter, reasonFilter, technique, country, origin, review, data, search, dateOrder, searching])
 
-  const resultKey = JSON.stringify([search, filter, technique, country, origin, review, data, dateOrder])
+  const resultKey = JSON.stringify([search, filter, reasonFilter, technique, country, origin, review, data, dateOrder])
   const pageCount = Math.ceil(visible.length / 25)
   const page = pagination.key === resultKey ? Math.min(pagination.page, Math.max(0, pageCount - 1)) : 0
   const pageResults = visible.slice(page * 25, (page + 1) * 25)
@@ -133,6 +137,7 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
 
   function resetFilters() {
     setFilter('all')
+    setReason('all')
     setTechnique('all')
     setCountry('all')
     setOrigin('all')
@@ -143,6 +148,7 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
   const optionLabel = (options: { value: string; label: string }[], value: string) => options.find((o) => o.value === value)?.label ?? value
   const activeChips = [
     filter !== 'all' && { label: optionLabel(FILTERS.map((f) => ({ value: f.key, label: f.label })), filter), clear: () => setFilter('all') },
+    reasonFilter !== 'all' && { label: UNPUBLISHED_REASONS[reasonFilter].short, clear: () => setReason('all') },
     review !== 'all' && { label: REVIEW_LABELS[review], clear: () => setReview('all') },
     technique !== 'all' && { label: technique === 'none' ? 'Sin técnica' : technique, clear: () => setTechnique('all') },
     country !== 'all' && { label: country === 'none' ? 'Sin país' : countryCodeToName(country), clear: () => setCountry('all') },
@@ -249,6 +255,17 @@ export function SubmissionsGallery({ submissions }: { submissions: SubmissionSea
         {/* 2 · The day-to-day curation filters. */}
         <div className="flex flex-wrap items-end gap-x-6 gap-y-3 border-t-2 border-ink/10 px-3 py-3 sm:px-4">
           <Segmented label="Publicación" value={filter} onChange={setFilter} options={FILTERS.map((f) => ({ value: f.key, label: f.label }))} />
+          {filter === 'pending' && (
+            <Segmented
+              label="Motivo"
+              value={reason}
+              onChange={setReason}
+              options={[
+                { value: 'all', label: 'Todos' },
+                ...(Object.keys(UNPUBLISHED_REASONS) as UnpublishedReason[]).map((key) => ({ value: key, label: UNPUBLISHED_REASONS[key].short })),
+              ]}
+            />
+          )}
           <Segmented
             label="Revisión"
             value={review}

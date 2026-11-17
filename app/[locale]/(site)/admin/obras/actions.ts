@@ -781,9 +781,10 @@ export async function getAdminSubmissionDetails(id: string): Promise<import('@/c
       row.claimed_by ? supabase.from('profiles').select('is_public').eq('id', row.claimed_by).maybeSingle() : Promise.resolve({ data: null, error: null }),
     ])
     if (siblingError || profileResult.error) throw new Error(siblingError?.message ?? profileResult.error?.message)
-    const { data: linked, error: linkedError } = await supabase.from('artworks').select('is_selected')
-      .eq('legacy_submission_id', row.id).is('archived_at', null).is('duplicate_of', null).maybeSingle()
+    const { data: linked, error: linkedError } = await supabase.from('artworks').select('is_selected, is_entered, profile_id')
+      .eq('legacy_submission_id', row.id).is('archived_at', null).is('duplicate_of', null).eq('is_club_only', false).maybeSingle()
     if (linkedError) throw new Error(linkedError.message)
+    const linkedPaidEntry = Boolean(linked && !linked.is_selected && linked.is_entered && await hasPaidEntries(supabase, linked.profile_id))
     const handle = instagramHandle(row.instagram)
     return {
       id, name: row.name ?? 'Sin nombre', email: row.email,
@@ -791,7 +792,7 @@ export async function getAdminSubmissionDetails(id: string): Promise<import('@/c
       artworkTitle: row.title ?? undefined, technique: row.technique ?? undefined,
       imageUrl: row.image_url, createdAt: row.created_at,
       driveUrl: row.drive_url ?? undefined, imageFetchFailedAt: row.image_fetch_failed_at,
-      isPublic: isArtworkPublished(profileResult.data?.is_public ?? false, linked?.is_selected), profileIsPublic: profileResult.data?.is_public ?? false, reviewStatus: row.review_status,
+      isPublic: isArtworkPublished(profileResult.data?.is_public ?? false, linked?.is_selected, linkedPaidEntry), profileIsPublic: profileResult.data?.is_public ?? false, reviewStatus: row.review_status,
       source: 'legacy', legacyId: row.id, instagram: handle ? instagramUrl(handle) : undefined,
       artworkCount: siblings?.length ?? 1,
       legacySiblings: (siblings?.length ?? 0) > 1 ? siblings!.map(sibling => ({

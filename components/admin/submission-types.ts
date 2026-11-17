@@ -1,3 +1,4 @@
+import type { UnpublishedReason } from '@/lib/admin-artwork-controls'
 // Compartido por SubmissionsGallery, ObraViewer y app/admin/obras/page.tsx (que tipa los
 // objetos que construye contra esta misma forma) — así un cambio en page.tsx que deje de
 // mandar un campo que el visor espera se detecta en compile-time en vez de en runtime.
@@ -48,6 +49,8 @@ export type Submission = {
   // it at full size.
   driveUrl?: string
   isPublic: boolean
+  // Why it isn't on the site (lib/admin-artwork-controls.ts); unset when it is.
+  unpublishedReason?: UnpublishedReason
   // Visibility of the artist, distinct from this artwork being the public main work.
   profileIsPublic?: boolean
   // Editorial review is independent of publication and of `is_selected`,

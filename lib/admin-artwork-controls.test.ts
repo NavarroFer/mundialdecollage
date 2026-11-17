@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasSubmissionSearch, matchesSubmissionSearch, pendingArtworkGroups, submissionSearchEntry, isArtworkPublished } from './admin-artwork-controls'
+import { hasSubmissionSearch, matchesSubmissionSearch, pendingArtworkGroups, submissionSearchEntry, isArtworkPublished, unpublishedReason } from './admin-artwork-controls'
 import type { Submission } from '@/components/admin/submission-types'
 
 const submission: Submission = {
@@ -49,5 +49,17 @@ describe('Admin Obras controls', () => {
     expect(hasSubmissionSearch(' a ', ['all'])).toBe(false)
     expect(hasSubmissionSearch('jose', ['all'])).toBe(true)
     expect(hasSubmissionSearch('', ['pending'])).toBe(true)
+  })
+})
+
+describe('unpublishedReason', () => {
+  it('says nothing for a public obra', () => {
+    expect(unpublishedReason({ isPublic: true, chosen: true, artworkCount: 1 })).toBeUndefined()
+  })
+
+  it('tells the chosen obra of an unpublished artist from an artist\'s other obras', () => {
+    expect(unpublishedReason({ isPublic: false, chosen: true, artworkCount: 3 })).toBe('artist_hidden')
+    expect(unpublishedReason({ isPublic: false, chosen: false, artworkCount: 3 })).toBe('another_obra')
+    expect(unpublishedReason({ isPublic: false, chosen: false, artworkCount: 1 })).toBe('not_chosen')
   })
 })
