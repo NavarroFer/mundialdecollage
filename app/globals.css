@@ -471,6 +471,13 @@
     -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 17px) no-repeat, url('/collage/torn-edge.svg') bottom / 1200px 18px repeat-x;
     mask: linear-gradient(#000 0 0) top / 100% calc(100% - 17px) no-repeat, url('/collage/torn-edge.svg') bottom / 1200px 18px repeat-x;
   }
+  /* The same tear along the top (public/collage/torn-edge-top.svg is torn-edge.svg
+     flipped), for a sheet laid over a photo. --tear shifts it, so sheets side
+     by side don't share one tear. */
+  .torn-t {
+    -webkit-mask: url('/collage/torn-edge-top.svg') var(--tear, 0px) 0 / 1200px 18px repeat-x, linear-gradient(#000 0 0) bottom / 100% calc(100% - 17px) no-repeat;
+    mask: url('/collage/torn-edge-top.svg') var(--tear, 0px) 0 / 1200px 18px repeat-x, linear-gradient(#000 0 0) bottom / 100% calc(100% - 17px) no-repeat;
+  }
   .tape {
     position: absolute;
     width: 5.5rem;

@@ -1121,6 +1121,12 @@ const id: Messages = {
     galleryBody: 'Pilihan berbeda setiap hari. Jelajahi galeri dari peramban.',
     marBody: 'Museum dibuka untuk publik saat finalis diumumkan.',
   },
+  feedOffers: {
+    label: 'Lebih banyak dari Mundial untukmu', prev: 'Sebelumnya', next: 'Berikutnya', goTo: 'Ke banner {n} dari {total}',
+    club: { tag: 'Ruang {name}', tagNoName: 'Ruangmu', title: 'Galeri 3D milikmu sendiri', body: 'Seluruh seri karyamu, buka 24 jam.', cta: 'Kenali Klub' },
+    cutouts: { tag: 'Dikirim lewat pos', title: 'Potongan tiap bulan', body: 'Vintage, paket {counts} potongan, termasuk stiker.', cta: 'Pilih paketku' },
+    gallery: { tag: 'Gratis', title: 'Jelajahi galeri 3D', body: 'Pameran berbeda setiap hari.', cta: 'Masuk ke galeri' },
+  },
 }
 
 export default id

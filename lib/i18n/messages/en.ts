@@ -1125,6 +1125,12 @@ const en: Messages = {
     galleryBody: 'A different selection every day. Walk the gallery from your browser.',
     marBody: 'The museum opens to the public when the finalists are announced.',
   },
+  feedOffers: {
+    label: 'More from the Mundial for you', prev: 'Previous', next: 'Next', goTo: 'Go to banner {n} of {total}',
+    club: { tag: '{name}’s room', tagNoName: 'Your room', title: 'Your own 3D gallery', body: 'Your whole series, open around the clock.', cta: 'Discover the Club' },
+    cutouts: { tag: 'Delivered by post', title: 'Cutouts every month', body: 'Vintage, in packs of {counts}, stickers included.', cta: 'Choose my pack' },
+    gallery: { tag: 'Free', title: 'Walk the 3D gallery', body: 'A different show every day.', cta: 'Enter the gallery' },
+  },
 }
 
 export default en

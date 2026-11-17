@@ -1146,6 +1146,12 @@ const pl: Messages = {
     galleryBody: 'Codziennie inny wybór. Przejdź galerię w przeglądarce.',
     marBody: 'Muzeum otwiera się publicznie, gdy ogłosimy finalistów.',
   },
+  feedOffers: {
+    label: 'Więcej z Mundialu dla ciebie', prev: 'Poprzedni', next: 'Następny', goTo: 'Przejdź do banera {n} z {total}',
+    club: { tag: 'Sala: {name}', tagNoName: 'Twoja sala', title: 'Twoja własna galeria 3D', body: 'Cała twoja seria, otwarta całą dobę.', cta: 'Poznaj Klub' },
+    cutouts: { tag: 'Przychodzi pocztą', title: 'Wycinki co miesiąc', body: 'Vintage, paczki po {counts} sztuk, z naklejkami.', cta: 'Wybierz paczkę' },
+    gallery: { tag: 'Za darmo', title: 'Przejdź się po galerii 3D', body: 'Codziennie inna wystawa.', cta: 'Wejdź do galerii' },
+  },
 }
 
 export default pl

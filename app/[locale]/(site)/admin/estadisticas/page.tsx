@@ -18,7 +18,7 @@ import { flagSvgsFor } from '@/lib/flag-svg'
 import { CountryFlag } from '@/components/country-flag'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, FEED_OFFER_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { loadIncome } from '@/lib/income'
@@ -427,6 +427,15 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
             steps={HOME_STORE_EVENTS}
             baseStep="store_home_seen"
             baseLabel="De quienes la vieron"
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Banners del inicio del artista"
+            description="Personas distintas que vieron los banners de arriba de su inicio (el de quienes participan) y cuál abrieron: el Club, los recortes o la galería 3D. El del Club aparece solo con el Club abierto. Se mide desde el 17 de noviembre de 2026."
+            steps={FEED_OFFER_EVENTS}
+            baseStep="feed_offers_seen"
+            baseLabel="De quienes los vieron"
             variant="comparison"
           />
           <JourneySection

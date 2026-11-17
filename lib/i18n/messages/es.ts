@@ -1163,6 +1163,15 @@ const es = {
     galleryBody: 'Una selección distinta cada día. Caminá la galería desde el navegador.',
     marBody: 'El museo se abre al público cuando se anuncien las finalistas.',
   },
+  // The banners at the top of a participating artist's home (components/feed-offers.tsx).
+  // Short on purpose: a banner is half a phone screen, so the first obra of
+  // the feed shows under it. {counts}: the cutout packs' sizes ("50, 100 o 200").
+  feedOffers: {
+    label: 'Más del Mundial para vos', prev: 'Anterior', next: 'Siguiente', goTo: 'Ir al banner {n} de {total}',
+    club: { tag: 'Sala de {name}', tagNoName: 'Tu sala', title: 'Tu galería 3D propia', body: 'Toda tu serie, abierta las 24 horas.', cta: 'Conocer el Club' },
+    cutouts: { tag: 'Llega por correo', title: 'Recortes cada mes', body: 'Vintage, en packs de {counts}, con stickers.', cta: 'Elegir mi pack' },
+    gallery: { tag: 'Gratis', title: 'Recorré la galería 3D', body: 'Una muestra distinta cada día.', cta: 'Entrar a la galería' },
+  },
 }
 
 export type Messages = typeof es
