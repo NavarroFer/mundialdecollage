@@ -11,14 +11,12 @@ import { useTouchStore } from '../mobile/touchStore'
 import { aimAt } from './aim'
 import { findWalkPath, viewingSpot } from './path'
 import { levelAt, planRoute, targetLevel } from './levels'
-import { useFlagStore } from '../flag/store'
+import { FLAG_REACH, useFlagStore } from '../flag/store'
 import { useNavigationStore } from './store'
 import { mainGalleryTemplate, type GalleryRoomTemplate } from '../world/roomsData'
 
 // The same reach as E: closer than this, a click on an obra opens it on the spot.
 const OPEN_DISTANCE = 3.5
-// The flag hangs high, so it opens from further back than an obra: its pictures are small.
-const FLAG_REACH = 14
 // Any further and the mouse press was a drag to look around, not a click.
 const DRAG_PX = 8
 const CLICK_MS = 600

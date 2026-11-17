@@ -4,13 +4,15 @@ import { currentAim, useWallStore } from '../wall/store'
 import { useInteractionStore } from './store'
 import { goThroughClubDoor, useClubDoorStore } from '../club/store'
 import { useClubHostStore } from '../club/host'
+import { pickAimedObra, useFlagStore } from '../flag/store'
 
 /**
  * E (or the touch E button): opens the obra in front of the visitor, or
  * closes whatever is open — and, looking at the collective collage with no
- * obra in sight, opens the dialog to paste a photo right there. In a Club
- * gallery, at its door, it goes on to the next gallery, and at its host it
- * opens their welcome letter.
+ * obra in sight, opens the dialog to paste a photo right there. In MAR it
+ * opens the obra it points at on the hall's flag. In a Club gallery, at its
+ * door, it goes on to the next gallery, and at its host it opens their
+ * welcome letter.
  */
 export function interact() {
   const vinyl = useVinylStore.getState()
@@ -19,6 +21,8 @@ export function interact() {
   const arcade = useArcadeStore.getState()
   if (arcade.open) return
   if (arcade.aiming) { arcade.setOpen(true); return }
+  const flag = useFlagStore.getState()
+  if (flag.entry) { flag.close(); return }
   const host = useClubHostStore.getState()
   if (host.open) { host.setOpen(false); return }
   const interaction = useInteractionStore.getState()
@@ -28,6 +32,7 @@ export function interact() {
     interaction.toggle()
     return
   }
+  if (pickAimedObra()) return
   const wall = useWallStore.getState()
   if (wall.placing) wall.close()
   else if (currentAim.point) wall.open({ ...currentAim.point })

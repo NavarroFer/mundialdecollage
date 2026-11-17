@@ -548,6 +548,7 @@ const es = {
     resume: 'Click para continuar',
     loading: 'Preparando la galería…',
     viewArtwork: 'Ver obra',
+    flagHint: { detail: 'Ver una obra en detalle', tap: 'Tocá una obra para verla en detalle' },
     artworkTechnique: 'Técnica: {technique}',
     artworkOfficial: 'Obra oficial del Mundial de Collage {year}.',
     closeToContinue: 'Cerrá esta ventana para seguir recorriendo',

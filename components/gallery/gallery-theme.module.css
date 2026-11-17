@@ -245,9 +245,37 @@
   100% { opacity: 0; transform: scale(1.3); }
 }
 
+/* Near MAR's hall flag: a hand cursor floating over the mosaic, clicking one picture after another. */
+.flagHint { animation: flag-hint-float 2.6s ease-in-out infinite; }
+.flagHintRoam { animation: flag-hint-roam 6.4s ease-in-out infinite; }
+.flagHintHand {
+  transform-origin: 20px 2px;
+  filter: drop-shadow(3px 5px 4px rgba(0, 0, 0, .45));
+  animation: flag-hint-click 1.6s ease-in-out infinite;
+}
+.flagHintRing { opacity: 0; animation: flag-hint-ring 1.6s ease-out infinite; }
+@keyframes flag-hint-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+/* Four stops, one per click: it moves early in each 1.6 s and holds still while it clicks. */
+@keyframes flag-hint-roam {
+  0%, 85%, 100% { transform: translate(0, 0); }
+  10%, 25% { transform: translate(46px, -24px); }
+  35%, 50% { transform: translate(-6px, -42px); }
+  60%, 75% { transform: translate(-44px, -14px); }
+}
+@keyframes flag-hint-click {
+  0%, 38%, 62%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(3px) scale(.86); }
+}
+@keyframes flag-hint-ring {
+  0%, 48% { opacity: 0; transform: scale(.3); }
+  52% { opacity: 1; transform: scale(.45); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .touchHintFinger, .touchHintFingerLook, .tapHintFinger, .tapHintRing { animation: none; }
   .tapHintRing { opacity: .8; }
+  .flagHint, .flagHintRoam, .flagHintHand, .flagHintRing { animation: none; }
 }
 
 @media (pointer: coarse) and (orientation: landscape) {

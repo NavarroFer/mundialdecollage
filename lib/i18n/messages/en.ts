@@ -542,6 +542,7 @@ const en: Messages = {
     resume: 'Click to continue',
     loading: 'Setting up the gallery…',
     viewArtwork: 'View artwork',
+    flagHint: { detail: 'See an artwork up close', tap: 'Tap an artwork to see it up close' },
     artworkTechnique: 'Technique: {technique}',
     artworkOfficial: 'Official artwork of the {year} Collage World Cup.',
     closeToContinue: 'Close this window to keep exploring',

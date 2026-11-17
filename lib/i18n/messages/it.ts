@@ -541,6 +541,7 @@ const it: Messages = {
     resume: 'Clicca per continuare',
     loading: 'Preparazione della galleria…',
     viewArtwork: 'Vedi opera',
+    flagHint: { detail: "Vedi un'opera nel dettaglio", tap: "Tocca un'opera per vederla nel dettaglio" },
     artworkTechnique: 'Tecnica: {technique}',
     artworkOfficial: 'Opera ufficiale del Mondiale di Collage {year}.',
     closeToContinue: 'Chiudi questa finestra per continuare la visita',

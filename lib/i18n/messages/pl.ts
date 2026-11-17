@@ -551,6 +551,7 @@ const pl: Messages = {
     resume: 'Kliknij, aby kontynuować',
     loading: 'Przygotowujemy galerię…',
     viewArtwork: 'Zobacz pracę',
+    flagHint: { detail: 'Zobacz pracę z bliska', tap: 'Dotknij pracy, aby zobaczyć ją z bliska' },
     artworkTechnique: 'Technika: {technique}',
     artworkOfficial: 'Oficjalna praca Mistrzostw Świata w Kolażu {year}.',
     closeToContinue: 'Zamknij to okno, aby zwiedzać dalej',

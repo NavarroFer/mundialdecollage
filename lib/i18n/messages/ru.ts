@@ -551,6 +551,7 @@ const ru: Messages = {
     resume: 'Нажмите, чтобы продолжить',
     loading: 'Готовим галерею…',
     viewArtwork: 'Открыть работу',
+    flagHint: { detail: 'Рассмотреть работу подробно', tap: 'Коснитесь работы, чтобы рассмотреть её подробно' },
     artworkTechnique: 'Техника: {technique}',
     artworkOfficial: 'Официальная работа Чемпионата мира по коллажу {year}.',
     closeToContinue: 'Закройте окно, чтобы продолжить прогулку',

@@ -29,6 +29,7 @@ import { SnakeDialog } from './arcade/SnakeDialog'
 import { useArcadeStore } from './arcade/store'
 import { WallDialog } from './wall/WallDialog'
 import { FlagObraCard } from './flag/FlagObraCard'
+import { FlagHint } from './flag/FlagHint'
 import { useFlagStore } from './flag/store'
 import { loadWall, showClubBoard, useWallStore } from './wall/store'
 import { clubBoardFrame } from './club/board'
@@ -491,6 +492,7 @@ export function Game({
       </div>
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
       {isActive && !isTouchDevice && <InteractionPrompt theme={theme} hostName={clubHost?.artistName} />}
+      {isActive && venue === 'mar' && <FlagHint touch={isTouchDevice} />}
       {/* With the mouse captured, where a click walks to (or which obra it opens). */}
       {isActive && usesPointerLock && <span className={styles.crosshair} aria-hidden="true" />}
       {isActive && <WalkNotice />}

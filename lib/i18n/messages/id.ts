@@ -541,6 +541,7 @@ const id: Messages = {
     resume: 'Klik untuk melanjutkan',
     loading: 'Menyiapkan galeri…',
     viewArtwork: 'Lihat karya',
+    flagHint: { detail: 'Lihat karya dari dekat', tap: 'Ketuk sebuah karya untuk melihatnya dari dekat' },
     artworkTechnique: 'Teknik: {technique}',
     artworkOfficial: 'Karya resmi Piala Dunia Kolase {year}.',
     closeToContinue: 'Tutup jendela ini untuk melanjutkan tur',
