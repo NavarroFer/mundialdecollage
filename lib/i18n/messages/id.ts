@@ -1123,7 +1123,7 @@ const id: Messages = {
     galleryBody: 'Pilihan berbeda setiap hari. Jelajahi galeri dari peramban.',
     marBody: 'Museum dibuka untuk publik saat finalis diumumkan.',
   },
-  feedOffers: {
+  offerBanners: {
     label: 'Lebih banyak dari Mundial untukmu', prev: 'Sebelumnya', next: 'Berikutnya', goTo: 'Ke banner {n} dari {total}',
     club: { tag: 'Ruang {name}', tagNoName: 'Ruangmu', title: 'Galeri 3D milikmu sendiri', body: 'Seluruh seri karyamu, buka 24 jam.', cta: 'Kenali Klub' },
     clubMember: { title: 'Galeri Klubmu', body: 'Tambah karya, ubah ruangan, dan lihat siapa yang berkunjung.', cta: 'Ke galeriku' },

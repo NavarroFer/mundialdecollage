@@ -18,7 +18,7 @@ import { flagSvgsFor } from '@/lib/flag-svg'
 import { CountryFlag } from '@/components/country-flag'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, FEED_OFFER_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, FEED_OFFER_EVENTS, HOME_OFFER_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { loadIncome } from '@/lib/income'
@@ -423,10 +423,19 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           <JourneySection
             {...journey}
             title="La tienda en la home"
-            description="Personas distintas que llegaron a ver las tarjetas de la tienda en la home, y cuántas de ellas entraron desde ahí. Se mide desde el 15 de octubre de 2026."
+            description="Personas distintas que llegaron a ver las tarjetas de la tienda en la home, y cuántas de ellas entraron desde ahí. Se midió del 15 de octubre al 17 de noviembre de 2026, cuando las reemplazaron los banners (ver «Banners de la home»)."
             steps={HOME_STORE_EVENTS}
             baseStep="store_home_seen"
             baseLabel="De quienes la vieron"
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Banners de la home"
+            description="Personas distintas que vieron los banners de la home (el Club, los recortes y la galería 3D, en lugar de las tarjetas de la tienda y la franja del Club) y cuál abrieron. Quien ya tiene su galería del Club activa ve «Tu galería del Club». Se mide desde el 17 de noviembre de 2026."
+            steps={HOME_OFFER_EVENTS}
+            baseStep="home_offers_seen"
+            baseLabel="De quienes los vieron"
             variant="comparison"
           />
           <JourneySection

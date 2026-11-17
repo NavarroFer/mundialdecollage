@@ -1126,7 +1126,7 @@ const de: Messages = {
     galleryBody: 'Jeden Tag eine andere Auswahl. Geh die Galerie im Browser durch.',
     marBody: 'Das Museum wird öffentlich, wenn die Finalist:innen bekannt gegeben werden.',
   },
-  feedOffers: {
+  offerBanners: {
     label: 'Mehr vom Mundial für dich', prev: 'Zurück', next: 'Weiter', goTo: 'Zu Banner {n} von {total}',
     club: { tag: 'Raum von {name}', tagNoName: 'Dein Raum', title: 'Deine eigene 3D-Galerie', body: 'Deine ganze Serie, rund um die Uhr geöffnet.', cta: 'Den Club entdecken' },
     clubMember: { title: 'Deine Club-Galerie', body: 'Füge Werke hinzu, gestalte den Raum und sieh, wer ihn besucht.', cta: 'Zu meiner Galerie' },

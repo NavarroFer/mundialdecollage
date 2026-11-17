@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clubBanner } from './feed-offers'
+import { clubBanner } from './offer-banners'
 
 describe('clubBanner', () => {
   it('takes a member to their own gallery, open Club or not', () => {

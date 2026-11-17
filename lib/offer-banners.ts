@@ -1,5 +1,5 @@
-// Which Club banner a participating artist sees atop their home
-// (components/feed-offers.tsx), from their own Club gallery, if any.
+// Which Club banner a visitor sees among the offer banners (components/offer-banners.tsx:
+// atop an artist's feed and on the public home), from their own Club gallery, if any.
 
 /** The viewer's Club gallery: active, there but not showing (draft or paused), or none. */
 export type OwnClubGallery = 'active' | 'inactive' | null

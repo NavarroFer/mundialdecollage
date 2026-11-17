@@ -209,7 +209,7 @@ export const HOME_STORE_EVENTS = [
 ] as const
 
 // The banners at the top of a participating artist's home (the obra feed,
-// components/feed-offers.tsx): how many see them, and which one they open.
+// components/offer-banners.tsx): how many see them, and which one they open.
 export const FEED_OFFER_EVENTS = [
   { name: 'feed_offers_seen', label: 'Vieron los banners arriba de su inicio' },
   { name: 'feed_offer_club', label: 'Fueron al Club desde los banners' },
@@ -218,11 +218,22 @@ export const FEED_OFFER_EVENTS = [
   { name: 'feed_offer_gallery', label: 'Fueron a la galería 3D desde los banners' },
 ] as const
 
+// The same banners on the public home, where they replaced the store's cards
+// and the Club's strip on 17 November 2026 (HOME_STORE_EVENTS keeps the history).
+export const HOME_OFFER_EVENTS = [
+  { name: 'home_offers_seen', label: 'Vieron los banners en la home' },
+  { name: 'home_offer_club', label: 'Fueron al Club desde los banners de la home' },
+  { name: 'home_offer_my_gallery', label: 'Socios del Club que fueron a su galería desde la home' },
+  { name: 'home_offer_cutouts', label: 'Fueron a los recortes desde los banners de la home' },
+  { name: 'home_offer_gallery', label: 'Fueron a la galería 3D desde los banners de la home' },
+] as const
+
 // Where the people who reach the store come from.
 export const STORE_ENTRY_EVENTS = [
   HOME_STORE_EVENTS[1],
   HOME_STORE_EVENTS[2],
   FEED_OFFER_EVENTS[3],
+  HOME_OFFER_EVENTS[3],
   { name: 'store_click_header', label: 'Fueron a la tienda desde el encabezado' },
   { name: 'store_click_tabbar', label: 'Fueron a la tienda desde la barra de abajo del celular' },
   { name: 'store_click_artwork', label: 'Fueron a la tienda desde la página de una obra' },
@@ -317,6 +328,7 @@ export type FunnelEvent =
   | (typeof STORE_ENTRY_EVENTS)[number]['name']
   | (typeof HOME_STORE_EVENTS)[number]['name']
   | (typeof FEED_OFFER_EVENTS)[number]['name']
+  | (typeof HOME_OFFER_EVENTS)[number]['name']
   | (typeof WAITLIST_EVENTS)[number]['name']
   | (typeof MAGAZINE_FUNNEL_EVENTS)[number]['name']
   | (typeof MAGAZINE_ENTRY_EVENTS)[number]['name']
@@ -328,7 +340,7 @@ const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...ONBOARDING_FORM_EVENTS, ...FORM_RESCUE_EVENTS, ...LOGIN_EVENTS, ...SIGNUP_SOURCE_EVENTS, ...GALLERY_READY_EVENTS,
-    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...FEED_OFFER_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS, ...COMMUNITY_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...FEED_OFFER_EVENTS, ...HOME_OFFER_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS, ...COMMUNITY_EVENTS,
   ].map((step) => step.name),
 )
 

@@ -1127,7 +1127,7 @@ const en: Messages = {
     galleryBody: 'A different selection every day. Walk the gallery from your browser.',
     marBody: 'The museum opens to the public when the finalists are announced.',
   },
-  feedOffers: {
+  offerBanners: {
     label: 'More from the Mundial for you', prev: 'Previous', next: 'Next', goTo: 'Go to banner {n} of {total}',
     club: { tag: '{name}’s room', tagNoName: 'Your room', title: 'Your own 3D gallery', body: 'Your whole series, open around the clock.', cta: 'Discover the Club' },
     clubMember: { title: 'Your Club gallery', body: 'Add works, restyle the room and see who visits.', cta: 'Go to my gallery' },

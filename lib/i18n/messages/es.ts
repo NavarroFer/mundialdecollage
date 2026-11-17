@@ -751,14 +751,6 @@ const es = {
       inquire: 'Consultar por este pack', inquirySubject: 'Suscripción Pack {count} recortes',
       setupNote: 'Consultanos para coordinar la suscripción y el envío.',
     },
-    // The store's cards on the home (components/home-store-section.tsx).
-    home: {
-      intro: 'Materiales para hacer collage, armados a mano en Mar del Plata y enviados a tu casa todos los meses.',
-      from: 'Desde', abroad: 'Exterior: {price} / mes',
-      membership: { title: 'Membresía', summary: 'Cuadernos, láminas, fanzines y stickers.' },
-      cutouts: { title: 'Recortes para collage', summary: 'Vintage, curados por Fersos y Te hace falta collage. Packs de {counts}.' },
-      note: 'Envío gratis a todo el país, y también enviamos al exterior. Cancelá cuando quieras.',
-    },
     plans: { inicial: { name: 'Inicial', description: 'Una pequeña dosis mensual de papel, imágenes y buena energía de tijera.', contents: ['Cuaderno A6 · 20 hojas · 90 g', '2 láminas A5', '2 stickers del Mundial de Collage', '1 postal'] }, miembro: { name: 'Miembro', description: 'Una sesión completa de collage todos los meses.', contents: ['Cuaderno A6 · 40 hojas · 90 g', '1 fanzine', '2 ilustraciones A5', 'Plancha de stickers, postal y kit de collage'] }, 'socio-premium': { name: 'Socio Premium', description: 'La edición mensual completa para coleccionistas de papel.', contents: ['Cuaderno A5 · 40 hojas · 120 g', '2 fanzines originales', '2 ilustraciones A5 + 1 ilustración A4', '2 señaladores, plancha A4 de stickers y super kit de collage'] } },
     regionLabel: '¿A dónde te lo mandamos?', regionAr: 'Argentina · en pesos', regionAbroad: 'Otro país · en dólares',
     regionArNote: 'Pagás en pesos con Mercado Pago, con envío gratis: el precio es el total mensual.', regionAbroadNote: 'Pagás en dólares con PayPal. El envío internacional se cobra aparte.',
@@ -1165,10 +1157,10 @@ const es = {
     galleryBody: 'Una selección distinta cada día. Caminá la galería desde el navegador.',
     marBody: 'El museo se abre al público cuando se anuncien las finalistas.',
   },
-  // The banners at the top of a participating artist's home (components/feed-offers.tsx).
-  // Short on purpose: a banner is half a phone screen, so the first obra of
-  // the feed shows under it. {counts}: the cutout packs' sizes ("50, 100 o 200").
-  feedOffers: {
+  // The banners atop a participating artist's home and on the public home
+  // (components/offer-banners.tsx). Short on purpose: a banner is half a phone
+  // screen, so the first obra of the feed shows under it. {counts}: the cutout packs' sizes ("50, 100 o 200").
+  offerBanners: {
     label: 'Más del Mundial para vos', prev: 'Anterior', next: 'Siguiente', goTo: 'Ir al banner {n} de {total}',
     club: { tag: 'Sala de {name}', tagNoName: 'Tu sala', title: 'Tu galería 3D propia', body: 'Toda tu serie, abierta las 24 horas.', cta: 'Conocer el Club' },
     // For a Club member with an active gallery, in place of the Club's pitch (same tag).

@@ -10,8 +10,7 @@ import { BasesBanner } from '@/components/bases-banner'
 import { CommunityStrip } from '@/components/community/community-strip'
 import { AboutSection } from '@/components/about-section'
 import { DonationSection } from '@/components/donation-section'
-import { HomeStoreSection } from '@/components/home-store-section'
-import { ClubSection } from '@/components/club-section'
+import { OfferBanners } from '@/components/offer-banners'
 import { EditionSection } from '@/components/edition-section'
 import { ParticipantsSection } from '@/components/participants-section'
 import { MapSection } from '@/components/map-section'
@@ -64,10 +63,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           {COMMUNITY_POSTING && <CommunityStrip />}
           <BasesBanner />
           <EditionSection />
-          {/* Before the obras: after them it sat 8–9 phone screens down,
-              past where most visitors stop scrolling. */}
-          <HomeStoreSection />
-          <ClubSection />
+          {/* What an artist can take on (the Club, the cutouts) and the 3D
+              gallery: the same banners as atop the artist feed. Before the
+              obras: after them they sat 8–9 phone screens down, past where
+              most visitors stop scrolling. */}
+          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-8 sm:py-16">
+            <OfferBanners place="home" />
+          </div>
           <ParticipantsSection />
           <MapSection />
           <JurySection />

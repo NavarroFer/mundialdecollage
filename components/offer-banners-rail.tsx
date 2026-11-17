@@ -8,14 +8,16 @@ import { cn } from '@/lib/utils'
 type Labels = { label: string; prev: string; next: string; goTo: string }
 
 /**
- * The swipe row under components/feed-offers.tsx. The browser does the
+ * The swipe row under components/offer-banners.tsx. The browser does the
  * sliding (CSS scroll snap), so a finger, a trackpad and the keyboard all
  * work without a library; this only follows which slide is in view, for the
  * dots, and moves one slide at a time from the buttons. Each slide is a bit
  * narrower than the row, so the next one peeks in and says «swipe». It never
- * turns by itself: an artist reads a banner at their own pace.
+ * turns by itself: a visitor reads a banner at their own pace. `wide`: from
+ * a laptop up every banner fits side by side, so the row stops sliding and
+ * drops its controls (the public home, which is wider than the feed).
  */
-export function FeedOffersRail({ children, labels }: { children: React.ReactNode; labels: Labels }) {
+export function OfferBannersRail({ children, labels, wide = false, className }: { children: React.ReactNode; labels: Labels; wide?: boolean; className?: string }) {
   const rail = useRef<HTMLUListElement>(null)
   const [active, setActive] = useState(0)
   const count = Children.count(children)
@@ -57,7 +59,7 @@ export function FeedOffersRail({ children, labels }: { children: React.ReactNode
   }
 
   return (
-    <section aria-label={labels.label} className="mb-4">
+    <section aria-label={labels.label} className={className}>
       {/* Bleeds to the screen edges on a phone (the column has 1rem of
           padding), so the next slide peeks in from the very edge. Wider, the
           column sits in the middle of the page and its edges fade out instead
@@ -65,12 +67,15 @@ export function FeedOffersRail({ children, labels }: { children: React.ReactNode
           leaves room for the tilted sheets and their shadow. */}
       <ul
         ref={rail}
-        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 pt-1.5 pb-6 [scrollbar-width:none] sm:[mask-image:linear-gradient(to_right,transparent,#000_1rem,#000_calc(100%-3.5rem),transparent)] [&::-webkit-scrollbar]:hidden"
+        className={cn(
+          '-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 pt-1.5 pb-6 [scrollbar-width:none] sm:[mask-image:linear-gradient(to_right,transparent,#000_1rem,#000_calc(100%-3.5rem),transparent)] [&::-webkit-scrollbar]:hidden',
+          wide && 'lg:mx-0 lg:snap-none lg:gap-6 lg:overflow-visible lg:px-0 lg:[mask-image:none]',
+        )}
       >
         {children}
       </ul>
       {count > 1 && (
-        <div className="-mt-3 flex items-center justify-between gap-4">
+        <div className={cn('-mt-3 flex items-center justify-between gap-4', wide && 'lg:hidden')}>
           <div className="-ml-1.5 flex items-center">
             {Array.from({ length: count }, (_, i) => (
               <button

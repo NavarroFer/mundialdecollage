@@ -1,5 +1,5 @@
 import { AppFrame } from '@/components/app-frame'
-import { FeedOffers } from '@/components/feed-offers'
+import { OfferBanners } from '@/components/offer-banners'
 import { ObraActivityFeed } from '@/components/obra-activity-feed'
 import { TrackView } from '@/components/track'
 import { fmt } from '@/lib/i18n/format'
@@ -16,7 +16,7 @@ export async function ArtistFeedHome() {
   return (
     <AppFrame narrow search>
       <TrackView event="home_view" />
-      <FeedOffers firstName={firstName} />
+      <OfferBanners place="feed" className="mb-4" />
       {/* Kept short, like the banners above it: the first obra should
           already show in the lower half of a phone screen. There the tabs
           under it say what the feed is, so the line explaining it waits for

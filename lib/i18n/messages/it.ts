@@ -1126,7 +1126,7 @@ const it: Messages = {
     galleryBody: 'Una selezione diversa ogni giorno. Cammina la galleria dal browser.',
     marBody: 'Il museo si apre al pubblico quando saranno annunciati i finalisti.',
   },
-  feedOffers: {
+  offerBanners: {
     label: 'Altro dal Mundial per te', prev: 'Precedente', next: 'Successivo', goTo: 'Vai al banner {n} di {total}',
     club: { tag: 'Sala di {name}', tagNoName: 'La tua sala', title: 'La tua galleria 3D', body: 'Tutta la tua serie, aperta 24 ore su 24.', cta: 'Scopri il Club' },
     clubMember: { title: 'La tua galleria del Club', body: 'Aggiungi opere, cambia la sala e guarda chi la visita.', cta: 'Vai alla mia galleria' },
