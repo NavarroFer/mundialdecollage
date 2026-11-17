@@ -5,6 +5,7 @@ import { isResendConfigured, getDomainStatus } from '@/lib/resend'
 import { CampaignComposer } from '@/components/admin/campaign-composer'
 import { CAMPAIGN_TEMPLATE_AUDIENCES } from '@/lib/template-audiences'
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { SubmitButton } from '@/components/admin/submit-button'
 import { sendCampaign, scheduleCampaign, sendTestEmail, enableOpenTracking } from '../actions'
 import { earliestScheduleDay } from '@/lib/campaign-schedule'
 import { isTranslatorConfigured } from '@/lib/email-translator'
@@ -116,9 +117,9 @@ export default async function NuevaCampanaPage({
             mails.
           </p>
           <form action={enableOpenTracking}>
-            <button type="submit" className="shrink-0 font-semibold underline">
+            <SubmitButton size="sm" variant="outline" className="shrink-0" pendingLabel="Activando…">
               Activarlo
-            </button>
+            </SubmitButton>
           </form>
         </div>
       )}

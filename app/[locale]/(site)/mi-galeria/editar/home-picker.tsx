@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/admin/submit-button'
 import type { ClubHouse } from '@/lib/club-map'
 import type { ClubMapTexts } from '@/components/club/club-map'
@@ -41,11 +40,11 @@ export function HomePicker({ slug, home, texts, labels }: {
         <form action={saveGalleryHome} className="flex-1">
           <input type="hidden" name="home_lat" value={picked ? picked[1] : ''} />
           <input type="hidden" name="home_lng" value={picked ? picked[0] : ''} />
-          <SubmitButton disabled={!picked} className="min-h-11 w-full">{labels.save}</SubmitButton>
+          <SubmitButton disabled={!picked} className="min-h-11 w-full" pendingLabel={labels.save}>{labels.save}</SubmitButton>
         </form>
         {home && (
           <form action={saveGalleryHome}>
-            <Button type="submit" variant="outline" className="min-h-11" onClick={() => setPicked(null)}>{labels.clear}</Button>
+            <SubmitButton variant="outline" className="min-h-11" pendingLabel={labels.clear} onClick={() => setPicked(null)}>{labels.clear}</SubmitButton>
           </form>
         )}
       </div>

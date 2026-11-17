@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import { Heart, Loader2, MessageCircle, Share2 } from 'lucide-react'
 import { ArtistHoverCard } from '@/components/community/artist-hover-card'
 import { MagazineInvite } from '@/components/community/magazine-invite'
 import { SuggestedArtists } from '@/components/community/suggested-artists'
@@ -97,6 +97,7 @@ export function ObraActivityFeed({ callOpen = true }: { callOpen?: boolean }) {
   const [sort, setSort] = useState<Sort>('recent')
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [pendingNote, setPendingNote] = useState<Record<string, string>>({})
+  const [sending, setSending] = useState<string | null>(null)
   const [liked, setLiked] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState<string | null>(null)
   // «Para vos»: the database computes the taste, the browser orders what it
@@ -157,28 +158,37 @@ export function ObraActivityFeed({ callOpen = true }: { callOpen?: boolean }) {
     })
   }
 
+  function patchInPlace(slug: string, patch: (obra: ObraCard) => ObraCard) {
+    setObras((current) => current?.map((obra) => (obra.slug === slug ? patch(obra) : obra)) ?? current)
+  }
+
   async function like(slug: string) {
     if (liked.has(slug)) return
+    // The heart fills and the count goes up at once; undone if it fails.
+    setLiked((current) => new Set(current).add(slug))
+    patchInPlace(slug, (obra) => ({ ...obra, likes: obra.likes + 1 }))
     const result = await likeArtwork(slug)
     if ('error' in result) {
+      setLiked((current) => {
+        const next = new Set(current)
+        next.delete(slug)
+        return next
+      })
+      patchInPlace(slug, (obra) => ({ ...obra, likes: obra.likes - 1 }))
       if (result.error === 'sign_in_required') {
         const here = `${window.location.pathname}${window.location.search}${window.location.hash}`
         void startGoogleSignIn(here || '/')
       }
       return
     }
-    setLiked((current) => new Set(current).add(slug))
-    bump(slug, (obra) => ({
-      ...obra,
-      likes: obra.likes + 1,
-      activityAt: new Date().toISOString(),
-    }))
+    bump(slug, (obra) => ({ ...obra, activityAt: new Date().toISOString() }))
   }
 
   async function comment(slug: string) {
     const body = (drafts[slug] ?? '').trim()
-    if (!body) return
-    const result = await addArtworkComment(slug, body)
+    if (!body || sending) return
+    setSending(slug)
+    const result = await addArtworkComment(slug, body).finally(() => setSending(null))
     if ('error' in result) {
       if (result.error === 'sign_in_required') {
         const here = `${window.location.pathname}${window.location.search}${window.location.hash}`
@@ -361,8 +371,11 @@ export function ObraActivityFeed({ callOpen = true }: { callOpen?: boolean }) {
                     />
                     <button
                       type="submit"
-                      className="min-h-11 rounded-full px-3 text-sm font-semibold text-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-collage-blue"
+                      disabled={sending === obra.slug}
+                      aria-busy={sending === obra.slug}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-collage-blue disabled:opacity-60"
                     >
+                      {sending === obra.slug && <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
                       {t.send}
                     </button>
                   </form>

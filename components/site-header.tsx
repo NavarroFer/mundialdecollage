@@ -33,6 +33,9 @@ async function AccountSlot() {
     adminPanel: m.header.adminPanel,
     viewAsArtist: m.header.viewAsArtist,
     viewAsAdmin: m.header.viewAsAdmin,
+    viewSwitching: m.header.viewSwitching,
+    viewNowArtist: m.header.viewNowArtist,
+    viewNowAdmin: m.header.viewNowAdmin,
   }
 
   const user = await getCurrentUser()
@@ -87,7 +90,7 @@ export async function SiteHeader({ deskNav = true, search = false }: { deskNav?:
   const isAdmin = isAdminEmail(user?.email)
   const adminView = user ? await isAdminView(user) : false
   const signIn = () => !user ? <SignInButton label={m.header.logIn} pendingLabel={m.auth.signingIn} /> : null
-  const viewSwitch = () => isAdmin ? <ViewModeSwitch adminView={adminView} artistLabel={m.header.viewAsArtist} adminLabel={m.header.viewAsAdmin} /> : null
+  const viewSwitch = () => isAdmin ? <ViewModeSwitch adminView={adminView} labels={m.header} /> : null
   return (
     <>
       <SiteHeaderMotion>

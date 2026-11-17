@@ -42,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </span>
             </Link>
             <div className="flex items-center gap-4">
-              <ViewModeSwitch adminView={adminView} artistLabel={m.header.viewAsArtist} adminLabel={m.header.viewAsAdmin} />
+              <ViewModeSwitch adminView={adminView} labels={m.header} />
               <Link
                 href="/"
                 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-ink"

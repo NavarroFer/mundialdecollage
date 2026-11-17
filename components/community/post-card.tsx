@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Heart, MessageCircle, MoreHorizontal, Share2 } from 'lucide-react'
+import { Heart, Loader2, MessageCircle, MoreHorizontal, Share2 } from 'lucide-react'
 import { reportPost } from '@/app/[locale]/(site)/comunidad/actions'
 import { CommentsSheet } from '@/components/community/comments-sheet'
 import { useGoogleSignIn } from '@/components/auth/google-sign-in-button'
@@ -40,6 +40,7 @@ export function PostCard({
   const [addedComments, setAddedComments] = useState(0)
   const [reporting, setReporting] = useState(false)
   const [reason, setReason] = useState('')
+  const [sendingReport, setSendingReport] = useState(false)
   const [reported, setReported] = useState(false)
   const [showOriginal, setShowOriginal] = useState(false)
   const href = communityPostPath(post.id, post.artwork?.slug)
@@ -137,7 +138,9 @@ export function PostCard({
                     void signIn.start()
                     return
                   }
-                  void reportPost({ postId: post.id, reason }).then((result) => {
+                  if (sendingReport) return
+                  setSendingReport(true)
+                  void reportPost({ postId: post.id, reason }).finally(() => setSendingReport(false)).then((result) => {
                     if ('error' in result) return
                     track('community_report')
                     setReported(true)
@@ -152,7 +155,10 @@ export function PostCard({
                   ) : (
                     <>
                       <textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} rows={2} placeholder={t.reportReason} className="w-full rounded-lg border border-ink/15 px-2 py-1 text-sm" />
-                      <button type="submit" className="mt-2 text-sm font-semibold text-ink">{t.report}</button>
+                      <button type="submit" disabled={sendingReport} aria-busy={sendingReport} className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-ink disabled:opacity-60">
+                        {sendingReport && <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+                        {t.report}
+                      </button>
                     </>
                   )}
                 </form>

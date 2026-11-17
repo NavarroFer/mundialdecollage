@@ -20,10 +20,10 @@ export function SubmitButton({
   const { pending } = useFormStatus()
 
   return (
-    <Button type="submit" disabled={pending || disabled} {...props}>
+    <Button type="submit" disabled={pending || disabled} aria-busy={pending || undefined} {...props}>
       {pending ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
           {pendingLabel}
         </>
       ) : (

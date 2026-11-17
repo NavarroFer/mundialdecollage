@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useId, useRef, useState, useTransition } from 'react'
-import { DoorOpen, LogOut, PencilLine, Palette, ShieldCheck, User } from 'lucide-react'
-import { setViewMode } from '@/components/view-mode-actions'
+import { useEffect, useId, useRef, useState } from 'react'
+import { DoorOpen, Loader2, LogOut, PencilLine, ShieldCheck, User } from 'lucide-react'
+import { useViewModeSwitch, ViewModeIcon, type ViewModeLabels } from '@/components/view-mode-switch'
 import { GoogleIcon, useGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useI18n } from '@/lib/i18n/client'
@@ -12,15 +12,13 @@ import { imageSrc } from '@/lib/image-src'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/track'
 
-export type AccountMenuLabels = {
+export type AccountMenuLabels = ViewModeLabels & {
   account: string
   hello: string
   myGallery: string
   editProfile: string
   shop: string
   adminPanel: string
-  viewAsArtist: string
-  viewAsAdmin: string
 }
 
 export type AccountMenuProps = {
@@ -63,7 +61,6 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
   const { m } = useI18n()
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [switching, startSwitch] = useTransition()
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
@@ -87,21 +84,21 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
     }
   }, [open])
 
+  const [signingOut, setSigningOut] = useState(false)
   async function signOut() {
-    await createClient().auth.signOut()
-    setOpen(false)
-    router.refresh()
+    setSigningOut(true)
+    try {
+      await createClient().auth.signOut()
+      setOpen(false)
+      router.refresh()
+    } finally {
+      setSigningOut(false)
+    }
   }
 
   const close = () => setOpen(false)
 
-  function switchView() {
-    startSwitch(async () => {
-      await setViewMode(adminView ? 'artist' : 'admin')
-      setOpen(false)
-      router.refresh()
-    })
-  }
+  const { pending: switching, switchView } = useViewModeSwitch(adminView, labels, () => setOpen(false))
 
   return (
     <div ref={rootRef} className="relative">
@@ -164,9 +161,9 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
             </Link>
           )}
           {isAdmin && (
-            <button type="button" onClick={switchView} disabled={switching} className={`${ITEM} disabled:opacity-60`}>
-              {adminView ? <Palette className="h-5 w-5 text-ink/70" aria-hidden="true" /> : <ShieldCheck className="h-5 w-5 text-ink/70" aria-hidden="true" />}
-              {adminView ? labels.viewAsArtist : labels.viewAsAdmin}
+            <button type="button" onClick={switchView} disabled={switching} aria-busy={switching} className={`${ITEM} disabled:bg-collage-blue/10`}>
+              <ViewModeIcon adminView={adminView} pending={switching} className="h-5 w-5 text-ink/70" />
+              {switching ? labels.viewSwitching : adminView ? labels.viewAsArtist : labels.viewAsAdmin}
             </button>
           )}
           {/* The desktop header already shows the language switcher. */}
@@ -175,8 +172,10 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
           </div>
           <div className="my-1 h-px bg-ink/10" />
           {signedIn ? (
-            <button type="button" onClick={() => void signOut()} className={ITEM}>
-              <LogOut className="h-5 w-5 text-ink/70" aria-hidden="true" />
+            <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-busy={signingOut} className={`${ITEM} disabled:opacity-60`}>
+              {signingOut
+                ? <Loader2 className="h-5 w-5 animate-spin text-ink/70 motion-reduce:animate-none" aria-hidden="true" />
+                : <LogOut className="h-5 w-5 text-ink/70" aria-hidden="true" />}
               {m.auth.signOut}
             </button>
           ) : (

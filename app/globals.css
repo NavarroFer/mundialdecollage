@@ -135,6 +135,48 @@
   textarea::placeholder {
     color: color-mix(in srgb, currentColor 64%, transparent);
   }
+
+  /* Every press shows: a button sinks a little while it's held, so a tap
+     never looks ignored. The scale property, not transform, so it composes
+     with the rotate/translate utilities; in this layer, so a scale utility
+     on the button itself still wins. A busy one shows the progress cursor. */
+  @media (prefers-reduced-motion: no-preference) {
+    button:not(:disabled):active,
+    [role='button']:not([aria-disabled='true']):active,
+    [data-slot='button']:not(:disabled):active {
+      scale: 0.96;
+    }
+  }
+  [aria-busy='true'] {
+    cursor: progress;
+  }
+}
+
+/* The bar components/navigation-progress.tsx shows while a page loads: it
+   runs most of the way at once, then creeps, and fills when the page is in. */
+.navigation-progress {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.navigation-progress[data-phase='loading'] {
+  opacity: 1;
+  animation: navigation-progress 8s cubic-bezier(0.1, 0.6, 0.2, 1) forwards;
+}
+.navigation-progress[data-phase='done'] {
+  opacity: 0;
+  transform: scaleX(1);
+  transition: opacity 200ms ease-out 80ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .navigation-progress[data-phase='loading'] {
+    animation: none;
+    transform: scaleX(0.6);
+  }
+}
+@keyframes navigation-progress {
+  0% { transform: scaleX(0); }
+  8% { transform: scaleX(0.35); }
+  100% { transform: scaleX(0.92); }
 }
 
 @media (prefers-reduced-motion: reduce) {
