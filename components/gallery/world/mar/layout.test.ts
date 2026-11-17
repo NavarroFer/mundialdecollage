@@ -154,10 +154,11 @@ describe('MAR layout', () => {
 
   it('climbs the escalator from the hall floor to the mezzanine deck', () => {
     const lane = MAR_ESCALATORS[0]
-    expect(marEscalatorHeight((lane.x0 + lane.x1) / 2, lane.zBottom)).toBeCloseTo(0)
-    expect(marEscalatorHeight((lane.x0 + lane.x1) / 2, lane.zTop)).toBeCloseTo(MAR.mezzanine)
+    const z = (lane.z0 + lane.z1) / 2
+    expect(marEscalatorHeight(lane.xBottom, z)).toBeCloseTo(0)
+    expect(marEscalatorHeight(lane.xTop, z)).toBeCloseTo(MAR.mezzanine)
     expect(marEscalatorHeight(0, -4)).toBeNull()
-    const mid = marEscalatorHeight((lane.x0 + lane.x1) / 2, (lane.zBottom + lane.zTop) / 2)
+    const mid = marEscalatorHeight((lane.xBottom + lane.xTop) / 2, z)
     expect(mid).toBeGreaterThan(1)
     expect(mid).toBeLessThan(MAR.mezzanine)
   })
@@ -165,14 +166,26 @@ describe('MAR layout', () => {
   it('connects both escalators to the same reachable mezzanine and ground floor', () => {
     const ground = reachableFrom(MAR_SPAWN)
     const upper = reachableFrom(marGalleryTemplate.upper!.link.exit, marUpperTemplate)
+    const grid = (value: number) => Math.round(value * 2) / 2
     for (const lane of MAR_ESCALATORS) {
-      const x = (lane.x0 + lane.x1) / 2
-      const direction = Math.sign(lane.zTop - lane.zBottom)
-      expect(marEscalatorHeight(x, lane.zBottom)).toBeCloseTo(0)
-      expect(marEscalatorHeight(x, lane.zTop)).toBeCloseTo(MAR.mezzanine)
-      expect(ground(Math.round(x * 2) / 2, Math.round((lane.zBottom - direction * 0.85) * 2) / 2), lane.id).toBe(true)
-      expect(upper(Math.round(x * 2) / 2, Math.round((lane.zTop + direction * 0.7) * 2) / 2), lane.id).toBe(true)
+      const z = (lane.z0 + lane.z1) / 2
+      const direction = Math.sign(lane.xTop - lane.xBottom)
+      expect(marEscalatorHeight(lane.xBottom, z)).toBeCloseTo(0)
+      expect(marEscalatorHeight(lane.xTop, z)).toBeCloseTo(MAR.mezzanine)
+      expect(ground(grid(lane.xBottom - direction * 0.85), grid(z)), lane.id).toBe(true)
+      expect(upper(grid(lane.xTop + direction * 0.7), grid(z)), lane.id).toBe(true)
     }
+  })
+
+  it('leaves the upper glass open at each escalator head, and closed beside the lanes', () => {
+    const rails = marBoxes.filter((box) => box.kind === 'glass' && box.minY === MAR.mezzanine)
+    const railAt = (x: number, z: number) => rails.some((box) => x >= box.minX - 0.01 && x <= box.maxX + 0.01 && z >= box.minZ - 0.01 && z <= box.maxZ + 0.01)
+    for (const lane of MAR_ESCALATORS) {
+      for (const z of [lane.z0 + 0.1, (lane.z0 + lane.z1) / 2, lane.z1 - 0.1]) expect(railAt(lane.xTop, z), `${lane.id} ${z}`).toBe(false)
+    }
+    // Neither walkway is open to the void anywhere else along the lanes.
+    expect(railAt(MAR_ESCALATORS[0].xTop, MAR_ESCALATORS[0].z0 - 0.4)).toBe(true)
+    expect(railAt(MAR_ESCALATORS[0].xTop, MAR_ESCALATORS[0].z1 + 0.4)).toBe(true)
   })
 
   it('connects all four upper walkways while keeping the atrium void closed to walking', () => {
@@ -210,14 +223,20 @@ describe('MAR layout', () => {
     expect(walkable({ x: -5.2, z: -0.95 }, false, marGalleryTemplate, false)).toBe(false)
   })
 
-  it('puts the escalators left of the entrance, with open floor between their foot and the front wall', () => {
+  it('puts the escalators left of the entrance, crossed and side on to the door, with open floor in front of them', () => {
     for (const lane of MAR_ESCALATORS) {
-      // Entering the door you face -Z, so left is -X.
-      expect(lane.x1).toBeLessThan(MAR_DOORS.entrance.x0)
-      expect(MAR_DOORS.entrance.z - lane.zBottom).toBeGreaterThanOrEqual(4)
+      // Entering the door you face -Z, so left is -X. The lanes run along X: from the door you see their sides.
+      expect(Math.max(lane.xBottom, lane.xTop)).toBeLessThanOrEqual(MAR_DOORS.entrance.x0)
+      expect(Math.abs(lane.xTop - lane.xBottom)).toBeGreaterThan(3 * (lane.z1 - lane.z0))
+      expect(MAR_DOORS.entrance.z - lane.z1).toBeGreaterThanOrEqual(4)
       // And they are not jammed against the side walls either.
-      expect(lane.x0 - -12).toBeGreaterThan(2)
+      expect(Math.min(lane.xBottom, lane.xTop) - -12).toBeGreaterThan(2)
     }
+    // Opposed runs, so their profiles cross like an X. The nearer one rises west, onto the walkway by the gallery.
+    const [near, far] = [...MAR_ESCALATORS].sort((a, b) => b.z1 - a.z1)
+    expect(near.id).toBe('up')
+    expect(near.xTop).toBeLessThan(near.xBottom)
+    expect(far.xTop).toBeGreaterThan(far.xBottom)
     // The foot is reachable on the ground floor, in the open hall.
     expect(walkable(marGalleryTemplate.upper!.link.entry, false, marGalleryTemplate, false)).toBe(true)
     expect(reachableFrom(MAR_SPAWN)(-8, -4.5)).toBe(true)

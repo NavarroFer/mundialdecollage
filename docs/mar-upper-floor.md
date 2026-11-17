@@ -8,7 +8,7 @@ The HEIC shows a full-height plaza window, a metal/glazed overhead structure and
 
 ## Implementation
 
-- Continuous upper circulation on four sides of the void, with openings at both escalator heads. The down escalator joins the front walkway instead of an isolated longitudinal strip through the atrium.
+- Continuous upper circulation on four sides of the void, with openings at both escalator heads. Since 17 November 2026 the escalators run east–west: the ascending one lands on the west walkway, the return one on a small landing off the north bridge, and the front walkway's glass runs unbroken (see `mar-gallery.md`).
 - Steel caps, lower channels and fine panel seams on the glass balustrades. Pale grey slab flooring with fine joints replaces the beige finish. The temporary display cases and lounge chairs are removed.
 - The front window no longer has an opaque backing block. Its sill is lowered to upper-floor height, a floor extends into its recessed reveal, and its glass is a physical/navigation barrier. A browser view confirms that the outdoor sea lion is visible through it.
 - Gathered black curtain panels sit beside the relocated gallery opening, leaving its centre open. The ground-floor café lintel is capped at the mezzanine so it cannot visually obscure that upper entrance.
