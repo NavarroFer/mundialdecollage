@@ -1124,6 +1124,7 @@ const id: Messages = {
   feedOffers: {
     label: 'Lebih banyak dari Mundial untukmu', prev: 'Sebelumnya', next: 'Berikutnya', goTo: 'Ke banner {n} dari {total}',
     club: { tag: 'Ruang {name}', tagNoName: 'Ruangmu', title: 'Galeri 3D milikmu sendiri', body: 'Seluruh seri karyamu, buka 24 jam.', cta: 'Kenali Klub' },
+    clubMember: { title: 'Galeri Klubmu', body: 'Tambah karya, ubah ruangan, dan lihat siapa yang berkunjung.', cta: 'Ke galeriku' },
     cutouts: { tag: 'Dikirim lewat pos', title: 'Potongan tiap bulan', body: 'Vintage, paket {counts} potongan, termasuk stiker.', cta: 'Pilih paketku' },
     gallery: { tag: 'Gratis', title: 'Jelajahi galeri 3D', body: 'Pameran berbeda setiap hari.', cta: 'Masuk ke galeri' },
   },

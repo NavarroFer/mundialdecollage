@@ -1127,6 +1127,7 @@ const pt: Messages = {
   feedOffers: {
     label: 'Mais do Mundial para você', prev: 'Anterior', next: 'Próximo', goTo: 'Ir para o banner {n} de {total}',
     club: { tag: 'Sala de {name}', tagNoName: 'Sua sala', title: 'Sua própria galeria 3D', body: 'Toda a sua série, aberta 24 horas.', cta: 'Conhecer o Clube' },
+    clubMember: { title: 'Sua galeria do Clube', body: 'Adicione obras, mude a sala e veja quem a visita.', cta: 'Ir para minha galeria' },
     cutouts: { tag: 'Chega pelo correio', title: 'Recortes todo mês', body: 'Vintage, em pacotes de {counts}, com adesivos.', cta: 'Escolher meu pacote' },
     gallery: { tag: 'Grátis', title: 'Percorra a galeria 3D', body: 'Uma mostra diferente a cada dia.', cta: 'Entrar na galeria' },
   },

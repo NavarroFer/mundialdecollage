@@ -213,6 +213,7 @@ export const HOME_STORE_EVENTS = [
 export const FEED_OFFER_EVENTS = [
   { name: 'feed_offers_seen', label: 'Vieron los banners arriba de su inicio' },
   { name: 'feed_offer_club', label: 'Fueron al Club desde los banners' },
+  { name: 'feed_offer_my_gallery', label: 'Socios del Club que fueron a su galería desde los banners' },
   { name: 'feed_offer_cutouts', label: 'Fueron a los recortes desde los banners' },
   { name: 'feed_offer_gallery', label: 'Fueron a la galería 3D desde los banners' },
 ] as const
@@ -221,7 +222,7 @@ export const FEED_OFFER_EVENTS = [
 export const STORE_ENTRY_EVENTS = [
   HOME_STORE_EVENTS[1],
   HOME_STORE_EVENTS[2],
-  FEED_OFFER_EVENTS[2],
+  FEED_OFFER_EVENTS[3],
   { name: 'store_click_header', label: 'Fueron a la tienda desde el encabezado' },
   { name: 'store_click_tabbar', label: 'Fueron a la tienda desde la barra de abajo del celular' },
   { name: 'store_click_artwork', label: 'Fueron a la tienda desde la página de una obra' },

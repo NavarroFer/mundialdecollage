@@ -432,7 +432,7 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
           <JourneySection
             {...journey}
             title="Banners del inicio del artista"
-            description="Personas distintas que vieron los banners de arriba de su inicio (el de quienes participan) y cuál abrieron: el Club, los recortes o la galería 3D. El del Club aparece solo con el Club abierto. Se mide desde el 17 de noviembre de 2026."
+            description="Personas distintas que vieron los banners de arriba de su inicio (el de quienes participan) y cuál abrieron: el Club, los recortes o la galería 3D. Quien ya tiene su galería del Club activa ve en su lugar «Tu galería del Club»; a los demás, el del Club les aparece solo con el Club abierto. Se mide desde el 17 de noviembre de 2026."
             steps={FEED_OFFER_EVENTS}
             baseStep="feed_offers_seen"
             baseLabel="De quienes los vieron"

@@ -3,11 +3,14 @@ import { ArrowRight } from 'lucide-react'
 import { FeedOffersRail } from '@/components/feed-offers-rail'
 import { TrackedLink, TrackVisible } from '@/components/track'
 import { isClubOpen } from '@/lib/club-launch'
+import { clubBanner, type OwnClubGallery } from '@/lib/feed-offers'
 import { FEED_OFFER_EVENTS } from '@/lib/funnel'
 import { fmt } from '@/lib/i18n/format'
 import { LOCALE_INFO } from '@/lib/i18n/locales'
 import { getI18n } from '@/lib/i18n/server'
 import { cutoutPlans } from '@/lib/store'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 
 // One brand colour per banner, so three sheets in a row read as three
@@ -30,7 +33,7 @@ type Slide = {
   href: string
   event: Exclude<Event, 'feed_offers_seen'>
   image: string
-  /** Where the photo is cropped for the 2:1 frame. */
+  /** Where the photo is cropped for the 3:1 frame. */
   focus: string
   tag: string
   title: string
@@ -39,25 +42,41 @@ type Slide = {
   tone: keyof typeof TONES
 }
 
+// The viewer's own Club gallery: one row, by its unique user_id, which its
+// owner may read. Any failure reads as «none» and leaves the pitch.
+async function ownClubGallery(): Promise<OwnClubGallery> {
+  if (!isSupabaseConfigured) return null
+  const user = await getCurrentUser()
+  if (!user) return null
+  const { data, error } = await (await createClient()).from('club_galleries').select('status').eq('user_id', user.id).maybeSingle()
+  if (error || !data) return null
+  return data.status === 'active' ? 'active' : 'inactive'
+}
+
 /**
  * Banners at the top of a participating artist's home (the obra feed): what
  * they can take on beyond their entry — their own gallery in the Club, the
  * monthly cutouts — and the 3D gallery, which is free. Each shows a real
  * picture of what it opens: a Club room and the main gallery, captured from
- * the site itself, and the store's product photo. The Club's appears only
- * while the Club is open (lib/club-launch.ts). Rendered with the feed, which
- * already reads the session, from data in the code: no query of its own.
+ * the site itself, and the store's product photo. A Club member gets a way
+ * into their gallery instead of the pitch, which shows only while the Club
+ * is open (lib/feed-offers.ts). Rendered with the feed, which already reads
+ * the session; its one query is the viewer's Club gallery.
  */
 export async function FeedOffers({ firstName }: { firstName?: string }) {
-  const { locale, m } = await getI18n()
+  const [{ locale, m }, gallery] = await Promise.all([getI18n(), ownClubGallery()])
   const t = m.feedOffers
   const counts = new Intl.ListFormat(LOCALE_INFO[locale].intl, { type: 'disjunction' }).format(cutoutPlans.map((plan) => String(plan.count)))
+  const club = clubBanner(gallery, isClubOpen())
+  const clubTag = firstName ? fmt(t.club.tag, { name: firstName }) : t.club.tagNoName
 
   const slides: Slide[] = [
-    ...(isClubOpen()
+    ...(club
       ? [{
-          ...t.club, href: '/club', event: 'feed_offer_club' as const, image: '/muestra/club-sala.jpg', focus: '50% 62%', tone: 'blue' as const,
-          tag: firstName ? fmt(t.club.tag, { name: firstName }) : t.club.tagNoName,
+          ...(club.kind === 'member' ? t.clubMember : t.club),
+          href: club.href,
+          event: club.kind === 'member' ? 'feed_offer_my_gallery' as const : 'feed_offer_club' as const,
+          image: '/muestra/club-sala.jpg', focus: '50% 62%', tone: 'blue' as const, tag: clubTag,
         }]
       : []),
     { ...t.cutouts, href: '/tienda#recortes', event: 'feed_offer_cutouts', image: '/tienda-productos.webp', focus: '50% 55%', tone: 'red', body: fmt(t.cutouts.body, { counts }) },
