@@ -2,11 +2,12 @@ import type * as THREE from 'three'
 import { imageSrc } from '@/lib/image-src'
 import { canvasFonts } from '../../fonts'
 import { BRAND, BRAND_DOMAIN, wrapByWidth } from './brand'
-import { canvasOf, canvasTexture, seeded } from './textures'
+import { paperGround, tape, tornSheet } from './paperCraft'
+import { canvasOf, canvasTexture } from './textures'
 
 // The signs on the building, in the Mundial de Collage's identity: paper,
-// torn-paper blocks in blue, red and yellow, the real logo, the site's Anton
-// for headlines. They stand in for the banners that will be printed for the
+// a hand-torn sheet of blue held on with red and yellow tape (paperCraft.ts),
+// the real logo, the site's Anton for headlines. They stand in for the banners that will be printed for the
 // venue; a slot's own `image` (layout.ts) replaces any of them.
 
 type Spec = {
@@ -41,46 +42,6 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   })
 }
 
-/**
- * A block of coloured paper with a hand-torn edge: the edge wanders a few
- * pixels either way, and a rim of the paper colour round it, as in the logo,
- * where the pieces are separated by white tears.
- */
-export function tornBlock(context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, seed: number) {
-  const random = seeded(seed)
-  const jitter = Math.max(3, Math.min(w, h) * 0.015)
-  const step = Math.max(10, Math.min(w, h) / 14)
-  // One outline, used for both the paper rim and the colour, so they line up.
-  const points: Array<[number, number]> = []
-  const edge = (x0: number, y0: number, x1: number, y1: number, horizontal: boolean) => {
-    const n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / step))
-    for (let i = 0; i < n; i++) {
-      const t = i / n
-      const along = (random() - 0.5) * jitter
-      const across = (random() - 0.5) * jitter * 2
-      points.push([x0 + (x1 - x0) * t + (horizontal ? along : across), y0 + (y1 - y0) * t + (horizontal ? across : along)])
-    }
-  }
-  edge(x, y, x + w, y, true)
-  edge(x + w, y, x + w, y + h, false)
-  edge(x + w, y + h, x, y + h, true)
-  edge(x, y + h, x, y, false)
-  const trace = () => {
-    context.beginPath()
-    points.forEach(([px, py], index) => (index === 0 ? context.moveTo(px, py) : context.lineTo(px, py)))
-    context.closePath()
-  }
-  context.save()
-  trace()
-  context.lineJoin = 'round'
-  context.lineWidth = Math.max(5, jitter * 2.2)
-  context.strokeStyle = BRAND.paper
-  context.stroke()
-  context.fillStyle = color
-  context.fill()
-  context.restore()
-}
-
 function drawText(context: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, font: (size: number) => string, size: number, lineHeight: number, color: string, align: CanvasTextAlign = 'left', maxLines = 3) {
   let fontSize = size
   const measure = (value: string) => {
@@ -106,11 +67,8 @@ type Assets = { mark: HTMLImageElement | null; word: HTMLImageElement | null; lo
 // it goes on the paper, and the blue block below carries the headline in cream.
 function drawPoster(context: CanvasRenderingContext2D, spec: Spec, assets: Assets, fonts: { display: string; body: string }) {
   const { width: w, height: h } = spec
-  context.fillStyle = BRAND.paper
-  context.fillRect(0, 0, w, h)
-  // Torn pieces in the globe's colours, behind and beside the logo.
-  tornBlock(context, w * 0.56, h * 0.02, w * 0.4, h * 0.08, BRAND.red, 5)
-  tornBlock(context, w * 0.03, h * 0.31, w * 0.3, h * 0.06, BRAND.yellow, 8)
+  const unit = Math.min(w, h) / 500
+  paperGround(context, BRAND.paper, 2)
   const markSize = Math.min(w * 0.44, h * 0.19)
   if (assets.mark) context.drawImage(assets.mark, (w - markSize) / 2, h * 0.04, markSize, markSize)
   if (assets.word) {
@@ -118,13 +76,17 @@ function drawPoster(context: CanvasRenderingContext2D, spec: Spec, assets: Asset
     const wordHeight = (wordWidth * assets.word.naturalHeight) / assets.word.naturalWidth
     context.drawImage(assets.word, (w - wordWidth) / 2, h * 0.04 + markSize + h * 0.01, wordWidth, wordHeight)
   }
-  // The blue block, with the headline in Anton, cream on blue.
-  tornBlock(context, w * 0.04, h * 0.44, w * 0.92, h * 0.46, BRAND.blue, 3)
+  // The blue sheet, with the headline in Anton, cream on blue, printed on it.
   const display = (size: number) => `${size}px ${fonts.display}`
   const body = (size: number) => `600 ${size}px ${fonts.body}`
-  const afterHead = drawText(context, spec.headline.toUpperCase(), w / 2, h * 0.55, w * 0.78, display, Math.round(w * 0.13), 1.05, BRAND.paper, 'center')
-  drawText(context, spec.line, w / 2, afterHead + h * 0.012, w * 0.78, body, Math.round(w * 0.05), 1.25, BRAND.yellow, 'center')
-  tornBlock(context, w * 0.62, h * 0.86, w * 0.3, h * 0.045, BRAND.red, 11)
+  tornSheet(context, { x: w * 0.04, y: h * 0.44, w: w * 0.92, h: h * 0.46, color: BRAND.blue, seed: 3, unit, tilt: -0.012 }, () => {
+    const afterHead = drawText(context, spec.headline.toUpperCase(), w / 2, h * 0.55, w * 0.78, display, Math.round(w * 0.13), 1.05, BRAND.paper, 'center')
+    drawText(context, spec.line, w / 2, afterHead + h * 0.012, w * 0.78, body, Math.round(w * 0.05), 1.25, BRAND.yellow, 'center')
+  })
+  // Tape in the globe's colours: one across each held edge of the sheet, one loose by the logo.
+  tape(context, { x: w * 0.2, y: h * 0.442, length: w * 0.3, width: h * 0.042, angle: -0.09, color: BRAND.yellow, seed: 8, unit })
+  tape(context, { x: w * 0.78, y: h * 0.9, length: w * 0.3, width: h * 0.042, angle: 0.07, color: BRAND.red, seed: 11, unit })
+  tape(context, { x: w * 0.83, y: h * 0.05, length: w * 0.27, width: h * 0.048, angle: 0.06, color: BRAND.red, seed: 5, unit })
   context.font = body(Math.round(w * 0.045))
   context.fillStyle = BRAND.ink
   context.textAlign = 'center'
@@ -133,25 +95,27 @@ function drawPoster(context: CanvasRenderingContext2D, spec: Spec, assets: Asset
 
 function drawLong(context: CanvasRenderingContext2D, spec: Spec, assets: Assets, fonts: { display: string; body: string }) {
   const { width: w, height: h } = spec
-  context.fillStyle = BRAND.paper
-  context.fillRect(0, 0, w, h)
+  const unit = Math.min(w, h) / 500
+  paperGround(context, BRAND.paper, 4)
   if (assets.long) {
     const logoWidth = w * 0.33
     const logoHeight = (logoWidth * assets.long.naturalHeight) / assets.long.naturalWidth
     context.drawImage(assets.long, w * 0.025, (h - logoHeight) / 2, logoWidth, logoHeight)
   }
-  tornBlock(context, w * 0.38, h * 0.08, w * 0.6, h * 0.84, BRAND.blue, 3)
-  tornBlock(context, w * 0.34, h * 0.0, w * 0.07, h * 0.3, BRAND.red, 5)
-  tornBlock(context, w * 0.35, h * 0.72, w * 0.08, h * 0.28, BRAND.yellow, 8)
   const display = (size: number) => `${size}px ${fonts.display}`
   const body = (size: number) => `600 ${size}px ${fonts.body}`
   const left = w * 0.46
-  const afterHead = drawText(context, spec.headline.toUpperCase(), left, h * 0.33, w * 0.5, display, Math.round(h * 0.17), 1.05, BRAND.paper, 'left', 2)
-  drawText(context, spec.line, left, afterHead + h * 0.02, w * 0.5, body, Math.round(h * 0.07), 1.25, BRAND.yellow, 'left', 2)
-  context.font = body(Math.round(h * 0.06))
-  context.fillStyle = BRAND.paper
-  context.textAlign = 'left'
-  context.fillText(BRAND_DOMAIN, left, h * 0.86)
+  tornSheet(context, { x: w * 0.38, y: h * 0.08, w: w * 0.6, h: h * 0.84, color: BRAND.blue, seed: 3, unit, tilt: 0.006 }, () => {
+    const afterHead = drawText(context, spec.headline.toUpperCase(), left, h * 0.33, w * 0.5, display, Math.round(h * 0.17), 1.05, BRAND.paper, 'left', 2)
+    drawText(context, spec.line, left, afterHead + h * 0.02, w * 0.5, body, Math.round(h * 0.07), 1.25, BRAND.yellow, 'left', 2)
+    context.font = body(Math.round(h * 0.06))
+    context.fillStyle = BRAND.paper
+    context.textAlign = 'left'
+    context.fillText(BRAND_DOMAIN, left, h * 0.86)
+  })
+  // Tape across the sheet's two left corners, holding it to the vinyl.
+  tape(context, { x: w * 0.39, y: h * 0.17, length: w * 0.1, width: h * 0.1, angle: -0.55, color: BRAND.red, seed: 5, unit })
+  tape(context, { x: w * 0.39, y: h * 0.83, length: w * 0.1, width: h * 0.1, angle: 0.5, color: BRAND.yellow, seed: 8, unit })
 }
 
 /**
