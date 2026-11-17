@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_TABLES, GALLERY, HALL_VOID, MAR, SHOP, UPPER_ROOFLIGHT, marBoxes } from './layout'
+import { CAFE_BAR, CAFE_TABLES, GALLERY, HALL_VOID, MAR, SHOP, UPPER_ROOFLIGHT, marBoxes } from './layout'
 import {
   boardTexture,
   fasciaTexture,
@@ -192,30 +192,52 @@ function WestCeiling({ materials }: { materials: InteriorMaterials }) {
   )
 }
 
-/** Tables and wire chairs in the café, one set of instanced meshes for all of them. */
+/** Café furniture in metres: 76 cm tables and upholstered wooden medallion chairs. */
 function Cafe() {
-  const cane = useMemo(() => {
-    const { canvas, context } = canvasOf(256, 256)
-    context.fillStyle = '#a38c62'
-    context.fillRect(0, 0, 256, 256)
-    context.strokeStyle = '#d8c49a'
-    context.lineWidth = 2.1
-    for (let i = -256; i < 512; i += 9) {
-      context.beginPath()
-      context.moveTo(i, 0); context.lineTo(i + 256, 256)
-      context.moveTo(i + 256, 0); context.lineTo(i, 256)
-      context.stroke()
+  const upholstery = useMemo(() => {
+    const { canvas, context } = canvasOf(512, 512)
+    context.fillStyle = '#c7b99d'
+    context.fillRect(0, 0, 512, 512)
+    // Small botanical damask motifs, like the cream/brown fabric in the reference.
+    for (let row = -1; row < 6; row++) {
+      for (let col = -1; col < 6; col++) {
+        const x = col * 104 + (row % 2) * 52
+        const y = row * 104
+        context.save()
+        context.translate(x, y)
+        context.strokeStyle = '#75604d'
+        context.fillStyle = '#89715b'
+        context.lineWidth = 2
+        for (const side of [-1, 1]) {
+          context.beginPath()
+          context.moveTo(0, 46)
+          context.bezierCurveTo(side * 38, 18, side * 30, -20, 0, -44)
+          context.stroke()
+          for (let i = 0; i < 5; i++) {
+            context.beginPath()
+            context.ellipse(side * (12 + Math.sin(i) * 9), 30 - i * 14, 11, 4, side * (0.5 + i * 0.3), 0, Math.PI * 2)
+            context.fill()
+          }
+        }
+        for (let petal = 0; petal < 8; petal++) {
+          const angle = petal * Math.PI / 4
+          context.beginPath()
+          context.ellipse(Math.cos(angle) * 10, Math.sin(angle) * 10, 9, 4, angle, 0, Math.PI * 2)
+          context.fill()
+        }
+        context.restore()
+      }
     }
-    const map = canvasTexture(canvas)
-    return map
+    return canvasTexture(canvas)
   }, [])
-  useEffect(() => () => cane.dispose(), [cane])
+  useEffect(() => () => upholstery.dispose(), [upholstery])
   const tops = useRef<THREE.InstancedMesh>(null)
   const legs = useRef<THREE.InstancedMesh>(null)
   const seats = useRef<THREE.InstancedMesh>(null)
   const backs = useRef<THREE.InstancedMesh>(null)
   const rims = useRef<THREE.InstancedMesh>(null)
   const chairLegs = useRef<THREE.InstancedMesh>(null)
+  const seatFrames = useRef<THREE.InstancedMesh>(null)
   const tableItems = useMemo(() => CAFE_TABLES.map(([x, z]) => ({ position: [x, 0.74, z] as [number, number, number] })), [])
   const legItems = useMemo(() => CAFE_TABLES.flatMap(([x, z]) => [[-0.55, -0.32], [0.55, -0.32], [-0.55, 0.32], [0.55, 0.32]].map(([dx, dz]) => ({ position: [x + dx, 0.37, z + dz] as [number, number, number] }))), [])
   const chairs = useMemo(() => CAFE_TABLES.flatMap(([x, z]) => [
@@ -225,9 +247,17 @@ function Cafe() {
     { position: [x + 0.35, 0, z - 0.62] as [number, number, number], rotation: Math.PI },
   ]), [])
   const seatItems = useMemo(() => chairs.map((c) => ({ ...c, position: [c.position[0], 0.46, c.position[2]] as [number, number, number] })), [chairs])
-  const backItems = useMemo(() => chairs.map((c) => ({ ...c, position: [c.position[0], 0.72, c.position[2] + (c.rotation === 0 ? 0.2 : -0.2)] as [number, number, number] })), [chairs])
+  const backItems = useMemo(() => chairs.map((c) => ({ ...c, position: [c.position[0], 0.79, c.position[2] + (c.rotation === 0 ? 0.2 : -0.2)] as [number, number, number], scale: [0.88, 1.15, 1] as [number, number, number] })), [chairs])
   const legGeometry = useMemo(() => {
-    const parts = [[-0.19, -0.19], [0.19, -0.19], [-0.19, 0.19], [0.19, 0.19]].map(([x, z]) => new THREE.BoxGeometry(0.025, 0.46, 0.025).translate(x, 0.23, z))
+    const parts: THREE.BufferGeometry[] = []
+    for (const x of [-0.19, 0.19]) {
+      for (const z of [-0.18, 0.18]) {
+        // Turned, tapered timber legs; rear posts join the oval back to the seat.
+        parts.push(new THREE.CylinderGeometry(0.026, 0.016, 0.42, 10).translate(x, 0.21, z))
+        parts.push(new THREE.SphereGeometry(0.03, 10, 6).translate(x, 0.35, z))
+      }
+      parts.push(new THREE.BoxGeometry(0.035, 0.28, 0.04).translate(x * 0.9, 0.56, 0.2))
+    }
     const merged = mergeGeometries(parts)!
     parts.forEach((part) => part.dispose())
     return merged
@@ -236,36 +266,85 @@ function Cafe() {
   useInstances(tops, tableItems)
   useInstances(legs, legItems)
   useInstances(seats, seatItems)
-  useInstances(backs, backItems)
+  const paddingItems = useMemo(() => backItems.map((item) => ({ ...item, scale: [0.88, 1.15, 0.12] as [number, number, number] })), [backItems])
+  useInstances(backs, paddingItems)
   useInstances(rims, backItems)
   useInstances(chairLegs, chairs)
+  const frameItems = useMemo(() => chairs.map((c) => ({ ...c, position: [c.position[0], 0.405, c.position[2]] as [number, number, number] })), [chairs])
+  useInstances(seatFrames, frameItems)
   return (
     <group>
       <instancedMesh ref={tops} args={[undefined, undefined, tableItems.length]} castShadow>
         <boxGeometry args={[1.3, 0.04, 0.8]} />
-        <meshStandardMaterial color="#8a6a48" roughness={0.7} />
+        <meshStandardMaterial color="#ae7948" roughness={0.7} />
       </instancedMesh>
       <instancedMesh ref={legs} args={[undefined, undefined, legItems.length]}>
         <boxGeometry args={[0.04, 0.74, 0.04]} />
         <meshStandardMaterial color="#1d1e20" roughness={0.5} metalness={0.4} />
       </instancedMesh>
       <instancedMesh ref={seats} args={[undefined, undefined, seatItems.length]}>
-        <cylinderGeometry args={[0.23, 0.23, 0.045, 24]} />
-        <meshStandardMaterial color="#967854" roughness={0.82} />
+        <boxGeometry args={[0.44, 0.065, 0.42]} />
+        <meshStandardMaterial map={upholstery} roughness={0.95} />
       </instancedMesh>
       <instancedMesh ref={backs} args={[undefined, undefined, backItems.length]}>
-        <circleGeometry args={[0.24, 24]} />
-        <meshStandardMaterial map={cane} roughness={0.82} side={THREE.DoubleSide} />
+        <sphereGeometry args={[0.205, 24, 16]} />
+        <meshStandardMaterial map={upholstery} roughness={0.95} />
       </instancedMesh>
       <instancedMesh ref={rims} args={[undefined, undefined, backItems.length]}>
-        <torusGeometry args={[0.24, 0.018, 8, 32]} />
+        <torusGeometry args={[0.225, 0.027, 8, 32]} />
         <meshStandardMaterial color="#795333" roughness={0.65} />
       </instancedMesh>
-      <instancedMesh ref={chairLegs} args={[legGeometry, undefined, chairs.length]}>
-        <meshStandardMaterial color="#1b1c1e" roughness={0.5} metalness={0.4} />
+      <instancedMesh ref={chairLegs} args={[legGeometry, undefined, chairs.length]} castShadow>
+        <meshStandardMaterial color="#795333" roughness={0.78} />
+      </instancedMesh>
+      <instancedMesh ref={seatFrames} args={[undefined, undefined, chairs.length]} castShadow>
+        <boxGeometry args={[0.47, 0.07, 0.45]} />
+        <meshStandardMaterial color="#795333" roughness={0.78} />
       </instancedMesh>
     </group>
   )
+}
+
+/** Between the seating and the shop aisle, as seen after turning left from the entrance. */
+function CafeBar() {
+  const signs = useMemo(() => ({ cafe: fasciaTexture('CAFÉ', []), fair: fasciaTexture('TIENDA', ['LABORATORIO · AL FONDO']) }), [])
+  useEffect(() => () => Object.values(signs).forEach((texture) => texture.dispose()), [signs])
+  const x = (CAFE_BAR.x0 + CAFE_BAR.x1) / 2
+  const z = (CAFE_BAR.z0 + CAFE_BAR.z1) / 2
+  const width = CAFE_BAR.x1 - CAFE_BAR.x0
+  return <group>
+    <mesh position={[x, CAFE_BAR.height, z]} castShadow>
+      <boxGeometry args={[width + 0.12, 0.055, 0.97]} />
+      <meshStandardMaterial color="#b4a58b" roughness={0.45} />
+    </mesh>
+    {/* Recessed panels in the black customer-facing counter. */}
+    {[-1.85, -0.62, 0.62, 1.85].map((dx) => <mesh key={dx} position={[x + dx, 0.57, CAFE_BAR.z1 + 0.008]}>
+      <boxGeometry args={[1.12, 0.78, 0.015]} />
+      <meshStandardMaterial color="#242426" roughness={0.42} />
+    </mesh>)}
+    {/* Espresso machine, drip tray and cups, sized relative to the 108 cm bar. */}
+    <group position={[x - 0.9, CAFE_BAR.height + 0.03, z]}>
+      <mesh position={[0, 0.22, 0.08]} castShadow>
+        <boxGeometry args={[0.72, 0.44, 0.42]} />
+        <meshStandardMaterial color="#777c7d" metalness={0.7} roughness={0.26} />
+      </mesh>
+      <mesh position={[0, 0.04, -0.18]}>
+        <boxGeometry args={[0.76, 0.05, 0.22]} />
+        <meshStandardMaterial color="#242628" metalness={0.5} roughness={0.3} />
+      </mesh>
+      {[-0.23, 0, 0.23].map((dx) => <mesh key={dx} position={[dx, 0.48, 0.06]}>
+        <cylinderGeometry args={[0.035, 0.025, 0.07, 12]} />
+        <meshStandardMaterial color="#eee7da" roughness={0.3} />
+      </mesh>)}
+    </group>
+    <mesh position={[x, 3.35, z]}>
+      <boxGeometry args={[width + 0.1, 0.9, 0.95]} />
+      <meshStandardMaterial color="#141416" roughness={0.65} />
+    </mesh>
+    <Decal texture={signs.cafe} position={[x, 3.35, z + 0.477]} size={[2.8, 0.8]} />
+    {/* Wayfinding above the clear aisle, readable when entering from the hall. */}
+    <Decal texture={signs.fair} position={[-24, 2.8, -1.65]} size={[1.6, 0.46]} rotationY={Math.PI / 2} />
+  </group>
 }
 
 function Decal({ texture, position, size, rotationY = 0 }: { texture: THREE.Texture; position: [number, number, number]; size: [number, number]; rotationY?: number }) {
@@ -504,6 +583,7 @@ export function Interior({ materials }: { materials: InteriorMaterials }) {
       <HallRoof materials={materials} />
       <WestCeiling materials={materials} />
       <Cafe />
+      <CafeBar />
       <Shop />
       <Laboratorio />
       <LaIsla />
