@@ -13,11 +13,13 @@ export { countryCodeToName } from '@/lib/participants'
 // are optional and only set when the artist filled them in at submission.
 //
 // Every submission gets saved on arrival, but only shows up in getFinalists()
-// (the public listing) once its artwork is both `is_selected` (admin-curated
-// — see supabase/migrations/20260921040000_artworks.sql) and its profile is
-// published ("estas participan" from /admin/obras) — the "artworks: public
-// read of published profiles" RLS policy is what actually filters that, not
-// the query below. getFinalistBySlug() is the one exception: see its own
+// (the public listing) once its artwork is on show — the artist's
+// representative obra (`is_selected`), or another one they paid to enter
+// (public.artwork_on_show, 20261117120000_paid_entries_on_show.sql) — and its
+// profile is published ("estas participan" from /admin/obras). The
+// "artworks: public read of published profiles" RLS policy is what actually
+// filters that; the query below only leaves out what can never be on show
+// (Club-only obras, which the Club's own policy lets anyone read). getFinalistBySlug() is the one exception: see its own
 // comment.
 export type Finalist = {
   profileId: string
@@ -86,7 +88,7 @@ async function loadPublishedRows(): Promise<FinalistRow[]> {
   for (let from = 0; ; from += PUBLISHED_PAGE_SIZE) {
     const { data, error } = await db.from('artworks')
       .select(SELECT_COLUMNS)
-      .eq('is_selected', true)
+      .or('is_selected.eq.true,is_entered.eq.true')
       .order('created_at', { ascending: false })
       .order('id')
       .range(from, from + PUBLISHED_PAGE_SIZE - 1)
@@ -152,7 +154,7 @@ export async function getFinalistsByIds(ids: string[]): Promise<Map<string, Fina
 // role-scoped (no `to authenticated`/`to anon`), so this still resolves to
 // exactly: owner sees their own row regardless of is_selected/is_public (via
 // "artworks: owner read own", profile_id = auth.uid()), everyone else —
-// anonymous or a logged-in non-owner — only sees it once it's selected AND
+// anonymous or a logged-in non-owner — only sees it once it's on show AND
 // its profile is published (via "artworks: public read of published
 // profiles"). An anonymous visitor gets the same anon-role request
 // createPublicClient() would have made, since createClient() falls back to

@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { hasPaidEntries } from '@/lib/entry-payments'
 import { authorName } from '@/lib/gallery-author'
 import { enrichCommunityComment, enrichCommunityPost } from '@/lib/community-ai'
 import {
@@ -178,15 +179,19 @@ export async function publishArtwork(input: { artworkSlug: string; body?: string
     const admin = createAdminClient()
     const artwork = await admin
       .from('artworks')
-      .select('id')
+      .select('id, is_selected')
       .eq('slug', input.artworkSlug)
       .eq('profile_id', user.id)
-      .eq('is_selected', true)
+      .eq('is_entered', true)
       .is('archived_at', null)
       .eq('is_club_only', false)
       .maybeSingle()
-    const artworkId = (artwork.data as { id: string } | null)?.id
-    if (artwork.error || !artworkId) return { error: artwork.error ? 'unavailable' : 'not_found' }
+    if (artwork.error) return { error: 'unavailable' }
+    const found = artwork.data as { id: string; is_selected: boolean } | null
+    // Any obra on show (public.artwork_on_show): the representative one, or
+    // another entered one if the artist paid for more.
+    if (!found || (!found.is_selected && !(await hasPaidEntries(admin, user.id)))) return { error: 'not_found' }
+    const artworkId = found.id
 
     const { data, error } = await admin
       .from('posts')

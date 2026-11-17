@@ -802,7 +802,7 @@ export async function getAdminSubmissionDetails(id: string): Promise<import('@/c
     }
   }
   const { data: row, error } = await supabase.from('artworks')
-    .select('id, profile_id, slug, title, technique, image_url, created_at, review_status, is_selected')
+    .select('id, profile_id, slug, title, technique, image_url, created_at, review_status, is_selected, is_entered')
     .eq('id', id).is('archived_at', null).is('duplicate_of', null).maybeSingle()
   if (error) throw new Error(error.message)
   if (!row?.image_url) return null
@@ -813,12 +813,13 @@ export async function getAdminSubmissionDetails(id: string): Promise<import('@/c
   ])
   if (profileError || siblingError) throw new Error(profileError?.message ?? siblingError?.message)
   if (!profile) return null
+  const paidEntry = !row.is_selected && row.is_entered && await hasPaidEntries(supabase, row.profile_id)
   const handle = instagramHandle(profile.instagram)
   return {
     id, name: profile.name ?? 'Sin nombre', countryCode: profile.country_code ?? undefined,
     artworkTitle: row.title ?? undefined, technique: row.technique ?? undefined,
     imageUrl: row.image_url, createdAt: row.created_at, slug: row.slug ?? undefined,
-    isPublic: isArtworkPublished(profile.is_public, row.is_selected), profileIsPublic: profile.is_public, reviewStatus: row.review_status, source: 'real', artworkId: row.id,
+    isPublic: isArtworkPublished(profile.is_public, row.is_selected, paidEntry), profileIsPublic: profile.is_public, reviewStatus: row.review_status, source: 'real', artworkId: row.id,
     instagram: handle ? instagramUrl(handle) : undefined, artworkCount: siblings?.length ?? 1,
     siblings: (siblings?.length ?? 0) > 1 ? siblings!.map(sibling => ({
       id: sibling.id, title: sibling.title, imageUrl: sibling.image_url,

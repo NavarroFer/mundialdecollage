@@ -30,8 +30,9 @@ export function cachedPublicData<Args extends unknown[], Result>(
 ): (...args: Args) => Promise<Result> {
   return (...args) => {
     const anonymous = isAnonymousRender()
-    // Version the keys: pre-existing entries only have the old global tag.
-    return unstable_cache(fn, [key, 'scoped-v1', anonymous ? 'anonymous' : 'request'], {
+    // Version the keys: v1 entries only had the old global tag; v2 dropped
+    // the ones built when only one obra per artist was public (2026-11-17).
+    return unstable_cache(fn, [key, 'scoped-v2', anonymous ? 'anonymous' : 'request'], {
       tags: [PUBLIC_DATA_TAG, publicDataTag(key), ...tags(...args)],
       revalidate: anonymous ? ANONYMOUS_REVALIDATE_SECONDS : REVALIDATE_SECONDS,
     })(...args)

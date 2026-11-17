@@ -32,6 +32,8 @@ describe('Admin Obras controls', () => {
     expect(isArtworkPublished(true, true)).toBe(true)
     expect(isArtworkPublished(true, false)).toBe(false)
     expect(isArtworkPublished(false, true)).toBe(false)
+    expect(isArtworkPublished(true, false, true)).toBe(true)
+    expect(isArtworkPublished(false, false, true)).toBe(false)
     expect(isArtworkPublished(true, undefined)).toBe(false)
   })
   it('finds artists and titles regardless of accents, and searches email and Instagram', () => {

@@ -20,6 +20,7 @@ function database(total: number, failFrom?: number) {
   const builder = {
     select: () => builder,
     eq: () => builder,
+    or: () => builder,
     order: (column: string) => { orders.push(column); return builder },
     range: async (from: number, to: number) => {
       ranges.push([from, to])

@@ -86,6 +86,10 @@ export default async function ObrasPage({
     .range(from, to))
 
   const artworkRows = artworkData as unknown as ArtworkRow[]
+  // Who paid to enter more obras: their entered ones are all on show
+  // (public.artwork_on_show), not only the representative one.
+  const { data: paidRows } = await supabase.from('entry_purchases').select('user_id').eq('status', 'paid')
+  const paidIds = new Set((paidRows ?? []).map((purchase) => purchase.user_id as string))
   const artworksByProfile = new Map<string, ArtworkRow[]>()
   for (const row of artworkRows) {
     const list = artworksByProfile.get(row.profile_id) ?? []
@@ -209,7 +213,7 @@ export default async function ObrasPage({
         imageUrl: row.image_url!,
         createdAt: row.created_at,
         slug: row.slug ?? undefined,
-        isPublic: isArtworkPublished(Boolean(profile?.is_public), row.is_selected),
+        isPublic: isArtworkPublished(Boolean(profile?.is_public), row.is_selected, row.is_entered && paidIds.has(row.profile_id)),
         profileIsPublic: Boolean(profile?.is_public),
         artworkCount: siblings.length,
         source: 'real' as const,

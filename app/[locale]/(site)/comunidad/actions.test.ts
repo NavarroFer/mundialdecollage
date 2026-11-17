@@ -73,19 +73,34 @@ describe('publishArtwork', () => {
 
   it('reports an obra that was already posted', async () => {
     artist()
-    queue.artworks = [{ data: { id: artworkId } }]
+    queue.artworks = [{ data: { id: artworkId, is_selected: true } }]
     queue.posts = [{ data: null, error: { code: '23505', message: 'posts_artwork_once' } }]
     expect(await publishArtwork({ artworkSlug: 'recortes', body: '  hola  ' })).toEqual({ error: 'already' })
   })
 
   it('maps the database limit to rate_limited and never marks a post official', async () => {
     artist()
-    queue.artworks = [{ data: { id: artworkId } }]
+    queue.artworks = [{ data: { id: artworkId, is_selected: true } }]
     queue.posts = [{ data: null, error: { code: 'P0001', message: 'rate_limited' } }]
     expect(await publishArtwork({ artworkSlug: 'recortes' })).toEqual({ error: 'rate_limited' })
     const insert = mocks.from.mock.results.at(-1)?.value.insert
     expect(insert).toHaveBeenCalledWith(expect.not.objectContaining({ official: expect.anything(), pinned_until: expect.anything() }))
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ kind: 'artwork', artwork_id: artworkId, body: '', status: 'published' }))
+  })
+
+  it('posts another entered obra of an artist who paid for more', async () => {
+    artist()
+    queue.artworks = [{ data: { id: artworkId, is_selected: false } }]
+    queue.entry_purchases = [{ data: [{ id: 'purchase' }] }]
+    queue.posts = [{ data: { id: postId } }]
+    expect(await publishArtwork({ artworkSlug: 'segunda' })).toEqual({ ok: true, id: postId })
+  })
+
+  it('refuses another obra of an artist who did not pay', async () => {
+    artist()
+    queue.artworks = [{ data: { id: artworkId, is_selected: false } }]
+    queue.entry_purchases = [{ data: [] }]
+    expect(await publishArtwork({ artworkSlug: 'segunda' })).toEqual({ error: 'not_found' })
   })
 })
 

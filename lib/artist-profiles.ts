@@ -66,9 +66,9 @@ function profileFromRows(rows: ArtistArtworkRow[]): ArtistProfile | undefined {
 }
 
 // The anonymous client is intentional: even when the reader is the artist,
-// this page must contain only works that the public RLS policy allows. Today
-// that is the selected work; if the policy later exposes more entered works,
-// this query starts showing all of them without changing the route.
+// this page must contain only works that the public RLS policy allows: the
+// representative obra, first, and every other one the artist paid to enter
+// (public.artwork_on_show).
 const getArtistProfileById = cachedPublicData(async (profileId: string): Promise<ArtistProfile | undefined> => {
   if (!isSupabaseConfigured) return undefined
 
@@ -77,6 +77,7 @@ const getArtistProfileById = cachedPublicData(async (profileId: string): Promise
     .select(ARTIST_SELECT)
     .eq('profile_id', profileId)
     .is('archived_at', null)
+    .order('is_selected', { ascending: false })
     .order('created_at', { ascending: false })
 
   if (error) throw new Error(error.message)

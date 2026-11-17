@@ -29,7 +29,11 @@ export function hasSubmissionSearch(query: string, filters: string[]) {
   return query.trim().length >= 2 || filters.some(value => value !== 'all')
 }
 
-/** An artist can be public while their additional stored works are not. */
-export function isArtworkPublished(profileIsPublic: boolean, isSelected: boolean | null | undefined) {
-  return profileIsPublic && isSelected === true
+/**
+ * An artist can be public while their additional stored works are not —
+ * except the ones they paid to enter (public.artwork_on_show): pass
+ * `paidEntry` for an entered obra of an artist who paid.
+ */
+export function isArtworkPublished(profileIsPublic: boolean, isSelected: boolean | null | undefined, paidEntry = false) {
+  return profileIsPublic && (isSelected === true || paidEntry)
 }
