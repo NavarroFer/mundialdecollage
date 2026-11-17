@@ -24,6 +24,7 @@ import {
   STAIR,
 } from './layout'
 import { artworksForVenue } from './place'
+import { BRANDED_BANNERS } from './brandBanners'
 
 const STEP = 0.5
 const MAR_ESCALATORS_ENTRY = marGalleryTemplate.upper!.link.entry
@@ -299,12 +300,29 @@ describe('MAR facade', () => {
   })
 
   it('keeps every banner on a wall it fits, so a picture can be swapped in without moving anything', () => {
-    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual(['door-a', 'door-b', 'door-c', 'vinyl', 'standee-a', 'standee-b', 'standee-c'])
+    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual([
+      'door-a', 'door-b', 'door-c', 'vinyl', 'standee-a', 'standee-b', 'standee-c',
+      'hall-up', 'cafe-door', 'cafe-wall', 'aud-wall', 'landing', 'gallery-wall',
+    ])
     for (const banner of MAR_BANNERS) expect(banner.image).toBeUndefined()
     for (const banner of MAR_BANNERS.filter((item) => !item.standee)) {
+      const floor = banner.center[1] > MAR.mezzanine ? MAR.mezzanine : 0
       expect(banner.width).toBeGreaterThan(0.5)
-      expect(banner.center[1] - banner.height / 2).toBeGreaterThanOrEqual(0)
-      expect(banner.center[1] + banner.height / 2).toBeLessThanOrEqual(MAR.soffit - 0.5 + 0.1 + 0.4)
+      expect(banner.center[1] - banner.height / 2).toBeGreaterThanOrEqual(floor)
+      expect(banner.center[1] + banner.height / 2).toBeLessThanOrEqual(floor + MAR.soffit)
+    }
+  })
+
+  it('spreads the branded banners through the museum, each on floor someone can walk to', () => {
+    // standee-a and standee-b are the museum's own roll-ups (EntranceDetails.tsx); every other slot is the Mundial's.
+    expect([...BRANDED_BANNERS].sort()).toEqual(MAR_BANNERS.map((banner) => banner.id).filter((id) => id !== 'standee-a' && id !== 'standee-b').sort())
+    const ground = reachableFrom(MAR_SPAWN)
+    for (const banner of MAR_BANNERS.filter((item) => item.standee)) {
+      const upstairs = banner.center[1] > MAR.mezzanine
+      // Where it stands is floor a visitor reaches (roll-ups are not colliders, so this is where they are seen from).
+      const spot = { x: banner.center[0], z: banner.center[2] }
+      if (upstairs) expect(walkable(spot, false, marUpperTemplate, false), banner.id).toBe(true)
+      else expect(ground(spot.x, spot.z), banner.id).toBe(true)
     }
   })
 

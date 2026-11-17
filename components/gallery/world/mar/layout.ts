@@ -180,6 +180,19 @@ export const MAR_BANNERS: MarBanner[] = [
   { id: 'standee-b', center: [7.5, 1.35, -6.7], width: 0.75, height: 1.1, standee: true, yaw: -Math.PI / 2 },
   // At the foot of the gallery's portal, on the mezzanine, turned to face the escalators.
   { id: 'standee-c', center: [-10.9, MAR.mezzanine + 1.05, -4.3], width: 0.85, height: 2, standee: true, yaw: Math.PI / 2 },
+  // Spread through the museum, where people pass: each tells another thing the site has.
+  // At the escalator's foot, facing the door, so it is the first thing seen on coming in.
+  { id: 'hall-up', center: [-1, 1.05, -7.4], width: 0.85, height: 2, standee: true },
+  // In the café, facing its door from the hall.
+  { id: 'cafe-door', center: [-16.6, 1.05, -1.6], width: 0.85, height: 2, standee: true, yaw: Math.PI / 2 },
+  // On the café's solid west wall, clear of the Laboratorio's black wall.
+  { id: 'cafe-wall', center: [-29.84, 1.75, -7.6], width: 1.4, height: 2.1, yaw: Math.PI / 2 },
+  // Beside the auditorium's door, on the hall's back wall under the bridge.
+  { id: 'aud-wall', center: [4.5, 1.75, -19.84], width: 1.4, height: 2.1 },
+  // On the mezzanine's east landing, facing across the void.
+  { id: 'landing', center: [12.9, MAR.mezzanine + 1.05, -7.8], width: 0.85, height: 2, standee: true, yaw: -Math.PI / 2 },
+  // Inside the gallery, on the bare stretch of its east wall south of the portal.
+  { id: 'gallery-wall', center: [GALLERY.x1 - 0.02, MAR.mezzanine + 1.75, 3.6], width: 1.4, height: 2.1, yaw: -Math.PI / 2 },
 ]
 
 export const MAR_DOORS = {

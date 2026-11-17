@@ -62,6 +62,39 @@ const SPECS: Record<string, Spec> = {
     headline: 'Entrá a la muestra', line: 'Una selección distinta cada día',
     points: ['Abrí cada obra y mirá su ficha', 'Guardá tus estampillas', 'Sacate una foto del museo'],
   },
+  // The rest are spread through the museum (layout.ts says where).
+  'hall-up': {
+    width: 340, height: 800, layout: 'poster', tag: 'Primer piso',
+    headline: 'Las obras están arriba', line: 'Subí por la escalera mecánica',
+    points: ['Artistas de muchos países', 'Una selección distinta cada día'],
+  },
+  'cafe-door': {
+    width: 340, height: 800, layout: 'poster',
+    headline: 'Álbum del Mundial', line: 'Coleccioná estampillas',
+    points: ['Recorré la muestra 3D', 'Descubrí la comunidad', 'Guardá las obras que te gustan'],
+  },
+  'cafe-wall': {
+    width: 400, height: 600, layout: 'poster',
+    headline: 'Explorá el Mundial', line: 'Artistas y obras de todo el mundo',
+    points: ['Buscá por nombre, título o país', 'Filtrá por técnica', 'Cada artista abre su perfil'],
+    path: '/explorar',
+  },
+  'aud-wall': {
+    width: 400, height: 600, layout: 'poster',
+    headline: 'Doná para que siga ocurriendo', line: 'Un proyecto autogestivo, hecho a pulmón',
+    points: ['Sostiene la convocatoria, la muestra y la galería 3D'],
+    path: '/donar',
+  },
+  landing: {
+    width: 340, height: 800, layout: 'poster',
+    headline: 'Mapa del Mundial', line: 'De dónde viene la comunidad',
+    points: ['Cada país se pinta con sus collages', 'Tocá un país y mirá sus obras'],
+  },
+  'gallery-wall': {
+    width: 400, height: 600, layout: 'poster', tag: 'Próximamente',
+    headline: 'Jurado internacional', line: 'Va a evaluar cada obra recibida',
+    points: ['Las elegidas, en la Gran Muestra Online', 'Las 30 mejores, en la revista'],
+  },
 }
 
 /** The banner slots this module draws. */
@@ -164,12 +197,16 @@ function drawPoster(context: CanvasRenderingContext2D, spec: Spec, assets: Asset
   const { width: w, height: h } = spec
   const unit = Math.min(w, h) / 500
   paperGround(context, BRAND.paper, 2)
-  const markSize = Math.min(w * 0.44, h * 0.19)
+  // The globe over the wordmark, shrunk together on a squat poster so they stay clear of the sheet,
+  // its tape and its label.
+  const wordRatio = assets.word ? assets.word.naturalHeight / assets.word.naturalWidth : 0
+  const room = h * 0.335
+  const fit = Math.min(1, room / (Math.min(w * 0.44, h * 0.19) + h * 0.008 + w * 0.82 * wordRatio))
+  const markSize = Math.min(w * 0.44, h * 0.19) * fit
   if (assets.mark) context.drawImage(assets.mark, (w - markSize) / 2, h * 0.035, markSize, markSize)
   if (assets.word) {
-    const wordWidth = w * 0.82
-    const wordHeight = (wordWidth * assets.word.naturalHeight) / assets.word.naturalWidth
-    context.drawImage(assets.word, (w - wordWidth) / 2, h * 0.035 + markSize + h * 0.008, wordWidth, wordHeight)
+    const wordWidth = w * 0.82 * fit
+    context.drawImage(assets.word, (w - wordWidth) / 2, h * 0.035 + markSize + h * 0.008, wordWidth, wordWidth * wordRatio)
   }
   const sheet = { x: w * 0.04, y: h * 0.42, w: w * 0.92, h: h * 0.485 }
   const pad = Math.max(w * 0.075, h * 0.04)
