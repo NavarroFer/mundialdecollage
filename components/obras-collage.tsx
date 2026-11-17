@@ -105,7 +105,7 @@ export function ObrasCollage({
             >
               <span className="obras-collage__bar" aria-hidden="true">
                 <span className="obras-collage__flag">
-                  <CountryFlag countryCode={artwork.countryCode} svg={flags[artwork.countryCode.toUpperCase()]} />
+                  <CountryFlag countryCode={artwork.countryCode} svg={artwork.countryCode ? flags[artwork.countryCode.toUpperCase()] : undefined} />
                 </span>
                 <span className="obras-collage__artist">{artwork.name}</span>
                 <span className="obras-collage__arrow">↗</span>

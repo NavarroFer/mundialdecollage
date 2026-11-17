@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, UserRound, X } from 'lucide-react'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
+import { nameWithCountry } from '@/lib/artwork-description'
 import { buildSearchIndex, searchArtists, searchIndex, type ArtistMatch, type ObraEntry } from '@/lib/artwork-search'
 import { artistProfileSlug } from '@/lib/artist-slug'
 import { TrackedLink } from '@/components/track'
@@ -182,7 +183,7 @@ export function ArtworkSearch({ signedIn, compact = false }: { signedIn: boolean
                     >
                       <span className="font-semibold text-ink">{entry.title ?? m.common.untitled}</span>
                       <span className="text-sm text-muted-foreground">
-                        <span aria-hidden>{countryCodeToFlag(entry.countryCode)}</span> {entry.name} · {countryCodeToName(entry.countryCode, locale)}
+                        <span aria-hidden>{countryCodeToFlag(entry.countryCode)}</span> {nameWithCountry(entry.name, entry.countryCode, locale)}
                       </span>
                     </ObraLink>
                   </li>

@@ -274,6 +274,8 @@ const pl: Messages = {
     onArtwork: 'do „{title}”',
     previewTitle: 'Podgląd:',
     previewBody: 'Twój profil nie jest jeszcze opublikowany. Na razie widzisz go tylko Ty.',
+    missingCountry: "Nie podano jeszcze twojego kraju: bez niego twojej pracy nie ma na mapie ani przy twojej fladze.",
+    missingCountryCta: "Uzupełnij kraj",
     bioTitle: 'Link do bio',
     bioBody: 'Wklej go do bio na Instagramie albo wydrukuj kod QR, żeby łatwo Cię znaleźć.',
     bioQr: 'Pobierz kod QR',

@@ -47,7 +47,7 @@ export function WorldMap({
   // is always there.
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(() => {
     const code = countryFromMapHash(window.location.hash)
-    return code && artworks.some((artwork) => artwork.countryCode.toUpperCase() === code) ? code : null
+    return code && artworks.some((artwork) => artwork.countryCode?.toUpperCase() === code) ? code : null
   })
   // The open country's obras, a page at a time (see lib/country-pages.ts).
   const [page, setPage] = useState(0)
@@ -60,7 +60,7 @@ export function WorldMap({
   const shownPage = selectedCountryCode ? countryPage(artworks, selectedCountryCode, page) : null
   const shownArtworks = shownPage?.items ?? []
 
-  const artworkCountries = new Set(artworks.map((artwork) => artwork.countryCode.toUpperCase()))
+  const artworkCountries = new Set(artworks.flatMap((artwork) => (artwork.countryCode ? [artwork.countryCode.toUpperCase()] : [])))
 
   function showTooltip(evt: ReactMouseEvent, countryCode: string, count: number) {
     const rect = containerRef.current?.getBoundingClientRect()
@@ -113,7 +113,7 @@ export function WorldMap({
 
   // A ribbon flag tapped while the map is already mounted.
   useEffect(() => {
-    const codes = new Set(artworks.map((artwork) => artwork.countryCode.toUpperCase()))
+    const codes = new Set(artworks.flatMap((artwork) => (artwork.countryCode ? [artwork.countryCode.toUpperCase()] : [])))
     const onCountry = (event: Event) => {
       const code = (event as CustomEvent<string>).detail
       if (!codes.has(code)) return
@@ -175,7 +175,7 @@ export function WorldMap({
   // Shapes and dots behave identically: hover tooltip, click/Enter to open the
   // country's obras, focusable only when there's something to open.
   function countryInteraction(code: string | undefined) {
-    const count = code ? countsByCode.get(code) ?? artworks.filter((artwork) => artwork.countryCode.toUpperCase() === code).length : 0
+    const count = code ? countsByCode.get(code) ?? artworks.filter((artwork) => artwork.countryCode?.toUpperCase() === code).length : 0
     const hasArtworks = code ? artworkCountries.has(code) : false
     return {
       onPointerEnter: (evt: ReactMouseEvent) => code && showTooltip(evt, code, count),

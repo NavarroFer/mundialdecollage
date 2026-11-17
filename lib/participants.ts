@@ -1,7 +1,10 @@
 import { COUNTRY_CODES } from '@/lib/country-codes'
 
 // Converts an ISO 3166-1 alpha-2 code ("AR") into its flag emoji (🇦🇷).
-export function countryCodeToFlag(countryCode: string) {
+// An artist whose country is still missing gets no flag, and no country name
+// below, rather than a made-up one.
+export function countryCodeToFlag(countryCode: string | undefined) {
+  if (!countryCode) return ''
   return countryCode
     .toUpperCase()
     .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
@@ -33,7 +36,8 @@ function regionNames(locale: string) {
 // try/catch, not just `??`. country_code is normally constrained by the
 // onboarding form's <select>, but this keeps a stray/malformed value from
 // crashing the whole page instead of just showing the raw code.
-export function countryCodeToName(countryCode: string, locale = 'es') {
+export function countryCodeToName(countryCode: string | undefined, locale = 'es') {
+  if (!countryCode) return ''
   try {
     return regionNames(locale)?.of(countryCode.toUpperCase()) ?? countryCode.toUpperCase()
   } catch {

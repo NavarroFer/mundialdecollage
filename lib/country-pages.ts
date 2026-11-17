@@ -3,10 +3,11 @@
 // hundreds of images at once and every one of them is a page away.
 export const COUNTRY_PAGE_SIZE = 20
 
-type CountryArtwork = { countryCode: string }
+// An obra whose artist has no country yet is in no country's page.
+type CountryArtwork = { countryCode?: string }
 
 export function countryArtworks<T extends CountryArtwork>(artworks: T[], countryCode: string): T[] {
-  return artworks.filter((artwork) => artwork.countryCode.toUpperCase() === countryCode)
+  return artworks.filter((artwork) => artwork.countryCode?.toUpperCase() === countryCode)
 }
 
 export type Page<T> = {

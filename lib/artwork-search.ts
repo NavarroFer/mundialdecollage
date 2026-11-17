@@ -6,7 +6,8 @@ export type SearchEntry = {
   // Empty when the obra has no title yet (shown as m.common.untitled).
   title: string | null
   name: string
-  countryCode: string
+  // Missing while the artist hasn't given one (lib/finalists.ts).
+  countryCode?: string
   // The artist's profile, to offer it as a result of its own (searchArtists).
   profileId?: string
 }
@@ -39,7 +40,7 @@ export function buildSearchIndex<Entry extends SearchEntry>(
   return entries.map((entry) => {
     const title = normalizeSearch(entry.title ?? '')
     const name = normalizeSearch(entry.name)
-    return { entry, title, name, haystack: `${title} ${name} ${country(entry.countryCode)}` }
+    return { entry, title, name, haystack: `${title} ${name} ${entry.countryCode ? country(entry.countryCode) : ''}` }
   })
 }
 
@@ -65,7 +66,7 @@ export function searchIndex<Entry>(index: IndexedEntry<Entry>[], query: string):
     .map(({ entry }) => entry)
 }
 
-export type ArtistMatch = { profileId: string; name: string; countryCode: string; artworks: number }
+export type ArtistMatch = { profileId: string; name: string; countryCode?: string; artworks: number }
 
 // The artists whose name holds every word typed, each once, for the rows that
 // lead to their profile above the obras. Same ranking as searchIndex: a name

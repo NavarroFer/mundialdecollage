@@ -47,7 +47,7 @@ function useNaturalRatio() {
 type Props = {
   slug: string
   artistName: string
-  countryCode: string
+  countryCode?: string
   artwork: ArtistProfileArtwork
   /** Degrees; small, so the piece looks pinned and not fallen. */
   tilt?: number

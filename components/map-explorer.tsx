@@ -37,7 +37,7 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
   const [zoom, setZoom] = useState(initialCoordinates ? 3.25 : INITIAL_ZOOM)
   const countryName = (code: string) => countryCodeToName(code, locale)
   const countsByCode = useMemo(() => new Map(breakdown.map((item) => [item.countryCode, item.count])), [breakdown])
-  const artworkCountries = useMemo(() => new Set(artworks.map((artwork) => artwork.countryCode.toUpperCase())), [artworks])
+  const artworkCountries = useMemo(() => new Set(artworks.flatMap((artwork) => (artwork.countryCode ? [artwork.countryCode.toUpperCase()] : []))), [artworks])
   const maxCount = useMemo(() => breakdown.reduce((max, item) => Math.max(max, item.count), 1), [breakdown])
   const shownPage = selectedCountryCode ? countryPage(artworks, selectedCountryCode, page) : null
   const markerCodes = useMemo(() => [...new Set([...countsByCode.keys(), ...artworkCountries])].filter((code) => code in COUNTRY_MARKER_COORDINATES), [countsByCode, artworkCountries])
@@ -98,7 +98,7 @@ export function MapExplorer({ open, onOpenChange, breakdown, artworks, flags, in
           {hoveredCountryCode && (
             <div role="tooltip" className="pointer-events-none absolute top-4 left-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-lg border-2 border-ink bg-card px-3 py-2 text-sm font-medium text-ink shadow-md sm:top-6 sm:left-6">
               <span className="shrink-0 text-xl"><CountryFlag countryCode={hoveredCountryCode} svg={flags[hoveredCountryCode]} /></span>
-              <span>{countryName(hoveredCountryCode)} · {plural(locale, countsByCode.get(hoveredCountryCode) ?? artworks.filter((artwork) => artwork.countryCode.toUpperCase() === hoveredCountryCode).length, m.map.artworks)}</span>
+              <span>{countryName(hoveredCountryCode)} · {plural(locale, countsByCode.get(hoveredCountryCode) ?? artworks.filter((artwork) => artwork.countryCode?.toUpperCase() === hoveredCountryCode).length, m.map.artworks)}</span>
             </div>
           )}
           <div className="absolute bottom-4 left-4 flex flex-col gap-2 sm:bottom-6 sm:left-6">

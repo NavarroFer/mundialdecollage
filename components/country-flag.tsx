@@ -3,7 +3,7 @@ import { countryCodeToFlag } from '@/lib/participants'
 // A country's flag: the real SVG when the server sent one (see
 // lib/flag-svg.ts), the emoji otherwise. Decorative — the country is always
 // named next to it or in the surrounding label.
-export function CountryFlag({ countryCode, svg }: { countryCode: string; svg?: string }) {
+export function CountryFlag({ countryCode, svg }: { countryCode?: string; svg?: string }) {
   if (!svg) return <span aria-hidden>{countryCodeToFlag(countryCode)}</span>
   return (
     <span

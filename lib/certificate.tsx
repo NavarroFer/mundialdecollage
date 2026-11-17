@@ -198,7 +198,7 @@ export async function certificatePostImage(input: CertificateInput) {
           <div style={{ display: 'flex', marginTop: 24, fontFamily: 'Anton', fontSize: 62, color: INK, textTransform: 'uppercase' }}>{t.igBadge}</div>
           <div style={{ display: 'flex', fontFamily: SERIF, fontStyle: 'italic', fontSize: 34, color: INK, textAlign: 'center' }}>{t.igLine}</div>
           <div style={{ display: 'flex', marginTop: 14, maxWidth: 900, textAlign: 'center', fontFamily: SERIF, fontWeight: 600, fontSize: fit(d.name, 46), color: INK }}>{d.name}</div>
-          <div style={{ display: 'flex', maxWidth: 900, textAlign: 'center', fontFamily: SERIF, fontStyle: 'italic', fontSize: fit(d.title, 32, 36, 70), color: BLUE }}>{`«${d.title}» · ${d.country}`}</div>
+          <div style={{ display: 'flex', maxWidth: 900, textAlign: 'center', fontFamily: SERIF, fontStyle: 'italic', fontSize: fit(d.title, 32, 36, 70), color: BLUE }}>{[`«${d.title}»`, d.country].filter(Boolean).join(' · ')}</div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 20, fontFamily: SERIF, fontSize: 22, color: INK }}>
             <div style={{ display: 'flex', fontWeight: 600 }}>{fmt(t.number, { code: d.code })}</div>

@@ -46,7 +46,7 @@ function describeArtwork(finalist: Finalist, locale: Locale): string {
   if (finalist.technique) {
     parts.push(fmt(m.gallery.artworkTechnique, { technique: m.common.techniques[finalist.technique] ?? finalist.technique }))
   }
-  parts.push(countryCodeToName(finalist.countryCode, locale))
+  if (finalist.countryCode) parts.push(countryCodeToName(finalist.countryCode, locale))
   return `${parts.join(' — ')}. ${fmt(m.gallery.artworkOfficial, { year: EDITION_YEAR })}`
 }
 

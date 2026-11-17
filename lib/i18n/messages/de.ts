@@ -269,6 +269,8 @@ const de: Messages = {
     onArtwork: 'zu „{title}“',
     previewTitle: 'Vorschau:',
     previewBody: 'Dein Profil ist noch nicht veröffentlicht. Bis dahin siehst nur du es.',
+    missingCountry: "Du hast dein Land noch nicht angegeben: Ohne Land erscheint dein Werk weder auf der Karte noch mit deiner Flagge.",
+    missingCountryCta: "Mein Land angeben",
     bioTitle: 'Link für deine Bio',
     bioBody: 'Füge ihn in deine Instagram-Bio ein oder drucke den QR-Code aus, damit man dich findet.',
     bioQr: 'QR herunterladen',

@@ -32,7 +32,7 @@ export function ArtistFeed({
 }: {
   slug: string
   artistName: string
-  countryCode: string
+  countryCode?: string
   artworks: ArtistProfileArtwork[]
 }) {
   const { m } = useI18n()

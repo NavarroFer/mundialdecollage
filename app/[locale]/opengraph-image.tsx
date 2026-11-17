@@ -56,7 +56,7 @@ function pickForPile(finalists: Finalist[]) {
   const seen = new Set<string>()
   const picked: Finalist[] = []
   for (const finalist of finalists) {
-    if (seen.has(finalist.countryCode)) continue
+    if (!finalist.countryCode || seen.has(finalist.countryCode)) continue
     seen.add(finalist.countryCode)
     picked.push(finalist)
     if (picked.length === PILE.length * 2) break

@@ -26,7 +26,7 @@ export async function ParticipantsSection() {
         {collageFinalists.length > 0 ? (
           <ObrasCollage
             finalists={collageFinalists}
-            flags={flagSvgsFor(collageFinalists.map(({ countryCode }) => countryCode))}
+            flags={flagSvgsFor(collageFinalists.flatMap(({ countryCode }) => (countryCode ? [countryCode] : [])))}
             scrollDriven
           />
         ) : (

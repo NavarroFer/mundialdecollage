@@ -271,6 +271,8 @@ const es = {
     onArtwork: 'en «{title}»',
     previewTitle: 'Vista previa:',
     previewBody: 'tu perfil todavía no está publicado. Por ahora solo lo ves vos.',
+    missingCountry: "Todavía no cargaste tu país: sin él, tu obra no aparece en el mapa ni con tu bandera.",
+    missingCountryCta: "Completar mi país",
     bioTitle: 'Link para tu bio',
     bioBody: 'Pegalo en la bio de tu Instagram o imprimí el código QR para que te encuentren.',
     bioQr: 'Descargar QR',

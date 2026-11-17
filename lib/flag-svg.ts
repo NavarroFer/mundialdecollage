@@ -4,7 +4,8 @@ import * as flags from 'country-flag-icons/string/3x2'
 // the bare letters), so flags are drawn as real SVGs instead. Server-side
 // only: import this from server code and hand the SVG strings down, to keep
 // the ~1.6MB flag set out of the browser.
-export function flagSvg(countryCode: string): string | null {
+export function flagSvg(countryCode: string | undefined): string | null {
+  if (!countryCode) return null
   return (flags as Record<string, string | undefined>)[countryCode.toUpperCase()] ?? null
 }
 

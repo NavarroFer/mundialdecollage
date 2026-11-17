@@ -11,6 +11,7 @@ import { fmt } from '@/lib/i18n/format'
 import { getI18n } from '@/lib/i18n/server'
 import { getCallState } from '@/lib/call-state'
 import { countryCodeToFlag, countryCodeToName } from '@/lib/participants'
+import { artworkMetaDescription } from '@/lib/artwork-description'
 import { CommunityFeed } from '@/components/community/community-feed'
 import { ArtistFeed } from './artist-feed'
 import { HeroPiece } from './collage-piece'
@@ -32,11 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const firstArtwork = artist.artworks[0]
   const firstTitle = firstArtwork.title ?? m.common.untitled
-  const description = fmt(m.meta.artworkDescription, {
-    title: firstTitle,
-    name: artist.name,
-    country: countryCodeToName(artist.countryCode, locale),
-  })
+  const description = artworkMetaDescription(m, locale, { title: firstTitle, name: artist.name, countryCode: artist.countryCode })
   const title = `${artist.name} | Mundial de Collage`
 
   return {
@@ -142,10 +139,21 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
                 </h1>
 
                 {/* A rubber stamp: the country, as on a postmark. */}
-                <p className="mt-6 inline-flex -rotate-[5deg] items-center gap-3 border-[3px] border-double border-current px-4 py-1.5 font-display text-2xl tracking-wide uppercase">
-                  <span aria-hidden className="text-3xl leading-none">{countryCodeToFlag(artist.countryCode)}</span>
-                  {country}
-                </p>
+                {country && (
+                  <p className="mt-6 inline-flex -rotate-[5deg] items-center gap-3 border-[3px] border-double border-current px-4 py-1.5 font-display text-2xl tracking-wide uppercase">
+                    <span aria-hidden className="text-3xl leading-none">{countryCodeToFlag(artist.countryCode)}</span>
+                    {country}
+                  </p>
+                )}
+                {/* Shown anyway without one, so the artist notices and fills it in. */}
+                {!country && isOwn && (
+                  <p className="mt-6 max-w-md bg-paper p-4 text-sm text-ink shadow-sm">
+                    {m.artistProfile.missingCountry}{' '}
+                    <Link href="/mi-perfil" prefetch={false} className="font-semibold text-collage-blue underline underline-offset-4">
+                      {m.artistProfile.missingCountryCta}
+                    </Link>
+                  </p>
+                )}
 
                 <div className="mt-8">
                   <ArtistStats slug={artist.slug} artworkCount={artist.artworks.length} />

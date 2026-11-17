@@ -1,5 +1,6 @@
 import { printCardsPdf, type CardFormat } from '@/lib/ar/print-cards'
-import { countryCodeToName, getFinalistBySlug } from '@/lib/finalists'
+import { getFinalistBySlug } from '@/lib/finalists'
+import { nameWithCountry } from '@/lib/artwork-description'
 import { isLocale, localeForCountry, DEFAULT_LOCALE } from '@/lib/i18n/locales'
 import { MESSAGES } from '@/lib/i18n/messages'
 import { createClient } from '@/lib/supabase/server'
@@ -38,7 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     format,
     imageUrl: finalist.imageUrl,
     title: finalist.artworkTitle ?? m.common.untitled,
-    artist: `${finalist.name} · ${countryCodeToName(finalist.countryCode, locale)}`,
+    artist: nameWithCountry(finalist.name, finalist.countryCode, locale),
     arUrl: arUrl.toString(),
     text: m.ar.card,
   })

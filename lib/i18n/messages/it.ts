@@ -269,6 +269,8 @@ const it: Messages = {
     onArtwork: 'su «{title}»',
     previewTitle: 'Anteprima:',
     previewBody: 'il tuo profilo non è ancora pubblicato. Per ora lo vedi solo tu.',
+    missingCountry: "Non hai ancora indicato il tuo paese: senza, la tua opera non compare sulla mappa né con la tua bandiera.",
+    missingCountryCta: "Indica il mio paese",
     bioTitle: 'Link per la tua bio',
     bioBody: 'Incollalo nella bio di Instagram o stampa il codice QR perché ti trovino.',
     bioQr: 'Scarica il QR',

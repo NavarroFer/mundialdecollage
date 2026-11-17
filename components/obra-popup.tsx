@@ -148,7 +148,7 @@ export function ObraPopup({
                 </TrackedLink>
               ) : obra.name}
             </p>
-            <p className="text-base text-muted-foreground">{countryCodeToName(obra.countryCode, locale)}</p>
+            {obra.countryCode && <p className="text-base text-muted-foreground">{countryCodeToName(obra.countryCode, locale)}</p>}
 
             {full && (full.instagram || full.website) && (
               <div className="mt-6 flex flex-wrap gap-3">

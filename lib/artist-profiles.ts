@@ -16,7 +16,8 @@ export type ArtistProfileArtwork = {
 export type ArtistProfile = {
   slug: string
   name: string
-  countryCode: string
+  // Missing while the artist hasn't given one: the profile shows anyway.
+  countryCode?: string
   instagram?: string
   website?: string
   artworks: ArtistProfileArtwork[]
@@ -42,7 +43,7 @@ const ARTIST_SELECT = 'slug, title, technique, image_url, profiles!inner(id, nam
 
 function profileFromRows(rows: ArtistArtworkRow[]): ArtistProfile | undefined {
   const firstProfile = rows[0]?.profiles
-  if (!firstProfile?.name || !firstProfile.country_code) return undefined
+  if (!firstProfile?.name) return undefined
 
   const artworks = rows.flatMap((row): ArtistProfileArtwork[] => {
     if (!row.slug || !row.image_url) return []
@@ -58,7 +59,7 @@ function profileFromRows(rows: ArtistArtworkRow[]): ArtistProfile | undefined {
   return {
     slug: artistProfileSlug(firstProfile.name, firstProfile.id),
     name: firstProfile.name,
-    countryCode: firstProfile.country_code,
+    countryCode: firstProfile.country_code ?? undefined,
     instagram: firstProfile.instagram ?? undefined,
     website: firstProfile.website ?? undefined,
     artworks,

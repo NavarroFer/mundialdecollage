@@ -269,6 +269,8 @@ const id: Messages = {
     onArtwork: 'di «{title}»',
     previewTitle: 'Pratinjau:',
     previewBody: 'profilmu belum dipublikasikan. Untuk sekarang hanya kamu yang bisa melihatnya.',
+    missingCountry: "Kamu belum mengisi negaramu: tanpa itu, karyamu tidak muncul di peta dan tanpa benderamu.",
+    missingCountryCta: "Isi negaraku",
     bioTitle: 'Tautan untuk bio',
     bioBody: 'Tempel di bio Instagram-mu, atau cetak kode QR-nya agar orang bisa menemukanmu.',
     bioQr: 'Unduh QR',

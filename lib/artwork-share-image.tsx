@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import sharp from 'sharp'
 import type { Finalist } from '@/lib/finalists'
-import { countryCodeToName } from '@/lib/participants'
+import { nameWithCountry } from '@/lib/artwork-description'
 import { site } from '@/lib/site'
 import type { Locale } from '@/lib/i18n/locales'
 import type { Messages } from '@/lib/i18n/messages'
@@ -106,7 +106,7 @@ type Input = { finalist: Finalist; locale: Locale; m: Messages }
 function details({ finalist, locale, m }: Input) {
   return {
     title: finalist.artworkTitle ?? m.common.untitled,
-    artist: `${finalist.name} · ${countryCodeToName(finalist.countryCode, locale)}`,
+    artist: nameWithCountry(finalist.name, finalist.countryCode, locale),
     cta: fmt(m.share.cta, { date: formatDayMonth(locale, site.deadlineISO) }),
   }
 }

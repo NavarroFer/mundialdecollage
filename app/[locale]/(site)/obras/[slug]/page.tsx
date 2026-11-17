@@ -14,6 +14,7 @@ import { ScrollToTop } from '@/components/scroll-to-top'
 import { ArtworkImage } from '@/components/artwork-image'
 import { Button } from '@/components/ui/button'
 import { countryCodeToFlag } from '@/lib/participants'
+import { artworkMetaDescription } from '@/lib/artwork-description'
 import { countryCodeToName, getArtworkShareState, getFinalistBySlug } from '@/lib/finalists'
 import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
@@ -32,11 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!finalist) return {}
   const title = finalist.artworkTitle ?? m.common.untitled
 
-  const description = fmt(m.meta.artworkDescription, {
-    title,
-    name: finalist.name,
-    country: countryCodeToName(finalist.countryCode, locale),
-  })
+  const description = artworkMetaDescription(m, locale, { title, name: finalist.name, countryCode: finalist.countryCode })
   // Without these the link preview would keep the home's title and text
   // around this obra's own image (opengraph-image.tsx).
   const shareTitle = `${title} — ${finalist.name}`
@@ -114,7 +111,7 @@ export default async function ObraPage({
                 {finalist.name}
               </TrackedLink>
             </p>
-            <p className="text-muted-foreground">{countryCodeToName(finalist.countryCode, locale)}</p>
+            {finalist.countryCode && <p className="text-muted-foreground">{countryCodeToName(finalist.countryCode, locale)}</p>}
 
             {(finalist.instagram || finalist.website) && (
               <div className="mt-6 flex flex-wrap gap-3">

@@ -25,7 +25,10 @@ export type Finalist = {
   profileId: string
   slug: string
   name: string
-  countryCode: string
+  // Undefined when the artist's country is still missing (a Registro row
+  // whose free-text country didn't match one): the obra shows anyway, without
+  // a flag, so the artist sees it and fills it in.
+  countryCode?: string
   // Empty when nobody has given the obra a real title yet; shown as
   // m.common.untitled until the artist writes it (see confirmArtistDetails).
   artworkTitle: string | null
@@ -59,14 +62,14 @@ type FinalistRow = {
 
 function rowToFinalist(row: FinalistRow): Finalist | undefined {
   const profile = row.profiles
-  if (!row.slug || !row.image_url || !profile?.id || !profile.name || !profile.country_code) {
+  if (!row.slug || !row.image_url || !profile?.id || !profile.name) {
     return undefined
   }
   return {
     profileId: profile.id,
     slug: row.slug,
     name: profile.name,
-    countryCode: profile.country_code,
+    countryCode: profile.country_code ?? undefined,
     artworkTitle: row.title?.trim() || null,
     technique: row.technique ?? undefined,
     tags: row.tags ?? [],
