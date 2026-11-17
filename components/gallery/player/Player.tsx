@@ -38,7 +38,7 @@ const focusTarget = new THREE.Vector3()
 const focusRotationMatrix = new THREE.Matrix4()
 const focusQuaternion = new THREE.Quaternion()
 
-export function Player({ active, artworks, spawnAt }: { active: boolean; artworks: Artwork[]; spawnAt?: { x: number; z: number; yaw: number } }) {
+export function Player({ active, artworks, spawnAt, baseFov }: { active: boolean; artworks: Artwork[]; baseFov?: number; spawnAt?: { x: number; z: number; yaw: number } }) {
   const bodyRef = useRef<RapierRigidBody>(null)
   // Picked once per visit (spawn.ts), and kept as stable arrays so a
   // re-render never puts the body or the camera back there. MAR passes a
@@ -243,14 +243,14 @@ export function Player({ active, artworks, spawnAt }: { active: boolean; artwork
   return (
     <RigidBody ref={bodyRef} position={spawn.position} type="dynamic" colliders={false} lockRotations>
       <CapsuleCollider ref={colliderRef} args={[PLAYER_HALF_HEIGHT, PLAYER_RADIUS]} />
-      <EyeCamera rotation={spawn.rotation} />
+      <EyeCamera rotation={spawn.rotation} baseFov={baseFov} />
     </RigidBody>
   )
 }
 
 // Its own component so turning the phone only re-renders the camera, which
 // widens its view held upright (fov.ts) instead of showing a slit.
-function EyeCamera({ rotation }: { rotation: [number, number, number] }) {
+function EyeCamera({ rotation, baseFov }: { rotation: [number, number, number]; baseFov?: number }) {
   const aspect = useThree((state) => state.size.width / state.size.height)
-  return <PerspectiveCamera makeDefault fov={verticalFov(aspect)} near={0.05} position={[0, EYE_HEIGHT_OFFSET, 0]} rotation={rotation} />
+  return <PerspectiveCamera makeDefault fov={verticalFov(aspect, baseFov)} near={0.05} position={[0, EYE_HEIGHT_OFFSET, 0]} rotation={rotation} />
 }

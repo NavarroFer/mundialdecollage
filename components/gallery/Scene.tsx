@@ -27,6 +27,7 @@ import { World } from './world/World'
 import { galleryThemes, type GalleryTheme } from './themes'
 import type { GalleryVenue } from './venue'
 import type { GalleryRoomTemplate } from './world/roomsData'
+import { MAR_FOV } from './camera/fov'
 import { MAR_SPAWN } from './world/mar/layout'
 import { ClubDoor, type ClubDoorLabels } from './club/ClubDoor'
 import { ClubHost } from './club/ClubHost'
@@ -91,7 +92,7 @@ export function Scene({ artworks, theme, venue = 'mundial', template, active, co
           {venue !== 'mar' && <VinylConsole active={active} />}
           {template && clubDoor && <ClubDoor template={template} active={active} labels={clubDoor} />}
           {template && clubHost && <ClubHost template={template} theme={theme} host={clubHost} active={active} />}
-          <Player active={active} artworks={artworks} spawnAt={venue === 'mar' ? MAR_SPAWN : undefined} />
+          <Player active={active} artworks={artworks} baseFov={venue === 'mar' ? MAR_FOV : undefined} spawnAt={venue === 'mar' ? MAR_SPAWN : undefined} />
         </Physics>
         {!isTouchDevice && controlMode === 'classic' && <FirstPersonCamera target={lockTarget} pointerSpeed={0.75} />}
         {!isTouchDevice && controlMode === 'point' && <EdgeLook active={active} />}

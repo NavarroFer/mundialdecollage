@@ -4,6 +4,7 @@ import { levelAt, planRoute, targetLevel } from '../../navigation/levels'
 import { viewingSpot, walkable } from '../../navigation/path'
 import { standInFront } from '../../player/spawn'
 import {
+  CAFE_BAR,
   GALLERY,
   LOBO,
   MAR,
@@ -76,7 +77,7 @@ describe('MAR layout', () => {
     const reached = reachableFrom(MAR_SPAWN)
     for (const [name, point] of [
       ['hall', { x: 0, z: -8 }],
-      ['west gallery', { x: -20, z: 0 }],
+      ['west gallery', { x: -20, z: 1.65 }],
       ['east gallery', { x: 18, z: -15 }],
       ['auditorium aisle', { x: 0.4, z: -28 }],
       ['the escalator foot', MAR_ESCALATORS_ENTRY],
@@ -218,10 +219,21 @@ describe('MAR layout', () => {
 
   it('keeps the entry, café passage and shop approach connected around the furniture', () => {
     const reached = reachableFrom(MAR_SPAWN)
-    for (const point of [{ x: 0, z: -2 }, { x: 6.5, z: -3 }, { x: -12, z: -3.5 }, { x: -20, z: 0 }, { x: -18, z: -2 }]) {
+    for (const point of [{ x: 0, z: -2 }, { x: 6.5, z: -3 }, { x: -12, z: -3.5 }, { x: -20, z: 1.65 }, { x: -18, z: -2 }]) {
       expect(reached(point.x, point.z), JSON.stringify(point)).toBe(true)
     }
     expect(walkable({ x: -5.2, z: -0.95 }, false, marGalleryTemplate, false)).toBe(false)
+  })
+
+  it('keeps the shop aisle beyond the café bar open toward the Laboratorio', () => {
+    const reached = reachableFrom(MAR_SPAWN)
+    for (const x of [-17, -22, -26]) {
+      expect(reached(x, -1.65)).toBe(true)
+    }
+    expect(walkable({ x: (CAFE_BAR.x0 + CAFE_BAR.x1) / 2, z: (CAFE_BAR.z0 + CAFE_BAR.z1) / 2 }, false, marGalleryTemplate, false)).toBe(false)
+    expect(reached(-21, CAFE_BAR.z1 + 0.8)).toBe(true)
+    expect(reached(-26, -5)).toBe(true)
+    expect(reached(-26, -9.5)).toBe(true)
   })
 
   it('puts the escalators left of the entrance, crossed and side on to the door, with open floor in front of them', () => {

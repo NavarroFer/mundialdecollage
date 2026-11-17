@@ -106,8 +106,16 @@ export const LOBO = {
 
 /** The shop in the west room (Tienda FIND): footprint of its fascia. */
 export const SHOP = { x0: -22.8, x1: -15, z0: -9.3, z1: -3.2 } as const
-/** Café tables in the west room, centres on the floor. */
-export const CAFE_TABLES: Array<[number, number]> = [[-26, 3.2], [-22.8, 3.2], [-19.6, 3.2], [-26, 6.2], [-22.8, 6.2], [-19.6, 6.2], [-27.5, -0.5]]
+// From the hall looking west, left to right (+Z to -Z): glazing, seats,
+// café counter, then the shop aisle continuing toward the Laboratorio.
+export const CAFE_BAR = { x0: -24.8, x1: -18, z0: 0, z1: 0.85, height: 1.08 } as const
+
+/** Repeated rows lead toward the far glazing; retain the existing table centres. */
+export const CAFE_TABLES: Array<[number, number]> = [
+  [-26, 3.2], [-22.8, 3.2], [-19.6, 3.2], [-16.4, 3.2], [-13.8, 3.2],
+  [-26, 6.2], [-22.8, 6.2], [-19.6, 6.2], [-16.4, 6.2], [-13.8, 6.2],
+  [-27.5, -0.5],
+]
 /** The sunken stair beside the vent housing: a hole in the paving, walled off. */
 export const STAIR = { x0: 20, x1: 22.6, z0: 3.4, z1: 7.6, depth: 2.7 } as const
 
@@ -488,6 +496,8 @@ export const marBoxes: MarBox[] = [
   box('mar-shop-backdrop', SHOP.x0, 0, SHOP.z0, SHOP.x1, 3.4, SHOP.z0 + 0.2, 'board'),
   box('mar-shop-fascia-n', SHOP.x0 - 0.2, 3, SHOP.z1 - 0.1, SHOP.x1 + 0.1, 4.3, SHOP.z1, 'black', seeThrough),
   box('mar-shop-fascia-w', SHOP.x1, 3, SHOP.z0, SHOP.x1 + 0.1, 4.3, SHOP.z1, 'black', seeThrough),
+  // Café bar: full collision footprint, clear of the existing seats and fair aisle.
+  box('mar-cafe-bar', CAFE_BAR.x0, 0, CAFE_BAR.z0, CAFE_BAR.x1, CAFE_BAR.height, CAFE_BAR.z1, 'black'),
   // Café: a table's footprint each; the chairs are drawn but not collidable.
   ...CAFE_TABLES.map(([x, z], index) => box(`mar-cafe-table-${index}`, x - 0.65, 0, z - 0.4, x + 0.65, 0.76, z + 0.4, 'table', { visual: false })),
   // La Isla, the children's corner at the glass: a carpet and a bench, kept off the wall's viewing strip.
