@@ -18,7 +18,7 @@ import { flagSvgsFor } from '@/lib/flag-svg'
 import { CountryFlag } from '@/components/country-flag'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, FEED_OFFER_EVENTS, HOME_OFFER_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, STAMP_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, FEED_OFFER_EVENTS, HOME_OFFER_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { loadIncome } from '@/lib/income'
@@ -348,6 +348,15 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
                 steps={SOUVENIR_EVENTS}
                 baseStep="souvenir_photo"
                 baseLabel="De quienes sacaron una foto"
+                variant="comparison"
+              />
+              <JourneySection
+                {...journey}
+                title="Compartir un logro"
+                description="Personas distintas que abrieron la imagen de un logro del Álbum (para historia o feed) y qué hicieron con ella. Se mide desde el 17 de noviembre de 2026."
+                steps={STAMP_EVENTS}
+                baseStep="stamp_share_open"
+                baseLabel="De quienes abrieron la imagen"
                 variant="comparison"
               />
             </StatsMasonry>

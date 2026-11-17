@@ -83,6 +83,14 @@ export const SOUVENIR_EVENTS = [
   { name: 'souvenir_download', label: 'La descargaron' },
 ] as const
 
+// The share image of an achievement (components/stamp-share): the toast or
+// the album offers it, it is drawn in the browser as a story or a feed post.
+export const STAMP_EVENTS = [
+  { name: 'stamp_share_open', label: 'Abrieron la imagen para compartir un logro' },
+  { name: 'stamp_share', label: 'La compartieron' },
+  { name: 'stamp_download', label: 'La descargaron' },
+] as const
+
 // The collective collage on Room 1's end wall (components/gallery/wall).
 export const WALL_EVENTS = [
   { name: 'wall_open', label: 'Abrieron el collage colectivo (E frente al cuadro)' },
@@ -314,6 +322,7 @@ export type FunnelEvent =
   | (typeof HOME_EVENTS)[number]['name']
   | (typeof SHARE_EVENTS)[number]['name']
   | (typeof SOUVENIR_EVENTS)[number]['name']
+  | (typeof STAMP_EVENTS)[number]['name']
   | (typeof WALL_EVENTS)[number]['name']
   | (typeof INVITE_EVENTS)[number]['name']
   | (typeof REFERRAL_EVENTS)[number]['name']
@@ -338,7 +347,7 @@ export type FunnelEvent =
 
 const NAMES = new Set<string>(
   [
-    ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
+    ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...STAMP_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...ONBOARDING_FORM_EVENTS, ...FORM_RESCUE_EVENTS, ...LOGIN_EVENTS, ...SIGNUP_SOURCE_EVENTS, ...GALLERY_READY_EVENTS,
     ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...FEED_OFFER_EVENTS, ...HOME_OFFER_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS, ...COMMUNITY_EVENTS,
   ].map((step) => step.name),
