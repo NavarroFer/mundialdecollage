@@ -269,9 +269,22 @@ describe('MAR facade', () => {
     expect(walkable({ x: (STAIR.x0 + STAIR.x1) / 2, z: (STAIR.z0 + STAIR.z1) / 2 }, false, marGalleryTemplate, false)).toBe(false)
     expect(walkable({ x: 28, z: 5.5 }, false, marGalleryTemplate, false)).toBe(false)
     // The plaza on both sides of them stays open, so the walk can go round.
-    expect(walkable({ x: LOBO.x0 - 1.5, z: 13 }, false, marGalleryTemplate, false)).toBe(true)
-    expect(walkable({ x: 14, z: LOBO.z1 + 1.5 }, false, marGalleryTemplate, false)).toBe(true)
+    expect(walkable({ x: LOBO.x0 - 1.5, z: (LOBO.z0 + LOBO.z1) / 2 }, false, marGalleryTemplate, false)).toBe(true)
+    expect(walkable({ x: LOBO.x1 + 1.5, z: (LOBO.z0 + LOBO.z1) / 2 }, false, marGalleryTemplate, false)).toBe(true)
     expect(reachableFrom(MAR_SPAWN)(30, 12)).toBe(true)
+  })
+
+  it('stands the sea lion in front of the café glass, clear of the overhang, with a way between them', () => {
+    const glass = marBoxes.find((item) => item.id === 'mar-west-s-glass')!
+    const lip = marBoxes.find((item) => item.id === 'mar-west-lip')!
+    expect(LOBO.head.x).toBeGreaterThan(glass.minX)
+    expect(LOBO.head.x).toBeLessThan(glass.maxX)
+    expect(LOBO.z0).toBeGreaterThan(lip.maxZ)
+    // From the café door along the glass, past the bench, to the far side of the platform.
+    const reach = reachableFrom(MAR_SPAWN)
+    expect(reach(LOBO.head.x, 9.2)).toBe(true)
+    expect(reach(LOBO.head.x, 11.6)).toBe(true)
+    expect(reach(LOBO.head.x, LOBO.z1 + 1)).toBe(true)
   })
 
   it('does not let the volumes over the plaza close the walk beneath them', () => {

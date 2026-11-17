@@ -85,8 +85,24 @@ export const MAR = {
 
 const T = MAR.wall
 
-/** The sea lion sculpture's platform on the plaza, in front of the vinyl-faced volume. */
-export const LOBO = { x0: 7.6, x1: 21.8, z0: 8.4, z1: 14.8, height: 0.35, /** Where the sculpture's head stands, on the slab. */ head: { x: 10.8, z: 11.6 } } as const
+/**
+ * The sea lion sculpture's platform on the side plaza, in front of the café's glass. The animal looks
+ * at the café window (the photos from the café and from the east end of the plaza) and its body runs
+ * back toward the coast road; seen from a café table it fills the window.
+ */
+const LOBO_HEAD = { x: -22, z: 15.6 }
+export const LOBO = {
+  /** The slab: the sculpture's footprint turned to face north, with 0.4 m of stones round it. */
+  x0: LOBO_HEAD.x - 3.2,
+  x1: LOBO_HEAD.x + 3.2,
+  z0: LOBO_HEAD.z - 3.2,
+  z1: LOBO_HEAD.z + 11,
+  height: 0.35,
+  /** Where the sculpture's head stands, on the slab. */
+  head: LOBO_HEAD,
+  /** Turn of the sculpture, which is modelled facing -X: this faces it north, to the café (-Z). */
+  yaw: -Math.PI / 2,
+} as const
 
 /** The shop in the west room (Tienda FIND): footprint of its fascia. */
 export const SHOP = { x0: -22.8, x1: -15, z0: -9.3, z1: -3.2 } as const
@@ -380,8 +396,9 @@ export const marBoxes: MarBox[] = [
   // A street lamp's concrete column on each side of the plaza.
   box('mar-lamp-w', -34.25, 0, 20.75, -33.75, 13, 21.25, 'concrete', seeThrough),
   box('mar-lamp-e', 36.75, 0, 18.75, 37.25, 13, 19.25, 'concrete', seeThrough),
-  // The step across the plaza, a long granite kerb. Drawn flat: the ground is one slab.
-  box('mar-plaza-step', -48, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
+  // The step across the plaza, a long granite kerb, broken by the sea lion's platform. Drawn flat: the ground is one slab.
+  box('mar-plaza-step-w', -48, 0, 19.6, LOBO.x0, 0.1, 19.95, 'granite', seeThrough),
+  box('mar-plaza-step-e', LOBO.x1, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
 
   // Auditorium block north of the hall.
   wallX('mar-aud-n', -8, 16, -38, AUD_H),
@@ -517,11 +534,8 @@ export const marBoxes: MarBox[] = [
   // Click-to-walk goes around the lanes; walking onto them still climbs.
   box('mar-esc-lane', -9.3, 0, -12.3, -3, 1.2, -8.4, 'concrete', { path: true, solid: false, visual: false }),
 
-  // Shallow basin on the side plaza.
-  wallX('mar-pool-n', -27.6, -16.4, 12.15, 0.42, 'concrete', 0.35),
-  wallX('mar-pool-s', -27.6, -16.4, 19.85, 0.42, 'concrete', 0.35),
-  wallZ('mar-pool-w', 12.15, 19.85, -27.6, 0.42, 'concrete', 0.35),
-  wallZ('mar-pool-e', 12.15, 19.85, -16.4, 0.42, 'concrete', 0.35),
+  // The long concrete bench between the café's glass and the sea lion, as seen from a café table.
+  box('mar-bench-lobo', LOBO.x0 + 0.2, 0, 10.3, LOBO.x1 - 0.2, 0.46, 10.8, 'seat'),
 
   // A few tables on the east terrace (the plan's scattered tables).
   box('mar-table-a', 33.2, 0, 6.6, 34.5, 0.76, 7.9, 'table'),
@@ -534,7 +548,7 @@ export const marBoxes: MarBox[] = [
 
   // Trees beyond the cobble.
   box('mar-tree-a', -32.2, 0, 25.8, -31.8, 2.4, 26.2, 'trunk'),
-  box('mar-tree-b', -18.2, 0, 27.8, -17.8, 2.4, 28.2, 'trunk'),
+  box('mar-tree-b', -12.2, 0, 28.8, -11.8, 2.4, 29.2, 'trunk'),
   box('mar-tree-c', 5.8, 0, 26.8, 6.2, 2.4, 27.2, 'trunk'),
   box('mar-tree-d', 21.8, 0, 25.8, 22.2, 2.4, 26.2, 'trunk'),
   box('mar-tree-e', 33.8, 0, 22.8, 34.2, 2.4, 23.2, 'trunk'),
@@ -602,8 +616,8 @@ export const marFloors = [
   { id: 'cobble-front', kind: 'cobble' as const, x0: -48, x1: 40, z0: 0, z1: STAIR.z0 },
   { id: 'cobble-stair-w', kind: 'cobble' as const, x0: -48, x1: STAIR.x0, z0: STAIR.z0, z1: STAIR.z1 },
   { id: 'cobble-stair-e', kind: 'cobble' as const, x0: STAIR.x1, x1: 40, z0: STAIR.z0, z1: STAIR.z1 },
-  { id: 'cobble', kind: 'cobble' as const, x0: -48, x1: 40, z0: STAIR.z1, z1: 23 },
-  { id: 'grass', kind: 'grass' as const, x0: -48, x1: 40, z0: 23, z1: 32 },
+  { id: 'cobble', kind: 'cobble' as const, x0: -48, x1: 40, z0: STAIR.z1, z1: 28 },
+  { id: 'grass', kind: 'grass' as const, x0: -48, x1: 40, z0: 28, z1: 32 },
   { id: 'hall', kind: 'polish' as const, x0: -11.84, x1: 13.84, z0: -19.84, z1: 0.2 },
   { id: 'cafe-threshold', kind: 'polish' as const, x0: -12.17, x1: -11.83, z0: MAR_DOORS.west.z0, z1: MAR_DOORS.west.z1 },
   { id: 'west', kind: 'polish' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },

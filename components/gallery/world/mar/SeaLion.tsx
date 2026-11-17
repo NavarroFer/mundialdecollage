@@ -113,13 +113,15 @@ function Rail() {
   )
 }
 
-/** The plaque at the sea lion's foot, tilted back on two posts, facing the plaza. */
+/** The way the sculpture looks, on the ground: it is modelled facing -X, then turned by LOBO.yaw. */
+const FACING = { x: -Math.cos(LOBO.yaw), z: Math.sin(LOBO.yaw) }
+
+/** The plaque at the sea lion's foot, between its foreflippers, tilted back on two posts and read from the way it looks. */
 function Plaque({ texture }: { texture: THREE.Texture }) {
-  const { z1, height, head } = LOBO
-  const x = head.x + 2.4
-  const z = z1 - 1.5
+  const { height, head } = LOBO
+  const reach = 2.7
   return (
-    <group position={[x, height, z]}>
+    <group position={[head.x + FACING.x * reach, height, head.z + FACING.z * reach]} rotation={[0, Math.atan2(FACING.x, FACING.z), 0]}>
       {[-0.42, 0.42].map((dx) => (
         <mesh key={dx} position={[dx, 0.2, -0.05]} castShadow>
           <boxGeometry args={[0.04, 0.4, 0.04]} />
@@ -185,7 +187,7 @@ export function SeaLion() {
       <Plaque texture={resources.plaque} />
       <Rail />
 
-      <group position={[head.x, height, head.z]}>
+      <group position={[head.x, height, head.z]} rotation={[0, LOBO.yaw, 0]}>
         <mesh geometry={resources.body} material={resources.material} castShadow receiveShadow />
         {resources.recesses.map((geometry, index) => (
           <mesh key={`recess-${index}`} geometry={geometry} material={resources.recess} castShadow receiveShadow />
