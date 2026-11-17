@@ -8,7 +8,7 @@ import { NOTIFICATION_TYPES, renderNotification, type RenderContext } from './re
 const NOW = new Date('2026-10-05T15:00:00Z') // exhibition day 2026-10-05
 
 function context(locale: Locale = 'es'): RenderContext {
-  return { locale, m: MESSAGES[locale].notifications, untitled: MESSAGES[locale].common.untitled, now: NOW }
+  return { locale, m: MESSAGES[locale].notifications, stamps: MESSAGES[locale].stamps, untitled: MESSAGES[locale].common.untitled, now: NOW }
 }
 
 describe('renderNotification', () => {
@@ -76,6 +76,18 @@ describe('renderNotification', () => {
     })
   })
 
+  it('names the stamp earned and how many of the sixteen the person has', () => {
+    expect(renderNotification({ type: 'stamp_unlocked', data: { stamp: 'like', count: 3 } }, context())).toEqual({
+      text: '¡Logro desbloqueado: «Flechazo»! Ya tenés 3 de 16.',
+      href: '/#album',
+      icon: 'stamp',
+    })
+    expect(renderNotification({ type: 'stamp_unlocked', data: { stamp: 'gold', count: 3 } }, context())).toBeNull()
+    expect(renderNotification({ type: 'stamps_backfilled', data: { count: 4 } }, context())?.text).toBe(
+      'Llegaron logros nuevos al Álbum y ya tenés 4 de 16. ¡Mirá cuáles te faltan!',
+    )
+  })
+
   it('writes the admin notices in Spanish whatever the reader’s language', () => {
     expect(renderNotification({ type: 'admin_comments_pending', data: { count: 1 } }, context('en'))).toEqual({
       text: 'Hay 1 comentario esperando moderación.',
@@ -109,6 +121,8 @@ describe('renderNotification', () => {
       artwork_exhibited: { title: 'T', slug: 's', day: '2026-10-05' },
       artwork_image_unreadable: { title: 'T' },
       referral_joined: { name: 'N', slug: 's' },
+      stamp_unlocked: { stamp: 'like', count: 3 },
+      stamps_backfilled: { count: 4 },
       club_weekly: { slug: 's', title: 'T', week: '2026-10-26', viewers: 2, stamps: 1, likes: 0 },
       club_board_pending: { count: 2, slug: 's', title: 'T' },
       club_board_approved: { slug: 's', title: 'T' },

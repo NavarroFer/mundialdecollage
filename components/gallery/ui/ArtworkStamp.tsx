@@ -6,6 +6,7 @@ import { collectArtworkStamp, type ArtworkStampResult } from '@/app/[locale]/(si
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { galleryReturnPath } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
+import { requestStampCheck } from '@/lib/stamps'
 import { useInteractionStore } from '../interaction/store'
 import styles from '../gallery-theme.module.css'
 import { cn } from '@/lib/utils'
@@ -35,6 +36,7 @@ export function ArtworkStamp({ slug, signedIn }: { slug: string; signedIn: boole
       }
       setResult(next)
       track('artwork_stamp_saved')
+      requestStampCheck()
     } finally {
       busyRef.current = false
       setBusy(false)

@@ -4,6 +4,7 @@ import { LOCALE_INFO, type Locale } from '@/lib/i18n/locales'
 import type { Messages } from '@/lib/i18n/messages/es'
 import { galleryArtworkPath } from '@/lib/gallery-return'
 import { exhibitionDay } from '@/lib/exhibition-day'
+import { ALBUM_HREF, STAMP_KEYS } from '@/lib/stamps'
 
 // Every kind of notification the bell can show, one entry each (a registry
 // of strategies): what its `data` looks like, its icon, and how it reads and
@@ -27,10 +28,13 @@ export type NotificationIcon =
   | 'alert'
   | 'image'
   | 'money'
+  | 'stamp'
 
 export type RenderContext = {
   locale: Locale
   m: Messages['notifications']
+  /** The album's stamp names, for the notice of one earned. */
+  stamps: Messages['stamps']
   /** What an obra without a title is called. */
   untitled: string
   now: Date
@@ -172,6 +176,22 @@ export const NOTIFICATION_TYPES = {
       text: fmt(m.types.artworkImageUnreadable, { title: data.title || untitled }),
       href: '/onboarding?another=1',
     }),
+  }),
+  // Every stamp of the album earned (20261117140000_more_stamps.sql), with
+  // how many the person has now; the backfill's single notice for those who
+  // already had some when the stamps arrived.
+  stamp_unlocked: define({
+    schema: z.object({ stamp: z.enum(STAMP_KEYS), count: z.number().int().positive() }),
+    icon: 'stamp',
+    render: (data, { m, stamps }) => ({
+      text: fmt(m.types.stampUnlocked, { title: stamps[data.stamp].title, count: data.count, total: STAMP_KEYS.length }),
+      href: ALBUM_HREF,
+    }),
+  }),
+  stamps_backfilled: define({
+    schema: countData,
+    icon: 'stamp',
+    render: ({ count }, { m }) => ({ text: fmt(m.types.stampsBackfilled, { count, total: STAMP_KEYS.length }), href: ALBUM_HREF }),
   }),
   referral_joined: define({
     schema: z.object({ name: z.string().nullish(), slug: z.string().min(1).nullish() }),

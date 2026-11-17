@@ -19,6 +19,7 @@ import type { Locale } from '@/lib/i18n/locales'
 import { formatDayMonth, plural } from '@/lib/i18n/format'
 import { consumeProfileIntent, OBRA_LIKED_EVENT, profileReturnPath } from '@/lib/profile-return'
 import { track } from '@/lib/track'
+import { requestStampCheck } from '@/lib/stamps'
 
 type LikeState = ArtworkSocial['like']
 type CommentsState = ArtworkSocial['comments']
@@ -137,6 +138,7 @@ function LikeButton({ slug, artistHref, initial }: { slug: string; artistHref: s
       }
       forgetArtworkSocial(slug)
       track('like_saved')
+      requestStampCheck()
       window.dispatchEvent(new CustomEvent(OBRA_LIKED_EVENT, { detail: { slug } }))
       // The authoritative count: another tab may have already voted.
       const latest = await getArtworkLike(slug)

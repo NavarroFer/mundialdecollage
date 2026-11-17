@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BookOpen, CalendarDays, Camera, Check, Compass, Eye, LockKeyhole, Scissors, Send } from 'lucide-react'
+import { BookOpen, CalendarDays, Camera, Check, Eye, LockKeyhole } from 'lucide-react'
+import { STAMP_LOOKS } from '@/components/stamp-catalog'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import type { Artwork } from '@/data/artworks'
 import { exhibitionDay } from '@/lib/exhibition-day'
@@ -30,8 +31,6 @@ export function PassportRecorder({ userId, started }: { userId: string; started:
 
 type ArtworkStampRow = { slug: string; title: string; image: string; artist: string }
 type Stamps = { unlocked: StampKey[]; artworks: ArtworkStampRow[] }
-
-const badgeIcons: Record<StampKey, typeof Send> = { first: Send, gallery: Scissors, world: Compass }
 
 // The album's stamps live on the server (/api/stamps, private to the
 // account): read when the passport opens, not on every visit.
@@ -123,9 +122,9 @@ export function Passport({ artworks, theme, onClose, onResume }: { artworks: Art
             <p role="alert" className="mt-2 text-sm">{t.stampsError}</p>
           ) : (
             <>
-              <ul className="mt-3 grid grid-cols-3 gap-2">
+              <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {STAMP_KEYS.map((key) => {
-                  const Icon = badgeIcons[key]
+                  const { Icon } = STAMP_LOOKS[key]
                   const unlocked = stamps.unlocked.includes(key)
                   return (
                     <li key={key} className={cn(styles.passportBadge, !unlocked && 'opacity-55 saturate-0')}>

@@ -67,6 +67,24 @@ export function notificationRepository(db: SupabaseClient) {
       return { items, nextCursor: rows.length > limit && last ? { updatedAt: last.updated_at, id: last.id } : null }
     },
 
+    /** Stamps earned after `since`, oldest first: what the toaster announces on screen. */
+    async stampsSince(since: string): Promise<{ stamp: string; count: number; updatedAt: string }[]> {
+      const { data, error } = await db
+        .from('notifications')
+        .select('data, updated_at')
+        .eq('type', 'stamp_unlocked')
+        .gt('updated_at', since)
+        .order('updated_at', { ascending: true })
+        .limit(5)
+      if (error) throw new Error(error.message)
+      return (data ?? []).flatMap((row) => {
+        const value = row.data as { stamp?: unknown; count?: unknown } | null
+        return typeof value?.stamp === 'string' && typeof value.count === 'number'
+          ? [{ stamp: value.stamp, count: value.count, updatedAt: row.updated_at as string }]
+          : []
+      })
+    },
+
     async markRead(id: string): Promise<void> {
       const { error } = await db.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id).is('read_at', null)
       if (error) throw new Error(error.message)

@@ -9,6 +9,7 @@ import { COMMUNITY_POSTING, communityPostPath, POST_BODY_MAX, type CommunityErro
 import { withReferral } from '@/lib/referral'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/track'
+import { requestStampCheck } from '@/lib/stamps'
 
 // The step next to «Imagen para historias»: the obra is already ours, so
 // posting it on Comunidad is one tap. The hash #publicar opens it focused,
@@ -80,6 +81,7 @@ export function PublishArtworkOffer({ slug, isPublic, opened }: { slug: string; 
       return
     }
     track('community_publish_artwork')
+    requestStampCheck()
     setJustPosted(true)
     setPostId(result.id)
   }

@@ -30,7 +30,7 @@ export function NotificationPanel({ notifications, isAdmin, heading, actions, va
   const { m, locale } = useI18n()
   const t = m.notifications
   const { state, filter, setFilter } = notifications
-  const context: RenderContext = { locale, m: t, untitled: m.common.untitled, now: new Date() }
+  const context: RenderContext = { locale, m: t, stamps: m.stamps, untitled: m.common.untitled, now: new Date() }
 
   const scopes: [NotificationScope, string][] = [
     ['all', t.scopeAll],

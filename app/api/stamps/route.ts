@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { isStampKey, STAMP_KEYS, type ClubStamp } from '@/lib/stamps'
+import { isStampKey, VISIT_STAMPS, type ClubStamp } from '@/lib/stamps'
 
-const VISIT_STAMPS = new Set(['gallery', 'world'])
+const visitStamps = new Set<string>(VISIT_STAMPS)
 const noStore = { 'Cache-Control': 'private, no-store' }
 
 export async function GET() {
@@ -42,7 +42,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   if (!isSupabaseConfigured) return new NextResponse(null, { status: 204 })
   const body = await request.json().catch(() => null)
-  if (!body || typeof body.stamp !== 'string' || !isStampKey(body.stamp) || !VISIT_STAMPS.has(body.stamp)) return new NextResponse(null, { status: 400 })
+  if (!body || typeof body.stamp !== 'string' || !isStampKey(body.stamp) || !visitStamps.has(body.stamp)) return new NextResponse(null, { status: 400 })
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return new NextResponse(null, { status: 401 })

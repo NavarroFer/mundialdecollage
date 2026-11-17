@@ -3,38 +3,34 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BookOpen, CircleCheck, Compass, LockKeyhole, Scissors, Send, X } from 'lucide-react'
+import { BookOpen, CircleCheck, LockKeyhole, Share2, X } from 'lucide-react'
 import { FadeIn } from '@/components/fade-in'
 import { useI18n } from '@/lib/i18n/client'
-import { MAP_SECTION_ID } from '@/lib/map-country-link'
-import { STAMP_UNLOCKED_EVENT, type ClubStamp, type StampUnlocked } from '@/lib/stamps'
+import { STAMP_LOOKS, STAMP_TONES } from '@/components/stamp-catalog'
+import { ARTIST_STAMPS, isStampKey, openStampShare, STAMP_KEYS, STAMP_UNLOCKED_EVENT, VISITOR_STAMPS, LEGEND_STAMP, type ClubStamp, type StampKey, type StampUnlocked } from '@/lib/stamps'
+import { fmt } from '@/lib/i18n/format'
 import { countryCodeToName } from '@/lib/participants'
 import { formatDayMonth } from '@/lib/i18n/format'
 import type { CollectedArtworkStamp } from '@/components/stamp-album'
 
 const TUTORIAL_KEY = 'mundial-stamps-tutorial-seen'
-const stamps = [
-  { key: 'first', href: '/onboarding', Icon: Send, tone: 'bg-collage-red text-paper -rotate-3' },
-  { key: 'gallery', href: '/galeria-3d', Icon: Scissors, tone: 'bg-collage-yellow text-ink rotate-2' },
-  { key: 'world', href: `#${MAP_SECTION_ID}`, Icon: Compass, tone: 'bg-collage-blue text-paper -rotate-1' },
-] as const
+const TOTAL = STAMP_KEYS.length
 
 export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStamps, artworkStamps }: { signedIn: boolean; unlockedStamps: string[]; artworkStamps: CollectedArtworkStamp[] }) {
   const { locale, m } = useI18n()
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [albumOpen, setAlbumOpen] = useState(false)
-  const [unlockedStamps, setUnlockedStamps] = useState(initialUnlockedStamps)
+  const [unlockedStamps, setUnlockedStamps] = useState<StampKey[]>(() => initialUnlockedStamps.filter(isStampKey))
   const [collectedArtworkStamps, setCollectedArtworkStamps] = useState(artworkStamps)
   // Read with the album's sync below, not in the page render.
   const [clubStamps, setClubStamps] = useState<ClubStamp[]>([])
-  const copy = { first: m.stamps.first, gallery: m.stamps.gallery, world: m.stamps.world }
 
   const syncStamps = useCallback(async () => {
     const response = await fetch('/api/stamps', { cache: 'no-store' })
     if (!response.ok) return
     const data = await response.json() as { signedIn: boolean; unlockedStamps: string[]; artworkStamps: CollectedArtworkStamp[]; clubStamps?: ClubStamp[] }
     if (data.signedIn) {
-      setUnlockedStamps(data.unlockedStamps)
+      setUnlockedStamps(data.unlockedStamps.filter(isStampKey))
       setCollectedArtworkStamps(data.artworkStamps)
       setClubStamps(data.clubStamps ?? [])
     }
@@ -72,6 +68,14 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
     return () => window.removeEventListener(STAMP_UNLOCKED_EVENT, onUnlocked)
   }, [])
 
+  // The bell's notices and the toast lead to /#album.
+  useEffect(() => {
+    const openFromHash = () => { if (window.location.hash === '#album') { setTutorialOpen(false); setAlbumOpen(true) } }
+    const first = window.setTimeout(openFromHash, 0)
+    window.addEventListener('hashchange', openFromHash)
+    return () => { window.clearTimeout(first); window.removeEventListener('hashchange', openFromHash) }
+  }, [])
+
   useEffect(() => {
     if (signedIn || window.localStorage.getItem(TUTORIAL_KEY)) return
     window.localStorage.setItem(TUTORIAL_KEY, '1')
@@ -82,7 +86,7 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
   return (
     <>
       <button type="button" onClick={() => { setTutorialOpen(false); setAlbumOpen(true) }} className="fixed right-3 bottom-[calc(1.25rem+var(--tab-bar-space,0px))] z-40 flex items-center gap-2 rounded-full border-2 border-ink bg-collage-yellow px-4 py-3 text-sm font-bold text-ink shadow-[4px_4px_0_var(--color-ink)] transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue sm:right-6" aria-label={m.stamps.title}>
-        <BookOpen className="size-5" aria-hidden="true" /> <span className="hidden sm:inline">{m.stamps.eyebrow}</span><span className="rounded-full border border-ink/25 bg-paper px-1.5 py-0.5 text-xs tabular-nums">{unlockedStamps.length}/3</span>
+        <BookOpen className="size-5" aria-hidden="true" /> <span className="hidden sm:inline">{m.stamps.eyebrow}</span><span className="rounded-full border border-ink/25 bg-paper px-1.5 py-0.5 text-xs tabular-nums">{unlockedStamps.length}/{TOTAL}</span>
       </button>
 
       {(albumOpen || tutorialOpen) && (
@@ -97,30 +101,20 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
             </> : <>
               <p className="text-sm font-bold tracking-[0.25em] text-collage-red uppercase">{m.stamps.eyebrow}</p>
               <h3 id="stamp-album-title" className="font-display mt-2 text-3xl uppercase">{m.stamps.title}</h3>
-              <p className="mt-2 max-w-xl text-muted-foreground">{m.stamps.body}</p>
-              <div className="mt-7 grid gap-5 sm:grid-cols-3">
-          {stamps.map(({ key, href, Icon, tone }, index) => {
-            const unlocked = unlockedStamps.includes(key)
-            const content = (
-              <div className={`relative flex aspect-[1.4] flex-col items-center justify-center overflow-hidden border-2 border-dashed border-current p-3 text-center ${tone} ${unlocked ? '' : 'saturate-0'}`}>
-                <Icon className="size-8 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12" strokeWidth={1.5} aria-hidden="true" />
-                <p className="font-display mt-2 text-xl tracking-wide uppercase">{copy[key].title}</p>
-                <p className="mt-1 text-xs font-semibold opacity-80">{copy[key].body}</p>
-                {unlocked ? <CircleCheck className="absolute top-2 right-2 size-5" aria-label={m.stamps.title} /> : <LockKeyhole className="absolute top-2 right-2 size-4" aria-label={m.stamps.locked} />}
-                <span className="absolute -right-5 -bottom-5 size-14 rounded-full border-2 border-current opacity-25" />
-              </div>
-            )
-            return (
-              <FadeIn key={key} delay={100 + index * 100}>
-                {signedIn ? (
-                  <Link href={href} className="group block rounded-sm border-2 border-ink bg-card p-3 shadow-[5px_5px_0_var(--color-ink)] transition-transform hover:-translate-y-1 hover:rotate-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue">{content}</Link>
-                ) : (
-                  <button type="button" onClick={() => setTutorialOpen(true)} className="group block w-full rounded-sm border-2 border-ink bg-card p-3 text-left shadow-[5px_5px_0_var(--color-ink)] transition-transform hover:-translate-y-1 hover:rotate-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue">{content}</button>
-                )}
-              </FadeIn>
-            )
-          })}
-              </div>
+              <p className="mt-2 max-w-xl text-muted-foreground">{fmt(m.stamps.body, { total: TOTAL })}</p>
+              <p className="mt-3 text-sm font-bold tabular-nums" role="status">{fmt(m.stamps.image.progress, { count: unlockedStamps.length, total: TOTAL })}</p>
+              {([
+                [m.stamps.visitorGroup, VISITOR_STAMPS],
+                [m.stamps.artistGroup, ARTIST_STAMPS],
+                [null, [LEGEND_STAMP]],
+              ] as const).map(([heading, keys]) => (
+                <div key={heading ?? LEGEND_STAMP} className="mt-7">
+                  {heading && <h4 className="font-display mb-3 text-xl uppercase">{heading} <span className="text-sm font-bold tabular-nums opacity-70">{keys.filter((key) => unlockedStamps.includes(key)).length}/{keys.length}</span></h4>}
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    {keys.map((key, index) => <StampCard key={key} stampKey={key} index={index} unlocked={unlockedStamps.includes(key)} signedIn={signedIn} count={unlockedStamps.length} onSignedOut={() => setTutorialOpen(true)} />)}
+                  </div>
+                </div>
+              ))}
               <section className="mt-9 border-t-2 border-ink pt-6">
                 <div className="flex items-baseline justify-between gap-4"><h4 className="font-display text-2xl uppercase">Obras que guardaste</h4><span className="text-sm font-bold">{collectedArtworkStamps.length}</span></div>
                 {collectedArtworkStamps.length ? <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -148,5 +142,41 @@ export function StampAlbumClient({ signedIn, unlockedStamps: initialUnlockedStam
         </div>
       )}
     </>
+  )
+}
+
+function StampCard({ stampKey, index, unlocked, signedIn, count, onSignedOut }: { stampKey: StampKey; index: number; unlocked: boolean; signedIn: boolean; count: number; onSignedOut: () => void }) {
+  const { m } = useI18n()
+  const { Icon, tone, tilt, href } = STAMP_LOOKS[stampKey]
+  const copy = m.stamps[stampKey]
+  const content = (
+    <div className={`relative flex aspect-[1.4] flex-col items-center justify-center overflow-hidden border-2 border-dashed border-current p-3 text-center ${STAMP_TONES[tone].className} ${tilt} ${unlocked ? '' : 'saturate-0'}`}>
+      <Icon className="size-8 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12" strokeWidth={1.5} aria-hidden="true" />
+      <p className="font-display mt-2 text-lg leading-tight tracking-wide uppercase sm:text-xl">{copy.title}</p>
+      <p className="mt-1 text-xs font-semibold opacity-80">{copy.body}</p>
+      {unlocked ? <CircleCheck className="absolute top-2 right-2 size-5" aria-label={m.stamps.unlocked} /> : <LockKeyhole className="absolute top-2 right-2 size-4" aria-label={m.stamps.locked} />}
+      <span className="absolute -right-5 -bottom-5 size-14 rounded-full border-2 border-current opacity-25" />
+    </div>
+  )
+  return (
+    <FadeIn delay={80 + index * 60}>
+      <div className="rounded-sm border-2 border-ink bg-card p-2.5 shadow-[5px_5px_0_var(--color-ink)]">
+        {signedIn ? (
+          <Link href={href} className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue">{content}</Link>
+        ) : (
+          <button type="button" onClick={onSignedOut} className="group block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-collage-blue">{content}</button>
+        )}
+        {unlocked && (
+          <button
+            type="button"
+            onClick={() => openStampShare({ stamp: stampKey, count })}
+            aria-label={fmt(m.stamps.shareLabel, { title: copy.title })}
+            className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border-2 border-ink bg-collage-yellow px-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            <Share2 className="size-4" aria-hidden="true" /> {m.stamps.share}
+          </button>
+        )}
+      </div>
+    </FadeIn>
   )
 }
