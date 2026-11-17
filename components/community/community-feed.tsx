@@ -14,6 +14,7 @@ import {
   type FeedPost,
 } from '@/lib/community'
 import { track } from '@/lib/track'
+import { requestStampCheck } from '@/lib/stamps'
 
 const FRESH_MS = 2 * 60 * 1000
 
@@ -123,6 +124,7 @@ export function CommunityFeed({ callOpen, author, hideEmpty = false, title }: { 
     })
     setPosts((current) => current?.map((post) => post.id === id ? { ...post, likes: post.likes + (was ? -1 : 1) } : post) ?? null)
     const result = await togglePostLike(id)
+    if (!('error' in result) && result.liked) requestStampCheck()
     if ('error' in result) {
       setError(result.error)
       setLiked((current) => {

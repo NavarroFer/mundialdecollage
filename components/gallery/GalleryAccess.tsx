@@ -23,6 +23,11 @@ export function GalleryAccess({ artworks, userId, initialVenue }: { artworks: Ar
   return signedIn ? <Game artworks={artworks} userId={userId} initialVenue={initialVenue} /> : <GallerySignIn />
 }
 
+/** A visitor without an account, let in by a door that does not ask for one (/museomar while MAR is not public). */
+export function GalleryGuest({ artworks, venue }: { artworks: Artwork[]; venue: GalleryVenue }) {
+  return <Game artworks={artworks} userId={null} initialVenue={venue} />
+}
+
 export function GallerySignIn() {
   const { m } = useI18n()
   const [busy, setBusy] = useState(false)

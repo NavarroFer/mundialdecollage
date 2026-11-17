@@ -6,6 +6,7 @@ import {
   Inbox,
   Landmark,
   MessageCircle,
+  Stamp,
   TriangleAlert,
   UserPlus,
   type LucideIcon,
@@ -24,6 +25,7 @@ const ICONS: Record<IconName, { Icon: LucideIcon; tone: string }> = {
   alert: { Icon: TriangleAlert, tone: 'bg-collage-red/15 text-collage-red' },
   image: { Icon: ImageOff, tone: 'bg-collage-red/15 text-collage-red' },
   money: { Icon: Banknote, tone: 'bg-collage-blue/15 text-collage-blue' },
+  stamp: { Icon: Stamp, tone: 'bg-collage-yellow/30 text-ink' },
 }
 
 export function NotificationIcon({ name, className }: { name: IconName; className?: string }) {

@@ -5,6 +5,9 @@
 /** The flag's cloth, metres. */
 export const FLAG = { width: 3.4, height: 6.7, /** Lowest edge above the floor. */ bottom: 0.7 } as const
 
+/** Where the flag hangs: x centre, z, in the hall's open void, east of the escalators. */
+export const FLAG_AT = { x: 3.5, z: -6.5 } as const
+
 /** Most obras the flag will draw. Each is one small image request; the CDN keeps them, but a phone should not fetch thousands. */
 export const MOSAIC_LIMIT = 600
 

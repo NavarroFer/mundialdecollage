@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_TABLES, GALLERY, MAR, SHOP, UPPER_ROOFLIGHT, marBoxes } from './layout'
+import { CAFE_TABLES, GALLERY, HALL_VOID, MAR, SHOP, UPPER_ROOFLIGHT, marBoxes } from './layout'
 import {
   boardTexture,
   fasciaTexture,
@@ -110,8 +110,8 @@ function HallRoof({ materials }: { materials: InteriorMaterials }) {
         </group>
       ))}
       {/* Slim light rails below the mezzanine, with individual adjustable fixtures. */}
-      {[-12.05, -3.5].map((z, index) => {
-        const x0 = index === 0 ? -11.7 : -9.4
+      {[HALL_VOID.z0, HALL_VOID.z1].map((z, index) => {
+        const x0 = index === 0 ? -11.7 : HALL_VOID.x0
         const x1 = index === 0 ? 13.7 : 6.5
         return <group key={z}>
           <mesh position={[(x0 + x1) / 2, MAR.mezzanine - 0.29, z]} material={light}>

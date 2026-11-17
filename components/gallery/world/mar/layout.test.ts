@@ -24,6 +24,7 @@ import {
   STAIR,
 } from './layout'
 import { artworksForVenue } from './place'
+import { BRANDED_BANNERS } from './brandBanners'
 
 const STEP = 0.5
 const MAR_ESCALATORS_ENTRY = marGalleryTemplate.upper!.link.entry
@@ -154,10 +155,11 @@ describe('MAR layout', () => {
 
   it('climbs the escalator from the hall floor to the mezzanine deck', () => {
     const lane = MAR_ESCALATORS[0]
-    expect(marEscalatorHeight((lane.x0 + lane.x1) / 2, lane.zBottom)).toBeCloseTo(0)
-    expect(marEscalatorHeight((lane.x0 + lane.x1) / 2, lane.zTop)).toBeCloseTo(MAR.mezzanine)
+    const z = (lane.z0 + lane.z1) / 2
+    expect(marEscalatorHeight(lane.xBottom, z)).toBeCloseTo(0)
+    expect(marEscalatorHeight(lane.xTop, z)).toBeCloseTo(MAR.mezzanine)
     expect(marEscalatorHeight(0, -4)).toBeNull()
-    const mid = marEscalatorHeight((lane.x0 + lane.x1) / 2, (lane.zBottom + lane.zTop) / 2)
+    const mid = marEscalatorHeight((lane.xBottom + lane.xTop) / 2, z)
     expect(mid).toBeGreaterThan(1)
     expect(mid).toBeLessThan(MAR.mezzanine)
   })
@@ -165,14 +167,26 @@ describe('MAR layout', () => {
   it('connects both escalators to the same reachable mezzanine and ground floor', () => {
     const ground = reachableFrom(MAR_SPAWN)
     const upper = reachableFrom(marGalleryTemplate.upper!.link.exit, marUpperTemplate)
+    const grid = (value: number) => Math.round(value * 2) / 2
     for (const lane of MAR_ESCALATORS) {
-      const x = (lane.x0 + lane.x1) / 2
-      const direction = Math.sign(lane.zTop - lane.zBottom)
-      expect(marEscalatorHeight(x, lane.zBottom)).toBeCloseTo(0)
-      expect(marEscalatorHeight(x, lane.zTop)).toBeCloseTo(MAR.mezzanine)
-      expect(ground(Math.round(x * 2) / 2, Math.round((lane.zBottom - direction * 0.85) * 2) / 2), lane.id).toBe(true)
-      expect(upper(Math.round(x * 2) / 2, Math.round((lane.zTop + direction * 0.7) * 2) / 2), lane.id).toBe(true)
+      const z = (lane.z0 + lane.z1) / 2
+      const direction = Math.sign(lane.xTop - lane.xBottom)
+      expect(marEscalatorHeight(lane.xBottom, z)).toBeCloseTo(0)
+      expect(marEscalatorHeight(lane.xTop, z)).toBeCloseTo(MAR.mezzanine)
+      expect(ground(grid(lane.xBottom - direction * 0.85), grid(z)), lane.id).toBe(true)
+      expect(upper(grid(lane.xTop + direction * 0.7), grid(z)), lane.id).toBe(true)
     }
+  })
+
+  it('leaves the upper glass open at each escalator head, and closed beside the lanes', () => {
+    const rails = marBoxes.filter((box) => box.kind === 'glass' && box.minY === MAR.mezzanine)
+    const railAt = (x: number, z: number) => rails.some((box) => x >= box.minX - 0.01 && x <= box.maxX + 0.01 && z >= box.minZ - 0.01 && z <= box.maxZ + 0.01)
+    for (const lane of MAR_ESCALATORS) {
+      for (const z of [lane.z0 + 0.1, (lane.z0 + lane.z1) / 2, lane.z1 - 0.1]) expect(railAt(lane.xTop, z), `${lane.id} ${z}`).toBe(false)
+    }
+    // Neither walkway is open to the void anywhere else along the lanes.
+    expect(railAt(MAR_ESCALATORS[0].xTop, MAR_ESCALATORS[0].z0 - 0.4)).toBe(true)
+    expect(railAt(MAR_ESCALATORS[0].xTop, MAR_ESCALATORS[0].z1 + 0.4)).toBe(true)
   })
 
   it('connects all four upper walkways while keeping the atrium void closed to walking', () => {
@@ -210,14 +224,20 @@ describe('MAR layout', () => {
     expect(walkable({ x: -5.2, z: -0.95 }, false, marGalleryTemplate, false)).toBe(false)
   })
 
-  it('puts the escalators left of the entrance, with open floor between their foot and the front wall', () => {
+  it('puts the escalators left of the entrance, crossed and side on to the door, with open floor in front of them', () => {
     for (const lane of MAR_ESCALATORS) {
-      // Entering the door you face -Z, so left is -X.
-      expect(lane.x1).toBeLessThan(MAR_DOORS.entrance.x0)
-      expect(MAR_DOORS.entrance.z - lane.zBottom).toBeGreaterThanOrEqual(4)
+      // Entering the door you face -Z, so left is -X. The lanes run along X: from the door you see their sides.
+      expect(Math.max(lane.xBottom, lane.xTop)).toBeLessThanOrEqual(MAR_DOORS.entrance.x0)
+      expect(Math.abs(lane.xTop - lane.xBottom)).toBeGreaterThan(3 * (lane.z1 - lane.z0))
+      expect(MAR_DOORS.entrance.z - lane.z1).toBeGreaterThanOrEqual(4)
       // And they are not jammed against the side walls either.
-      expect(lane.x0 - -12).toBeGreaterThan(2)
+      expect(Math.min(lane.xBottom, lane.xTop) - -12).toBeGreaterThan(2)
     }
+    // Opposed runs, so their profiles cross like an X. The nearer one rises west, onto the walkway by the gallery.
+    const [near, far] = [...MAR_ESCALATORS].sort((a, b) => b.z1 - a.z1)
+    expect(near.id).toBe('up')
+    expect(near.xTop).toBeLessThan(near.xBottom)
+    expect(far.xTop).toBeGreaterThan(far.xBottom)
     // The foot is reachable on the ground floor, in the open hall.
     expect(walkable(marGalleryTemplate.upper!.link.entry, false, marGalleryTemplate, false)).toBe(true)
     expect(reachableFrom(MAR_SPAWN)(-8, -4.5)).toBe(true)
@@ -250,9 +270,22 @@ describe('MAR facade', () => {
     expect(walkable({ x: (STAIR.x0 + STAIR.x1) / 2, z: (STAIR.z0 + STAIR.z1) / 2 }, false, marGalleryTemplate, false)).toBe(false)
     expect(walkable({ x: 28, z: 5.5 }, false, marGalleryTemplate, false)).toBe(false)
     // The plaza on both sides of them stays open, so the walk can go round.
-    expect(walkable({ x: LOBO.x0 - 1.5, z: 13 }, false, marGalleryTemplate, false)).toBe(true)
-    expect(walkable({ x: 14, z: LOBO.z1 + 1.5 }, false, marGalleryTemplate, false)).toBe(true)
+    expect(walkable({ x: LOBO.x0 - 1.5, z: (LOBO.z0 + LOBO.z1) / 2 }, false, marGalleryTemplate, false)).toBe(true)
+    expect(walkable({ x: LOBO.x1 + 1.5, z: (LOBO.z0 + LOBO.z1) / 2 }, false, marGalleryTemplate, false)).toBe(true)
     expect(reachableFrom(MAR_SPAWN)(30, 12)).toBe(true)
+  })
+
+  it('stands the sea lion in front of the café glass, clear of the overhang, with a way between them', () => {
+    const glass = marBoxes.find((item) => item.id === 'mar-west-s-glass')!
+    const lip = marBoxes.find((item) => item.id === 'mar-west-lip')!
+    expect(LOBO.head.x).toBeGreaterThan(glass.minX)
+    expect(LOBO.head.x).toBeLessThan(glass.maxX)
+    expect(LOBO.z0).toBeGreaterThan(lip.maxZ)
+    // From the café door along the glass, past the bench, to the far side of the platform.
+    const reach = reachableFrom(MAR_SPAWN)
+    expect(reach(LOBO.head.x, 9.2)).toBe(true)
+    expect(reach(LOBO.head.x, 11.6)).toBe(true)
+    expect(reach(LOBO.head.x, LOBO.z1 + 1)).toBe(true)
   })
 
   it('does not let the volumes over the plaza close the walk beneath them', () => {
@@ -267,12 +300,29 @@ describe('MAR facade', () => {
   })
 
   it('keeps every banner on a wall it fits, so a picture can be swapped in without moving anything', () => {
-    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual(['door-a', 'door-b', 'door-c', 'vinyl', 'standee-a', 'standee-b', 'standee-c'])
+    expect(MAR_BANNERS.map((banner) => banner.id)).toEqual([
+      'door-a', 'door-b', 'door-c', 'vinyl', 'standee-a', 'standee-b', 'standee-c',
+      'hall-up', 'cafe-door', 'cafe-wall', 'aud-wall', 'landing', 'gallery-wall',
+    ])
     for (const banner of MAR_BANNERS) expect(banner.image).toBeUndefined()
     for (const banner of MAR_BANNERS.filter((item) => !item.standee)) {
+      const floor = banner.center[1] > MAR.mezzanine ? MAR.mezzanine : 0
       expect(banner.width).toBeGreaterThan(0.5)
-      expect(banner.center[1] - banner.height / 2).toBeGreaterThanOrEqual(0)
-      expect(banner.center[1] + banner.height / 2).toBeLessThanOrEqual(MAR.soffit - 0.5 + 0.1 + 0.4)
+      expect(banner.center[1] - banner.height / 2).toBeGreaterThanOrEqual(floor)
+      expect(banner.center[1] + banner.height / 2).toBeLessThanOrEqual(floor + MAR.soffit)
+    }
+  })
+
+  it('spreads the branded banners through the museum, each on floor someone can walk to', () => {
+    // standee-a and standee-b are the museum's own roll-ups (EntranceDetails.tsx); every other slot is the Mundial's.
+    expect([...BRANDED_BANNERS].sort()).toEqual(MAR_BANNERS.map((banner) => banner.id).filter((id) => id !== 'standee-a' && id !== 'standee-b').sort())
+    const ground = reachableFrom(MAR_SPAWN)
+    for (const banner of MAR_BANNERS.filter((item) => item.standee)) {
+      const upstairs = banner.center[1] > MAR.mezzanine
+      // Where it stands is floor a visitor reaches (roll-ups are not colliders, so this is where they are seen from).
+      const spot = { x: banner.center[0], z: banner.center[2] }
+      if (upstairs) expect(walkable(spot, false, marUpperTemplate, false), banner.id).toBe(true)
+      else expect(ground(spot.x, spot.z), banner.id).toBe(true)
     }
   })
 

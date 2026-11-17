@@ -12,6 +12,7 @@ import { imageSrc } from '@/lib/image-src'
 import { createClient } from '@/lib/supabase/client'
 import { STRIP_MIN_POSTS, STRIP_SIZE, communityPostPath, type CommunityError, type FeedPage, type FeedPost } from '@/lib/community'
 import { track } from '@/lib/track'
+import { requestStampCheck } from '@/lib/stamps'
 
 // The home strip. It reads nothing on the server: the page stays as it is,
 // and the feed arrives from the CDN once the strip is near the screen.
@@ -80,6 +81,7 @@ export function CommunityStrip() {
     const result = await togglePostLike(id)
     if ('error' in result) return
     track('community_like')
+    if (result.liked) requestStampCheck()
     setLiked((current) => {
       const next = new Set(current)
       if (result.liked) next.add(id)

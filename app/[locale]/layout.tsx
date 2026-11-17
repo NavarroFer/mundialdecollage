@@ -10,6 +10,8 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ReferralCapture } from '@/components/referral-capture'
 import { NavigationProgress } from '@/components/navigation-progress'
 import { SiteNoticeHost } from '@/components/site-notice'
+import { StampToaster } from '@/components/stamp-toaster'
+import { StampShareHost } from '@/components/stamp-share/stamp-share-host'
 import { getI18n } from '@/lib/i18n/server'
 import { I18nProvider } from '@/lib/i18n/client'
 import { getCallState } from '@/lib/call-state'
@@ -82,6 +84,8 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
         <I18nProvider locale={locale} messages={pickClientMessages(m)}>
           <SkipLink />
           {children}
+          <StampToaster />
+          <StampShareHost />
         </I18nProvider>
         <SiteNoticeHost />
         <ClarityAnalytics />

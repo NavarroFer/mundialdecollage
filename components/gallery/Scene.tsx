@@ -30,6 +30,7 @@ import type { GalleryRoomTemplate } from './world/roomsData'
 import { MAR_SPAWN } from './world/mar/layout'
 import { ClubDoor, type ClubDoorLabels } from './club/ClubDoor'
 import { ClubHost } from './club/ClubHost'
+import { FlagTracker } from './flag/FlagTracker'
 import type { ClubHostInfo } from './club/host'
 
 export type SceneProps = {
@@ -101,6 +102,7 @@ export function Scene({ artworks, theme, venue = 'mundial', template, active, co
         <PlayerTracker />
         <AttentionRay active={active} />
         <SouvenirCapture />
+        {venue === 'mar' && <FlagTracker active={active} />}
         {venue !== 'mar' && <WallAim />}
         {venue !== 'mar' && <CollageWall theme={theme} title={wall.title} subtitle={wall.subtitle} cyrillic={wall.cyrillic} />}
         <FirstFrame onReady={onReady} />

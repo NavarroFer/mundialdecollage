@@ -6,11 +6,8 @@ import * as THREE from 'three'
 import { imageSrc } from '@/lib/image-src'
 import { clothBase } from './interiorDecals'
 import { useFlagStore, type FlagEntry } from '../../flag/store'
-import { FLAG, loadOrder, mosaicCell, mosaicEntries, mosaicGrid } from './mosaic'
+import { FLAG, FLAG_AT, loadOrder, mosaicCell, mosaicEntries, mosaicGrid } from './mosaic'
 import { canvasTexture } from './textures'
-
-/** Where the flag hangs: x centre, z, in the hall's open void, east of the escalators. */
-export const FLAG_AT = { x: 3.5, z: -6.5 } as const
 
 const CANVAS_WIDTH = 1024
 const CANVAS_HEIGHT = Math.round((CANVAS_WIDTH * FLAG.height) / FLAG.width)

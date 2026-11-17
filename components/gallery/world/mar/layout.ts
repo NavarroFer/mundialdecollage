@@ -85,8 +85,24 @@ export const MAR = {
 
 const T = MAR.wall
 
-/** The sea lion sculpture's platform on the plaza, in front of the vinyl-faced volume. */
-export const LOBO = { x0: 7.6, x1: 21.8, z0: 8.4, z1: 14.8, height: 0.35, /** Where the sculpture's head stands, on the slab. */ head: { x: 10.8, z: 11.6 } } as const
+/**
+ * The sea lion sculpture's platform on the side plaza, in front of the café's glass. The animal looks
+ * at the café window (the photos from the café and from the east end of the plaza) and its body runs
+ * back toward the coast road; seen from a café table it fills the window.
+ */
+const LOBO_HEAD = { x: -22, z: 15.6 }
+export const LOBO = {
+  /** The slab: the sculpture's footprint turned to face north, with 0.4 m of stones round it. */
+  x0: LOBO_HEAD.x - 3.2,
+  x1: LOBO_HEAD.x + 3.2,
+  z0: LOBO_HEAD.z - 3.2,
+  z1: LOBO_HEAD.z + 11,
+  height: 0.35,
+  /** Where the sculpture's head stands, on the slab. */
+  head: LOBO_HEAD,
+  /** Turn of the sculpture, which is modelled facing -X: this faces it north, to the café (-Z). */
+  yaw: -Math.PI / 2,
+} as const
 
 /** The shop in the west room (Tienda FIND): footprint of its fascia. */
 export const SHOP = { x0: -22.8, x1: -15, z0: -9.3, z1: -3.2 } as const
@@ -164,6 +180,19 @@ export const MAR_BANNERS: MarBanner[] = [
   { id: 'standee-b', center: [7.5, 1.35, -6.7], width: 0.75, height: 1.1, standee: true, yaw: -Math.PI / 2 },
   // At the foot of the gallery's portal, on the mezzanine, turned to face the escalators.
   { id: 'standee-c', center: [-10.9, MAR.mezzanine + 1.05, -4.3], width: 0.85, height: 2, standee: true, yaw: Math.PI / 2 },
+  // Spread through the museum, where people pass: each tells another thing the site has.
+  // At the escalator's foot, facing the door, so it is the first thing seen on coming in.
+  { id: 'hall-up', center: [-1, 1.05, -7.4], width: 0.85, height: 2, standee: true },
+  // In the café, facing its door from the hall.
+  { id: 'cafe-door', center: [-16.6, 1.05, -1.6], width: 0.85, height: 2, standee: true, yaw: Math.PI / 2 },
+  // On the café's solid west wall, clear of the Laboratorio's black wall.
+  { id: 'cafe-wall', center: [-29.84, 1.75, -7.6], width: 1.4, height: 2.1, yaw: Math.PI / 2 },
+  // Beside the auditorium's door, on the hall's back wall under the bridge.
+  { id: 'aud-wall', center: [4.5, 1.75, -19.84], width: 1.4, height: 2.1 },
+  // On the mezzanine's east landing, facing across the void.
+  { id: 'landing', center: [12.9, MAR.mezzanine + 1.05, -7.8], width: 0.85, height: 2, standee: true, yaw: -Math.PI / 2 },
+  // Inside the gallery, on the bare stretch of its east wall south of the portal.
+  { id: 'gallery-wall', center: [GALLERY.x1 - 0.02, MAR.mezzanine + 1.75, 3.6], width: 1.4, height: 2.1, yaw: -Math.PI / 2 },
 ]
 
 export const MAR_DOORS = {
@@ -185,20 +214,33 @@ export const MAR_UPPER_SERVICE = { x0: 1.3, x1: 2.4, height: 2.25 } as const
 export const MAR_SPAWN = { x: 0, z: 16, yaw: 0 }
 
 /**
- * The two escalators on the west side of the hall. zBottom is the plaza end
- * (height 0); zTop meets the mezzanine. Rise and run are provisional.
+ * The open void in the middle of the hall, ringed by the upper walkways. The
+ * west walkway stops at x0, the north bridge at z0, the front walkway at z1
+ * and the east landing at x1.
+ */
+export const HALL_VOID = { x0: -9.65, x1: 6.5, z0: -12.05, z1: -3.5 } as const
+
+/**
+ * The two escalators, criss-crossed in the void left of the entrance. They run
+ * east–west, so from the door you see them side on, crossing like an X (the
+ * photos from the back of the hall and from the bridge). The one nearer the
+ * door rises west onto the west walkway, beside the gallery's portal; the one
+ * behind it rises east onto a landing off the north bridge. xBottom is the
+ * foot (height 0); xTop meets the upper floor. Rise and run are provisional.
  */
 export const MAR_ESCALATORS = [
-  { id: 'up', x0: -8.9, x1: -7.45, zBottom: -5, zTop: -12.05, rise: MAR.mezzanine },
-  { id: 'down', x0: -7.2, x1: -5.75, zBottom: -12.05, zTop: -5, rise: MAR.mezzanine },
+  { id: 'up', z0: -10.1, z1: -8.65, xBottom: -2.6, xTop: HALL_VOID.x0, rise: MAR.mezzanine },
+  { id: 'down', z0: -11.8, z1: -10.35, xBottom: HALL_VOID.x0, xTop: -2.6, rise: MAR.mezzanine },
 ] as const
+
+/** Where the 'down' escalator lands: a deck off the north bridge, east of its head. */
+export const DOWN_LANDING = { x0: -2.6, x1: -0.2, z0: HALL_VOID.z0, z1: -10.1 } as const
 
 /** Height of the escalator deck at this floor point, or null when you're beside it. */
 export function marEscalatorHeight(x: number, z: number): number | null {
   for (const lane of MAR_ESCALATORS) {
-    if (x < lane.x0 || x > lane.x1 || z > Math.max(lane.zBottom, lane.zTop) || z < Math.min(lane.zBottom, lane.zTop)) continue
-    const span = lane.zBottom - lane.zTop
-    return (lane.rise * (lane.zBottom - z)) / span
+    if (z < lane.z0 || z > lane.z1 || x > Math.max(lane.xBottom, lane.xTop) || x < Math.min(lane.xBottom, lane.xTop)) continue
+    return (lane.rise * (x - lane.xBottom)) / (lane.xTop - lane.xBottom)
   }
   return null
 }
@@ -367,8 +409,9 @@ export const marBoxes: MarBox[] = [
   // A street lamp's concrete column on each side of the plaza.
   box('mar-lamp-w', -34.25, 0, 20.75, -33.75, 13, 21.25, 'concrete', seeThrough),
   box('mar-lamp-e', 36.75, 0, 18.75, 37.25, 13, 19.25, 'concrete', seeThrough),
-  // The step across the plaza, a long granite kerb. Drawn flat: the ground is one slab.
-  box('mar-plaza-step', -48, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
+  // The step across the plaza, a long granite kerb, broken by the sea lion's platform. Drawn flat: the ground is one slab.
+  box('mar-plaza-step-w', -48, 0, 19.6, LOBO.x0, 0.1, 19.95, 'granite', seeThrough),
+  box('mar-plaza-step-e', LOBO.x1, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
 
   // Auditorium block north of the hall.
   wallX('mar-aud-n', -8, 16, -38, AUD_H),
@@ -480,35 +523,32 @@ export const marBoxes: MarBox[] = [
 
   // Continuous upper circulation around the hall void. The north bridge keeps
   // rear entrances; the front walkway leads to the relocated artwork gallery portal.
-  box('mar-bridge', -11.86, U - 0.25, -19.8, 13.86, U, -12.05, 'deck'),
-  box('mar-landing', 6.5, U - 0.25, -12.05, 13.86, U, -3.5, 'deck'),
-  box('mar-upper-front', -11.86, U - 0.25, -3.5, 13.86, U, -0.14, 'deck'),
-  box('mar-upper-west', -11.86, U - 0.25, -12.05, -9.4, U, -3.5, 'deck'),
-  box('mar-return-landing', -7.4, U - 0.25, -5.05, -5.55, U, -3.5, 'deck'),
+  box('mar-bridge', -11.86, U - 0.25, -19.8, 13.86, U, HALL_VOID.z0, 'deck'),
+  box('mar-landing', HALL_VOID.x1, U - 0.25, HALL_VOID.z0, 13.86, U, HALL_VOID.z1, 'deck'),
+  box('mar-upper-front', -11.86, U - 0.25, HALL_VOID.z1, 13.86, U, -0.14, 'deck'),
+  box('mar-upper-west', -11.86, U - 0.25, HALL_VOID.z0, HALL_VOID.x0, U, HALL_VOID.z1, 'deck'),
+  box('mar-down-landing', DOWN_LANDING.x0, U - 0.25, DOWN_LANDING.z0, DOWN_LANDING.x1, U, DOWN_LANDING.z1, 'deck'),
 
-  // Rails stop at both escalator heads. The return landing joins the front
-  // walkway instead of a freestanding strip across the central void.
-  box('mar-rail-bridge-s-w', -9.4, U, -12.13, -9.1, U + 1.1, -12.01, 'glass'),
-  box('mar-rail-bridge-s-e', -7.25, U, -12.13, 6.5, U + 1.1, -12.01, 'glass'),
-  box('mar-rail-land-w', 6.46, U, -12.05, 6.58, U + 1.1, -3.5, 'glass'),
-  box('mar-rail-west', -9.46, U, -12.05, -9.34, U + 1.1, -3.5, 'glass'),
-  box('mar-rail-front-w', -9.4, U, -3.56, -7.4, U + 1.1, -3.44, 'glass'),
-  box('mar-rail-front-e', -5.55, U, -3.56, 6.5, U + 1.1, -3.44, 'glass'),
-  box('mar-return-rail-w', -7.46, U, -5.05, -7.34, U + 1.1, -3.5, 'glass'),
-  box('mar-return-rail-e', -5.61, U, -5.05, -5.49, U + 1.1, -3.5, 'glass'),
+  // Glass round the void. It opens at the 'up' head on the west walkway and
+  // where the 'down' landing meets the bridge.
+  box('mar-rail-bridge-s-w', HALL_VOID.x0, U, -12.13, DOWN_LANDING.x0, U + 1.1, -12.01, 'glass'),
+  box('mar-rail-bridge-s-e', DOWN_LANDING.x1, U, -12.13, HALL_VOID.x1, U + 1.1, -12.01, 'glass'),
+  box('mar-rail-down-landing-e', DOWN_LANDING.x1 - 0.06, U, DOWN_LANDING.z0, DOWN_LANDING.x1 + 0.06, U + 1.1, DOWN_LANDING.z1, 'glass'),
+  box('mar-rail-down-landing-s', DOWN_LANDING.x0, U, DOWN_LANDING.z1 - 0.06, DOWN_LANDING.x1, U + 1.1, DOWN_LANDING.z1 + 0.06, 'glass'),
+  box('mar-rail-land-w', HALL_VOID.x1 - 0.04, U, HALL_VOID.z0, HALL_VOID.x1 + 0.08, U + 1.1, HALL_VOID.z1, 'glass'),
+  box('mar-rail-west-n', HALL_VOID.x0 - 0.06, U, HALL_VOID.z0, HALL_VOID.x0 + 0.06, U + 1.1, MAR_ESCALATORS[0].z0 - 0.1, 'glass'),
+  box('mar-rail-west-s', HALL_VOID.x0 - 0.06, U, MAR_ESCALATORS[0].z1 + 0.1, HALL_VOID.x0 + 0.06, U + 1.1, HALL_VOID.z1, 'glass'),
+  box('mar-rail-front', HALL_VOID.x0, U, HALL_VOID.z1 - 0.06, HALL_VOID.x1, U + 1.1, HALL_VOID.z1 + 0.06, 'glass'),
 
-  // Escalator side rails. The lanes themselves are open so you can walk on.
-  box('mar-esc-rail-w', -9.2, 0, -11.3, -8.95, 1.15, -5.6, 'concrete', { visual: false }),
-  box('mar-esc-rail-m', -7.42, 0, -11.3, -7.23, 1.15, -5.6, 'concrete', { visual: false }),
-  box('mar-esc-rail-e', -5.72, 0, -11.3, -5.47, 1.15, -5.6, 'concrete', { visual: false }),
+  // Escalator side rails, along each lane's edges short of both ends. The lanes themselves are open so you can walk on.
+  box('mar-esc-rail-n', -9.05, 0, -12.08, -3.2, 1.15, -11.83, 'concrete', { visual: false }),
+  box('mar-esc-rail-m', -9.05, 0, -10.33, -3.2, 1.15, -10.12, 'concrete', { visual: false }),
+  box('mar-esc-rail-s', -9.05, 0, -8.63, -3.2, 1.15, -8.38, 'concrete', { visual: false }),
   // Click-to-walk goes around the lanes; walking onto them still climbs.
-  box('mar-esc-lane', -9.2, 0, -12.3, -5.47, 1.2, -5.4, 'concrete', { path: true, solid: false, visual: false }),
+  box('mar-esc-lane', -9.3, 0, -12.3, -3, 1.2, -8.4, 'concrete', { path: true, solid: false, visual: false }),
 
-  // Shallow basin on the side plaza.
-  wallX('mar-pool-n', -27.6, -16.4, 12.15, 0.42, 'concrete', 0.35),
-  wallX('mar-pool-s', -27.6, -16.4, 19.85, 0.42, 'concrete', 0.35),
-  wallZ('mar-pool-w', 12.15, 19.85, -27.6, 0.42, 'concrete', 0.35),
-  wallZ('mar-pool-e', 12.15, 19.85, -16.4, 0.42, 'concrete', 0.35),
+  // The long concrete bench between the café's glass and the sea lion, as seen from a café table.
+  box('mar-bench-lobo', LOBO.x0 + 0.2, 0, 10.3, LOBO.x1 - 0.2, 0.46, 10.8, 'seat'),
 
   // A few tables on the east terrace (the plan's scattered tables).
   box('mar-table-a', 33.2, 0, 6.6, 34.5, 0.76, 7.9, 'table'),
@@ -521,7 +561,7 @@ export const marBoxes: MarBox[] = [
 
   // Trees beyond the cobble.
   box('mar-tree-a', -32.2, 0, 25.8, -31.8, 2.4, 26.2, 'trunk'),
-  box('mar-tree-b', -18.2, 0, 27.8, -17.8, 2.4, 28.2, 'trunk'),
+  box('mar-tree-b', -12.2, 0, 28.8, -11.8, 2.4, 29.2, 'trunk'),
   box('mar-tree-c', 5.8, 0, 26.8, 6.2, 2.4, 27.2, 'trunk'),
   box('mar-tree-d', 21.8, 0, 25.8, 22.2, 2.4, 26.2, 'trunk'),
   box('mar-tree-e', 33.8, 0, 22.8, 34.2, 2.4, 23.2, 'trunk'),
@@ -589,8 +629,8 @@ export const marFloors = [
   { id: 'cobble-front', kind: 'cobble' as const, x0: -48, x1: 40, z0: 0, z1: STAIR.z0 },
   { id: 'cobble-stair-w', kind: 'cobble' as const, x0: -48, x1: STAIR.x0, z0: STAIR.z0, z1: STAIR.z1 },
   { id: 'cobble-stair-e', kind: 'cobble' as const, x0: STAIR.x1, x1: 40, z0: STAIR.z0, z1: STAIR.z1 },
-  { id: 'cobble', kind: 'cobble' as const, x0: -48, x1: 40, z0: STAIR.z1, z1: 23 },
-  { id: 'grass', kind: 'grass' as const, x0: -48, x1: 40, z0: 23, z1: 32 },
+  { id: 'cobble', kind: 'cobble' as const, x0: -48, x1: 40, z0: STAIR.z1, z1: 28 },
+  { id: 'grass', kind: 'grass' as const, x0: -48, x1: 40, z0: 28, z1: 32 },
   { id: 'hall', kind: 'polish' as const, x0: -11.84, x1: 13.84, z0: -19.84, z1: 0.2 },
   { id: 'cafe-threshold', kind: 'polish' as const, x0: -12.17, x1: -11.83, z0: MAR_DOORS.west.z0, z1: MAR_DOORS.west.z1 },
   { id: 'west', kind: 'polish' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },
@@ -610,12 +650,12 @@ export const marRooms = [
 
 /** The upper floor's walk map: the mezzanine round the hall's void and the gallery, joined by the portal. */
 const UPPER_FLOORS: Array<[number, number, number, number]> = [
-  [-11.86, -19.8, 13.86, -12.05],
-  [6.5, -12.05, 13.86, -3.5],
-  [-11.86, -3.5, 13.86, -0.14],
+  [-11.86, -19.8, 13.86, HALL_VOID.z0],
+  [HALL_VOID.x1, HALL_VOID.z0, 13.86, HALL_VOID.z1],
+  [-11.86, HALL_VOID.z1, 13.86, -0.14],
   [-11.15, -0.14, 3.95, 2.96],
-  [-11.86, -12.05, -9.4, -3.5],
-  [-7.4, -5.05, -5.55, -3.5],
+  [-11.86, HALL_VOID.z0, HALL_VOID.x0, HALL_VOID.z1],
+  [DOWN_LANDING.x0, DOWN_LANDING.z0, DOWN_LANDING.x1, DOWN_LANDING.z1],
   [GALLERY.x0, GALLERY.z0, -12.14, GALLERY.z1],
   [-12.14, GALLERY.door.z0, -11.86, GALLERY.door.z1],
 ]
@@ -640,8 +680,11 @@ export const marGalleryTemplate: GalleryRoomTemplate = {
   upper: {
     template: marUpperTemplate,
     height: MAR.mezzanine,
-    // Up the 'up' escalator's centre line: just before its foot, and just past its head on the mezzanine.
-    link: { entry: { x: -8.175, z: -4.5 }, exit: { x: -8.175, z: -13.25 } },
+    // Up the 'up' escalator's centre line: just east of its foot, and past its head on the west walkway.
+    link: {
+      entry: { x: MAR_ESCALATORS[0].xBottom + 0.5, z: (MAR_ESCALATORS[0].z0 + MAR_ESCALATORS[0].z1) / 2 },
+      exit: { x: MAR_ESCALATORS[0].xTop - 1.1, z: (MAR_ESCALATORS[0].z0 + MAR_ESCALATORS[0].z1) / 2 },
+    },
   },
   doorways: [
     { id: 'mar-entrance', center: [0, 0, 0], axis: 'x' },

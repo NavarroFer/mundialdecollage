@@ -9,10 +9,12 @@ function sculpture() {
 }
 
 describe('MAR sea lion', () => {
-  it('keeps every body part inside the solid walk-map footprint and above its plinth', () => {
+  it('keeps every body part inside the solid walk-map footprint and above its plinth, as it is turned', () => {
     const geometries = sculpture()
     const bounds = new THREE.Box3()
+    const turn = new THREE.Matrix4().makeRotationY(LOBO.yaw)
     for (const geometry of geometries) {
+      geometry.applyMatrix4(turn)
       geometry.computeBoundingBox()
       const box = geometry.boundingBox!
       expect(box.min.x + LOBO.head.x).toBeGreaterThan(LOBO.x0)
@@ -29,6 +31,17 @@ describe('MAR sea lion', () => {
     }
     expect(bounds.max.y + LOBO.height).toBeGreaterThan(10)
     expect(bounds.max.y + LOBO.height).toBeLessThan(11)
+  })
+
+  it('looks at the café: its face toward the museum, its body running back toward the coast road', () => {
+    const geometry = seaLionBodyGeometry()
+    geometry.applyMatrix4(new THREE.Matrix4().makeRotationY(LOBO.yaw))
+    geometry.computeBoundingBox()
+    const box = geometry.boundingBox!
+    // The front reaches a couple of metres toward the café (-Z); the tail runs far out toward the plaza (+Z).
+    expect(-box.min.z).toBeLessThan(3)
+    expect(box.max.z).toBeGreaterThan(8)
+    geometry.dispose()
   })
 
   it('has outward normals on the closed chest and a broad, tapered neck', () => {

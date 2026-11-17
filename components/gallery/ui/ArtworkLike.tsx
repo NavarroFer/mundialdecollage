@@ -6,6 +6,7 @@ import { getArtworkLike, likeArtwork } from '@/app/[locale]/(site)/galeria-3d/ac
 import { GoogleIcon, startGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { galleryReturnPath } from '@/lib/gallery-return'
 import { track } from '@/lib/track'
+import { requestStampCheck } from '@/lib/stamps'
 import { useInteractionStore } from '../interaction/store'
 import { forgetArtworkSocial } from './artworkSocial'
 import styles from '../gallery-theme.module.css'
@@ -152,6 +153,7 @@ export function ArtworkLike({ slug, initial, onSaved, className }: { slug: strin
       }
       forgetArtworkSocial(slug)
       track('like_saved')
+      requestStampCheck()
       onSaved?.()
       // Fetch the authoritative count: another tab may have already voted.
       const latest = await getArtworkLike(slug)

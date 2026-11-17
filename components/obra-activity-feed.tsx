@@ -17,6 +17,7 @@ import { rankForTaste } from '@/lib/community'
 import { tagsFromIndexes } from '@/lib/community-tags'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { requestStampCheck } from '@/lib/stamps'
 
 type Recent = { author: string; body: string; createdAt: string }
 export type ObraCard = {
@@ -182,6 +183,7 @@ export function ObraActivityFeed({ callOpen = true }: { callOpen?: boolean }) {
       return
     }
     bump(slug, (obra) => ({ ...obra, activityAt: new Date().toISOString() }))
+    requestStampCheck()
   }
 
   async function comment(slug: string) {

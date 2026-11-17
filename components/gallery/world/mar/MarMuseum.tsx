@@ -189,7 +189,7 @@ function Floors({ materials }: { materials: Record<(typeof marFloors)[number]['k
   )
 }
 
-const TREES: Array<[number, number]> = [[-32, 26], [-18, 28], [6, 27], [22, 26], [34, 23]]
+const TREES: Array<[number, number]> = [[-32, 26], [-12, 29], [6, 27], [22, 26], [34, 23]]
 
 /**
  * Walkable model of Museo MAR: plaza, glazed entrance, double-height hall,

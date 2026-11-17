@@ -29,6 +29,7 @@ import { SnakeDialog } from './arcade/SnakeDialog'
 import { useArcadeStore } from './arcade/store'
 import { WallDialog } from './wall/WallDialog'
 import { FlagObraCard } from './flag/FlagObraCard'
+import { FlagHint } from './flag/FlagHint'
 import { useFlagStore } from './flag/store'
 import { loadWall, showClubBoard, useWallStore } from './wall/store'
 import { clubBoardFrame } from './club/board'
@@ -130,7 +131,10 @@ export function Game({
   )
   const [pickedVenue, setPickedVenue] = useState<GalleryVenue | null>(null)
   // A Club room is its own building. The Collage World Cup stays the default.
-  const venue: GalleryVenue = template ? 'mundial' : (pickedVenue ?? routeVenue ?? storedVenue)
+  // A visitor without an account came in by a door that let them (/museomar,
+  // while MAR is not public) and stays in that building: no picker for them.
+  const venuePicker = !template && userId !== null
+  const venue: GalleryVenue = template ? 'mundial' : ((venuePicker ? pickedVenue : null) ?? routeVenue ?? storedVenue)
   const placedArtworks = useMemo(() => artworksForVenue(artworks, venue), [artworks, venue])
   const roomTemplate = template ?? (venue === 'mar' ? marGalleryTemplate : undefined)
   useEffect(() => {
@@ -485,12 +489,13 @@ export function Game({
         {isTouchDevice && hasStarted && <Souvenir theme={theme} isTouchDevice active={false} onResume={resumeWalk} inline />}
         {isTouchDevice && <Minimap theme={theme} artworks={placedArtworks} template={roomTemplate} />}
         {isTouchDevice && hasStarted && <PresenceCounter />}
-        <VisitPreferences artworks={placedArtworks} onResume={resumeArtwork} showVenue={!template} venue={venue} onVenue={(next) => { setPickedVenue(next); useGalleryPreferences.getState().update({ venue: next }) }} />
+        <VisitPreferences artworks={placedArtworks} onResume={resumeArtwork} showVenue={venuePicker} venue={venue} onVenue={(next) => { setPickedVenue(next); useGalleryPreferences.getState().update({ venue: next }) }} />
         <button type="button" className={styles.visitMenuButton} onClick={() => { replayTutorial(); handleEnter() }}>{m.gallery.tutorial.replay}</button>
         <button type="button" className={styles.visitMenuButton} onClick={() => handleEnter()}>{m.gallery.mobileMenu.resume}</button>
       </div>
       <ControlsTutorial active={isActive} isTouchDevice={isTouchDevice} />
       {isActive && !isTouchDevice && <InteractionPrompt theme={theme} hostName={clubHost?.artistName} />}
+      {isActive && venue === 'mar' && <FlagHint touch={isTouchDevice} />}
       {/* With the mouse captured, where a click walks to (or which obra it opens). */}
       {isActive && usesPointerLock && <span className={styles.crosshair} aria-hidden="true" />}
       {isActive && <WalkNotice />}
@@ -506,7 +511,7 @@ export function Game({
       {menuOpen && !loading && (
         <StartScreen
           artworks={placedArtworks}
-          showVenue={!template}
+          showVenue={venuePicker}
           venue={venue}
           onVenue={(next) => { setPickedVenue(next); useGalleryPreferences.getState().update({ venue: next }) }}
           label={hasStarted ? m.gallery.resume : m.gallery.enter}

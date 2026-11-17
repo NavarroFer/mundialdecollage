@@ -8,43 +8,51 @@ import type { InteriorMaterials } from './Interior'
 
 type Lane = (typeof MAR_ESCALATORS)[number]
 
+const run = (lane: Lane) => Math.abs(lane.xTop - lane.xBottom)
+const width = (lane: Lane) => lane.z1 - lane.z0
+
+/**
+ * One escalator drawn in its own frame: the foot at the origin, rising along +X
+ * to the head at (run, rise), its width across Z. The group turns it to face
+ * the way the lane rises.
+ */
 function laneGeometry(lane: Lane) {
-  const direction = Math.sign(lane.zTop - lane.zBottom)
-  const z = (t: number) => THREE.MathUtils.lerp(lane.zBottom, lane.zTop, t)
-  // Side profiles in (-Z,Y), then rotated about Y into a thin X section.
+  const length = run(lane)
+  // Side profile in the XY plane, extruded across Z into a thin panel.
   function profile(glass: boolean) {
     const shape = new THREE.Shape()
     const lower = glass ? 0.24 : -0.58
     const upper = glass ? 1.03 : 0.29
-    shape.moveTo(-(z(0) - direction * 0.65), 0.06)
-    shape.lineTo(-z(0), lower)
-    shape.lineTo(-z(1), lane.rise + lower)
-    shape.lineTo(-(z(1) + direction * 0.65), lane.rise + lower)
-    shape.quadraticCurveTo(-(z(1) + direction * 1.0), lane.rise + 0.55, -(z(1) + direction * 0.6), lane.rise + upper)
-    shape.lineTo(-z(1), lane.rise + upper)
-    shape.lineTo(-z(0), upper)
-    shape.quadraticCurveTo(-(z(0) - direction * 1), upper, -(z(0) - direction * 0.65), 0.06)
-    const g = new THREE.ExtrudeGeometry(shape, { depth: glass ? 0.025 : 0.075, bevelEnabled: false, curveSegments: 12 })
-    g.rotateY(Math.PI / 2)
+    shape.moveTo(-0.65, 0.06)
+    shape.lineTo(0, lower)
+    shape.lineTo(length, lane.rise + lower)
+    shape.lineTo(length + 0.65, lane.rise + lower)
+    shape.quadraticCurveTo(length + 1.0, lane.rise + 0.55, length + 0.6, lane.rise + upper)
+    shape.lineTo(length, lane.rise + upper)
+    shape.lineTo(0, upper)
+    shape.quadraticCurveTo(-1, upper, -0.65, 0.06)
+    const depth = glass ? 0.025 : 0.075
+    const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 12 })
+    g.translate(0, 0, -depth / 2)
     return g
   }
   const handrail = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0.22, z(0) - direction * 0.62),
-    new THREE.Vector3(0, 0.78, z(0) - direction * 0.78),
-    new THREE.Vector3(0, 1.04, z(0) - direction * 0.35),
-    new THREE.Vector3(0, 1.05, z(0)),
-    new THREE.Vector3(0, lane.rise + 1.05, z(1)),
-    new THREE.Vector3(0, lane.rise + 1.05, z(1) + direction * 0.55),
-    new THREE.Vector3(0, lane.rise + 0.85, z(1) + direction * 0.85),
-    new THREE.Vector3(0, lane.rise + 0.3, z(1) + direction * 0.65),
+    new THREE.Vector3(-0.62, 0.22, 0),
+    new THREE.Vector3(-0.78, 0.78, 0),
+    new THREE.Vector3(-0.35, 1.04, 0),
+    new THREE.Vector3(0, 1.05, 0),
+    new THREE.Vector3(length, lane.rise + 1.05, 0),
+    new THREE.Vector3(length + 0.55, lane.rise + 1.05, 0),
+    new THREE.Vector3(length + 0.85, lane.rise + 0.85, 0),
+    new THREE.Vector3(length + 0.65, lane.rise + 0.3, 0),
   ], false, 'centripetal')
   const steps: THREE.BufferGeometry[] = []
   const count = 28
-  const depth = Math.abs(lane.zTop - lane.zBottom) / count
+  const depth = length / count
   for (let i = 0; i < count; i++) {
     const t = (i + 0.5) / count
-    const step = new THREE.BoxGeometry(lane.x1 - lane.x0 - 0.13, lane.rise / count, depth + 0.005)
-    step.translate((lane.x0 + lane.x1) / 2, lane.rise * t - 0.06, z(t))
+    const step = new THREE.BoxGeometry(depth + 0.005, lane.rise / count, width(lane) - 0.13)
+    step.translate(length * t, lane.rise * t - 0.06, 0)
     steps.push(step)
   }
   const stair = mergeGeometries(steps)!
@@ -58,20 +66,23 @@ export function Escalators({ materials, steps }: { materials: InteriorMaterials;
   return <group>
     {MAR_ESCALATORS.map((lane, index) => {
       const geometry = geometries[index]
-      const run = lane.zBottom - lane.zTop
-      const length = Math.hypot(run, lane.rise)
-      return <group key={lane.id}>
+      const length = run(lane)
+      const across = width(lane)
+      const slope = Math.hypot(length, lane.rise)
+      // Local +X points from the foot toward the head: east as drawn, turned half round when the lane rises west.
+      const yaw = lane.xTop > lane.xBottom ? 0 : Math.PI
+      return <group key={lane.id} position={[lane.xBottom, 0, (lane.z0 + lane.z1) / 2]} rotation={[0, yaw, 0]}>
         <mesh geometry={geometry.stair} material={steps} castShadow receiveShadow />
-        <mesh position={[(lane.x0 + lane.x1) / 2, lane.rise / 2 - 0.4, (lane.zBottom + lane.zTop) / 2]} rotation={[Math.atan(lane.rise / run), 0, 0]} material={materials.steel} castShadow>
-          <boxGeometry args={[lane.x1 - lane.x0 + 0.12, 0.6, length]} />
+        <mesh position={[length / 2, lane.rise / 2 - 0.4, 0]} rotation={[0, 0, Math.atan(lane.rise / length)]} material={materials.steel} castShadow>
+          <boxGeometry args={[slope, 0.6, across + 0.12]} />
         </mesh>
-        {[lane.x0 - 0.05, lane.x1 + 0.025].map((x) => <group key={x} position={[x, 0, 0]}>
+        {[-(across / 2 + 0.04), across / 2 + 0.04].map((z) => <group key={z} position={[0, 0, z]}>
           <mesh geometry={geometry.skirt} material={materials.steel} castShadow />
           <mesh geometry={geometry.glass} material={materials.glass} />
           <mesh geometry={geometry.handrail} material={materials.mullion} />
         </group>)}
-        {[lane.zBottom, lane.zTop].map((z, i) => <mesh key={i} position={[(lane.x0 + lane.x1) / 2, (i ? lane.rise : 0) + 0.025, z]} material={steps} receiveShadow>
-          <boxGeometry args={[lane.x1 - lane.x0, 0.04, 0.5]} />
+        {[0, length].map((x, i) => <mesh key={i} position={[x, (i ? lane.rise : 0) + 0.025, 0]} material={steps} receiveShadow>
+          <boxGeometry args={[0.5, 0.04, across]} />
         </mesh>)}
       </group>
     })}

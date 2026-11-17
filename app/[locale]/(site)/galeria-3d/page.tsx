@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { GalleryAccess, GallerySignIn } from '@/components/gallery/GalleryAccess'
+import { GalleryAccess, GalleryGuest, GallerySignIn } from '@/components/gallery/GalleryAccess'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { getGalleryArtworks } from '@/lib/gallery-artworks'
@@ -18,7 +18,11 @@ export const dynamic = 'force-dynamic'
 export default async function Galeria3DPage({ venue }: { venue?: GalleryVenue } = {}) {
   const { locale } = await getI18n()
   const user = isSupabaseConfigured ? await getCurrentUser() : null
-  if (!user) return <GallerySignIn />
+  // Museo MAR is not public yet (only the admin links to /museomar), so its
+  // door lets anyone in without an account, and the visit stays in MAR. The
+  // Collage World Cup's gallery still asks to sign in.
+  if (!user && venue !== 'mar') return <GallerySignIn />
   const artworks = await getGalleryArtworks(locale)
+  if (!user) return <GalleryGuest artworks={artworks} venue="mar" />
   return <><StampVisit stamp="gallery" /><GalleryAccess artworks={artworks} userId={user.id} initialVenue={venue} /></>
 }
