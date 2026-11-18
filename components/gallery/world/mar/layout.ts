@@ -85,23 +85,17 @@ export const MAR = {
 
 const T = MAR.wall
 
-/**
- * The sea lion sculpture's platform on the side plaza, in front of the café's glass. The animal looks
- * at the café window (the photos from the café and from the east end of the plaza) and its body runs
- * back toward the coast road; seen from a café table it fills the window.
- */
-const LOBO_HEAD = { x: -22, z: 15.6 }
+/** Platform on the right of the entrance as seen from the sea, diagonally across from the café. */
+const LOBO_HEAD = { x: 7, z: 12 }
 export const LOBO = {
-  /** The slab: the sculpture's footprint turned to face north, with 0.4 m of stones round it. */
-  x0: LOBO_HEAD.x - 3.2,
-  x1: LOBO_HEAD.x + 3.2,
-  z0: LOBO_HEAD.z - 3.2,
-  z1: LOBO_HEAD.z + 11,
+  x0: LOBO_HEAD.x - 4,
+  x1: LOBO_HEAD.x + 10.5,
+  z0: LOBO_HEAD.z - 4,
+  z1: LOBO_HEAD.z + 7.2,
   height: 0.35,
-  /** Where the sculpture's head stands, on the slab. */
   head: LOBO_HEAD,
-  /** Turn of the sculpture, which is modelled facing -X: this faces it north, to the café (-Z). */
-  yaw: -Math.PI / 2,
+  /** The model faces -X. Turn it toward the café side of the plaza, with its tail angled seaward. */
+  yaw: -Math.PI / 6,
 } as const
 
 /** The shop in the west room (Tienda FIND): footprint of its fascia. */
@@ -409,9 +403,8 @@ export const marBoxes: MarBox[] = [
   // A street lamp's concrete column on each side of the plaza.
   box('mar-lamp-w', -34.25, 0, 20.75, -33.75, 13, 21.25, 'concrete', seeThrough),
   box('mar-lamp-e', 36.75, 0, 18.75, 37.25, 13, 19.25, 'concrete', seeThrough),
-  // The step across the plaza, a long granite kerb, broken by the sea lion's platform. Drawn flat: the ground is one slab.
-  box('mar-plaza-step-w', -48, 0, 19.6, LOBO.x0, 0.1, 19.95, 'granite', seeThrough),
-  box('mar-plaza-step-e', LOBO.x1, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
+  // A continuous granite step on the seaward side of the platform.
+  box('mar-plaza-step', -48, 0, 19.6, 40, 0.1, 19.95, 'granite', seeThrough),
 
   // Auditorium block north of the hall.
   wallX('mar-aud-n', -8, 16, -38, AUD_H),
@@ -547,8 +540,8 @@ export const marBoxes: MarBox[] = [
   // Click-to-walk goes around the lanes; walking onto them still climbs.
   box('mar-esc-lane', -9.3, 0, -12.3, -3, 1.2, -8.4, 'concrete', { path: true, solid: false, visual: false }),
 
-  // The long concrete bench between the café's glass and the sea lion, as seen from a café table.
-  box('mar-bench-lobo', LOBO.x0 + 0.2, 0, 10.3, LOBO.x1 - 0.2, 0.46, 10.8, 'seat'),
+  // The concrete bench along the café windows.
+  box('mar-bench-cafe', -25, 0, 10.3, -19, 0.46, 10.8, 'seat'),
 
   // A few tables on the east terrace (the plan's scattered tables).
   box('mar-table-a', 33.2, 0, 6.6, 34.5, 0.76, 7.9, 'table'),

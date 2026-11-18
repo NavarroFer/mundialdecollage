@@ -275,16 +275,14 @@ describe('MAR facade', () => {
     expect(reachableFrom(MAR_SPAWN)(30, 12)).toBe(true)
   })
 
-  it('stands the sea lion in front of the café glass, clear of the overhang, with a way between them', () => {
-    const glass = marBoxes.find((item) => item.id === 'mar-west-s-glass')!
-    const lip = marBoxes.find((item) => item.id === 'mar-west-lip')!
-    expect(LOBO.head.x).toBeGreaterThan(glass.minX)
-    expect(LOBO.head.x).toBeLessThan(glass.maxX)
-    expect(LOBO.z0).toBeGreaterThan(lip.maxZ)
-    // From the café door along the glass, past the bench, to the far side of the platform.
+  it('puts the sea lion right of the entrance, between the façade and the plaza step', () => {
+    const bench = marBoxes.find((item) => item.id === 'mar-bench-cafe')!
+    const step = marBoxes.find((item) => item.id === 'mar-plaza-step')!
+    expect(bench.maxX).toBeLessThan(MAR_SPAWN.x)
+    expect(LOBO.x0).toBeGreaterThan(MAR_SPAWN.x)
+    expect(LOBO.z1).toBeLessThan(step.minZ)
     const reach = reachableFrom(MAR_SPAWN)
-    expect(reach(LOBO.head.x, 9.2)).toBe(true)
-    expect(reach(LOBO.head.x, 11.6)).toBe(true)
+    expect(reach(LOBO.head.x, LOBO.z0 - 1.5)).toBe(true)
     expect(reach(LOBO.head.x, LOBO.z1 + 1)).toBe(true)
   })
 
