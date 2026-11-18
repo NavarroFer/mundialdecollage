@@ -15,7 +15,13 @@ Validation: MAR navigation tests cover both escalator approaches and landings, t
 
 ## Shop
 
-Tienda finde sits on the right when looking through the café passage. Its enlarged L-shaped black counter and suspended fascia face the visitor aisle, with the WEISS emblem on the end, a board-formed backdrop and shelves behind. The Laboratorio partition is moved clear of the counter. Merchandise remains simplified display geometry; it does not reproduce specific products from the photographs. The shop approach remains reachable from the entrance.
+Tienda finde runs along the first aisle to the right after entering the café. The long leg of the black counter and the TIENDA finde sign face the aisle. The short leg with the WEISS emblem faces the café tables. Shelves and a board-formed backdrop stand behind the counter. The Laboratorio partition sits clear of the shop, and visitors can turn into the aisle directly from the café entrance.
+
+The two aisle photos show a glossy black fascia with white institutional lettering, a warm strip above the display counter, ceramic cups and prints, and a white island in front. Folded and hanging textiles sit against the concrete wall beside the red hose cabinet. The black Espacio Laboratorio sign is visible at the far end. The merchandise and lettering are modeled approximations.
+
+La Isla sits beside that sign at the end of the shop aisle. The model opens a rear window bay there and adds a carpet, blue benches, surfboards, an arched climber and a play tower with a porthole and red-and-white lifebuoy. The window orientation follows the modeled ground-floor footprint.
+
+Past the end of the shop counter, the Laboratorio sign stops at the entrance to a glazed workshop. A low display beneath the black header holds four wire chairs. The workshop has a partially lowered white slatted shutter, open metal shelving, white work tables, a row of chairs and a rope across part of the approach. Concrete joints, perforated ceiling panels and the fine aggregate of the polished floor are modeled with procedural materials. Their appearance and room dimensions are based on the reference photos.
 
 ## Café
 

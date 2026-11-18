@@ -4,6 +4,36 @@ import { canvasOf, canvasTexture, seeded } from './textures'
 
 const SANS = 'Helvetica Neue, Arial, Helvetica, sans-serif'
 
+export function laIslaTexture(glass = false) {
+  const { canvas, context: c } = canvasOf(768, 896)
+  if (!glass) {
+    c.fillStyle = '#1c2630'
+    c.fillRect(0, 0, canvas.width, canvas.height)
+    c.fillStyle = '#d8e7ee'
+    c.textAlign = 'center'
+    c.font = `700 104px ${SANS}`
+    c.fillText('LA ISLA', 384, 274)
+    c.font = `600 50px ${SANS}`
+    c.fillText('de 0 a 4 años', 384, 353)
+    c.font = `500 24px ${SANS}`
+    c.fillText('ACOMPAÑADOS POR UNA PERSONA ADULTA', 384, 402, 640)
+  }
+  c.fillStyle = glass ? '#89bad7' : '#819eb5'
+  c.beginPath()
+  c.moveTo(0, 670)
+  c.bezierCurveTo(196, 472, 427, 797, 768, 588)
+  c.lineTo(768, 896)
+  c.lineTo(0, 896)
+  c.fill()
+  c.strokeStyle = glass ? '#d2e5ed' : '#afcde0'
+  c.lineWidth = 18
+  c.beginPath()
+  c.moveTo(0, 121)
+  c.bezierCurveTo(225, 9, 493, 240, 768, 99)
+  c.stroke()
+  return canvasTexture(canvas, false)
+}
+
 /** Glossy black fascia with white lettering, as hung over the shop. */
 export function fasciaTexture(title: string, lines: string[]) {
   const { canvas, context } = canvasOf(1024, 296)
@@ -23,6 +53,52 @@ export function fasciaTexture(title: string, lines: string[]) {
   return canvasTexture(canvas, false)
 }
 
+export function shopFasciaTexture() {
+  const { canvas, context } = canvasOf(1536, 388)
+  const sheen = context.createLinearGradient(0, 0, 0, canvas.height)
+  sheen.addColorStop(0, '#171819')
+  sheen.addColorStop(0.32, '#282729')
+  sheen.addColorStop(0.54, '#121213')
+  sheen.addColorStop(1, '#09090a')
+  context.fillStyle = sheen
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  // Soft highlights from the ceiling grid on the dark glass.
+  context.strokeStyle = 'rgba(223, 213, 187, 0.1)'
+  context.lineWidth = 4
+  for (const x of [-130, 280, 690, 1100, 1510]) {
+    context.beginPath()
+    context.moveTo(x, 0)
+    context.lineTo(x + 250, 226)
+    context.stroke()
+  }
+  context.strokeStyle = 'rgba(244, 230, 204, 0.13)'
+  context.lineWidth = 6
+  context.beginPath()
+  context.moveTo(0, 31)
+  context.lineTo(canvas.width, 112)
+  context.stroke()
+  for (const x of [384, 768, 1152]) {
+    context.fillStyle = '#353337'
+    context.fillRect(x, 0, 2, canvas.height)
+  }
+  context.fillStyle = '#f6f1e6'
+  context.font = `900 57px ${SANS}`
+  context.fillText('MAR', 67, 190)
+  context.font = `700 17px ${SANS}`
+  context.fillText('MUSEO DE ARTE', 68, 214)
+  context.fillText('CONTEMPORÁNEO', 68, 235)
+  context.fillText('BUENOS AIRES', 68, 256)
+  context.font = `900 142px ${SANS}`
+  context.fillText('TIENDA fiNdE', 287, 232, 776)
+  context.font = `700 40px ${SANS}`
+  context.fillText('· × =', 914, 277)
+  context.fillText('INSTITUTO', 1114, 176)
+  context.fillText('CULTURAL', 1114, 223)
+  context.font = `700 23px ${SANS}`
+  context.fillText('BUENOS AIRES', 1114, 266)
+  return canvasTexture(canvas, false)
+}
+
 /** The Laboratorio's lettering, on a transparent ground so it prints over the black wall. */
 export function labTexture() {
   const { canvas, context } = canvasOf(2048, 360)
@@ -38,9 +114,12 @@ export function labTexture() {
       context.font = `${weight} ${size}px ${SANS}`
     }
   }
-  const title = 'ESPACIO LABORATORIO'
-  fit(title, 800, 190, 1960)
-  context.fillText(title, 40, 130)
+  const prefix = 'ESPACIO '
+  context.font = `400 165px ${SANS}`
+  const prefixWidth = context.measureText(prefix).width
+  context.fillText(prefix, 40, 145)
+  context.font = `800 165px ${SANS}`
+  context.fillText('LABORATORIO', 40 + prefixWidth, 145, 1960 - prefixWidth)
   const sub = 'TALLERES  |  ENSAYOS EDUCATIVOS  |  PUNTO DE ENCUENTRO  |  EXPRESIÓN COLECTIVA'
   fit(sub, 600, 46, 1960)
   context.fillText(sub, 48, 290)

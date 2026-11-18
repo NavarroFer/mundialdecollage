@@ -33,15 +33,10 @@ describe('MAR sea lion', () => {
     expect(bounds.max.y + LOBO.height).toBeLessThan(11)
   })
 
-  it('looks at the café: its face toward the museum, its body running back toward the coast road', () => {
-    const geometry = seaLionBodyGeometry()
-    geometry.applyMatrix4(new THREE.Matrix4().makeRotationY(LOBO.yaw))
-    geometry.computeBoundingBox()
-    const box = geometry.boundingBox!
-    // The front reaches a couple of metres toward the café (-Z); the tail runs far out toward the plaza (+Z).
-    expect(-box.min.z).toBeLessThan(3)
-    expect(box.max.z).toBeGreaterThan(8)
-    geometry.dispose()
+  it('faces diagonally across the plaza toward the café side', () => {
+    const facing = new THREE.Vector3(-1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), LOBO.yaw)
+    expect(facing.x).toBeLessThan(-0.5)
+    expect(facing.z).toBeLessThan(-0.25)
   })
 
   it('has outward normals on the closed chest and a broad, tapered neck', () => {

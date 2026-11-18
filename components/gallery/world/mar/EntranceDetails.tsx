@@ -75,7 +75,7 @@ function Pipe({ points, radius, color = '#313333' }: { points: [number, number, 
 }
 
 /** Open red cabinet, coiled white hose, supply pipe and glazed extinguisher box. */
-function FireEquipment({ position, yaw = 0, small = false }: { position: [number, number, number]; yaw?: number; small?: boolean }) {
+export function FireEquipment({ position, yaw = 0, small = false }: { position: [number, number, number]; yaw?: number; small?: boolean }) {
   return (
     <group position={position} rotation={[0, yaw, 0]} scale={small ? 0.85 : 1}>
       <mesh position={[0, 1.35, -0.06]}><boxGeometry args={[0.7, 0.72, 0.14]} /><meshStandardMaterial color="#981813" roughness={0.48} /></mesh>
