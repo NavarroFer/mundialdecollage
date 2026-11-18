@@ -6,6 +6,7 @@ import { viewingSpot, walkable } from '../../navigation/path'
 import { standInFront } from '../../player/spawn'
 import {
   CAFE_BAR,
+  CAFE_FRONT_Z,
   GALLERY,
   LA_ISLA,
   LOBO,
@@ -338,11 +339,11 @@ describe('MAR facade', () => {
     expect(reach(LOBO.head.x, LOBO.z1 + 1)).toBe(true)
   })
 
-  it('keeps the sea lion visible through the café’s long window beside the tables', () => {
-    const eye = new Vector3(-21, 1.55, 6.76)
+  it('keeps the sea lion visible through the long plaza-facing window beside reception', () => {
+    const eye = new Vector3(-18, 1.55, 6.85)
     expect(reachableFrom(MAR_SPAWN)(eye.x, eye.z)).toBe(true)
     expect(walkable({ x: MAR_DOORS.west.x, z: 6.2 }, false, marGalleryTemplate, false)).toBe(false)
-    expect(walkable({ x: eye.x, z: 8 }, false, marGalleryTemplate, false)).toBe(false)
+    expect(walkable({ x: eye.x, z: CAFE_FRONT_Z }, false, marGalleryTemplate, false)).toBe(false)
 
     for (const [height, offset] of [[4.9, -0.65], [4.9, 0], [4.9, 0.65], [9.3, 0]]) {
       const target = new Vector3(LOBO.head.x, LOBO.height + height, LOBO.head.z + offset)
@@ -356,7 +357,7 @@ describe('MAR facade', () => {
         const hit = sightline.intersectBox(bounds, new Vector3())
         return hit && eye.distanceToSquared(hit) < eye.distanceToSquared(target)
       })
-      expect(intersections.map((item) => item.id)).toEqual(['mar-west-s-glass'])
+      expect(intersections.map((item) => item.id)).toEqual(['mar-cafe-plaza-glass'])
     }
   })
 

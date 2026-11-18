@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAFE_BAR, CAFE_TABLES, GALLERY, HALL_VOID, LA_ISLA, MAR, SHOP, UPPER_ROOFLIGHT, marBoxes } from './layout'
+import { CAFE_BAR, CAFE_FRONT_Z, CAFE_TABLES, GALLERY, HALL_VOID, LA_ISLA, MAR, SHOP, UPPER_ROOFLIGHT, marBoxes } from './layout'
 import {
   fasciaTexture,
   grateTexture,
@@ -168,21 +168,22 @@ function Chandelier({ position, seed }: { position: [number, number, number]; se
 
 /** The ceiling over the café and the shop: expanded-metal panels, fluorescent tubes, and a pair of chandeliers. */
 function WestCeiling({ materials }: { materials: InteriorMaterials }) {
+  const depth = CAFE_FRONT_Z + 11.6
   const mesh = useMemo(() => {
     const map = meshCeilingTexture()
-    map.repeat.set(17.6 / 2.4, 19.6 / 2.4)
+    map.repeat.set(17.6 / 2.4, depth / 2.4)
     return { map, material: new THREE.MeshStandardMaterial({ map, roughness: 0.7, metalness: 0.2, transparent: true, alphaTest: 0.2, side: THREE.DoubleSide }) }
-  }, [])
+  }, [depth])
   useEffect(() => () => {
     mesh.map.dispose()
     mesh.material.dispose()
   }, [mesh])
   return (
     <group>
-      <mesh position={[-21, MAR.westInterior - 0.02, -2]} rotation={[Math.PI / 2, 0, 0]} material={mesh.material}>
-        <planeGeometry args={[17.6, 19.6]} />
+      <mesh position={[-21, MAR.westInterior - 0.02, (CAFE_FRONT_Z - 12) / 2]} rotation={[Math.PI / 2, 0, 0]} material={mesh.material}>
+        <planeGeometry args={[17.6, depth]} />
       </mesh>
-      {[-9, -5, -1, 3, 6].flatMap((z, row) => [-27, -23, -19, -15].map((x, column) => (
+      {[-9, -5, -1, 3, 6, 9.5].flatMap((z, row) => [-27, -23, -19, -15].map((x, column) => (
         <mesh key={`${x}:${z}`} position={[x, MAR.westInterior + 0.01, z]}>
           <boxGeometry args={[1.45, 0.045, 0.065]} />
           <meshStandardMaterial color={row % 2 === column % 2 ? '#fff0bd' : '#e7f2ff'} emissive={row % 2 === column % 2 ? '#ffc76c' : '#dceaff'} emissiveIntensity={1.4} toneMapped={false} />

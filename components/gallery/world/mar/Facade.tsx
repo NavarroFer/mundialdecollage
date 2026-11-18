@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
-import { MAR, MAR_BANNERS, STAIR, type MarBanner } from './layout'
+import { CAFE_FRONT_Z, MAR, MAR_BANNERS, STAIR, type MarBanner } from './layout'
 import {
   cafeEmblemTexture,
   exitSignTexture,
@@ -230,7 +230,7 @@ export function Facade({ materials }: { materials: FacadeMaterials }) {
       <Decal texture={decals.exit} position={[-3.6, MAR.soffit - 0.55, 0.12]} size={[0.9, 0.34]} basic />
       <Decal texture={decals.exit} position={[2.4, MAR.soffit - 0.55, 0.12]} size={[0.9, 0.34]} basic />
       {/* Café emblem on its glass, under the overhang. */}
-      <Decal texture={decals.emblem} position={[-17.5, 1.9, 8.09]} size={[1.5, 1.6]} />
+      <Decal texture={decals.emblem} position={[-17.5, 1.9, CAFE_FRONT_Z + 0.09]} size={[1.5, 1.6]} />
       {/* Louvres on the vent housing. */}
       <Decal texture={decals.louvre} position={[26.2, 0.62, 7.61]} size={[4.6, 0.9]} />
       {/* The orange tactile pad in the paving. */}

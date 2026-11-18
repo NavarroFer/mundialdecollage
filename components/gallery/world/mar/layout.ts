@@ -132,11 +132,13 @@ export const LA_ISLA = {
 // From the hall looking west, left to right (+Z to -Z): glazing, seats,
 // café counter, then the shop aisle continuing toward the Laboratorio.
 export const CAFE_BAR = { x0: -24.8, x1: -18, z0: 0, z1: 0.85, height: 1.08 } as const
+export const CAFE_FRONT_Z = 11.6
 
 /** Repeated rows lead toward the far glazing; retain the existing table centres. */
 export const CAFE_TABLES: Array<[number, number]> = [
   [-26, 3.2], [-22.8, 3.2], [-19.6, 3.2], [-16.4, 3.2], [-13.8, 3.2],
   [-26, 6.2], [-22.8, 6.2], [-19.6, 6.2], [-16.4, 6.2], [-13.8, 6.2],
+  [-26, 9.45], [-22.8, 9.45], [-19.6, 9.45], [-16.4, 9.45], [-13.8, 9.45],
   [-27.5, -0.5],
 ]
 /** The sunken stair beside the vent housing: a hole in the paving, walled off. */
@@ -351,8 +353,9 @@ const H = MAR.hallHeight
 const U = MAR.mezzanine
 
 // The seaward frontage turns onto the plaza along the café's east wall.
-const CAFE_CORNER = { x: MAR_DOORS.west.x, z: 8, pierStart: 4.1, pierEnd: 5.4, sideWindowStart: 0.6 }
+const CAFE_CORNER = { x: MAR_DOORS.west.x, z: CAFE_FRONT_Z, pierStart: 8.55, pierEnd: 9.65, sideWindowStart: 0.6 }
 const CAFE_GLASS = 0.16
+const PLAZA_GLASS_HEAD = 3.67
 
 /** A box standing on the upper floor, `h` metres tall. */
 function up(id: string, minX: number, minZ: number, maxX: number, maxZ: number, h: number, kind: MarKind = 'white', extra: Partial<Pick<MarBox, 'path' | 'solid' | 'visual' | 'freestanding'>> = {}): MarBox {
@@ -401,8 +404,8 @@ export const marBoxes: MarBox[] = [
   // West exhibition volume (the café). Ground floor glazed to the plaza, tucked under the upper floor.
   // The café's own walls stop at the gallery's floor; above them the gallery's skin is the volume.
   wallZ('mar-west-w', -12, -5, -30, U - 0.25),
-  wallZ('mar-cafe-end-glass', -5, 8, -30, U - 0.25, 'glass'),
-  ...mullionsZ('mar-cafe-end-frame', -5, 8, -30.08, 0, U - 0.25, 1.3),
+  wallZ('mar-cafe-end-glass', -5, CAFE_CORNER.z, -30, U - 0.25, 'glass'),
+  ...mullionsZ('mar-cafe-end-frame', -5, CAFE_CORNER.z, -30.08, 0, U - 0.25, 1.65),
   wallX('mar-west-n', -30, WORKSHOP.x0, WORKSHOP.z1, U - 0.25),
   wallX('mar-west-n-lab', WORKSHOP.x1, LA_ISLA.x0, WORKSHOP.z1, U - 0.25),
   wallX('mar-workshop-back', WORKSHOP.x0, WORKSHOP.x1, WORKSHOP.z0, U - 0.25),
@@ -415,21 +418,24 @@ export const marBoxes: MarBox[] = [
   wallX('mar-west-s-glass', -30, CAFE_CORNER.x - CAFE_GLASS / 2, CAFE_CORNER.z, SOFFIT, 'glass', CAFE_GLASS),
   wallZ('mar-cafe-corner-glass', CAFE_CORNER.pierEnd, CAFE_CORNER.z + CAFE_GLASS / 2, CAFE_CORNER.x, SOFFIT, 'glass', CAFE_GLASS),
   wallZ('mar-cafe-plaza-pier', CAFE_CORNER.pierStart, CAFE_CORNER.pierEnd, CAFE_CORNER.x, SOFFIT),
-  wallZ('mar-cafe-plaza-glass', CAFE_CORNER.sideWindowStart, CAFE_CORNER.pierStart, CAFE_CORNER.x, SOFFIT, 'glass', CAFE_GLASS),
+  wallZ('mar-cafe-plaza-glass', CAFE_CORNER.sideWindowStart, CAFE_CORNER.pierStart, CAFE_CORNER.x, PLAZA_GLASS_HEAD, 'glass', CAFE_GLASS),
+  box('mar-cafe-plaza-lintel', CAFE_CORNER.x - T / 2, PLAZA_GLASS_HEAD, CAFE_CORNER.sideWindowStart, CAFE_CORNER.x + T / 2, SOFFIT, CAFE_CORNER.pierStart, 'concrete'),
   box('mar-west-s-up', -30, SOFFIT, CAFE_CORNER.z - T / 2, CAFE_CORNER.x - T / 2, WEST_H, CAFE_CORNER.z + T / 2, 'concrete'),
   box('mar-cafe-plaza-up', CAFE_CORNER.x - T / 2, SOFFIT, CAFE_CORNER.sideWindowStart, CAFE_CORNER.x + T / 2, WEST_H, CAFE_CORNER.z + T / 2, 'concrete'),
   ...postsX('mar-mullion-west-glass', [-30, -27.3, -24.6, -21.9, -19.2, -16.5], CAFE_CORNER.z, 0, SOFFIT),
   box('mar-cafe-long-transom', -30, 3.73, CAFE_CORNER.z - 0.09, CAFE_CORNER.x, 3.79, CAFE_CORNER.z + 0.09, 'mullion', seeThrough),
   ...mullionsZ('mar-mullion-cafe-corner', CAFE_CORNER.pierEnd, CAFE_CORNER.z, CAFE_CORNER.x, 0, SOFFIT, 1.35),
   box('mar-cafe-window-transom', CAFE_CORNER.x - 0.09, 3.35, CAFE_CORNER.pierEnd, CAFE_CORNER.x + 0.09, 3.41, CAFE_CORNER.z, 'mullion', seeThrough),
-  ...mullionsZ('mar-mullion-cafe-plaza', CAFE_CORNER.sideWindowStart, CAFE_CORNER.pierStart, CAFE_CORNER.x, 0, SOFFIT, 1.17),
+  ...mullionsZ('mar-mullion-cafe-plaza', CAFE_CORNER.sideWindowStart, CAFE_CORNER.pierStart, CAFE_CORNER.x, 0, PLAZA_GLASS_HEAD, 1.77),
+  box('mar-cafe-plaza-transom', CAFE_CORNER.x - 0.09, 3.04, CAFE_CORNER.sideWindowStart, CAFE_CORNER.x + 0.09, 3.10, CAFE_CORNER.pierStart, 'mullion', seeThrough),
   box('mar-mullion-cafe-turn', CAFE_CORNER.x - 0.055, 0, CAFE_CORNER.z - 0.055, CAFE_CORNER.x + 0.055, SOFFIT, CAFE_CORNER.z + 0.055, 'mullion', seeThrough),
   // The seaward overhang ends at the corner, leaving the view through the return open.
-  box('mar-west-lip', -26, SOFFIT, CAFE_CORNER.z, CAFE_CORNER.x, 5.9, 12.35, 'concrete'),
-  box('mar-west-win-back', -26, 5.9, CAFE_CORNER.z, CAFE_CORNER.x, 8.3, 11.95, 'interior'),
-  box('mar-west-cantilever', -26, 8.3, CAFE_CORNER.z, CAFE_CORNER.x, WEST_H, 12.2, 'concrete'),
-  box('mar-west-win-glass', -25.6, 5.95, 11.96, CAFE_CORNER.x - 0.4, 8.25, 12.0, 'glass', seeThrough),
-  ...mullionsX('mar-west-win-mullion', -25.6, CAFE_CORNER.x - 0.4, 12.04, 5.95, 8.25, 2.27),
+  box('mar-west-front-volume', -30, U - 0.25, GZ1 + L, CAFE_CORNER.x, WEST_H, CAFE_CORNER.z - T / 2, 'concrete'),
+  box('mar-west-lip', -26, SOFFIT, CAFE_CORNER.z, CAFE_CORNER.x, 5.9, CAFE_CORNER.z + 1.25, 'concrete'),
+  box('mar-west-win-back', -26, 5.9, CAFE_CORNER.z, CAFE_CORNER.x, 8.3, CAFE_CORNER.z + 0.85, 'interior'),
+  box('mar-west-cantilever', -26, 8.3, CAFE_CORNER.z, CAFE_CORNER.x, WEST_H, CAFE_CORNER.z + 1.1, 'concrete'),
+  box('mar-west-win-glass', -25.6, 5.95, CAFE_CORNER.z + 0.86, CAFE_CORNER.x - 0.4, 8.25, CAFE_CORNER.z + 0.9, 'glass', seeThrough),
+  ...mullionsX('mar-west-win-mullion', -25.6, CAFE_CORNER.x - 0.4, CAFE_CORNER.z + 0.94, 5.95, 8.25, 2.27),
 
   // East exhibition room.
   wallX('mar-east-n', 14, 32, -18, EAST_H),
@@ -613,7 +619,8 @@ export const marBoxes: MarBox[] = [
   box('mar-esc-lane', -9.3, 0, -12.3, -3, 1.2, -8.4, 'concrete', { path: true, solid: false, visual: false }),
 
   // The concrete bench along the café windows.
-  box('mar-bench-cafe', -16, 0, 8.95, -8, 0.46, 9.44, 'seat'),
+  box('mar-bench-cafe', -10.48, 0.34, 0.85, -9.96, 0.46, 9.2, 'granite'),
+  ...[1.15, 3.62, 6.07, 8.91].map((z) => box(`mar-bench-cafe-leg-${z}`, -10.41, 0, z - 0.12, -10.03, 0.34, z + 0.12, 'granite')),
 
   // A few tables on the east terrace (the plan's scattered tables).
   box('mar-table-a', 33.2, 0, 6.6, 34.5, 0.76, 7.9, 'table'),
@@ -699,7 +706,7 @@ export const marFloors = [
   { id: 'grass', kind: 'grass' as const, x0: -48, x1: 40, z0: 28, z1: 32 },
   { id: 'hall', kind: 'polish' as const, x0: -11.84, x1: 13.84, z0: -19.84, z1: 0.2 },
   { id: 'cafe-threshold', kind: 'polish' as const, x0: -12.17, x1: -11.83, z0: MAR_DOORS.west.z0, z1: MAR_DOORS.west.z1 },
-  { id: 'west', kind: 'polish' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: 7.84 },
+  { id: 'west', kind: 'polish' as const, x0: -29.84, x1: -12.16, z0: -11.84, z1: CAFE_FRONT_Z - 0.16 },
   { id: 'workshop', kind: 'polish' as const, x0: WORKSHOP.x0 + 0.14, x1: WORKSHOP.x1 - 0.065, z0: WORKSHOP.z0 + 0.14, z1: -11.84 },
   { id: 'east', kind: 'dark' as const, x0: 14.16, x1: 31.84, z0: -17.84, z1: -8.16 },
   { id: 'auditorium', kind: 'auditorium' as const, x0: -7.84, x1: 15.84, z0: -37.84, z1: -20.16 },
@@ -710,7 +717,7 @@ const MAR_BOUNDS = [-48, -42, 40, 32] as [number, number, number, number]
 export const marRooms = [
   { id: 'mar-plaza', name: 'Plaza', bounds: [-48, 0, 40, 32] as [number, number, number, number] },
   { id: 'mar-hall', name: 'Hall', bounds: [-12, -20, 14, 0] as [number, number, number, number] },
-  { id: 'mar-west', name: 'Sala oeste', bounds: [-30, -12, -12, 8] as [number, number, number, number] },
+  { id: 'mar-west', name: 'Sala oeste', bounds: [-30, -12, -12, CAFE_FRONT_Z] as [number, number, number, number] },
   { id: 'mar-east', name: 'Sala este', bounds: [14, -18, 32, -8] as [number, number, number, number] },
   { id: 'mar-auditorium', name: 'Auditorio', bounds: [-8, -38, 16, -20] as [number, number, number, number] },
 ]
