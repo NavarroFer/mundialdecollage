@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowUpRight, Album, Map, Newspaper, Paperclip, Scissors, ScrollText, Stamp, StickyNote, Tag, Ticket } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { AppFrame } from '@/components/app-frame'
+import { JuryStrip } from '@/components/jury-strip'
 import { getCallState } from '@/lib/call-state'
 import { getI18n } from '@/lib/i18n/server'
 
@@ -78,6 +79,8 @@ export default async function MundialPage() {
     <AppFrame>
       <h1 className="font-display text-4xl tracking-tight text-ink uppercase sm:text-5xl">{t.mundial}</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">{t.mundialLead}</p>
+      {/* Only once the jury is published (/admin/jurado). */}
+      <JuryStrip className="mt-6 max-w-2xl" />
       <section className="mt-8" aria-labelledby="institution-title">
         <h2 id="institution-title" className="sr-only">{t.institution}</h2>
         <ul className="grid auto-rows-[8.5rem] grid-cols-2 gap-3 sm:auto-rows-[10rem] lg:grid-cols-6 lg:gap-4">

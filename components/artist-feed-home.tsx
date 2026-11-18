@@ -1,4 +1,5 @@
 import { AppFrame } from '@/components/app-frame'
+import { JuryStrip } from '@/components/jury-strip'
 import { OfferBanners } from '@/components/offer-banners'
 import { ObraActivityFeed } from '@/components/obra-activity-feed'
 import { TrackView } from '@/components/track'
@@ -28,6 +29,8 @@ export async function ArtistFeedHome() {
         <h1 className="mt-1 font-display text-3xl tracking-tight text-ink uppercase sm:text-4xl">{m.community.title}</h1>
         <p className="mt-1.5 hidden max-w-xl text-muted-foreground sm:block">{m.community.feedSubtitle}</p>
       </header>
+      {/* Only once the jury is published (/admin/jurado): one thin row. */}
+      <JuryStrip className="mt-3" />
       <div className="mt-4">
         <ObraActivityFeed callOpen={open} />
       </div>

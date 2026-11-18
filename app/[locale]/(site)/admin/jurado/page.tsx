@@ -12,7 +12,7 @@ import { site } from '@/lib/site'
 import { formatJuryDeadline, isVotingClosed } from '@/lib/jury-deadline'
 import { JUROR_BIOS, JUROR_PROFILE_COLUMNS, jurorPhotoUrl, type JurorBioField } from '@/lib/juror-profile'
 import { JurorProfileFields } from '@/components/juror-profile-fields'
-import { addJuror, prepareJurorPhotoUploadFor, resendJuryInvitation, setJurorActive, updateJurorProfile } from './actions'
+import { addJuror, prepareJurorPhotoUploadFor, resendJuryInvitation, setJurorActive, setJuryPublished, updateJurorProfile } from './actions'
 
 // Jury MVP: who judges, how far along each juror is, and the ranking of the
 // preselected obras by average score, with the cut at the 30 finalists.
@@ -23,14 +23,19 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
   const mode: RankingMode = orden === 'normalizado' ? 'normalizado' : 'promedio'
   const onlyDisputed = filtro === 'discutir'
   const db = createAdminClient()
-  const [pool, jurorsResult, scoresResult] = await Promise.all([
+  const [pool, jurorsResult, scoresResult, stateResult] = await Promise.all([
     getJuryPool(db),
     db.from('jurors').select(`id, email, active, created_at, invited_at, profile_completed_at, ${JUROR_PROFILE_COLUMNS}`).order('created_at'),
     db.from('jury_scores').select('juror_id, item_key, score, comment'),
+    db.from('jury_state').select('published_at').eq('id', true).maybeSingle(),
   ])
+  const publishedAt = stateResult.data?.published_at ?? null
   const jurors = jurorsResult.data ?? []
   const scores = (scoresResult.data ?? []) as ScoreRow[]
   const active = jurors.filter((j) => j.active)
+  // The same rule as public.public_jury(): active, with name, country and position.
+  const showable = active.filter((j) => j.name && j.country_code && j.job_title)
+  const incomplete = active.filter((j) => !(j.name && j.country_code && j.job_title))
   const ranked = rankJuryPool(pool, scores, new Set(active.map((j) => j.id)), mode)
   // Positions come from the full ranking, so the filtered view still says
   // where each disputed obra stands.
@@ -47,9 +52,37 @@ export default async function JuradoAdminPage({ searchParams }: { searchParams: 
   return (
     <div>
       <AdminPageHeader eyebrow="Convocatoria" title="Jurado" description={adminDescription('/admin/jurado')} />
-      {(error || jurorsResult.error || scoresResult.error) && (
-        <p role="alert" className="mt-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{error ?? jurorsResult.error?.message ?? scoresResult.error?.message}</p>
+      {(error || jurorsResult.error || scoresResult.error || stateResult.error) && (
+        <p role="alert" className="mt-4 rounded-lg bg-collage-red/10 p-3 text-sm text-collage-red">{error ?? jurorsResult.error?.message ?? scoresResult.error?.message ?? stateResult.error?.message}</p>
       )}
+
+      <section aria-labelledby="publish-title" className={`mt-6 rounded-2xl border-2 p-5 ${publishedAt ? 'border-collage-blue/40 bg-collage-blue/5' : 'border-ink/10 bg-card'}`}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="max-w-xl">
+            <h2 id="publish-title" className="font-display text-xl tracking-tight text-ink uppercase">
+              {publishedAt ? 'El jurado está publicado' : 'El jurado todavía no se muestra'}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {publishedAt
+                ? <>Se ve desde el {dayOf(publishedAt)} en la home, en el feed de los artistas y en «El mundial».</>
+                : <>Mientras esté apagado, la home dice «Próximamente jurado internacional» y el feed y «El mundial» no lo mencionan.</>}
+              {' '}Se muestran los jurados activos con nombre, país y cargo (foto y bios si las tienen): {showable.length === 0 ? 'por ahora ninguno' : showable.length}.
+            </p>
+            {incomplete.length > 0 && (
+              <p className="mt-2 text-sm text-ink">
+                <span className="rounded-full bg-collage-yellow px-2 py-0.5 text-xs font-bold">Quedan afuera</span>{' '}
+                {incomplete.map((j) => j.name ?? j.email).join(', ')}: les falta nombre, país o cargo (se completa en «Editar ficha»).
+              </p>
+            )}
+          </div>
+          <form action={setJuryPublished}>
+            <input type="hidden" name="publish" value={publishedAt ? '0' : '1'} />
+            <SubmitButton variant={publishedAt ? 'outline' : 'default'} pendingLabel={publishedAt ? 'Ocultando…' : 'Publicando…'} disabled={!publishedAt && showable.length === 0}>
+              {publishedAt ? 'Ocultar el jurado' : 'Publicar el jurado'}
+            </SubmitButton>
+          </form>
+        </div>
+      </section>
 
       <div className="mt-6 flex flex-wrap gap-3">
         <StatPill label="Obras preseleccionadas" value={`${pool.length} de ${site.jury.poolSize}`} />

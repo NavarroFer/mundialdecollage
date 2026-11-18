@@ -18,7 +18,7 @@ Observed, not measured:
 
 Facade fidelity was reworked from a second set of photographs (plaza, entrance, door close-ups, the sea lion). What is drawn, left to right from the plaza:
 
-- **West volume (the café).** About 16 m, the tallest. Its upper floor overhangs the plaza on a thick slab edge with a recessed window band; ground glass sits under it, with the café's round emblem.
+- **West volume (the café).** About 16 m, the tallest. At ground level a long window runs along the plaza edge beside the hall, opening a view of the sea lion from the café tables. A concrete pier separates it from the shorter glazing that wraps around the seaward corner. The seaward overhang stops at the turn.
 - **Volume over the doors.** About 13.4 m. Slab edge, a recessed window band, then blank concrete with the "Buenos Aires Provincia" relief mark. Under its soffit: a bank of black-framed glass with two transom rows, a black revolving door in a half-drum (blocks the way; only the swing doors are open), the two swing leaves pushed open, "SALIDA" signs and square downlights.
 - **Glass slot** between that volume and the next: full-height glazing with a concrete cap.
 - **Vinyl volume.** About 11 m. Its ground floor is set back behind a long printed vinyl; the floors above overhang it; a tall narrow window runs up its east end.
@@ -102,11 +102,11 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 Footprints (interior side of the walls):
 
 - Hall: x −12..14, z −20..0
-- West exhibition room: x −30..−12, z −12..8, glazed to the plaza at ground level
+- West exhibition room: x −30..−12, z −12..11.6, glazed to the plaza at ground level
 - East exhibition room: x 14..32, z −18..−8
 - Auditorium: x −8..16, z −38..−20, entered from the hall. Seat banks are solid blocks with aisles, not a seat count
 - Vinyl volume: x 7.2..20, z 0.15..3.4 (ground floor set back to z 2.0); tower x 20..34
-- Sea lion platform: approximately x 3..17.5, z 8..19.2. The marked plan locates it across the plaza from the café, and the entrance photo places it to the right of the doors. The café bench runs along the glazing at z 10.3..10.8.
+- Sea lion platform: approximately x 3..17.5, z 8..19.2. The marked plan locates it across the plaza from the café, and the entrance photo places it to the right of the doors. The café bench runs along the plaza-facing window beside the hall, between the tables and the sea lion.
 
 Doors, all open in both the mesh and the walk map: entrance (the swing doors) x −2.6..2.6 at z = 0; west room z −5.2..−0.35 at x = −12; east room z −13.6..−10.4 at x = 14; auditorium x −1.6..2.4 at z = −20.
 

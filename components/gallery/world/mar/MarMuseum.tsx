@@ -171,7 +171,7 @@ function Sky() {
   )
 }
 
-function Floors({ materials }: { materials: Record<(typeof marFloors)[number]['kind'], THREE.Material> }) {
+function Floors({ materials }: { materials: Record<Exclude<(typeof marFloors)[number]['kind'], 'polish'>, THREE.Material> }) {
   const geometries = useMemo(() => marFloors.map((floor) => {
     const tile = floor.kind === 'cobble' ? MAR.cobble : floor.kind === 'grass' ? 4 : 3
     return tiledPlane(floor.x1 - floor.x0, floor.z1 - floor.z0, tile)
@@ -179,7 +179,7 @@ function Floors({ materials }: { materials: Record<(typeof marFloors)[number]['k
   useEffect(() => () => geometries.forEach((geometry) => geometry.dispose()), [geometries])
   return (
     <>
-      <InteriorFloor fallback={materials.polish} />
+      <InteriorFloor />
       {geometries.map((geometry, index) => {
         const floor = marFloors[index]
         if (floor.kind === 'polish') return null
@@ -233,7 +233,6 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
       trunk: new THREE.MeshStandardMaterial({ color: '#6b5344', roughness: 0.9 }),
       cobble: new THREE.MeshStandardMaterial({ map: cobbleMap, roughness: 0.96 }),
       grass: new THREE.MeshStandardMaterial({ color: '#7ea36a', roughness: 1 }),
-      polish: new THREE.MeshStandardMaterial({ color: '#4a3f38', roughness: 0.22, metalness: 0.1 }),
       gallery: new THREE.MeshStandardMaterial({ color: '#d5d3ce', roughness: 0.55 }),
       dark: new THREE.MeshStandardMaterial({ color: '#6a6e72', roughness: 0.48, metalness: 0.06 }),
       auditorium: new THREE.MeshStandardMaterial({ color: '#8a8178', roughness: 0.7 }),
@@ -260,7 +259,6 @@ export function MarMuseum({ obraImages = [] }: { /** The day's obra images: what
   const floorMaterials = {
     cobble: materials.cobble,
     grass: materials.grass,
-    polish: materials.polish,
     gallery: materials.gallery,
     dark: materials.dark,
     auditorium: materials.auditorium,

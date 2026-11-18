@@ -9,37 +9,44 @@ import { useGraphics } from '../../graphics/store'
 import { marFloors } from './layout'
 import { canvasOf, canvasTexture, seeded } from './textures'
 
-/** One reflection pass shared by the contiguous polished hall and café floors. */
-export function InteriorFloor({ fallback }: { fallback: THREE.Material }) {
+const polishedFloors = marFloors.filter((floor) => floor.kind === 'polish')
+
+/** One reflection pass shared by the contiguous polished ground-floor surfaces. */
+export function InteriorFloor() {
   const quality = useGraphics((s) => s.current)
   const mobile = useGraphics((s) => s.mobile)
   const [inside, setInside] = useState(false)
   const current = useRef(false)
   useFrame(({ camera }) => {
     const p = camera.position
-    const next = p.x > -30 && p.x < 14 && p.z > -20 && p.z < 8 && p.y < 4.3
+    const next = p.y < 4.3 && polishedFloors.some((floor) => p.x >= floor.x0 && p.x <= floor.x1 && p.z >= floor.z0 && p.z <= floor.z1)
     if (next !== current.current) { current.current = next; setInside(next) }
   })
   const geometry = useMemo(() => {
-    const planes = marFloors.filter((f) => f.kind === 'polish').map((f) => new THREE.PlaneGeometry(f.x1 - f.x0, f.z1 - f.z0).translate((f.x0 + f.x1) / 2, -(f.z0 + f.z1) / 2, 0))
+    const planes = polishedFloors.map((floor) => {
+      const plane = new THREE.PlaneGeometry(floor.x1 - floor.x0, floor.z1 - floor.z0)
+        .translate((floor.x0 + floor.x1) / 2, -(floor.z0 + floor.z1) / 2, 0)
+      const pos = plane.getAttribute('position')
+      const uv = plane.getAttribute('uv')
+      for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / 0.72, pos.getY(i) / 0.72)
+      return plane
+    })
     const merged = mergeGeometries(planes)!
     planes.forEach((plane) => plane.dispose())
     return merged
   }, [])
   const grain = useMemo(() => {
     const { canvas, context } = canvasOf(256, 256)
-    context.fillStyle = '#8b8b8b'
+    context.fillStyle = '#a49e96'
     context.fillRect(0, 0, 256, 256)
     const random = seeded(82)
-    for (let i = 0; i < 9500; i++) {
-      const value = Math.round(95 + random() * 95)
-      context.fillStyle = `rgb(${value},${value},${value})`
-      context.fillRect(random() * 256, random() * 256, 0.5 + random(), 0.5 + random())
+    for (let i = 0; i < 6400; i++) {
+      const value = Math.round(71 + random() * 149)
+      context.fillStyle = `rgb(${value}, ${Math.round(value * 0.975)}, ${Math.round(value * 0.93)})`
+      const size = 0.35 + random() * 1.3
+      context.fillRect(random() * 256, random() * 256, size, size)
     }
-    const texture = canvasTexture(canvas)
-    texture.colorSpace = THREE.NoColorSpace
-    texture.repeat.set(10, 10)
-    return texture
+    return canvasTexture(canvas)
   }, [])
   useEffect(() => () => { geometry.dispose(); grain.dispose() }, [geometry, grain])
   // The reflection is disabled outside, upstairs, on mobile and at low quality.
@@ -55,10 +62,10 @@ export function InteriorFloor({ fallback }: { fallback: THREE.Material }) {
       depthScale={0.35}
       minDepthThreshold={0.8}
       maxDepthThreshold={1.2}
-      color="#302821"
+      color="#5b5754"
+      map={grain}
       roughness={0.3}
-      roughnessMap={grain}
       metalness={0.08}
-    /> : <primitive object={fallback} attach="material" />}
+    /> : <meshStandardMaterial color="#5b5754" map={grain} roughness={0.34} metalness={0.08} />}
   </mesh>
 }

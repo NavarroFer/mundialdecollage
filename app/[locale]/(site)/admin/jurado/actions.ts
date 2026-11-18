@@ -8,6 +8,7 @@ import { isValidEmail } from '@/lib/resend'
 import { isAdminUser, prepareJurorPhotoUpload, removeReplacedJurorPhoto } from '@/lib/jury'
 import { parseJurorPhoto, parseJurorProfile } from '@/lib/juror-profile'
 import { sendJuryInvitation } from '@/lib/jury-mail'
+import { refreshPublicData } from '@/lib/public-data-cache'
 
 // Jurors are managed only from here; a Server Action is reachable on its own,
 // so each one checks for an admin session first.
@@ -82,5 +83,24 @@ export async function setJurorActive(formData: FormData) {
   const db = await adminDb()
   const { error } = await db.from('jurors').update({ active }).eq('id', id)
   if (error) back(error.message)
+  revalidatePath('/admin/jurado')
+}
+
+// The switch that shows the jury on the home, in the obra feed and in «El
+// mundial» (lib/jury-public.ts). Reversible, so no typed confirmation: the
+// page says what it will show. The jurors' own pages don't depend on it.
+export async function setJuryPublished(formData: FormData) {
+  const publish = formData.get('publish') === '1'
+  const { data: { user } } = await (await createClient()).auth.getUser()
+  if (!isAdminUser(user)) throw new Error('Not authorized')
+  const now = new Date().toISOString()
+  const { error } = await createAdminClient().from('jury_state')
+    .update(publish ? { published_at: now, published_by: user!.email, updated_at: now } : { published_at: null, published_by: null, updated_at: now })
+    .eq('id', true)
+  if (error) back(error.message)
+  // The home (and its anonymous copy), the feed and /mundial read it through
+  // the public data cache.
+  refreshPublicData()
+  revalidatePath('/', 'layout')
   revalidatePath('/admin/jurado')
 }

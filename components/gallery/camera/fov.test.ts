@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BASE_FOV, MIN_HORIZONTAL_FOV, horizontalFov, verticalFov } from './fov'
+import { BASE_FOV, MAR_FOV, MIN_HORIZONTAL_FOV, horizontalFov, verticalFov } from './fov'
 
 describe('verticalFov', () => {
   it('keeps the usual view on a computer and on a phone held sideways', () => {
@@ -15,6 +15,12 @@ describe('verticalFov', () => {
     const fov = verticalFov(aspect)
     expect(fov).toBeGreaterThan(BASE_FOV)
     expect(horizontalFov(fov, aspect)).toBeCloseTo(MIN_HORIZONTAL_FOV)
+  })
+
+  it('uses the MAR lens on desktop while preserving mobile horizontal coverage', () => {
+    expect(verticalFov(16 / 9, MAR_FOV)).toBe(55)
+    expect(horizontalFov(verticalFov(390 / 844, MAR_FOV), 390 / 844)).toBeCloseTo(MIN_HORIZONTAL_FOV)
+    expect(verticalFov(0, MAR_FOV)).toBe(MAR_FOV)
   })
 
   it('falls back to the usual view before the canvas has a size', () => {
