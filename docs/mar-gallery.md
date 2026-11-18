@@ -18,13 +18,13 @@ Observed, not measured:
 
 Facade fidelity was reworked from a second set of photographs (plaza, entrance, door close-ups, the sea lion). What is drawn, left to right from the plaza:
 
-- **West volume (the café).** About 16 m, the tallest. Its upper floor overhangs the plaza on a thick slab edge with a recessed window band; ground glass sits under it, with the café's round emblem.
+- **West volume (the café).** About 16 m, the tallest. At ground level a long window runs along the plaza edge beside the hall, opening a view of the sea lion from the café tables. A concrete pier separates it from the shorter glazing that wraps around the seaward corner. The seaward overhang stops at the turn.
 - **Volume over the doors.** About 13.4 m. Slab edge, a recessed window band, then blank concrete with the "Buenos Aires Provincia" relief mark. Under its soffit: a bank of black-framed glass with two transom rows, a black revolving door in a half-drum (blocks the way; only the swing doors are open), the two swing leaves pushed open, "SALIDA" signs and square downlights.
 - **Glass slot** between that volume and the next: full-height glazing with a concrete cap.
 - **Vinyl volume.** About 11 m. Its ground floor is set back behind a long printed vinyl; the floors above overhang it; a tall narrow window runs up its east end.
 - **Tower** at the east end, about 16 m: a black door and a ground window at its foot, the louvred vent housing in front of them, and the sunken stair beside it (walled off; the shaft is drawn below the paving).
 - **Plaza.** Granite setts in overlapping fans (`cobbleTexture`), a low granite kerb across it, an orange tactile pad, two concrete street lamps, and a deep-blue sky dome.
-- **Sea lion.** A continuous, pear-shaped chest and tapered trailing body, planted curved foreflippers and splayed rear flippers. The stone original supplied by the user clarifies the raised muzzle, partly open mouth and small lateral eyes under MAR’s gold covering. The covering consists of individual concave gold alfajor wrappers, with sealed edges and fine printed dots. It is not straw or woven ribbons. A generated 16 × 8 wrapper colour tile is paired with aligned height/roughness maps and triplanar projection; a local outdoor reflection map gives the metal its sheen at every graphics quality. Pale stones are instanced on the existing solid platform. The complete sculpture stays inside that footprint and above the slab. Scale remains estimated, about 10.7 m high including the plinth. It stands on the side plaza in front of the café and looks at its window, its body running back toward the coast road; from a café table it fills the glass. See `docs/mar-sea-lion.md`.
+- **Sea lion.** A continuous, pear-shaped chest and tapered trailing body, planted curved foreflippers and splayed rear flippers. The stone original supplied by the user clarifies the raised muzzle, partly open mouth and small lateral eyes under MAR’s gold covering. The covering consists of individual concave gold alfajor wrappers, with sealed edges and fine printed dots. It is not straw or woven ribbons. A generated 16 × 8 wrapper colour tile is paired with aligned height/roughness maps and triplanar projection; a local outdoor reflection map gives the metal its sheen at every graphics quality. Pale stones are instanced on the existing solid platform. The complete sculpture stays inside that footprint and above the slab. Scale remains estimated, about 10.7 m high including the plinth. It stands diagonally across the entrance plaza from the café, on the right when viewed from the sea. See `docs/mar-sea-lion.md`.
 
 The concrete is board-formed: panels 2.4 × 1.2 m, rows not aligned, each panel its own shade, hairline joints, pin holes and water streaks. One texture repeat covers 4 × 4 panels.
 
@@ -102,11 +102,11 @@ One unit is one metre. Y is up. The plaza is +Z; the entrance faces the plaza; y
 Footprints (interior side of the walls):
 
 - Hall: x −12..14, z −20..0
-- West exhibition room: x −30..−12, z −12..8, glazed to the plaza at ground level
+- West exhibition room: x −30..−12, z −12..11.6, glazed to the plaza at ground level
 - East exhibition room: x 14..32, z −18..−8
 - Auditorium: x −8..16, z −38..−20, entered from the hall. Seat banks are solid blocks with aisles, not a seat count
 - Vinyl volume: x 7.2..20, z 0.15..3.4 (ground floor set back to z 2.0); tower x 20..34
-- Sea lion platform: x −25.2..−18.8, z 12.4..26.6, in front of the café's glass, the animal facing it (north); a long bench between them at z 10.3..10.8. Until 17 November 2026 the platform stood in front of the vinyl volume and a basin was drawn here: the photos from a café table and from the east end of the plaza show the sculpture looking at the café window, and the «basin» was its platform
+- Sea lion platform: approximately x 3..17.5, z 8..19.2. The marked plan locates it across the plaza from the café, and the entrance photo places it to the right of the doors. The café bench runs along the plaza-facing window beside the hall, between the tables and the sea lion.
 
 Doors, all open in both the mesh and the walk map: entrance (the swing doors) x −2.6..2.6 at z = 0; west room z −5.2..−0.35 at x = −12; east room z −13.6..−10.4 at x = 14; auditorium x −1.6..2.4 at z = −20.
 

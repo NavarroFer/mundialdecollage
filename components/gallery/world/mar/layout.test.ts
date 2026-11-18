@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import { Box3, Ray, Vector3 } from 'three'
 import { gallerySlots, hang } from '@/data/artworks'
 import { levelAt, planRoute, targetLevel } from '../../navigation/levels'
 import { viewingSpot, walkable } from '../../navigation/path'
 import { standInFront } from '../../player/spawn'
 import {
   CAFE_BAR,
+  CAFE_FRONT_Z,
   GALLERY,
+  LA_ISLA,
   LOBO,
   MAR,
   MAR_BANNERS,
@@ -13,6 +16,8 @@ import {
   MAR_ESCALATORS,
   MAR_HANGINGS,
   MAR_SPAWN,
+  SHOP,
+  WORKSHOP,
   blocksPath,
   marBoxes,
   marCenter,
@@ -225,6 +230,22 @@ describe('MAR layout', () => {
     expect(walkable({ x: -5.2, z: -0.95 }, false, marGalleryTemplate, false)).toBe(false)
   })
 
+  it('leaves the first right turn from the café entrance open along the shop counter', () => {
+    const door = MAR_DOORS.west
+    const entryZ = door.z0 + 1.6
+    const aisleX = (door.x + SHOP.x1) / 2
+    for (const x of [door.x + 0.5, door.x, door.x - 0.5, door.x - 1, aisleX]) {
+      expect(walkable({ x, z: entryZ }, false, marGalleryTemplate, false), `threshold at x=${x}`).toBe(true)
+    }
+    for (let z = entryZ; z > SHOP.z0; z -= STEP) {
+      expect(walkable({ x: aisleX, z }, false, marGalleryTemplate, false), `aisle at z=${z}`).toBe(true)
+    }
+    expect(walkable({ x: SHOP.x1 - 0.35, z: -6 }, false, marGalleryTemplate, false)).toBe(false)
+    for (const fixture of [SHOP.island, SHOP.display]) {
+      expect(walkable({ x: (fixture.x0 + fixture.x1) / 2, z: (fixture.z0 + fixture.z1) / 2 }, false, marGalleryTemplate, false)).toBe(false)
+    }
+  })
+
   it('keeps the shop aisle beyond the café bar open toward the Laboratorio', () => {
     const reached = reachableFrom(MAR_SPAWN)
     for (const x of [-17, -22, -26]) {
@@ -234,6 +255,26 @@ describe('MAR layout', () => {
     expect(reached(-21, CAFE_BAR.z1 + 0.8)).toBe(true)
     expect(reached(-26, -5)).toBe(true)
     expect(reached(-26, -9.5)).toBe(true)
+  })
+
+  it('reaches La Isla at the end of the shop aisle while the tower and glazing stop the walk', () => {
+    const approach = { x: -13.5, z: -10 }
+    expect(reachableFrom(MAR_SPAWN)(approach.x, approach.z)).toBe(true)
+    expect(walkable(LA_ISLA.tower, false, marGalleryTemplate, false)).toBe(false)
+    expect(walkable({ x: approach.x, z: -12 }, false, marGalleryTemplate, false)).toBe(false)
+    expect(SHOP.labSign.x1).toBe(LA_ISLA.x0)
+  })
+
+  it('opens into the workshop beside the Laboratorio sign and keeps its exterior glass solid', () => {
+    const entryX = (WORKSHOP.x0 + WORKSHOP.x1) / 2
+    expect(WORKSHOP.x1).toBe(SHOP.labSign.x0)
+    expect(walkable({ x: entryX, z: WORKSHOP.z1 }, false, marGalleryTemplate, false)).toBe(true)
+    for (let x = -13.5; x >= -22.5; x -= STEP) {
+      expect(walkable({ x, z: -9.5 }, false, marGalleryTemplate, false), `turn at x=${x}`).toBe(true)
+    }
+    expect(reachableFrom(MAR_SPAWN)(-25.8, -14)).toBe(true)
+    expect(walkable({ x: WORKSHOP.x1, z: -16 }, false, marGalleryTemplate, false)).toBe(false)
+    expect(walkable({ x: WORKSHOP.tableX, z: WORKSHOP.tables[0] }, false, marGalleryTemplate, false)).toBe(false)
   })
 
   it('puts the escalators left of the entrance, crossed and side on to the door, with open floor in front of them', () => {
@@ -287,17 +328,37 @@ describe('MAR facade', () => {
     expect(reachableFrom(MAR_SPAWN)(30, 12)).toBe(true)
   })
 
-  it('stands the sea lion in front of the café glass, clear of the overhang, with a way between them', () => {
-    const glass = marBoxes.find((item) => item.id === 'mar-west-s-glass')!
-    const lip = marBoxes.find((item) => item.id === 'mar-west-lip')!
-    expect(LOBO.head.x).toBeGreaterThan(glass.minX)
-    expect(LOBO.head.x).toBeLessThan(glass.maxX)
-    expect(LOBO.z0).toBeGreaterThan(lip.maxZ)
-    // From the café door along the glass, past the bench, to the far side of the platform.
+  it('puts the sea lion right of the entrance, between the façade and the plaza step', () => {
+    const bench = marBoxes.find((item) => item.id === 'mar-bench-cafe')!
+    const step = marBoxes.find((item) => item.id === 'mar-plaza-step')!
+    expect(bench.maxX).toBeLessThan(MAR_SPAWN.x)
+    expect(LOBO.x0).toBeGreaterThan(MAR_SPAWN.x)
+    expect(LOBO.z1).toBeLessThan(step.minZ)
     const reach = reachableFrom(MAR_SPAWN)
-    expect(reach(LOBO.head.x, 9.2)).toBe(true)
-    expect(reach(LOBO.head.x, 11.6)).toBe(true)
+    expect(reach(LOBO.head.x, LOBO.z0 - 1.5)).toBe(true)
     expect(reach(LOBO.head.x, LOBO.z1 + 1)).toBe(true)
+  })
+
+  it('keeps the sea lion visible through the long plaza-facing window beside reception', () => {
+    const eye = new Vector3(-18, 1.55, 6.85)
+    expect(reachableFrom(MAR_SPAWN)(eye.x, eye.z)).toBe(true)
+    expect(walkable({ x: MAR_DOORS.west.x, z: 6.2 }, false, marGalleryTemplate, false)).toBe(false)
+    expect(walkable({ x: eye.x, z: CAFE_FRONT_Z }, false, marGalleryTemplate, false)).toBe(false)
+
+    for (const [height, offset] of [[4.9, -0.65], [4.9, 0], [4.9, 0.65], [9.3, 0]]) {
+      const target = new Vector3(LOBO.head.x, LOBO.height + height, LOBO.head.z + offset)
+      const sightline = new Ray(eye, target.clone().sub(eye).normalize())
+      const intersections = marBoxes.filter((item) => {
+        if (item.visual === false) return false
+        const bounds = new Box3(
+          new Vector3(item.minX, item.minY, item.minZ),
+          new Vector3(item.maxX, item.maxY, item.maxZ),
+        )
+        const hit = sightline.intersectBox(bounds, new Vector3())
+        return hit && eye.distanceToSquared(hit) < eye.distanceToSquared(target)
+      })
+      expect(intersections.map((item) => item.id)).toEqual(['mar-cafe-plaza-glass'])
+    }
   })
 
   it('does not let the volumes over the plaza close the walk beneath them', () => {
