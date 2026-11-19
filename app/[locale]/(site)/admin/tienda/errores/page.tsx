@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { AdminPageHeader } from '@/components/admin/page-header'
+import { providerPlanLabel } from '@/lib/provider-plan-label'
 
 const STAGES: Record<string, string> = {
   create_subscription: 'Guardar la solicitud', create_preapproval: 'Iniciar la suscripción',
@@ -42,7 +43,7 @@ export default async function PaymentErrorsPage({ searchParams }: { searchParams
               <td className="px-4 py-3"><p className="font-medium">{row.customers?.full_name ?? '—'}</p><Link href={`/admin/tienda/errores?email=${encodeURIComponent(row.customers?.email ?? '')}`} className="text-muted-foreground underline">{row.customers?.email}</Link></td>
               <td className="px-4 py-3"><p className="font-medium">{row.provider === 'paypal' ? 'PayPal' : 'Mercado Pago'}</p>{STAGES[row.stage] ?? row.stage}</td>
               <td className="max-w-lg px-4 py-3 break-words"><p>{row.message}</p>{(row.http_status || row.codes.length > 0) && <p className="mt-1 text-xs text-muted-foreground">{row.http_status ? `HTTP ${row.http_status} ` : ''}{row.codes.join(', ')}</p>}</td>
-              <td className="px-4 py-3"><p>{row.subscriptions?.status ?? 'Sin suscripción creada'}</p><p className="text-xs text-muted-foreground">{row.subscriptions?.provider_plan_id}</p></td>
+              <td className="px-4 py-3"><p>{row.subscriptions?.status ?? 'Sin suscripción creada'}</p><p className="text-xs text-muted-foreground">{row.subscriptions ? providerPlanLabel(row.subscriptions.provider_plan_id) : null}</p></td>
             </tr>)}
           </tbody>
         </table>
