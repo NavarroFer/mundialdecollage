@@ -5,6 +5,7 @@ import { adminDescription } from '@/components/admin/admin-sections'
 import { SubmitButton } from '@/components/admin/submit-button'
 import { formatAddress, formatMoney } from '@/lib/receipts'
 import { planForProviderPlan } from '@/lib/subscription-receipts'
+import { clubPlanForProviderPlan } from '@/lib/club-plans'
 import { providerPlanLabel } from '@/lib/provider-plan-label'
 import { storePlanName } from '@/lib/store'
 import { MESSAGES } from '@/lib/i18n/messages'
@@ -101,7 +102,11 @@ export default async function TiendaAdminPage({ searchParams }: { searchParams: 
   const active = subscriptions.filter((s) => s.status === 'active')
   const recurring = new Map<string, number>()
   for (const s of active) {
-    const charge = planForProviderPlan(s.provider_plan_id)
+    // Club plans aren't store plans: a yearly one counts as its price over the months it covers.
+    const club = clubPlanForProviderPlan(s.provider_plan_id)
+    const charge = club
+      ? { currency: club.currency, amount: (club.currency === 'USD' ? club.plan.priceUsd : club.plan.priceArs) / club.plan.monthsIncluded }
+      : planForProviderPlan(s.provider_plan_id)
     if (charge) recurring.set(charge.currency, (recurring.get(charge.currency) ?? 0) + charge.amount)
   }
   const monthly = sumByCurrency([...(paymentsResult.data ?? []), ...(magazineResult.data ?? []), ...(entriesResult.data ?? [])])
