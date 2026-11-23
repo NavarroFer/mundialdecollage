@@ -4,13 +4,17 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { isLocale, LOCALE_COOKIE, resolveLocale } from '@/lib/i18n/locales'
 import { parseReferral, REFERRAL_COOKIE } from '@/lib/referral'
 import { isStaticPage } from '@/lib/static-pages'
+import { getSiteUrl } from '@/lib/site'
 
 // `?lang=it` links (for sharing the site in a given language) store that
 // choice like the language switcher does, then drop the param from the URL.
 function languageLinkRedirect(request: NextRequest) {
   const lang = request.nextUrl.searchParams.get('lang')
   if (!isLocale(lang)) return null
-  const url = request.nextUrl.clone()
+  const internalProxy = process.env.NODE_ENV === 'production'
+    && ['localhost', '127.0.0.1', '[::1]'].includes(request.nextUrl.hostname)
+  const origin = internalProxy ? getSiteUrl() : request.nextUrl.origin
+  const url = new URL(request.nextUrl.pathname + request.nextUrl.search, origin)
   url.searchParams.delete('lang')
   const response = NextResponse.redirect(url)
   response.cookies.set(LOCALE_COOKIE, lang, { path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' })

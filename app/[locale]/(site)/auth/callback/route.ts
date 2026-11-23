@@ -3,10 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { safeNextUrl } from '@/lib/safe-next'
 import { trackServer } from '@/lib/track-server'
+import { getSiteUrl } from '@/lib/site'
 
 // Supabase redirects here after Google OAuth with a ?code= to exchange for a session.
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
+  const origin = new URL(getSiteUrl()).origin
   const code = searchParams.get('code')
 
   if (isSupabaseConfigured && code) {

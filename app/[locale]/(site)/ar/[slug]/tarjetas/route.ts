@@ -5,6 +5,7 @@ import { isLocale, localeForCountry, DEFAULT_LOCALE } from '@/lib/i18n/locales'
 import { MESSAGES } from '@/lib/i18n/messages'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { getSiteUrl } from '@/lib/site'
 
 // A4 PDF with four AR cards to cut out (see lib/ar/print-cards.tsx).
 // ?formato=obra (default) prints the obra itself; ?formato=tarjeta prints the
@@ -22,7 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const { slug } = await params
   const url = new URL(request.url)
   const user = isSupabaseConfigured ? (await (await createClient()).auth.getUser()).data.user : null
-  if (!user) return Response.redirect(new URL(`/ar/${encodeURIComponent(slug)}`, url.origin), 303)
+  if (!user) return Response.redirect(new URL(`/ar/${encodeURIComponent(slug)}`, getSiteUrl()), 303)
   const format: CardFormat = url.searchParams.get('formato') === 'tarjeta' ? 'tarjeta' : 'obra'
   const finalist = await getFinalistBySlug(slug)
   if (!finalist) return new Response(null, { status: 404 })
@@ -32,7 +33,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   // The QR points at whichever host served the PDF, so a preview's cards
   // open that preview.
-  const arUrl = new URL(`/ar/${finalist.slug}`, url.origin)
+  const arUrl = new URL(`/ar/${finalist.slug}`, getSiteUrl())
   if (format === 'tarjeta') arUrl.searchParams.set('modo', 'tarjeta')
 
   const pdf = await printCardsPdf({

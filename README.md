@@ -1,5 +1,10 @@
 # Mundial Internacional de Collage
 
+> **Migración de hosting en curso (23/11/2026):** leer
+> [docs/migracion-gv-cloud.md](docs/migracion-gv-cloud.md) antes de desplegar,
+> tocar DNS, Supabase o los cron. Las instrucciones de Vercel/Supabase de este
+> README describen todavía la producción anterior.
+
 Landing page + login/onboarding para el Mundial Internacional de Collage. Next.js
 (App Router) + Tailwind v4 + shadcn/ui + Supabase Auth, siguiendo la misma base
 que el resto de los proyectos del workspace (ver `cursiva`, `studio`).

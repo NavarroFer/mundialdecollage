@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto'
 import { getFinalists } from '@/lib/finalists'
+import { getSiteUrl } from '@/lib/site'
 
 // Pick on each click, rather than pre-rendering a random destination into
 // the cached home. Only works visible to the public are eligible.
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   return new Response(null, {
     status: 307,
     headers: {
-      Location: new URL(path, url.origin).href,
+      Location: new URL(path, getSiteUrl()).href,
       'Cache-Control': 'no-store',
       'X-Robots-Tag': 'noindex, nofollow',
     },
