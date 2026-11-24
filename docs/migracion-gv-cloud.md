@@ -122,19 +122,20 @@ un pooler; no es superusuario. El Studio tampoco está publicado en Internet.
   limpia o un procedimiento de delta. Mantener el origen como respaldo. Una
   verificación posterior encontró 2.909 objetos en Storage de origen frente a
   los 2.904 de la primera copia; dos buckets ya difieren.
-- **Correo entrante de webhooks:** en el .env.production remoto están vacíos
-  RESEND_WEBHOOK_SECRET y BREVO_WEBHOOK_SECRET. Los handlers verifican esos
-  secretos; hasta cargarlos y probarlos, los eventos de ambos proveedores no
-  quedan equivalentes a producción. Brevo tiene un webhook transaccional
-  activo llamado mundial-campanas-estadisticas, con destino
-  https://mundialdecollage.com.ar/api/brevo/webhook y autenticación Token.
-  La clave de Brevo configurada para envío no permitió consultar webhooks por
-  API (HTTP 401), y Vercel marca ambos secretos como sensibles sin entregar
-  su valor mediante el conector. Habrá que transferirlos por un canal privado
-  o rotarlos y configurar los dos extremos. SUPABASE_USAGE_ALERT_TOKEN también
-  está vacío, pero ya no lo necesita el monitor nuevo.
-  ANTHROPIC_WORKSPACE_ID y RESEND_DOMAIN_API_KEY también están vacíos; revisar
-  si alguna función usada en producción los necesita.
+- **Correo entrante de webhooks:** resuelto el 23/11/2026 en la provisoria.
+  RESEND_WEBHOOK_SECRET y BREVO_WEBHOOK_SECRET se cargaron en el
+  .env.production remoto con scripts/gvcloud/webhook_secrets_bridge.py (SFTP,
+  sin guardar valores) y se reinició la app (build 20261123-083131). Los dos
+  handlers de la provisoria responden 401 sin firma ni token. El webhook de
+  Resend que corresponde está en la cuenta todoesfanzineable, que es la que
+  tiene el dominio mundialdecollage.com.ar; estaba deshabilitado y se
+  habilitó. El de Brevo (mundial-campanas-estadisticas, autenticación Token)
+  conserva su token. **Falta** probar con un evento real después del cambio de
+  DNS. La cuenta fernavarro2607 de Resend tiene un webhook que apunta al mismo
+  endpoint pero no tiene el dominio de Mundial: conviene borrarlo o
+  redirigirlo. SUPABASE_USAGE_ALERT_TOKEN ya no hace falta.
+  ANTHROPIC_WORKSPACE_ID y RESEND_DOMAIN_API_KEY siguen vacíos; revisar si
+  alguna función usada en producción los necesita.
 - **Cron de infraestructura:** se subieron
   app/api/cron/infra/route.ts y lib/supabase-monitor.ts a GV Cloud. El build
   20261123-075405 terminó OK. La nueva versión comprueba Auth, PostgREST y
@@ -150,17 +151,16 @@ un pooler; no es superusuario. El Studio tampoco está publicado en Internet.
   **ese bucket público**, conservando el origen final, si se necesita probarlos
   allí. Es un bucket distinto de mundial-img. El acceso a Cloudflare se hace
   con el perfil Chrome Fernando.
-- **Scripts de Vercel:** Analytics y Speed Insights generan 404 en GV Cloud
-  para /_vercel/...; no impiden el uso, pero conviene retirar sus componentes
-  al dejar Vercel. Clarity es independiente y sigue funcionando.
+- **Scripts de Vercel:** Analytics y Speed Insights ya se retiraron del código
+  (rama chore/gv-cloud-cutover). Clarity es independiente y sigue funcionando.
 - **Pagos y Realtime:** falta probar un flujo de Mercado Pago y PayPal sin
   completar cobros reales, los callbacks/webhooks, la tienda exterior y una
   suscripción Realtime en el host nuevo.
-- **CI:** .github/workflows/ci.yml todavía dispara un deploy de Vercel en cada
-  push a main, y .github/workflows/supabase-migrations.yml aplica las
-  migraciones al project ref del Supabase administrado. Antes del primer push
-  posterior al pase, desactivar o reemplazar ambos pasos para no desplegar ni
-  migrar el sistema viejo por accidente.
+- **CI:** en la rama chore/gv-cloud-cutover, ci.yml quedó solo con los checks
+  (lint, tsc, tests, build) y se borró supabase-migrations.yml, que apuntaba al
+  project ref del Supabase administrado. Ya no hay deploy a Vercel ni migraciones
+  automáticas: las migraciones al Supabase de GV Cloud se aplican a mano. Mergear
+  esta rama a main recién después del pase (o justo antes del primer push).
 - **Código local:** al 23/11 la rama main tenía cambios sin commit. Los dos
   archivos del monitor que diferían de GV Cloud ya se subieron. Confirmar
   git status antes de tocar otra cosa.
@@ -184,7 +184,11 @@ Ese cambio, con @ y * todavía en Vercel, permite activar y comprobar la zona
 sin mover la app. Se enviaron los nameservers desde NIC.ar, pero al reabrir el
 trámite seguían figurando los de Vercel y la consulta pública a 1.1.1.1
 también seguía devolviendo Vercel. **No dar la delegación por completada
-hasta verificarla.** El segundo
+hasta verificarla.** Al 23/11 08:39 el panel de
+NIC.ar ya listaba marlowe.ns.cloudflare.com y nitin.ns.cloudflare.com, pero
+el .ar (a.lactld.org) seguía publicando los de Vercel. La zona de Cloudflare
+sí responde: @ devuelve IPs de Vercel y no hay MX. Verificar con
+dig +trace +nodnssec NS mundialdecollage.com.ar. El segundo
 paso, coordinado con Javier, es:
 
 1. Resolver los pendientes anteriores. Preparar HTTPS de apex y www en GV

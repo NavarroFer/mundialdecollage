@@ -5,8 +5,6 @@ import { Anton, Oswald } from 'next/font/google'
 import '../globals.css'
 import { site, getSiteUrl } from '@/lib/site'
 import { ClarityAnalytics } from '@/components/clarity'
-import { VercelAnalytics } from '@/components/vercel-analytics'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ReferralCapture } from '@/components/referral-capture'
 import { NavigationProgress } from '@/components/navigation-progress'
 import { SiteNoticeHost } from '@/components/site-notice'
@@ -89,8 +87,6 @@ export default async function RootLayout({ children }: LayoutProps<'/[locale]'>)
         </I18nProvider>
         <SiteNoticeHost />
         <ClarityAnalytics />
-        <VercelAnalytics />
-        <SpeedInsights />
       </body>
     </html>
   )
