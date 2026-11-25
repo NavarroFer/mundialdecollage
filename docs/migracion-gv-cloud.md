@@ -247,3 +247,31 @@ Storage por S3, ajuste del dump, reemplazo de URLs de Storage, despliegue por
 SFTP y transferencia de OAuth sin archivo local. Requieren que el operador
 provea rutas locales y credenciales por archivos privados o prompts, nunca
 por argumentos de línea de comandos o Git.
+
+## Cómo desplegar a GV Cloud (después del pase)
+
+Producción corre en GV Cloud. Mergear a `main` solo corre los checks del CI:
+no despliega nada. El deploy se hace a mano, desde la computadora de
+Fernando, con Tailscale conectado:
+
+1. Juntar los cambios en una rama, abrir PR a `main` y esperar el CI verde.
+2. Mergear y actualizar: `git checkout main && git pull`.
+3. Desplegar: `~/.venvs/gv/bin/python3 scripts/gvcloud/deploy.py`.
+
+El script exige estar en `main`, sin cambios sin commitear y igual a
+`origin/main`. Compara contra el commit guardado en el servidor
+(`.deployed-commit`), lista los archivos a subir y a borrar, pide confirmación,
+sube, toca `reiniciar.txt` y espera el `OK: build` del `deploy.log`. Si el
+build falla, el commit marcado como desplegado no cambia. `--dry-run` solo
+muestra el plan. No toca `.env.production`: las claves y `NEXT_PUBLIC_SITE_URL`
+(`https://mundialdecollage.com.ar`) quedan como están en el servidor.
+
+Primera vez, para decirle qué commit corre hoy el servidor (el del pase,
+`81dbff5` en la rama chore/gv-cloud-cutover o su equivalente en `main`):
+
+~~~sh
+~/.venvs/gv/bin/python3 scripts/gvcloud/deploy.py --mark-deployed 81dbff5
+~~~
+
+`sync_code.py` queda para comparar todo el repo contra el servidor (tarda unos
+20 minutos) cuando se sospecha que el servidor se desvió del código.

@@ -14,6 +14,8 @@ Instalarlos en un entorno virtual local fuera del repo. No subir ese entorno.
 | storage_copy.py | Preflight, copia S3 por bucket y comparación de conteos/bytes | Solo con --apply |
 | prepare_data_dump.py | Descarta COPY vacíos del dump de Supabase para el target | Escribe un SQL temporal |
 | rewrite_storage_urls.py | Cuenta y reemplaza URLs públicas de Storage en la base nueva | Solo con --apply |
+| sync_code.py | Compara el código de git con el servidor y sube lo que difiere (solo lectura sin --apply); no toca .env.production ni dispara el build | Solo con --apply |
+| deploy.py | Despliega main: sube solo lo que cambió desde el último deploy (git diff), reconstruye y espera el OK del log; pide confirmación | Sí, al confirmar |
 | deploy_provisional.py | Sube los archivos de código elegidos, actualiza cuatro claves de .env.production y dispara el build | Solo con --apply |
 | oauth_bridge.py | Pasa client ID y secret de Google desde un formulario local al auth.env remoto por SFTP | Sí, al enviar el formulario |
 
