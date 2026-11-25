@@ -1,5 +1,10 @@
 # Mundial Internacional de Collage
 
+> **Migración de hosting en curso (23/11/2026):** leer
+> [docs/migracion-gv-cloud.md](docs/migracion-gv-cloud.md) antes de desplegar,
+> tocar DNS, Supabase o los cron. Las instrucciones de Vercel/Supabase de este
+> README describen todavía la producción anterior.
+
 Landing page + login/onboarding para el Mundial Internacional de Collage. Next.js
 (App Router) + Tailwind v4 + shadcn/ui + Supabase Auth, siguiendo la misma base
 que el resto de los proyectos del workspace (ver `cursiva`, `studio`).
@@ -108,21 +113,12 @@ Una vez creado el proyecto de Supabase, corré la migración en
 `supabase/migrations/` (Supabase CLI o pegada directo en el SQL editor) para
 crear la tabla `profiles`.
 
-### Migraciones automáticas (CI)
+### Migraciones
 
-El workflow [.github/workflows/supabase-migrations.yml](.github/workflows/supabase-migrations.yml)
-aplica las migraciones pendientes de `supabase/migrations/` contra el
-proyecto de producción cada vez que se pushea a `main` (en paralelo al
-deploy automático de Vercel). Requiere estos secrets en GitHub (Settings →
-Secrets and variables → Actions):
-
-- `SUPABASE_ACCESS_TOKEN`: personal access token,
-  https://supabase.com/dashboard/account/tokens
-- `SUPABASE_DB_PASSWORD`: la contraseña de la base (Settings → Database del
-  proyecto)
-
-El project ref ya está hardcodeado en el workflow
-(`jgneduoejygbqtwarynr`) porque no es un dato sensible.
+Producción corre en GV Cloud y las migraciones de `supabase/migrations/` se
+aplican a mano contra el Supabase self-hosted (ver
+[docs/migracion-gv-cloud.md](docs/migracion-gv-cloud.md)). El CI solo corre
+lint, tipos, tests y build; no migra ni despliega.
 
 ## Idiomas
 

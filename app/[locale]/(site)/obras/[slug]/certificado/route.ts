@@ -3,7 +3,7 @@ import { isValidCertificateToken, certificateSecret } from '@/lib/certificate-to
 import { getCertificateFinalistBySlug, getFinalistBySlug, type Finalist } from '@/lib/finalists'
 import { getCallState } from '@/lib/call-state'
 import { ADMIN_EMAILS } from '@/lib/admin'
-import { site } from '@/lib/site'
+import { getSiteUrl, site } from '@/lib/site'
 import { isLocale, localeForCountry, DEFAULT_LOCALE } from '@/lib/i18n/locales'
 import { MESSAGES } from '@/lib/i18n/messages'
 import { createClient } from '@/lib/supabase/server'
@@ -44,7 +44,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     finalist,
     locale,
     m: MESSAGES[locale],
-    verifyUrl: new URL(`/obras/${finalist.slug}`, url.origin).toString(),
+    verifyUrl: new URL(`/obras/${finalist.slug}`, getSiteUrl()).toString(),
     // Dated the day the call closed; an admin preview before that shows the planned date.
     issuedISO: closedAt ?? site.certificates.issuedISO,
   }

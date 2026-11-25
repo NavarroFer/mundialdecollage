@@ -1,13 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({ getFinalists: vi.fn(), randomInt: vi.fn() }))
 vi.mock('@/lib/finalists', () => ({ getFinalists: mocks.getFinalists }))
 vi.mock('node:crypto', () => ({ randomInt: mocks.randomInt }))
 import { GET } from './route'
 
+// The redirect is built from getSiteUrl(), not from the request origin: behind
+// the GV Cloud proxy the app sees its internal host (localhost:3101).
 beforeEach(() => {
+  vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://example.com')
   mocks.getFinalists.mockResolvedValue([{ slug: 'primera' }, { slug: 'segunda' }])
   mocks.randomInt.mockReturnValue(0)
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 describe('surprise artwork', () => {
@@ -41,6 +48,11 @@ describe('surprise artwork', () => {
 
   it('cannot use the excluded slug to redirect to an external site', async () => {
     const response = await GET(new Request('https://example.com/api/artworks/surprise?exclude=https://evil.test'))
+    expect(response.headers.get('location')).toBe('https://example.com/obras/primera')
+  })
+
+  it('redirects to the public site URL even when the request arrives on the internal host', async () => {
+    const response = await GET(new Request('http://localhost:3101/api/artworks/surprise'))
     expect(response.headers.get('location')).toBe('https://example.com/obras/primera')
   })
 })

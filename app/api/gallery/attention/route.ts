@@ -3,9 +3,13 @@ import { parseAttentionBatch } from '@/lib/gallery-attention'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { getSiteUrl } from '@/lib/site'
 
 export async function POST(request: NextRequest) {
-  if (request.headers.get('origin') !== request.nextUrl.origin) return new NextResponse(null, { status: 403 })
+  const internalProxy = process.env.NODE_ENV === 'production'
+    && ['localhost', '127.0.0.1', '[::1]'].includes(request.nextUrl.hostname)
+  const expectedOrigin = internalProxy ? new URL(getSiteUrl()).origin : request.nextUrl.origin
+  if (request.headers.get('origin') !== expectedOrigin) return new NextResponse(null, { status: 403 })
   if (!isSupabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return new NextResponse(null, { status: 503 })
   // Bound the actual stream, not just an optional/forgeable Content-Length.
   const reader = request.body?.getReader()

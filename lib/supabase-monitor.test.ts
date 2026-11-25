@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { getSupabaseApiRequestCount, isR2Configured, needsMonthlyPlanReview, proPlanReviewText } from './supabase-monitor'
+import { getSelfHostedSupabaseHealth, getSupabaseApiRequestCount, isR2Configured, needsMonthlyPlanReview, proPlanReviewText } from './supabase-monitor'
 
 describe('Supabase monitoring', () => {
   it('reads the request count through the scoped analytics endpoint', async () => {
@@ -13,6 +13,37 @@ describe('Supabase monitoring', () => {
 
   it('does not claim a successful check when the API rejects it', async () => {
     await expect(getSupabaseApiRequestCount(vi.fn().mockResolvedValue(new Response(null, { status: 402 })), 'token')).resolves.toMatchObject({ ok: false, message: 'Supabase Usage Analytics respondió HTTP 402.' })
+  })
+
+  it('checks Auth, PostgREST and Storage on the self-hosted API', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 200 }))
+    const env = {
+      NEXT_PUBLIC_SUPABASE_URL: 'https://api-mundialdecollage.cloud.gvenue.com.ar',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-test',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-test',
+    }
+    await expect(getSelfHostedSupabaseHealth(fetcher, env)).resolves.toEqual({
+      ok: true, apiRequestCount: null, message: null,
+    })
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([
+      env.NEXT_PUBLIC_SUPABASE_URL + '/auth/v1/settings',
+      env.NEXT_PUBLIC_SUPABASE_URL + '/rest/v1/artworks?select=id&limit=1',
+      env.NEXT_PUBLIC_SUPABASE_URL + '/storage/v1/bucket',
+    ])
+    expect(fetcher.mock.calls[2][1].headers.apikey).toBe('service-test')
+  })
+
+  it('reports a self-hosted service failure without exposing its key', async () => {
+    const fetcher = vi.fn().mockImplementation(async (url: string) =>
+      new Response(null, { status: url.endsWith('/storage/v1/bucket') ? 503 : 200 }),
+    )
+    await expect(getSelfHostedSupabaseHealth(fetcher, {
+      NEXT_PUBLIC_SUPABASE_URL: 'https://api-mundialdecollage.cloud.gvenue.com.ar',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-test',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-test',
+    })).resolves.toEqual({
+      ok: false, apiRequestCount: null, message: 'Storage respondió HTTP 503.',
+    })
   })
 
   it('only considers a complete R2 configuration healthy', () => {

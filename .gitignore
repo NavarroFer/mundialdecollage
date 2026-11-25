@@ -39,3 +39,6 @@ supabase/.temp/
 
 # Generated marketing images (carousels, covers): kept locally, not in git
 /output/
+
+# local scripts with pasted secrets
+*.local.sh
