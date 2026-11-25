@@ -417,7 +417,7 @@ Source: `.github/workflows/ci.yml`, job `check`, runs on every push to `main` an
 4. `npm test` (Vitest, the suite described above)
 5. `npm run build` (Next build with Supabase and Mercado Pago env vars deliberately absent, so the "not configured" paths run)
 
-The `migrate` job (`.github/workflows/supabase-migrations.yml`) runs only after `check` passes on `main`, and applies migrations with `supabase db push --remote`. The `deploy` job then triggers the Vercel deploy hook. Database scripts in `scripts/pglite/` and `scripts/test-*-db.mts` are not part of CI.
+CI only runs the `check` job: no migrations and no deploy (those are manual since the 24 Nov 2026 move to GV Cloud). Database scripts in `scripts/pglite/` and `scripts/test-*-db.mts` are not part of CI.
 
 Because CI has no database, a migration is not tested by CI. The PGlite harness is the only pre-merge check for SQL.
 

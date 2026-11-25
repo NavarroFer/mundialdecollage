@@ -192,7 +192,7 @@ Al 29 de octubre de 2026 (actualizado el 30, con el mapa, las muestras, el resum
 
 - [x] Pasar el proyecto a Vercel Pro.
 - [x] Configurar Mercado Pago y PayPal (plan del Club y `PAYPAL_PLAN_ID_CLUB_MONTHLY`).
-- [ ] Subir los commits a `main` en una sola tanda. Ojo: `.github/workflows/supabase-migrations.yml` aplica las migraciones en paralelo al CI, sin esperarlo; por eso todo se verifica antes (ver arriba). El deploy deja el Club cerrado.
+- [ ] Subir los commits a `main` en una sola tanda. Ojo: desde el pase a GV Cloud el CI ya no migra ni despliega: las migraciones se aplican a mano y el deploy se hace con `scripts/gvcloud/deploy.py` (ver `CLAUDE.md`). El deploy deja el Club cerrado.
 - [ ] Probar un cobro real con una cuenta admin (`lib/admin.ts`). No hay entorno de Preview, así que la prueba es en producción con plata real y el Club cerrado. Orden sugerido: primero un Pack Chico ($5.000) y ver que lleguen las 500 monedas; después la cuota ($15.000) y ver que la galería pase a `active` con 600 monedas; cancelar y ver que quede en `paused`.
 - [ ] Revisar con alguien de lo legal la sección del Club, sobre todo el arrepentimiento, y si hace falta un botón de baja visible.
 - [ ] Armar 2 o 3 galerías de muestra con socios fundadores (pedirles permiso), con la cortesía de `/admin/club`. Si no hay fundadores, Fer arma la suya y la de un amigo con sus obras.

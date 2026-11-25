@@ -76,7 +76,7 @@ last_mapped_commit: 6f52dfd
 **Vercel platform services:**
 - Web Analytics and Speed Insights: `@vercel/analytics` 2.0.1 and `@vercel/speed-insights` 2.0.0, mounted via `components/vercel-analytics.tsx`
 - Cron: five jobs declared in `vercel.json` (see the Webhooks & Callbacks section below)
-- Deploy hook: triggered from GitHub Actions (`VERCEL_DEPLOY_HOOK_URL`, see CI/CD below)
+- No longer used for production since 24 Nov 2026 (kept only as a fallback; deploys go to GV Cloud with `scripts/gvcloud/deploy.py`)
 
 **Supabase Management API (usage monitor):**
 - Reads API request counts for the project to warn before the quota is exhausted (`lib/supabase-monitor.ts`, base `https://api.supabase.com/v1`).
@@ -175,12 +175,9 @@ last_mapped_commit: 6f52dfd
 **CI pipeline (GitHub Actions):**
 - `.github/workflows/ci.yml` - runs on push to `main`, on every pull request, and on manual dispatch:
   1. `check` job (Node 22, `npm ci`): `npm run lint`, `npx next typegen`, `npx tsc --noEmit`, `npm test`, `npm run build` (built without Supabase or Mercado Pago env vars on purpose)
-  2. `migrate` job (needs `check`; `main` only): calls `.github/workflows/supabase-migrations.yml`
-  3. `deploy` job (needs `check` and `migrate`; `main` only): verifies the run is still the tip of `main`, then POSTs `VERCEL_DEPLOY_HOOK_URL`. The build runs on Vercel. Concurrency group `production-deploy` cancels superseded runs.
-- `.github/workflows/supabase-migrations.yml` - reusable and manual: `supabase/setup-cli@v1` (latest), `supabase link --project-ref` (the project ref is set as the `SUPABASE_PROJECT_ID` env value in the file), `supabase db push --remote`. Secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`. Concurrency group `supabase-migrations`, never cancelled.
 
 **Secrets (CI):**
-- GitHub Actions secrets: `VERCEL_DEPLOY_HOOK_URL`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`
+- GitHub Actions secrets: none needed by the checks since 24 Nov 2026 (`VERCEL_DEPLOY_HOOK_URL`, `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` can be deleted)
 - Vercel environment variables hold the production app secrets; the build runs on Vercel so these never appear in public CI logs
 
 ## Environment Configuration

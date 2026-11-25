@@ -78,7 +78,7 @@ mundialdecollage/
 │   └── *.png, *.mp4, *.mp3, *.pdf, logo*.png, mundial-de-collage.pdf
 ├── assets/                     # Fonts read at build (share image template hash) and by drawing code
 ├── docs/                       # Project docs (bases, Club, Correo, gallery notes, patrocinio)
-├── .github/workflows/          # ci.yml, supabase-migrations.yml
+├── .github/workflows/          # ci.yml (checks only)
 ├── .planning/codebase/         # These analysis documents
 ├── next.config.mjs             # Image loader, share-image template hash, redirects
 ├── vercel.json                 # Cron schedules; Git auto-deploy off for main
@@ -152,7 +152,7 @@ Local, not in git (see Special Directories): `.local/`, `output/`, `.codex/`, `.
 **`supabase/migrations/`:**
 - Purpose: the whole database schema, RLS policies and SQL functions.
 - Contains: 107 SQL files, from `20260916000000_profiles.sql` to the newest `20261029240000_club_guest_boards.sql` in this tree. Names are `YYYYMMDDHHMMSS_<topic>.sql`.
-- Each migration reaches production through `.github/workflows/supabase-migrations.yml` after the checks pass on `main`.
+- Migrations are applied by hand to the GV Cloud database (see `CLAUDE.md`); no CI job applies them.
 
 **`scripts/`:**
 - Purpose: operations run by hand, plus DB tests.
@@ -177,8 +177,7 @@ Local, not in git (see Special Directories): `.local/`, `output/`, `.codex/`, `.
 - Purpose: project notes read by humans: `bases/` (contest rules HTML and fonts, input for the PDF), `patrocinio/` (sponsorship material), `club-del-mundial-galerias-virtuales.md`, `correo-argentino.md`, `galeria-atencion.md`, `gallery-graphics.md`, `mar-gallery.md`, `vercel-performance-review-2026-10-10.md`.
 
 **`.github/workflows/`:**
-- `ci.yml`: lint, typegen, `tsc --noEmit`, tests, build; then migrations and the Vercel deploy hook on `main`.
-- `supabase-migrations.yml`: `supabase db push --remote`, reusable and manually runnable.
+- `ci.yml`: lint, typegen, `tsc --noEmit`, tests, build. No deploy and no migrations.
 
 ## Special Directories
 

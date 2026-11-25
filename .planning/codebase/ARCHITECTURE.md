@@ -417,7 +417,7 @@ Tag names are in `lib/public-cache-tags.ts`: `public-data:<key>`, `artwork:<sha2
 - `app/sitemap.ts` (ISR 3600 s), `app/robots.ts`, `app/[locale]/opengraph-image.tsx` (ISR 3600 s), `app/[locale]/icon.png`, `app/[locale]/apple-icon.png`.
 
 **Build and CI:**
-- `.github/workflows/ci.yml`: lint, `next typegen`, `tsc --noEmit`, `npm test`, `npm run build`, then `supabase-migrations.yml` (`supabase db push --remote`), then a Vercel deploy hook. `vercel.json` disables Git auto-deploy for `main`.
+- `.github/workflows/ci.yml`: lint, `next typegen`, `tsc --noEmit`, `npm test`, `npm run build`. It does not deploy or migrate since the 24 Nov 2026 move to GV Cloud: deploys are manual with `scripts/gvcloud/deploy.py`.
 
 **Scripts:**
 - `scripts/*.mts` run with `node --env-file=.env.local --import ./scripts/node-project-imports.mjs`. See STRUCTURE.md for the list.

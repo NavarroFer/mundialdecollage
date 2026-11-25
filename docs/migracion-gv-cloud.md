@@ -275,3 +275,16 @@ Primera vez, para decirle qué commit corre hoy el servidor (el del pase,
 
 `sync_code.py` queda para comparar todo el repo contra el servidor (tarda unos
 20 minutos) cuando se sospecha que el servidor se desvió del código.
+
+## Migraciones nuevas
+
+El CI ya no aplica migraciones. Para una migración nueva de
+`supabase/migrations/`:
+
+1. Abrir el túnel: `ssh -N -L 5434:127.0.0.1:5434 -i ~/gvenue/id_ed25519 fnavarro@100.88.213.117`.
+2. Aplicarla **antes** de desplegar el código que la necesita:
+   `psql "$DB_URI" -1 -v ON_ERROR_STOP=1 -f supabase/migrations/<archivo>.sql`
+   (`DB_URI` sale de la línea `postgresql://...` de `/LEEME-supabase.txt`).
+3. No usar `supabase db push`: la base de GV Cloud no tiene el historial de
+   migraciones del proyecto viejo (el dump del pase solo incluyó datos de
+   `auth`, `public` y `storage`) y intentaría repetirlas todas.
