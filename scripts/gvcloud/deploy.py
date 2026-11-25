@@ -8,18 +8,28 @@ last deployed, stored on the server in .deployed-commit, and the current HEAD.
 It never touches .env.production, node_modules, .next or .git. It requires:
 the main branch, no uncommitted tracked changes and HEAD == origin/main.
 
+New files in supabase/migrations/ are applied first, one transaction per file
+with psql (ON_ERROR_STOP), through an SSH tunnel the script opens by itself.
+The server keeps the list of applied files in .migrations-applied, updated
+after each file, so a failure halfway never re-runs what already passed. If a
+migration fails nothing is uploaded. Needs `psql` locally and a private copy of
+the database connection file (see --db-info). Use --no-migrate to skip them.
+
 First time only: tell it which commit the server already runs with
 --mark-deployed <sha>, then deploy normally.
 """
 
 import argparse
+import json
+import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import time
-import json
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import paramiko
 
@@ -27,6 +37,8 @@ from deploy_provisional import atomic_put
 from sync_code import NEVER_UPLOAD, ensure_dirs, remote_size, skipped
 
 MARKER = ".deployed-commit"
+APPLIED = ".migrations-applied"
+MIG_DIR = "supabase/migrations/"
 FAIL_PATTERNS = re.compile(r"Failed to compile|Build error occurred|npm error|ELIFECYCLE")
 
 
@@ -74,6 +86,79 @@ def changed_files(repo: Path, base: str, head: str) -> list:
     return [(tokens[i], tokens[i + 1]) for i in range(0, len(tokens) - 1, 2)]
 
 
+def read_remote(sftp: paramiko.SFTPClient, path: str):
+    try:
+        with sftp.open(path, "rb") as handle:
+            return handle.read().decode("utf-8")
+    except IOError:
+        return None
+
+
+def db_settings(path: Path) -> dict:
+    match = re.search(r"postgres(?:ql)?://\S+", path.read_text(encoding="utf-8"))
+    if not match:
+        sys.exit(f"No encontré la línea postgresql://... en {path}")
+    url = urlsplit(match.group(0))
+    return {
+        "user": unquote(url.username or ""),
+        "password": unquote(url.password or ""),
+        "port": url.port or 5432,
+        "db": (url.path or "/postgres").lstrip("/") or "postgres",
+    }
+
+
+def pending_migrations(repo: Path, base: str, head: str, applied: set):
+    added, modified = [], []
+    for status, rel in changed_files(repo, base, head):
+        if rel.startswith(MIG_DIR) and rel.endswith(".sql"):
+            (added if status == "A" else modified if status == "M" else []).append(rel)
+    pending = sorted(rel for rel in added if rel.split("/")[-1] not in applied)
+    return pending, sorted(modified)
+
+
+class Tunnel:
+    """SSH local forward to the server's PostgreSQL, closed on exit."""
+
+    def __init__(self, args, remote_port: int):
+        self.args, self.remote_port, self.proc, self.port = args, remote_port, None, None
+
+    def __enter__(self):
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            self.port = probe.getsockname()[1]
+        a = self.args
+        self.proc = subprocess.Popen(
+            ["ssh", "-N", "-L", f"127.0.0.1:{self.port}:127.0.0.1:{self.remote_port}",
+             "-i", str(a.ssh_key), "-o", f"UserKnownHostsFile={a.known_hosts}",
+             "-o", "StrictHostKeyChecking=yes", "-o", "ExitOnForwardFailure=yes",
+             "-o", "BatchMode=yes", f"{a.user}@{a.host}"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+        )
+        for _ in range(30):
+            if self.proc.poll() is not None:
+                sys.exit("No se pudo abrir el túnel SSH: " + (self.proc.stderr.read() or "").strip())
+            try:
+                socket.create_connection(("127.0.0.1", self.port), timeout=1).close()
+                return self
+            except OSError:
+                time.sleep(0.5)
+        self.proc.terminate()
+        sys.exit("Se acabó el tiempo esperando el túnel SSH.")
+
+    def __exit__(self, *exc):
+        if self.proc and self.proc.poll() is None:
+            self.proc.terminate()
+
+
+def run_psql(repo: Path, rel: str, db: dict, port: int) -> subprocess.CompletedProcess:
+    env = dict(os.environ, PGPASSWORD=db["password"], PGCONNECT_TIMEOUT="15")
+    return subprocess.run(
+        ["psql", "-h", "127.0.0.1", "-p", str(port), "-U", db["user"], "-d", db["db"],
+         "-1", "-q", "-v", "ON_ERROR_STOP=1", "-f", str(repo / rel)],
+        env=env, capture_output=True, text=True,
+    )
+
+
 def wait_build(sftp: paramiko.SFTPClient, log_path: str, offset: int, timeout: int):
     deadline = time.time() + timeout
     new = ""
@@ -104,6 +189,9 @@ def main() -> None:
     parser.add_argument("--log", default="/logs/mundialdecollage.com.ar/deploy.log")
     parser.add_argument("--branch", default="main")
     parser.add_argument("--allow-branch", action="store_true")
+    parser.add_argument("--db-info", type=Path, default=Path.home() / "gvenue" / "LEEME-supabase.txt",
+                        help="copia privada (modo 600) de /LEEME-supabase.txt, solo para migraciones")
+    parser.add_argument("--no-migrate", action="store_true", help="no aplicar migraciones")
     parser.add_argument("--mark-deployed", metavar="SHA")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--yes", action="store_true", help="no pedir confirmación")
@@ -153,21 +241,52 @@ def main() -> None:
             (deletes if status == "D" else uploads).append(rel)
         deletes = [d for d in deletes if remote_size(sftp, root + "/" + d) is not None]
 
+        applied_text = read_remote(sftp, root + "/" + APPLIED)
+        applied = set((applied_text or "").split())
+        migrations, modified = ([], []) if args.no_migrate else pending_migrations(repo, base, head, applied)
+
         print(f"Desde {base[:8]} hasta {head[:8]}")
+        print(f"\nMigraciones a aplicar ({len(migrations)}):")
+        for rel in migrations:
+            print("  ", rel)
+        for rel in modified:
+            print("   AVISO: migración existente modificada (no se reaplica):", rel)
         print(f"\nA subir ({len(uploads)}):")
         for rel in uploads:
             print("  ", rel)
         print(f"\nA borrar del servidor ({len(deletes)}):")
         for rel in deletes:
             print("  ", rel)
-        if not uploads and not deletes:
-            print("\nNingún cambio de código para el servidor. Si igual querés reconstruir, avisame para sumar --force-build.")
+        if not uploads and not deletes and not migrations:
+            print("\nNada para el servidor: ni código ni migraciones.")
             return
+        if migrations:
+            if not shutil.which("psql"):
+                sys.exit("Falta psql en esta computadora (brew install libpq y agregarlo al PATH).")
+            if not args.db_info.is_file():
+                sys.exit(f"Falta {args.db_info}: copiá ahí /LEEME-supabase.txt con modo 600 (ver el runbook).")
         if args.dry_run:
             print("\nSolo lectura (--dry-run).")
             return
         if not args.yes and input("\n¿Subir y reconstruir? [s/N] ").strip().lower() not in ("s", "si", "sí", "y", "yes"):
             print("Cancelado.")
+            return
+
+        if migrations:
+            db = db_settings(args.db_info)
+            with Tunnel(args, db["port"]) as tunnel:
+                for rel in migrations:
+                    print("Migración:", rel, flush=True)
+                    result = run_psql(repo, rel, db, tunnel.port)
+                    if result.returncode != 0:
+                        print(result.stderr.strip()[-1500:])
+                        sys.exit(f"La migración {rel} falló: no se subió código. Lo ya aplicado quedó registrado en el servidor.")
+                    applied.add(rel.split("/")[-1])
+                    atomic_put(sftp, root + "/" + APPLIED, ("\n".join(sorted(applied)) + "\n").encode(), 0o644)
+                    print("  aplicada y registrada", flush=True)
+        if not uploads and not deletes:
+            atomic_put(sftp, root + "/" + MARKER, (head + "\n").encode(), 0o644)
+            print(f"OK: migraciones aplicadas, sin cambios de código. Marcado {head[:8]}.")
             return
 
         for rel in uploads:

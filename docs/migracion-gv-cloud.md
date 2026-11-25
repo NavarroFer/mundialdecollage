@@ -278,13 +278,20 @@ Primera vez, para decirle qué commit corre hoy el servidor (el del pase,
 
 ## Migraciones nuevas
 
-El CI ya no aplica migraciones. Para una migración nueva de
-`supabase/migrations/`:
+`deploy.py` las aplica solo. Los archivos nuevos de `supabase/migrations/`
+entre el último deploy y `HEAD` se aplican **antes** de subir el código:
 
-1. Abrir el túnel: `ssh -N -L 5434:127.0.0.1:5434 -i ~/gvenue/id_ed25519 fnavarro@100.88.213.117`.
-2. Aplicarla **antes** de desplegar el código que la necesita:
-   `psql "$DB_URI" -1 -v ON_ERROR_STOP=1 -f supabase/migrations/<archivo>.sql`
-   (`DB_URI` sale de la línea `postgresql://...` de `/LEEME-supabase.txt`).
-3. No usar `supabase db push`: la base de GV Cloud no tiene el historial de
-   migraciones del proyecto viejo (el dump del pase solo incluyó datos de
-   `auth`, `public` y `storage`) y intentaría repetirlas todas.
+- Abre su propio túnel SSH a la base y corre `psql -1 -v ON_ERROR_STOP=1 -f`
+  por archivo (una transacción cada uno).
+- El servidor guarda en `.migrations-applied` los archivos ya aplicados, y se
+  actualiza después de cada uno. Si una migración falla, no se sube código y
+  la próxima corrida retoma desde esa.
+- `--dry-run` las lista. `--no-migrate` las saltea (para aplicarlas a mano).
+- Requisitos locales, una sola vez: `psql` en el PATH y una copia privada del
+  archivo de conexión: `cp` de `/LEEME-supabase.txt` a
+  `~/gvenue/LEEME-supabase.txt` y `chmod 600`.
+- Una migración ya aplicada no se edita: se crea una nueva. Si se modifica una
+  existente, `deploy.py` solo avisa y no la repite.
+- No usar `supabase db push`: la base de GV Cloud no tiene el historial de
+  migraciones del proyecto viejo (el dump del pase solo incluyó datos de
+  `auth`, `public` y `storage`) y intentaría repetirlas todas.
