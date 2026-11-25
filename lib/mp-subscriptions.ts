@@ -105,6 +105,11 @@ export async function recordAuthorizedPayment(authorizedPaymentId: string) {
 const SEARCH_PAGE = 100
 const SEARCH_PAGES = 10
 
+// The authorized-payments search takes far fewer per page than the others:
+// from 16 up it answers 400 "Invalid value for limit", so it gets its own page
+// size and its own paging.
+const CHARGE_PAGE = 15
+
 /**
  * Brings every store subscription Mercado Pago has, and its approved monthly
  * charges, up to date, as their notifications would have: for the ones that
@@ -125,11 +130,16 @@ export async function recoverMercadoPagoSubscriptions(): Promise<{ subscriptions
       if (!preapproval.id || reference?.kind !== 'subscription') continue
       found.subscriptions++
       await syncPreapprovalById(preapproval.id)
-      const { results: charges = [] } = await new Invoice(config).search({ options: { preapproval_id: preapproval.id, limit: SEARCH_PAGE } })
-      for (const charge of charges) {
-        if (charge.id == null || charge.payment?.status !== 'approved') continue
-        found.charges++
-        await recordAuthorizedPayment(String(charge.id))
+      for (let chargePage = 0; chargePage < SEARCH_PAGES; chargePage++) {
+        const { results: charges = [] } = await new Invoice(config).search({
+          options: { preapproval_id: preapproval.id, limit: CHARGE_PAGE, offset: chargePage * CHARGE_PAGE },
+        })
+        for (const charge of charges) {
+          if (charge.id == null || charge.payment?.status !== 'approved') continue
+          found.charges++
+          await recordAuthorizedPayment(String(charge.id))
+        }
+        if (charges.length < CHARGE_PAGE) break
       }
     }
     if (results.length < SEARCH_PAGE) break

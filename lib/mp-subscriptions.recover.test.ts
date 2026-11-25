@@ -58,4 +58,19 @@ describe('recoverMercadoPagoSubscriptions', () => {
       p_amount: 15000,
     }))
   })
+
+  it('asks for at most 15 charges per page and follows the pages', async () => {
+    const page = (n: number, from: number) =>
+      Array.from({ length: n }, (_, i) => ({ id: String(from + i), payment: { id: String(from + i), status: 'approved' } }))
+    mp.invoices.mockReset()
+      .mockResolvedValueOnce({ results: page(15, 9000) })
+      .mockResolvedValueOnce({ results: page(1, 9100) })
+
+    expect(await recoverMercadoPagoSubscriptions()).toEqual({ subscriptions: 1, charges: 16 })
+    expect(mp.invoices).toHaveBeenCalledTimes(2)
+    const [first, second] = mp.invoices.mock.calls.map(([data]) => data.options)
+    expect(first.limit).toBeLessThanOrEqual(15)
+    expect(first.offset).toBe(0)
+    expect(second.offset).toBe(first.limit)
+  })
 })
