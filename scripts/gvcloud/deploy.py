@@ -93,12 +93,15 @@ def require_green_ci(repo: Path, head: str, timeout: int) -> None:
     deadline = time.time() + timeout
     status = ci_status(repo, head)
     print(f"Commit a desplegar: {head[:8]}   CI: {status}", flush=True)
+    # A failed query (a network blip) is retried a few times, not taken as red.
+    failures = 0
     if status in CI_PENDING:
         print("Esperando a que termine el CI", end="", flush=True)
-        while status in CI_PENDING and time.time() < deadline:
+        while (status in CI_PENDING or (status.startswith("no se pudo consultar") and failures < 5)) and time.time() < deadline:
             time.sleep(20)
             print(".", end="", flush=True)
             status = ci_status(repo, head)
+            failures = failures + 1 if status.startswith("no se pudo consultar") else 0
         print(f" {status}", flush=True)
     if status != "success":
         sys.exit(f"El CI de {head[:8]} no está en verde ({status}): no se despliega. "
