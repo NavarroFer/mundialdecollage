@@ -6,7 +6,7 @@ import { isCallOpen } from '@/lib/call-state'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { slugify } from '@/lib/slug'
+import { boundedSlug } from '@/lib/slug'
 import { uniqueArtworkSlug } from '@/lib/artwork-slug'
 import { getAllCountryCodes, TECHNIQUES } from '@/lib/participants'
 import { ALLOWED_IMAGE_EXTENSIONS } from '@/lib/onboarding-image'
@@ -149,11 +149,11 @@ export async function completeOnboarding(formData: FormData) {
   // so two obras with the same title in one submission still get distinct
   // slugs.
   for (const [index, artworkTitle] of titles.entries()) {
-    // slugify() strips anything outside [a-z0-9] — a name/title with no Latin
+    // boundedSlug() (like slugify) strips anything outside [a-z0-9] — a name/title with no Latin
     // characters at all (a real possibility in an *international* contest)
     // collapses to '', which /obras/[slug] can't route to. Fall back to a
     // slice of the user id so every submission still gets a working page.
-    const baseSlug = slugify(`${name}-${artworkTitle}`) || user.id.slice(0, 8)
+    const baseSlug = boundedSlug(`${name}-${artworkTitle}`) || user.id.slice(0, 8)
     const slug = await uniqueArtworkSlug(supabase, baseSlug)
 
     const { error: artworkError } = await supabase.from('artworks').insert({

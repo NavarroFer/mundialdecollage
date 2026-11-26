@@ -11,7 +11,7 @@ import { uniqueArtworkSlug } from '@/lib/artwork-slug'
 import { parseHome } from '@/lib/club-map'
 import { WALL_BUCKET } from '@/lib/collage-wall'
 import { getAllCountryCodes } from '@/lib/participants'
-import { slugify } from '@/lib/slug'
+import { boundedSlug } from '@/lib/slug'
 import { PURCHASABLE_GALLERY_ITEMS, type ClubRoomTemplate } from '@/lib/gallery-catalog'
 
 // The Club editor's writes. Each one runs with the member's own session, so
@@ -116,7 +116,7 @@ export async function addClubArtwork(formData: FormData) {
     }
   }
   const name = artwork.profile?.name ?? profile?.name ?? ''
-  const slug = await uniqueArtworkSlug(supabase, slugify(`${name}-${artwork.title ?? 'obra'}`) || user.id.slice(0, 8))
+  const slug = await uniqueArtworkSlug(supabase, boundedSlug(`${name}-${artwork.title ?? 'obra'}`) || user.id.slice(0, 8))
   const { data: { publicUrl } } = supabase.storage.from('artworks').getPublicUrl(artwork.imagePath)
   const { error } = await supabase.from('artworks').insert({
     profile_id: user.id,
