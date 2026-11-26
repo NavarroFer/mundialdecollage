@@ -20,6 +20,7 @@ import {
   Scissors,
   DoorOpen,
   SlidersHorizontal,
+  ListFilter,
 } from 'lucide-react'
 
 export type AdminNavItem = {
@@ -83,6 +84,12 @@ export const adminSections: {
         icon: Images,
         description:
           'Revisá las obras que llegaron, elegí cuál cuenta de cada artista y corregí sus datos.',
+      },
+      {
+        href: '/admin/preseleccion',
+        label: 'Preselección',
+        icon: ListFilter,
+        description: 'Achicá las obras a las que ve el jurado: pasadas en mosaico, tanda por tanda, y la mesa final.',
       },
       {
         href: '/admin/estadisticas',
