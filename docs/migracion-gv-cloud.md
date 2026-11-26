@@ -1,10 +1,24 @@
 # Migración a GV Cloud — estado y runbook
 
-**Estado al 23/11/2026: migración en curso.** El dominio público
-mundialdecollage.com.ar todavía usa Vercel y el Supabase administrado.
-La copia de prueba funciona en
-https://mundialdecollage.cloud.gvenue.com.ar con el Supabase alojado en GV Cloud.
-**No pausar Vercel ni el Supabase original todavía.**
+**Estado al 26/11/2026: migración terminada.** mundialdecollage.com.ar corre
+en GV Cloud (DNS en Cloudflare) con el Supabase alojado allí. El resto de este
+documento conserva el runbook y las notas de la migración tal como se
+escribieron (las secciones de "estado abierto" quedaron históricas).
+
+Baja de lo anterior, hecha el 26/11/2026:
+
+- **Vercel:** el proyecto quedó pausado, con previews apagados y el "Ignored
+  Build Step" en `exit 0`. El dominio sigue cargado. Para volver: Unpause y
+  que Javier apunte de nuevo `@` y `*`.
+- **Supabase administrado (jgneduoejygbqtwarynr):** antes de pausarlo se
+  comparó fila por fila con la base de GV. La sincronización final se había
+  hecho el 25/11 cerca de las 00:05 UTC y solo faltaba un comentario, que se
+  copió. No se copiaron a propósito los avisos `artwork_exhibited` de las
+  muestras que armó la base vieja el 25 y el 26/11. Después la organización
+  pasó a Free y el proyecto quedó pausado; se puede restaurar durante un año.
+  El volcado final (`pg_dump -Fc` de public, auth y storage) está en la
+  computadora de Fernando, en `~/gvenue/backups/`.
+- El código ya no consulta el proyecto viejo (cron `infra` y `next.config.mjs`).
 
 Este documento es el punto de partida para otra persona o IA que retome el
 trabajo. No contiene contraseñas, tokens, claves privadas ni volcados de datos.
