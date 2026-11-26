@@ -43,15 +43,8 @@ const nextConfig = {
     deviceSizes: DEVICE_SIZES,
     imageSizes: IMAGE_SIZES,
     qualities: [IMAGE_QUALITY],
-    // Artwork photos live in Supabase Storage (public bucket) — allow any
-    // project's storage host rather than hardcoding this one, since preview/
-    // local envs can point at a different Supabase project.
+    // Artwork photos live in the public buckets of the Supabase hosted in GV Cloud.
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-        pathname: '/storage/v1/object/public/**',
-      },
       {
         protocol: 'https',
         hostname: 'api-mundialdecollage.cloud.gvenue.com.ar',
