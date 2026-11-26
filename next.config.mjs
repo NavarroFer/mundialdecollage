@@ -13,6 +13,10 @@ for (const file of ['lib/artwork-share-image.tsx', 'public/banner-mundial.png', 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: { SHARE_IMAGE_TEMPLATE: shareImageTemplate.digest('hex').slice(0, 16) },
+  // The type check runs only in CI (which also runs `tsc --noEmit`). On the
+  // GV Cloud server it took ~1 min of the CPU the live site shares, and
+  // scripts/gvcloud/deploy.py only deploys a commit whose CI passed.
+  typescript: { ignoreBuildErrors: process.env.CI !== 'true' },
   // Dev only: lets a phone open `next dev` through a Cloudflare quick tunnel
   // (https is required for the camera on /ar/[slug]).
   allowedDevOrigins: ['*.trycloudflare.com'],
