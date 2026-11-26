@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Globe, Instagram } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Footer } from '@/components/footer'
@@ -15,7 +15,7 @@ import { ArtworkImage } from '@/components/artwork-image'
 import { Button } from '@/components/ui/button'
 import { countryCodeToFlag } from '@/lib/participants'
 import { artworkMetaDescription } from '@/lib/artwork-description'
-import { countryCodeToName, getArtworkShareState, getFinalistBySlug } from '@/lib/finalists'
+import { countryCodeToName, getArtworkShareState, getFinalistBySlug, getRenamedArtworkSlug } from '@/lib/finalists'
 import { artistProfileSlug } from '@/lib/artist-profiles'
 import { getI18n } from '@/lib/i18n/server'
 import { fmt } from '@/lib/i18n/format'
@@ -61,7 +61,12 @@ export default async function ObraPage({
     getCallState(),
   ])
 
-  if (!finalist) notFound()
+  if (!finalist) {
+    // A slug shortened after it was shared: send the link to the obra.
+    const renamed = await getRenamedArtworkSlug(slug)
+    if (renamed) permanentRedirect(`/obras/${renamed}`)
+    notFound()
+  }
   const title = finalist.artworkTitle ?? m.common.untitled
   const artistHref = `/artistas/${artistProfileSlug(finalist.name, finalist.profileId)}`
   const { related: relatedArtworks, previous: previousArtwork, next: nextArtwork } = await getPublicObraNeighbors(finalist)

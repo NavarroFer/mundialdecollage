@@ -1,6 +1,6 @@
 import { certificatePdf, certificatePostImage } from '@/lib/certificate'
 import { isValidCertificateToken, certificateSecret } from '@/lib/certificate-token'
-import { getCertificateFinalistBySlug, getFinalistBySlug, type Finalist } from '@/lib/finalists'
+import { getCertificateFinalistBySlug, getFinalistBySlug, getRenamedArtworkSlug, type Finalist } from '@/lib/finalists'
 import { getCallState } from '@/lib/call-state'
 import { ADMIN_EMAILS } from '@/lib/admin'
 import { getSiteUrl, site } from '@/lib/site'
@@ -25,13 +25,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   let finalist: Finalist | undefined
   const token = url.searchParams.get('t')
+  // A certificate mail signed the slug of its day: a shortened one is still
+  // checked as it was signed, and the obra is read under its slug now.
+  const current = (await getRenamedArtworkSlug(slug)) ?? slug
   if (token) {
     if (open || !isValidCertificateToken(slug, token, certificateSecret())) return new Response(null, { status: 404 })
-    finalist = await getCertificateFinalistBySlug(slug)
+    finalist = await getCertificateFinalistBySlug(current)
   } else {
     const user = isSupabaseConfigured ? (await (await createClient()).auth.getUser()).data.user : null
     if (!user) return new Response(null, { status: 404 })
-    finalist = await getFinalistBySlug(slug)
+    finalist = await getFinalistBySlug(current)
     const isAdmin = ADMIN_EMAILS.includes(user.email ?? '')
     const isOwner = finalist?.profileId === user.id
     if (!isAdmin && !(isOwner && !open)) return new Response(null, { status: 404 })

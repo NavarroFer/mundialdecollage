@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { artworkTag } from '@/lib/public-cache-tags'
 import { isAnonymousRender } from '@/lib/render-mode'
 import { cachedPublicData } from '@/lib/public-data-cache'
+import { MAX_ARTWORK_SLUG_LENGTH } from '@/lib/slug'
 
 export { countryCodeToName } from '@/lib/participants'
 
@@ -183,6 +184,17 @@ export const getPublishedFinalistBySlug = cachedPublicData(async (slug: string):
   if (error) throw new Error(error.message)
   return data ? rowToFinalist(data as unknown as FinalistRow) : undefined
 }, 'published-finalist', (slug) => [artworkTag(slug)])
+
+// Where a shortened obra slug leads now (artwork_slug_redirects, see
+// 20261126140000_artwork_slug_redirects.sql), so old links keep working.
+// Only slugs past the limit were ever renamed: anything shorter is a plain
+// miss and costs no query.
+export const getRenamedArtworkSlug = cachedPublicData(async (slug: string): Promise<string | null> => {
+  if (!isSupabaseConfigured || slug.length <= MAX_ARTWORK_SLUG_LENGTH) return null
+  const { data, error } = await createPublicClient().rpc('renamed_artwork_slug', { old: slug })
+  if (error) throw new Error(error.message)
+  return typeof data === 'string' && data && data !== slug ? data : null
+}, 'renamed-artwork-slug')
 
 // Whether a link to this obra works for everyone, and whether the reader is
 // the artist — which decides what components/share-artwork.tsx offers.
