@@ -6,7 +6,10 @@ Flow: PR -> merge to main -> `git pull` -> run this script from the repo.
 It uploads only the files that changed (or were deleted) between the commit
 last deployed, stored on the server in .deployed-commit, and the current HEAD.
 It never touches .env.production, node_modules, .next or .git. It requires:
-the main branch, no uncommitted tracked changes and HEAD == origin/main.
+the main branch, no uncommitted tracked changes, HEAD == origin/main and the
+CI run of HEAD in green: it waits while that run is going and stops if it
+failed (the server build skips the TypeScript check, CI does it). --sin-ci
+skips that, for an urgency only.
 
 New files in supabase/migrations/ are applied first, one transaction per file
 with psql (ON_ERROR_STOP), through an SSH tunnel the script opens by itself.
@@ -78,6 +81,28 @@ def ci_status(repo: Path, head: str) -> str:
         return "sin corrida de CI para este commit"
     except Exception:
         return "no se pudo consultar"
+
+
+# A run still going: wait for it. The server build skips the TypeScript
+# check (next.config.mjs: CI runs `tsc --noEmit`), so a commit only goes out
+# after CI passed on it.
+CI_PENDING = {"queued", "in_progress", "waiting", "requested", "pending", "sin corrida de CI para este commit"}
+
+
+def require_green_ci(repo: Path, head: str, timeout: int) -> None:
+    deadline = time.time() + timeout
+    status = ci_status(repo, head)
+    print(f"Commit a desplegar: {head[:8]}   CI: {status}", flush=True)
+    if status in CI_PENDING:
+        print("Esperando a que termine el CI", end="", flush=True)
+        while status in CI_PENDING and time.time() < deadline:
+            time.sleep(20)
+            print(".", end="", flush=True)
+            status = ci_status(repo, head)
+        print(f" {status}", flush=True)
+    if status != "success":
+        sys.exit(f"El CI de {head[:8]} no está en verde ({status}): no se despliega. "
+                 "Con --sin-ci se saltea (solo para una urgencia, con lint, tipos, tests y build corridos a mano).")
 
 
 def changed_files(repo: Path, base: str, head: str) -> list:
@@ -196,6 +221,9 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--yes", action="store_true", help="no pedir confirmación")
     parser.add_argument("--timeout", type=int, default=900)
+    parser.add_argument("--sin-ci", dest="skip_ci", action="store_true",
+                        help="no exigir el CI en verde (solo para una urgencia)")
+    parser.add_argument("--ci-timeout", type=int, default=1200, help="segundos de espera al CI")
     args = parser.parse_args()
     repo = args.repo.resolve()
 
@@ -215,7 +243,11 @@ def main() -> None:
         return
 
     head = check_git(repo, args.branch, args.allow_branch)
-    print(f"Commit a desplegar: {head[:8]}   CI: {ci_status(repo, head)}")
+    if args.dry_run or args.skip_ci:
+        print(f"Commit a desplegar: {head[:8]}   CI: {ci_status(repo, head)}"
+              + ("   (--sin-ci: no se exige)" if args.skip_ci and not args.dry_run else ""))
+    else:
+        require_green_ci(repo, head, args.ci_timeout)
 
     client.connect(args.host, username=args.user, key_filename=str(args.ssh_key),
                    look_for_keys=False, allow_agent=False, timeout=15)
