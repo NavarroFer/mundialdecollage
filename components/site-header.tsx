@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Compass, Landmark, Search } from 'lucide-react'
+import { Award, Compass, Landmark, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AccountMenu } from '@/components/account-menu'
 import { artistProfileSlug } from '@/lib/artist-slug'
@@ -19,6 +19,7 @@ import { TermsPromptSlot } from '@/components/terms-prompt-slot'
 import { SignInButton } from '@/components/sign-in-button'
 import { ViewModeSwitch } from '@/components/view-mode-switch'
 import { ArtworkSearch } from '@/components/artwork-search'
+import { getMyCertificateSlug, MY_CERTIFICATE_PATH } from '@/lib/my-certificate'
 
 async function AccountSlot() {
   if (!isSupabaseConfigured) return null
@@ -36,6 +37,7 @@ async function AccountSlot() {
     viewSwitching: m.header.viewSwitching,
     viewNowArtist: m.header.viewNowArtist,
     viewNowAdmin: m.header.viewNowAdmin,
+    myCertificate: m.certificate.headerCta,
   }
 
   const user = await getCurrentUser()
@@ -75,7 +77,8 @@ async function AccountSlot() {
     }
   }
 
-  return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} isAdmin={isAdmin} adminView={adminView} />
+  const certificateHref = (await getMyCertificateSlug()) ? MY_CERTIFICATE_PATH : undefined
+  return <AccountMenu labels={labels} signedIn name={name} profileHref={profileHref} thumbUrl={thumbUrl} certificateHref={certificateHref} isAdmin={isAdmin} adminView={adminView} />
 }
 
 // `search` puts the obra search in the header: in the slot the section nav
@@ -89,6 +92,9 @@ export async function SiteHeader({ deskNav = true, search = false }: { deskNav?:
   ])
   const isAdmin = isAdminEmail(user?.email)
   const adminView = user ? await isAdminView(user) : false
+  // A participating artist, once the call has closed: their certificate
+  // takes the place of the main button (lib/my-certificate.ts).
+  const hasCertificate = user ? Boolean(await getMyCertificateSlug()) : false
   const signIn = () => !user ? <SignInButton label={m.header.logIn} pendingLabel={m.auth.signingIn} /> : null
   const viewSwitch = () => isAdmin ? <ViewModeSwitch adminView={adminView} labels={m.header} /> : null
   return (
@@ -133,7 +139,14 @@ export async function SiteHeader({ deskNav = true, search = false }: { deskNav?:
             <NotificationsSlot />
             {viewSwitch()}
             {signIn()}
-            {!isAdmin && (
+            {hasCertificate ? (
+              <Button asChild className="h-11 gap-2 bg-collage-red px-5 text-sm text-paper transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:bg-collage-red/90 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
+                <TrackedLink href={MY_CERTIFICATE_PATH} event="certificate_click_header">
+                  <Award className="h-4 w-4" aria-hidden="true" />
+                  {m.certificate.headerCta}
+                </TrackedLink>
+              </Button>
+            ) : !isAdmin && (
               <Button asChild className="h-11 px-5 text-sm transition-all duration-300 ease-out group-data-[scrolled=true]/header:h-10 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 motion-reduce:transition-none">
                 <TrackedLink href={callOpen ? "/onboarding" : "/galeria-3d"} event="submit_click_header">
                   {callOpen ? m.header.participate : m.closed.headerCta}
@@ -147,6 +160,16 @@ export async function SiteHeader({ deskNav = true, search = false }: { deskNav?:
           <div className="flex items-center gap-1 lg:hidden">
             {viewSwitch()}
             {signIn()}
+            {hasCertificate && (
+              <TrackedLink
+                href={MY_CERTIFICATE_PATH}
+                event="certificate_click_header"
+                className="mr-1 flex h-10 items-center gap-1.5 rounded-full bg-collage-red px-3.5 text-sm font-bold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-collage-blue"
+              >
+                <Award className="h-4 w-4" aria-hidden="true" />
+                {m.certificate.headerCta}
+              </TrackedLink>
+            )}
             <NotificationsSlot />
             <AccountSlot />
           </div>

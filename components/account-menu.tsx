@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState } from 'react'
-import { DoorOpen, Loader2, LogOut, PencilLine, ShieldCheck, User } from 'lucide-react'
+import { Award, DoorOpen, Loader2, LogOut, PencilLine, ShieldCheck, User } from 'lucide-react'
 import { useViewModeSwitch, ViewModeIcon, type ViewModeLabels } from '@/components/view-mode-switch'
 import { GoogleIcon, useGoogleSignIn } from '@/components/auth/google-sign-in-button'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -19,6 +19,7 @@ export type AccountMenuLabels = ViewModeLabels & {
   editProfile: string
   shop: string
   adminPanel: string
+  myCertificate: string
 }
 
 export type AccountMenuProps = {
@@ -30,6 +31,8 @@ export type AccountMenuProps = {
   profileHref?: string
   // Thumbnail of the artist's obra: their avatar, as Google shows a photo.
   thumbUrl?: string
+  // /mi-certificado, once the call has closed and they took part.
+  certificateHref?: string
   // An admin account, and whether it is seen as one right now (lib/view-mode.ts).
   isAdmin?: boolean
   adminView?: boolean
@@ -57,7 +60,7 @@ function Avatar({ name, thumbUrl, signedIn, size }: { name?: string; thumbUrl?: 
 // The avatar at the top right, like Google's: it opens a card with the
 // artist's thumbnail, their profile and everything the phone's tab bar has
 // no room for (shop, language, the Club gallery, sign out).
-export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isAdmin, adminView = true }: AccountMenuProps) {
+export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, certificateHref, isAdmin, adminView = true }: AccountMenuProps) {
   const { m } = useI18n()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -142,6 +145,20 @@ export function AccountMenu({ labels, signedIn, name, profileHref, thumbUrl, isA
                 </div>
               </div>
               <div className="my-1 h-px bg-ink/10" />
+              {certificateHref && (
+                <Link
+                  href={certificateHref}
+                  prefetch={false}
+                  onClick={() => {
+                    track('certificate_click_menu')
+                    close()
+                  }}
+                  className={ITEM}
+                >
+                  <Award className="h-5 w-5 text-collage-red" aria-hidden="true" />
+                  {labels.myCertificate}
+                </Link>
+              )}
               {profileHref && (
                 <Link href="/mi-perfil" prefetch={false} onClick={close} className={ITEM}>
                   <PencilLine className="h-5 w-5 text-ink/70" aria-hidden="true" />

@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { CertificateBanner } from '@/components/certificate-banner'
+import { getMyCertificateSlug } from '@/lib/my-certificate'
 import { getCallState } from '@/lib/call-state'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
@@ -108,9 +110,14 @@ export default async function OnboardingPage({
     const artwork = artworks?.[0]
     if (artwork) {
       const name = profile?.name || user.user_metadata?.full_name || ''
+      // Signing in lands here: once the call has closed, an artist who took
+      // part sees their certificate first, and the review of their details
+      // (which the certificate prints) below it.
+      const hasCertificate = !callOpen && Boolean(await getMyCertificateSlug())
       return (
         <main className="bg-grain min-h-screen px-5 py-12 sm:py-16">
           <div className="mx-auto w-full max-w-lg">
+            {hasCertificate && <CertificateBanner m={m} event="certificate_click_onboarding" className="mb-10" />}
             <OnboardingSteps current="details" m={m} />
             <h1 className="font-display mt-8 text-center text-3xl text-ink sm:text-4xl">{name ? fmt(m.onboarding.helloName, { name }) : m.onboarding.welcome}</h1>
             <p className="mt-4 text-center text-muted-foreground">{m.onboarding.existingBody}</p>

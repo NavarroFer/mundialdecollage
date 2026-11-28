@@ -320,6 +320,7 @@ export const DONATION_EVENTS = [
 // The participation certificate (app/mi-certificado): who opens it, signed in
 // or from the link in a mail, where they come from, and what they download.
 export const CERTIFICATE_EVENTS = [
+  { name: 'certificate_banner_view', label: 'Vieron el aviso «Tu certificado ya está listo»' },
   { name: 'certificate_view', label: 'Abrieron su certificado' },
   { name: 'certificate_view_mail', label: 'De esos, desde el link de un mail' },
   { name: 'certificate_click_header', label: 'Fueron desde el encabezado' },
