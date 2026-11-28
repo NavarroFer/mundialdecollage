@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { audienceContacts, audienceLabel, contactsClubProspects, contactsNotParticipating, contactsWithoutArtwork, parseAudience } from './campaign-audience'
+import { audienceContacts, audienceLabel, contactsClubProspects, contactsNotParticipating, contactsParticipating, contactsWithoutArtwork, parseAudience } from './campaign-audience'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 describe('parseAudience', () => {
@@ -49,6 +49,41 @@ describe('contactsNotParticipating', () => {
       { id: '3', email: 'admin@example.com' },
     ]
     expect(contactsNotParticipating(subscribed, [' artist@example.com '], ['admin@example.com']).map((c) => c.id)).toEqual(['1'])
+  })
+})
+
+describe('participants', () => {
+  const subscribed = [
+    { id: '1', email: 'fan@example.com' },
+    { id: '2', email: 'Artist@Example.com' },
+    { id: '3', email: 'by-mail@example.com' },
+    { id: '4', email: 'admin@example.com' },
+  ]
+
+  it('is a campaign audience and is parsed as itself', () => {
+    expect(parseAudience('participants')).toBe('participants')
+    expect(audienceLabel('participants')).toBe('Todos los que mandaron obra')
+  })
+
+  it('keeps every participant (any casing), never an admin nor who never took part', () => {
+    const participants = [' artist@example.com ', 'BY-MAIL@example.com', 'admin@example.com', 'ghost@example.com']
+    expect(contactsParticipating(subscribed, participants, ['admin@example.com']).map((c) => c.id)).toEqual(['2', '3'])
+  })
+
+  it('is the other half of «No participan todavía»', () => {
+    const participants = ['artist@example.com', 'by-mail@example.com']
+    const ids = [...contactsParticipating(subscribed, participants, []), ...contactsNotParticipating(subscribed, participants, [])].map((c) => c.id)
+    expect(ids.sort()).toEqual(['1', '2', '3', '4'])
+  })
+
+  it('reads participant_emails() and never falls back to everyone when it fails', async () => {
+    const client = (result: { data: unknown; error: { message: string } | null }) => ({
+      from: () => ({ select: () => ({ eq: async () => ({ data: subscribed, error: null }) }) }),
+      rpc: async () => result,
+    }) as unknown as SupabaseClient
+    const ok = await audienceContacts(client({ data: [{ email: 'by-mail@example.com' }, { email: null }], error: null }), 'participants')
+    expect(ok).toEqual({ contacts: [subscribed[2]], error: null })
+    expect(await audienceContacts(client({ data: null, error: { message: 'boom' } }), 'participants')).toEqual({ contacts: [], error: 'boom' })
   })
 })
 

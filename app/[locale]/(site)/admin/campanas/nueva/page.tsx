@@ -50,7 +50,7 @@ export default async function NuevaCampanaPage({
   // it is in the list below without visiting /admin/plantillas first.
   await ensureSystemTemplate(supabase, 'perfil_artista').catch((err) => console.error('ensureSystemTemplate(perfil_artista) failed:', err))
   await ensureSystemTemplate(supabase, 'recordatorio_certificado').catch((err) => console.error('ensureSystemTemplate(recordatorio_certificado) failed:', err))
-  const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, multipleArtworks, clubProspects, publicProfiles, certificates, { data: contactCountries }, domainStatus] = await Promise.all([
+  const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, multipleArtworks, clubProspects, publicProfiles, certificates, participants, { data: contactCountries }, domainStatus] = await Promise.all([
     supabase
       .from('templates')
       .select('id, name, subject, body_html, body_json, translations, translations_source, audiences, system_key')
@@ -63,10 +63,11 @@ export default async function NuevaCampanaPage({
     audienceContacts(supabase, 'club_prospects'),
     audienceContacts(supabase, 'public_profiles'),
     audienceContacts(supabase, 'certificates'),
+    audienceContacts(supabase, 'participants'),
     supabase.rpc('contact_country_codes'),
     getDomainStatus(),
   ])
-  const audiences = { subscribed: everyone, no_artwork: withoutArtwork, profile_review: profileReview, not_participating: notParticipating, multiple_artworks: multipleArtworks, club_prospects: clubProspects, public_profiles: publicProfiles, certificates }
+  const audiences = { subscribed: everyone, no_artwork: withoutArtwork, profile_review: profileReview, not_participating: notParticipating, multiple_artworks: multipleArtworks, club_prospects: clubProspects, public_profiles: publicProfiles, certificates, participants }
   const { contacts: subscribed, error: audienceError } = audiences[audience]
   const count = subscribed.length
 

@@ -25,6 +25,14 @@ export const CAMPAIGN_AUDIENCES = [
     description: 'Suscriptos que todavía no mandaron una obra, por el sitio ni por el formulario (sin admins).',
   },
   {
+    value: 'participants',
+    label: 'Todos los que mandaron obra',
+    // The other half of «No participan todavía»: whoever sent an obra, with
+    // an account or only by mail / the form (the registro sync adds them to
+    // contacts), so a mail reaches every artist, registered or not.
+    description: 'Suscriptos que mandaron una obra, por el sitio o por mail/formulario, aunque no tengan cuenta (sin admins).',
+  },
+  {
     value: 'club_prospects',
     label: 'Artistas sin galería del Club',
     // The launch mail of the Club (docs/club-del-mundial-galerias-virtuales.md):
@@ -89,6 +97,17 @@ export function contactsNotParticipating<T extends { email: string }>(
 ): T[] {
   const excluded = new Set([...participantEmails, ...adminEmails].map(normalize))
   return subscribed.filter((contact) => !excluded.has(normalize(contact.email)))
+}
+
+// The subscribed contacts who have taken part (`participantEmails`,
+// participant_emails(): site accounts and mail/form submissions alike),
+// never an admin's.
+export function contactsParticipating<T extends { email: string }>(
+  subscribed: T[],
+  participantEmails: Iterable<string>,
+  adminEmails: readonly string[] = ADMIN_EMAILS,
+): T[] {
+  return contactsClubProspects(subscribed, participantEmails, [], adminEmails)
 }
 
 // The subscribed contacts who have taken part (`participantEmails`) and have
@@ -205,11 +224,12 @@ export async function audienceContacts(
     return { contacts: contactsClubProspects(subscribed ?? [], emailsOf(participants), emailsOf(members)), error: null }
   }
 
-  if (audience === 'not_participating') {
+  if (audience === 'not_participating' || audience === 'participants') {
     const { data: participants, error: participantsError } = await supabase.rpc('participant_emails')
     if (participantsError) return { contacts: [], error: participantsError.message }
     const emails = ((participants ?? []) as { email: string | null }[]).flatMap((row) => (row.email ? [row.email] : []))
-    return { contacts: contactsNotParticipating(subscribed ?? [], emails), error: null }
+    const pick = audience === 'participants' ? contactsParticipating : contactsNotParticipating
+    return { contacts: pick(subscribed ?? [], emails), error: null }
   }
 
   const { data: accounts, error: accountsError } = await supabase.rpc('accounts_without_artwork_emails')
