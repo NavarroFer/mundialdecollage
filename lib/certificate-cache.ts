@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { certificateDetails, certificatePostImage, diplomaJpeg, diplomaPdf, diplomaPreview, type CertificateInput } from '@/lib/certificate'
+import { certificateDetails, certificatePostImage, certificateStoryImage, diplomaJpeg, diplomaPdf, diplomaPreview, type CertificateInput } from '@/lib/certificate'
 import { imageStore, type ImageStore } from '@/lib/r2'
 import { photoVersion } from '@/lib/share-image-cache'
 
@@ -12,11 +12,12 @@ import { photoVersion } from '@/lib/share-image-cache'
 // name gets a new one, and so does everyone when the design changes.
 const TEMPLATE = process.env.CERTIFICATE_TEMPLATE ?? 'dev'
 
-export type CertificateFile = 'pdf' | 'post' | 'preview'
+export type CertificateFile = 'pdf' | 'post' | 'story' | 'preview'
 
 const FILES = {
   pdf: { ext: 'pdf', type: 'application/pdf' },
   post: { ext: 'png', type: 'image/png' },
+  story: { ext: 'png', type: 'image/png' },
   preview: { ext: 'jpg', type: 'image/jpeg' },
   diploma: { ext: 'jpg', type: 'image/jpeg' },
 } as const
@@ -37,9 +38,9 @@ export async function certificateFile(file: CertificateFile, input: CertificateI
     return { body: jpeg, complete }
   })
 
-  const drawn = file === 'post'
-    ? await kept('post', async () => {
-        const { png, complete } = await certificatePostImage(input)
+  const drawn = file === 'post' || file === 'story'
+    ? await kept(file, async () => {
+        const { png, complete } = await (file === 'post' ? certificatePostImage : certificateStoryImage)(input)
         return { body: png, complete }
       })
     : file === 'preview'

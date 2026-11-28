@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, Award, Download, Instagram, PencilLine } from 'lucide-react'
+import { ArrowRight, Award, Download, Instagram, PencilLine, Smartphone } from 'lucide-react'
 import { Footer } from '@/components/footer'
 import { SiteHeader } from '@/components/site-header'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
@@ -105,27 +105,38 @@ function Certificate({ m, finalist, linkSlug, token }: { m: Messages; finalist: 
             {t.downloadPdf}
           </TrackedAnchor>
         </Button>
-        <Button asChild size="lg" variant="outline" className="h-auto min-h-14 gap-2 px-8 text-base">
+        <Button asChild size="lg" variant="outline" className="h-auto min-h-14 gap-2 px-6 text-base">
           <TrackedAnchor href={href('formato=imagen')} event="certificate_download_image" download>
             <Instagram className="h-5 w-5" aria-hidden="true" />
             {t.downloadImage}
           </TrackedAnchor>
         </Button>
+        <Button asChild size="lg" variant="outline" className="h-auto min-h-14 gap-2 px-6 text-base">
+          <TrackedAnchor href={href('formato=historia')} event="certificate_download_story" download>
+            <Smartphone className="h-5 w-5" aria-hidden="true" />
+            {t.downloadStory}
+          </TrackedAnchor>
+        </Button>
       </div>
 
       <div className="mt-12 grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="flex gap-5 rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
-          <a href={href('formato=imagen&ver=1')} target="_blank" rel="noopener" className="w-28 shrink-0 sm:w-36">
-            {/* eslint-disable-next-line @next/next/no-img-element -- drawn on the server and kept in R2 */}
-            <img src={href('formato=imagen&ver=1')} alt="" width={1080} height={1350} loading="lazy" className="aspect-[4/5] w-full rotate-2 rounded-sm object-cover shadow-md ring-1 ring-ink/10" />
-          </a>
-          <div className="min-w-0">
-            <h2 className="font-display text-2xl tracking-tight text-ink uppercase">{t.shareTitle}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.shareBody}</p>
-            <TrackedAnchor href={href('formato=imagen')} event="certificate_download_image" download className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-collage-blue underline underline-offset-4">
-              <Download className="h-4 w-4" aria-hidden="true" />
-              {t.downloadImage}
-            </TrackedAnchor>
+        <div className="rounded-2xl border-2 border-ink/10 bg-card p-5 sm:p-6">
+          <h2 className="font-display text-2xl tracking-tight text-ink uppercase">{t.shareTitle}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.shareBody}</p>
+          <div className="mt-4 flex items-end gap-4">
+            {[
+              { query: 'formato=imagen', label: t.downloadImage, event: 'certificate_download_image' as const, ratio: 'aspect-[4/5] w-28 sm:w-32', size: [1080, 1350], tilt: 'rotate-2' },
+              { query: 'formato=historia', label: t.downloadStory, event: 'certificate_download_story' as const, ratio: 'aspect-[9/16] w-24 sm:w-28', size: [1080, 1920], tilt: '-rotate-2' },
+            ].map((image) => (
+              <TrackedAnchor key={image.query} href={href(image.query)} event={image.event} download className="group flex flex-col items-center gap-2 text-center">
+                {/* eslint-disable-next-line @next/next/no-img-element -- drawn on the server and kept in R2 */}
+                <img src={href(`${image.query}&ver=1`)} alt="" width={image.size[0]} height={image.size[1]} loading="lazy" className={`${image.ratio} ${image.tilt} rounded-sm object-cover shadow-md ring-1 ring-ink/10 transition-transform group-hover:rotate-0`} />
+                <span className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-collage-blue underline underline-offset-4">
+                  <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                  {image.label}
+                </span>
+              </TrackedAnchor>
+            ))}
           </div>
         </div>
 

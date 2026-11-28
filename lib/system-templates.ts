@@ -406,7 +406,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         {
           id: nextBlockId(),
           type: 'text',
-          text: 'Participaste de la 1ª edición del Mundial Internacional de Collage con «{{obra_titulo}}», y tu certificado de participación ya está listo: un diploma con tu nombre y tu obra para imprimir, y una imagen para compartir en Instagram.',
+          text: 'Participaste de la 1ª edición del Mundial Internacional de Collage con «{{obra_titulo}}», y tu certificado de participación ya está listo: un diploma con tu nombre y tu obra para imprimir, y dos imágenes para compartir en Instagram: una para el feed y otra para las historias.',
           align: 'left',
         },
         { id: nextBlockId(), type: 'image', url: `${siteUrl}/email/certificado-ejemplo.jpg`, alt: 'Así se ve el certificado de participación del Mundial de Collage', link: '{{certificado_url}}', widthPct: 100 },
@@ -421,7 +421,7 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         {
           id: nextBlockId(),
           type: 'text',
-          text: 'Subí la imagen a tu Instagram y contale a tu gente que sos parte del primer Mundial de Collage. Mientras tanto, el jurado internacional sigue evaluando las obras: muy pronto anunciamos a los finalistas.',
+          text: 'Subí las imágenes a tu Instagram y contale a tu gente que sos parte del primer Mundial de Collage. Mientras tanto, el jurado internacional sigue evaluando las obras: muy pronto anunciamos a los finalistas.',
           align: 'left',
         },
         ...footer(),

@@ -3,7 +3,7 @@ import type { CertificateInput } from '@/lib/certificate'
 import { MESSAGES } from '@/lib/i18n/messages'
 import { certificateFile } from '@/lib/certificate-cache'
 
-const draws = vi.hoisted(() => ({ diploma: 0, post: 0, complete: true }))
+const draws = vi.hoisted(() => ({ diploma: 0, post: 0, story: 0, complete: true }))
 const bucket = vi.hoisted(() => new Map<string, Buffer>())
 
 vi.mock('@/lib/r2', () => ({
@@ -25,6 +25,10 @@ vi.mock('@/lib/certificate', async (original) => ({
     draws.post++
     return { png: Buffer.from('post'), complete: draws.complete }
   },
+  certificateStoryImage: async () => {
+    draws.story++
+    return { png: Buffer.from('story'), complete: draws.complete }
+  },
 }))
 
 const input = (name = 'Ana Pérez'): CertificateInput => ({
@@ -40,6 +44,7 @@ describe('certificateFile', () => {
     bucket.clear()
     draws.diploma = 0
     draws.post = 0
+    draws.story = 0
     draws.complete = true
   })
 
@@ -56,6 +61,13 @@ describe('certificateFile', () => {
     const again = await certificateFile('post', input())
     expect(again).toEqual({ body: Buffer.from('post'), contentType: 'image/png' })
     expect(draws.post).toBe(1)
+  })
+
+  it('keeps the story apart from the post', async () => {
+    expect((await certificateFile('story', input())).body.toString()).toBe('story')
+    expect((await certificateFile('post', input())).body.toString()).toBe('post')
+    await certificateFile('story', input())
+    expect(draws).toMatchObject({ story: 1, post: 1 })
   })
 
   it('draws anew when what it prints changes', async () => {

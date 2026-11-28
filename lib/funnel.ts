@@ -329,6 +329,7 @@ export const CERTIFICATE_EVENTS = [
   { name: 'certificate_click_onboarding', label: 'Fueron al entrar con su cuenta' },
   { name: 'certificate_download_pdf', label: 'Descargaron el diploma (PDF)' },
   { name: 'certificate_download_image', label: 'Descargaron la imagen para Instagram' },
+  { name: 'certificate_download_story', label: 'Descargaron la imagen para historias' },
 ] as const
 
 export type FunnelEvent =

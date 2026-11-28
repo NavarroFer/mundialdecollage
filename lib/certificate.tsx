@@ -337,7 +337,7 @@ export async function certificatePostImage(input: CertificateInput): Promise<{ p
           <PastedArtwork artwork={artwork} box={{ width: 520, height: 480 }} scale={1} rotate={-3} tapes={tapes} />
         </div>
 
-        <div style={{ display: 'flex', fontFamily: DISPLAY, fontSize: 92, lineHeight: 1, color: INK, textTransform: 'uppercase' }}>{t.igBadge}</div>
+        <div style={{ display: 'flex', fontFamily: DISPLAY, fontSize: fit(t.igBadge, 92, 10, 16), lineHeight: 1, color: INK, textTransform: 'uppercase' }}>{t.igBadge}</div>
         <div style={{ display: 'flex', marginTop: 8, maxWidth: 900, justifyContent: 'center', textAlign: 'center', fontFamily: TEXT, fontSize: 30, color: INK }}>{t.igLine}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 22 }}>
           <Flag code={d.countryCode} height={30} />
@@ -352,6 +352,67 @@ export async function certificatePostImage(input: CertificateInput): Promise<{ p
       </div>
     ),
     { ...POST_SIZE, fonts: allFonts },
+  )
+  const png = await sharp(papers).composite([{ input: Buffer.from(await image.arrayBuffer()) }]).png().toBuffer()
+  return { png, complete: artwork !== null }
+}
+
+// ---------------------------------------------------------------------------
+// The Instagram story, 9:16. Instagram covers about the top 250 px (the
+// progress bar and the account) and the bottom 250 (the reply box): what
+// matters stays between them.
+
+export const STORY_SIZE = { width: 1080, height: 1920 }
+
+const STORY_PAPERS: Piece[] = [
+  { x: 120, y: 40, w: 540, h: 380, rotate: -9, color: BLUE, seed: 41 },
+  { x: 1050, y: 360, w: 230, h: 230, rotate: 16, color: YELLOW, seed: 42 },
+  { x: 540, y: 880, w: 1320, h: 140, rotate: -5, color: YELLOW, seed: 43, torn: { left: false, right: false }, fibre: 6 },
+  { x: 40, y: 1650, w: 260, h: 220, rotate: 12, color: RED, seed: 44 },
+  // The blue band at the foot, where the site's address goes.
+  { x: 540, y: 1830, w: 1340, h: 440, rotate: -3, color: BLUE, seed: 45, torn: { left: false, right: false, bottom: false } },
+]
+
+export async function certificateStoryImage(input: CertificateInput): Promise<{ png: Buffer; complete: boolean }> {
+  const d = certificateDetails(input)
+  const t = d.texts
+  const [artwork, tapes, papers, strip] = await Promise.all([
+    loadArtwork(input.finalist.imageUrl, { width: 700, height: 640 }),
+    tapesFor(1.2),
+    paperLayer(STORY_SIZE.width, STORY_SIZE.height, PAPER, STORY_PAPERS),
+    labelStrip(t.title, RED, 30, 1),
+  ])
+  const bannerWidth = 520
+
+  const image = new ImageResponse(
+    (
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%', padding: '190px 70px 400px' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={banner} width={bannerWidth} height={bannerWidth * BANNER_RATIO} alt="" />
+        <div style={{ display: 'flex', marginTop: 24 }}>
+          <Label text={t.title} strip={strip} fontSize={30} />
+        </div>
+
+        <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <PastedArtwork artwork={artwork} box={{ width: 700, height: 640 }} scale={1.2} rotate={-3} tapes={tapes} />
+        </div>
+
+        <div style={{ display: 'flex', fontFamily: DISPLAY, fontSize: fit(t.igBadge, 124, 10, 16), lineHeight: 1, color: INK, textTransform: 'uppercase' }}>{t.igBadge}</div>
+        <div style={{ display: 'flex', marginTop: 10, maxWidth: 920, justifyContent: 'center', textAlign: 'center', fontFamily: TEXT, fontSize: 36, color: INK }}>{t.igLine}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 28 }}>
+          <Flag code={d.countryCode} height={36} />
+          <div style={{ display: 'flex', maxWidth: 860, fontFamily: DISPLAY, fontSize: fit(d.name, 58, 24, 40), color: INK, textTransform: 'uppercase' }}>{d.name}</div>
+        </div>
+        <div style={{ display: 'flex', marginTop: 6, maxWidth: 920, justifyContent: 'center', textAlign: 'center', fontFamily: TEXT, fontSize: fit(d.title, 36, 34, 64), color: BLUE }}>{`«${d.title}»`}</div>
+
+        {/* On the blue band, clear of the reply box. */}
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 1680, display: 'flex', flexDirection: 'column', alignItems: 'center', color: WHITE }}>
+          <div style={{ display: 'flex', fontFamily: DISPLAY, fontSize: 44, letterSpacing: 1 }}>{DOMAIN}</div>
+          <div style={{ display: 'flex', marginTop: 2, fontFamily: TEXT, fontSize: 22, opacity: 0.8 }}>{fmt(t.number, { code: d.code })}</div>
+        </div>
+      </div>
+    ),
+    { ...STORY_SIZE, fonts: allFonts },
   )
   const png = await sharp(papers).composite([{ input: Buffer.from(await image.arrayBuffer()) }]).png().toBuffer()
   return { png, complete: artwork !== null }

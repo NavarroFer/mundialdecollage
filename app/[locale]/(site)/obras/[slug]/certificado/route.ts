@@ -11,7 +11,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 // The participation certificate of an obra (lib/certificate.tsx):
 // ?formato=pdf (default) is the A4 diploma to print, ?formato=imagen the
-// Instagram post and ?formato=vista a smaller picture of the diploma for
+// Instagram post, ?formato=historia the Instagram story and ?formato=vista a smaller picture of the diploma for
 // /mi-certificado, which also passes ?ver=1 to show the image instead of
 // downloading it. Each is drawn once and kept (lib/certificate-cache.ts). Once the call is closed (/admin/convocatoria) the obra's
 // own artist can download it, signed in or through the signed ?t= link the
@@ -56,14 +56,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const name = `certificado-mundial-de-collage-${finalist.slug}`
 
   const format = url.searchParams.get('formato')
-  const file: CertificateFile = format === 'imagen' ? 'post' : format === 'vista' ? 'preview' : 'pdf'
+  const file: CertificateFile = format === 'imagen' ? 'post' : format === 'historia' ? 'story' : format === 'vista' ? 'preview' : 'pdf'
   const { body, contentType } = await certificateFile(file, input)
-  const extension = file === 'pdf' ? 'pdf' : file === 'post' ? 'png' : 'jpg'
+  const extension = file === 'pdf' ? 'pdf' : file === 'preview' ? 'jpg' : 'png'
   const inline = file === 'preview' || url.searchParams.get('ver') === '1'
   return new Response(new Uint8Array(body), {
     headers: {
       'content-type': contentType,
-      'content-disposition': `${inline ? 'inline' : 'attachment'}; filename="${name}.${extension}"`,
+      'content-disposition': `${inline ? 'inline' : 'attachment'}; filename="${file === 'story' ? `${name}-historia` : name}.${extension}"`,
       'cache-control': 'private, max-age=3600',
     },
   })
