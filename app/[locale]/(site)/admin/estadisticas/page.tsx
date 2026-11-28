@@ -18,7 +18,7 @@ import { flagSvgsFor } from '@/lib/flag-svg'
 import { CountryFlag } from '@/components/country-flag'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, STAMP_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, FEED_OFFER_EVENTS, HOME_OFFER_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
+import { CERTIFICATE_EVENTS, DISCOVERY_EVENTS, FORM_RESCUE_EVENTS, GALLERY_HAPPY_PATH, GALLERY_READY_EVENTS, HOME_EVENTS, INVITE_EVENTS, LOGIN_EVENTS, ONBOARDING_FORM_EVENTS, SIGNUP_SOURCE_EVENTS, REFERRAL_EVENTS, SHARE_EVENTS, SOUVENIR_EVENTS, STAMP_EVENTS, WALL_EVENTS, MAGAZINE_ENTRY_EVENTS, MAGAZINE_FUNNEL_EVENTS, PARTNER_EVENTS, DONATION_EVENTS, FEED_OFFER_EVENTS, HOME_OFFER_EVENTS, HOME_STORE_EVENTS, STORE_ENTRY_EVENTS, STORE_FUNNEL_EVENTS, WAITLIST_EVENTS } from '@/lib/funnel'
 import { adminDescription } from '@/components/admin/admin-sections'
 import { getSubmissionsCount } from '@/lib/submissions'
 import { loadIncome } from '@/lib/income'
@@ -476,6 +476,13 @@ export default async function EstadisticasPage({ searchParams }: { searchParams:
             title="Cómo llegan a la revista"
             description="Personas distintas que fueron a /revista desde la tienda, después de inscribirse o desde la tarjeta «Ya estás participando» de la home. Se mide desde el 1 de octubre de 2026."
             steps={MAGAZINE_ENTRY_EVENTS}
+            variant="comparison"
+          />
+          <JourneySection
+            {...journey}
+            title="Certificados de participación"
+            description="Personas distintas que abrieron /mi-certificado (con su cuenta o desde el link de un mail), desde dónde llegaron y qué descargaron. Se mide desde el 28 de noviembre de 2026."
+            steps={CERTIFICATE_EVENTS}
             variant="comparison"
           />
           <JourneySection
