@@ -43,6 +43,13 @@ export const CAMPAIGN_AUDIENCES = [
     label: 'Datos por confirmar',
     description: 'Artistas con obra que todavía deben confirmar o completar nombre, país o título.',
   },
+  {
+    value: 'certificates',
+    label: 'Artistas con certificado',
+    // The reminder to download the participation certificate: each one gets
+    // a link that opens their own certificate without signing in.
+    description: 'Artistas suscriptos que participaron con una obra (con nombre y país). Cada uno recibe el link a su propio certificado en {{certificado_url}}, que abre sin iniciar sesión.',
+  },
 ] as const
 
 export type CampaignAudience = (typeof CAMPAIGN_AUDIENCES)[number]['value']
@@ -107,7 +114,7 @@ export function contactsClubProspects<T extends { email: string }>(
 export async function audienceContacts(
   supabase: SupabaseClient,
   audience: CampaignAudience,
-): Promise<{ contacts: Array<{ id: string; email: string; name: string | null; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string }>; error: string | null }> {
+): Promise<{ contacts: Array<{ id: string; email: string; name: string | null; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string; certificate?: CertificateContact }>; error: string | null }> {
   const { data: subscribed, error } = await supabase.from('contacts').select('id, email, name').eq('subscribed', true)
   if (error) return { contacts: [], error: error.message }
   if (audience === 'subscribed') return { contacts: subscribed ?? [], error: null }
@@ -143,6 +150,25 @@ export async function audienceContacts(
         if (!row || admins.has(normalize(contact.email))) return []
         // The profile's name first: it's the one the artist can correct themselves.
         return [{ ...contact, name: row.artist_name || contact.name, profileSlug: artistProfileSlug(row.artist_name, row.profile_id) }]
+      }),
+      error: null,
+    }
+  }
+
+  if (audience === 'certificates') {
+    const { data, error: certificateError } = await supabase.rpc('certificate_campaign_contacts')
+    if (certificateError) return { contacts: [], error: certificateError.message }
+    const byContact = new Map(
+      ((data ?? []) as { contact_id: string; artist_name: string; artwork_slug: string; artwork_title: string | null }[])
+        .map((row) => [row.contact_id, row]),
+    )
+    const admins = new Set(ADMIN_EMAILS.map(normalize))
+    return {
+      contacts: (subscribed ?? []).flatMap((contact) => {
+        const row = byContact.get(contact.id)
+        if (!row || admins.has(normalize(contact.email))) return []
+        // The profile's name: the one printed on the certificate.
+        return [{ ...contact, name: row.artist_name || contact.name, certificate: { slug: row.artwork_slug, title: row.artwork_title } }]
       }),
       error: null,
     }
@@ -192,6 +218,9 @@ export async function audienceContacts(
   return { contacts: contactsWithoutArtwork(subscribed ?? [], emails), error: null }
 }
 
+/** The obra whose certificate a «Artistas con certificado» contact gets. */
+export type CertificateContact = { slug: string; title: string | null }
+
 export type ProfileReviewData = {
   artistName: string | null
   countryCode: string | null
@@ -207,12 +236,15 @@ type ProfileReviewRow = {
   missing_fields: string[] | null
 }
 
-// {{perfil_url}} and the obra tags only have a value for «Artistas con perfil
-// público»; anyone else would get a dash where the link and the image go.
-// Refuses the send instead of mailing a broken mail.
+// Tags with a value only for one audience: anyone else would get a dash where
+// the link and the image go. Refuses the send instead of mailing a broken
+// mail.
 export function campaignBlockedByTags(audience: string, bodyHtml: string): string | null {
-  return audience !== 'public_profiles' && /\{\{\s*(perfil_url|obra_imagen|publicar_url)\s*\}\}/i.test(bodyHtml)
-    ? 'Este mail usa el link y la obra de cada artista ({{perfil_url}}, {{obra_imagen}}, {{publicar_url}}), que solo existen en el público «Artistas con perfil público». Elegí ese público antes de enviarlo: con otro, la gente recibiría el mail sin link ni imagen.'
-    : null
+  if (audience !== 'public_profiles' && /\{\{\s*(perfil_url|obra_imagen|publicar_url)\s*\}\}/i.test(bodyHtml)) {
+    return 'Este mail usa el link y la obra de cada artista ({{perfil_url}}, {{obra_imagen}}, {{publicar_url}}), que solo existen en el público «Artistas con perfil público». Elegí ese público antes de enviarlo: con otro, la gente recibiría el mail sin link ni imagen.'
+  }
+  if (audience !== 'certificates' && /\{\{\s*certificado_url\s*\}\}/i.test(bodyHtml)) {
+    return 'Este mail usa el link al certificado de cada artista ({{certificado_url}}), que solo existe en el público «Artistas con certificado». Elegí ese público antes de enviarlo: con otro, la gente recibiría el mail sin link.'
+  }
+  return null
 }
-

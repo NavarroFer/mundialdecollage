@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { getCallState } from '@/lib/call-state'
+import { site } from '@/lib/site'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isAdminView } from '@/lib/view-mode'
@@ -29,4 +30,4 @@ export const getMyCertificateSlug = cache(async (): Promise<string | null> => {
   return data?.slug ?? null
 })
 
-export const MY_CERTIFICATE_PATH = '/mi-certificado'
+export const MY_CERTIFICATE_PATH = site.certificates.path

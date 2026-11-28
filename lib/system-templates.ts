@@ -21,7 +21,7 @@ import { isClubOpen } from '@/lib/club-launch'
 import { clubMembershipPlanById } from '@/lib/store'
 import type { TemplateAudience } from '@/lib/template-audiences'
 
-export type SystemTemplateKey = 'elegir_obra' | 'perfil_artista' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento' | 'comunidad_lanzamiento'
+export type SystemTemplateKey = 'elegir_obra' | 'perfil_artista' | 'museo_hoy' | 'novedades_obra' | 'confirmar_datos' | 'certificado' | 'recordatorio_certificado' | CountdownTemplateKey | ReceiptTemplateKey | JuryTemplateKey | 'bienvenida_hincha' | 'club_lanzamiento' | 'comunidad_lanzamiento'
 export type JuryTemplateKey = 'jurado_invitacion' | 'jurado_recordatorio'
 export type ReceiptTemplateKey = 'compra_revista' | 'compra_suscripcion' | 'compra_obras'
 export type CountdownTemplateKey = 'cuenta_regresiva_15' | 'cuenta_regresiva_7' | 'cuenta_regresiva_1' | 'cuenta_regresiva_prorroga'
@@ -385,6 +385,45 @@ export const SYSTEM_TEMPLATES: Record<SystemTemplateKey, SystemTemplateDefinitio
         { id: nextBlockId(), type: 'button', text: 'Descargar el diploma (PDF)', url: '{{link_pdf}}', align: 'left', color: 'red' },
         { id: nextBlockId(), type: 'button', text: 'Imagen para Instagram', url: '{{link_imagen}}', align: 'left', color: 'blue' },
         { id: nextBlockId(), type: 'text', text: 'Ahora el jurado internacional evalúa las obras. Muy pronto anunciamos a los finalistas: estate atento a tu mail y a nuestras redes.', align: 'left' },
+        ...footer(),
+      ],
+    }),
+  },
+  // The reminder to download it, sent as a campaign from /admin/campanas to
+  // «Artistas con certificado»: each artist's {{certificado_url}} opens
+  // their own certificate on /mi-certificado, signed in or not.
+  recordatorio_certificado: {
+    name: 'Recordatorio: descargá tu certificado',
+    audiences: ['artistas'],
+    subject: '{{nombre}}, tu certificado del Mundial de Collage te está esperando',
+    description:
+      'Para la audiencia «Artistas con certificado». Un botón grande lleva a cada artista a su propio certificado, con {{certificado_url}} (abre sin iniciar sesión); {{obra_titulo}} es el título de su obra. Sin esa audiencia el link queda vacío y el envío se frena.',
+    createDocument: (siteUrl) => ({
+      blocks: [
+        logo(siteUrl),
+        { id: nextBlockId(), type: 'spacer', size: 'sm' },
+        { id: nextBlockId(), type: 'heading', text: '{{nombre}}, tu certificado te está esperando', align: 'left', size: 'lg' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'Participaste de la 1ª edición del Mundial Internacional de Collage con «{{obra_titulo}}», y tu certificado de participación ya está listo: un diploma con tu nombre y tu obra para imprimir, y una imagen para compartir en Instagram.',
+          align: 'left',
+        },
+        { id: nextBlockId(), type: 'image', url: `${siteUrl}/email/certificado-ejemplo.jpg`, alt: 'Así se ve el certificado de participación del Mundial de Collage', link: '{{certificado_url}}', widthPct: 100 },
+        { id: nextBlockId(), type: 'button', text: 'Ver y descargar mi certificado', url: '{{certificado_url}}', align: 'left', color: 'red' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'El link es solo tuyo y abre tu certificado sin iniciar sesión. Si ves algún dato mal (tu nombre, tu país o el título de tu obra), lo podés corregir desde ahí y el certificado se actualiza solo.',
+          align: 'left',
+        },
+        { id: nextBlockId(), type: 'heading', text: 'Compartilo', align: 'left', size: 'sm' },
+        {
+          id: nextBlockId(),
+          type: 'text',
+          text: 'Subí la imagen a tu Instagram y contale a tu gente que sos parte del primer Mundial de Collage. Mientras tanto, el jurado internacional sigue evaluando las obras: muy pronto anunciamos a los finalistas.',
+          align: 'left',
+        },
         ...footer(),
       ],
     }),
