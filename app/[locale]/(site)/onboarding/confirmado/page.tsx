@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, Compass, Images, Search, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Award, Compass, Images, Search, CheckCircle2 } from 'lucide-react'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ import { getI18n } from '@/lib/i18n/server'
 import { MagazinePromo, PromoCard, StorePromo } from '@/components/store-promo'
 import { isClubOpen } from '@/lib/club-launch'
 import { Building2 } from 'lucide-react'
+import { getMyCertificateSlug, MY_CERTIFICATE_PATH } from '@/lib/my-certificate'
 import { OnboardingSteps } from '../onboarding-steps'
 
 export default async function ConfirmationPage() {
@@ -23,10 +24,12 @@ export default async function ConfirmationPage() {
     .eq('profile_id', user.id).order('is_selected', { ascending: false })
     .order('created_at', { ascending: false }).limit(1).maybeSingle()
   if (!artwork) redirect('/onboarding')
-  const [{ m }, { isPublic }, { data: profile }] = await Promise.all([
+  const [{ m }, { isPublic }, { data: profile }, certificateSlug] = await Promise.all([
     getI18n(),
     getArtworkShareState(artwork.slug),
     supabase.from('profiles').select('name').eq('id', user.id).maybeSingle(),
+    // Once the call has closed, confirming is the last step before it.
+    getMyCertificateSlug(),
   ])
   // Their profile is the next stop: public once approved, a preview until then.
   const profileHref = profile?.name ? `/artistas/${artistProfileSlug(profile.name, user.id)}` : null
@@ -43,6 +46,11 @@ export default async function ConfirmationPage() {
           <ShareArtwork slug={artwork.slug} title={artwork.title?.trim() || m.common.untitled} name="" isPublic={isPublic} isOwn />
         </div>
         <div className="mt-5 flex flex-col gap-3">
+          {certificateSlug && (
+            <Button asChild size="lg" className="gap-2 bg-collage-red text-paper hover:bg-collage-red/90">
+              <TrackedLink href={MY_CERTIFICATE_PATH} event="certificate_click_onboarding"><Award className="size-5" aria-hidden="true" />{m.certificate.homeCta}</TrackedLink>
+            </Button>
+          )}
           {profileHref && (
             <Button asChild size="lg"><TrackedLink href={profileHref} event="confirmation_profile_click">{m.common.viewMyProfile}</TrackedLink></Button>
           )}

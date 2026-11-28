@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { AlertCircle, ArrowRight, Award, CheckCircle2, Download, Users } from 'lucide-react'
+import { AlertCircle, ArrowRight, CheckCircle2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FadeIn } from '@/components/fade-in'
+import { CertificateBanner } from '@/components/certificate-banner'
 import { TrackedLink, TrackView } from '@/components/track'
 import { CountrySelect } from '@/components/ui/country-select'
 import { SubmitButton } from '@/components/admin/submit-button'
@@ -91,6 +92,9 @@ export async function ParticipationStatus() {
     <section className="border-t-2 border-ink/10 bg-background py-14 sm:py-20">
       <div className="mx-auto max-w-4xl px-5 sm:px-8">
         <FadeIn>
+          {/* Once the call has closed the certificate comes first: it's what
+              an artist who signs in now is here for (/mi-certificado). */}
+          {certificatesReady && !needsConfirmation && <CertificateBanner m={m} event="certificate_click_home" className="mb-5" />}
           <div className="flex flex-col items-center gap-6 overflow-hidden rounded-2xl border-2 border-ink/10 bg-card p-5 sm:flex-row sm:gap-8 sm:p-6">
             <div className="aspect-square w-40 shrink-0 overflow-hidden rounded-xl border-2 border-ink/10 bg-muted sm:w-48">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -131,6 +135,8 @@ export async function ParticipationStatus() {
                 <div className="mt-4 rounded-xl border-2 border-collage-red/30 bg-collage-red/5 p-4 text-left">
                   <p className="font-semibold text-ink">{needsTitle ? m.status.titleMissingTitle : m.status.confirmTitle}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{needsTitle ? m.status.titleMissingBody : m.status.confirmBody}</p>
+                  {/* The certificate prints these details: a reason to check them now. */}
+                  {certificatesReady && <p className="mt-2 text-sm font-semibold text-collage-red">{m.certificate.homeTitle}</p>}
                   <TrackView event="signup_prompt_view" />
                   <TrackedLink href="/onboarding" event="signup_prompt_click" className="mt-3 inline-block">
                     <Button className="gap-2">
@@ -168,21 +174,6 @@ export async function ParticipationStatus() {
                     </SubmitButton>
                   </div>
                 </form>
-              )}
-
-              {certificatesReady && !needsConfirmation && (
-                <div className="mt-5 rounded-xl border-2 border-collage-yellow/40 bg-collage-yellow/10 p-4 text-left">
-                  <p className="flex items-center gap-2 font-semibold text-ink"><Award className="h-5 w-5 text-collage-red" aria-hidden="true" />{m.certificate.sectionTitle}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{m.certificate.sectionBody}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-                    <a href={`/obras/${artwork.slug}/certificado?formato=pdf`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-collage-blue underline underline-offset-4">
-                      <Download className="h-4 w-4" aria-hidden="true" />{m.certificate.downloadPdf}
-                    </a>
-                    <a href={`/obras/${artwork.slug}/certificado?formato=imagen`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-collage-blue underline underline-offset-4">
-                      <Download className="h-4 w-4" aria-hidden="true" />{m.certificate.downloadImage}
-                    </a>
-                  </div>
-                </div>
               )}
 
               <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">

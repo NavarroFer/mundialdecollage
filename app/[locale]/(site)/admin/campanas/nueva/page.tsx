@@ -49,7 +49,8 @@ export default async function NuevaCampanaPage({
   // The profile launch's template is created (or brought up to date) here, so
   // it is in the list below without visiting /admin/plantillas first.
   await ensureSystemTemplate(supabase, 'perfil_artista').catch((err) => console.error('ensureSystemTemplate(perfil_artista) failed:', err))
-  const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, multipleArtworks, clubProspects, publicProfiles, { data: contactCountries }, domainStatus] = await Promise.all([
+  await ensureSystemTemplate(supabase, 'recordatorio_certificado').catch((err) => console.error('ensureSystemTemplate(recordatorio_certificado) failed:', err))
+  const [{ data: templates }, everyone, withoutArtwork, profileReview, notParticipating, multipleArtworks, clubProspects, publicProfiles, certificates, { data: contactCountries }, domainStatus] = await Promise.all([
     supabase
       .from('templates')
       .select('id, name, subject, body_html, body_json, translations, translations_source, audiences, system_key')
@@ -61,10 +62,11 @@ export default async function NuevaCampanaPage({
     audienceContacts(supabase, 'multiple_artworks'),
     audienceContacts(supabase, 'club_prospects'),
     audienceContacts(supabase, 'public_profiles'),
+    audienceContacts(supabase, 'certificates'),
     supabase.rpc('contact_country_codes'),
     getDomainStatus(),
   ])
-  const audiences = { subscribed: everyone, no_artwork: withoutArtwork, profile_review: profileReview, not_participating: notParticipating, multiple_artworks: multipleArtworks, club_prospects: clubProspects, public_profiles: publicProfiles }
+  const audiences = { subscribed: everyone, no_artwork: withoutArtwork, profile_review: profileReview, not_participating: notParticipating, multiple_artworks: multipleArtworks, club_prospects: clubProspects, public_profiles: publicProfiles, certificates }
   const { contacts: subscribed, error: audienceError } = audiences[audience]
   const count = subscribed.length
 

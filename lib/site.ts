@@ -68,6 +68,8 @@ export const site = {
     // The date printed while the call is still open (admin previews); once
     // it closes, the closing date is printed instead.
     issuedISO: '2026-11-21T12:00:00-03:00',
+    // Where an artist sees theirs (app/[locale]/(site)/mi-certificado).
+    path: '/mi-certificado',
   },
   // Jury (app/jurado, app/admin/jurado): the organizers preselect poolSize
   // obras in /admin/obras and the jurors' scores pick the best `finalists`.

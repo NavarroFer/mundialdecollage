@@ -34,4 +34,5 @@ export const CAMPAIGN_TEMPLATE_AUDIENCES: Record<string, TemplateAudience[]> = {
   multiple_artworks: ['artistas'],
   club_prospects: ['artistas'],
   public_profiles: ['artistas'],
+  certificates: ['artistas'],
 }

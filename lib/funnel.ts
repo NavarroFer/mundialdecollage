@@ -317,6 +317,21 @@ export const DONATION_EVENTS = [
   { name: 'donation_thanks_view', label: 'Volvieron a «Gracias por donar»' },
 ] as const
 
+// The participation certificate (app/mi-certificado): who opens it, signed in
+// or from the link in a mail, where they come from, and what they download.
+export const CERTIFICATE_EVENTS = [
+  { name: 'certificate_banner_view', label: 'Vieron el aviso «Tu certificado ya está listo»' },
+  { name: 'certificate_view', label: 'Abrieron su certificado' },
+  { name: 'certificate_view_mail', label: 'De esos, desde el link de un mail' },
+  { name: 'certificate_click_header', label: 'Fueron desde el encabezado' },
+  { name: 'certificate_click_menu', label: 'Fueron desde el menú de su cuenta' },
+  { name: 'certificate_click_home', label: 'Fueron desde «Ya estás participando» en la home' },
+  { name: 'certificate_click_onboarding', label: 'Fueron al entrar con su cuenta' },
+  { name: 'certificate_download_pdf', label: 'Descargaron el diploma (PDF)' },
+  { name: 'certificate_download_image', label: 'Descargaron la imagen para Instagram' },
+  { name: 'certificate_download_story', label: 'Descargaron la imagen para historias' },
+] as const
+
 export type FunnelEvent =
   | (typeof FUNNEL_STEPS)[number]['name']
   | (typeof HOME_EVENTS)[number]['name']
@@ -344,12 +359,13 @@ export type FunnelEvent =
   | (typeof PARTNER_EVENTS)[number]['name']
   | (typeof DONATION_EVENTS)[number]['name']
   | (typeof COMMUNITY_EVENTS)[number]['name']
+  | (typeof CERTIFICATE_EVENTS)[number]['name']
 
 const NAMES = new Set<string>(
   [
     ...FUNNEL_STEPS, ...HOME_EVENTS, ...SHARE_EVENTS, ...SOUVENIR_EVENTS, ...STAMP_EVENTS, ...WALL_EVENTS, ...INVITE_EVENTS, ...REFERRAL_EVENTS, ...ONBOARDING_EVENTS, ...DISCOVERY_EVENTS,
     ...ONBOARDING_FORM_EVENTS, ...FORM_RESCUE_EVENTS, ...LOGIN_EVENTS, ...SIGNUP_SOURCE_EVENTS, ...GALLERY_READY_EVENTS,
-    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...FEED_OFFER_EVENTS, ...HOME_OFFER_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS, ...COMMUNITY_EVENTS,
+    ...STORE_FUNNEL_EVENTS, ...STORE_ENTRY_EVENTS, ...HOME_STORE_EVENTS, ...FEED_OFFER_EVENTS, ...HOME_OFFER_EVENTS, ...WAITLIST_EVENTS, ...MAGAZINE_FUNNEL_EVENTS, ...MAGAZINE_ENTRY_EVENTS, ...PARTNER_EVENTS, ...DONATION_EVENTS, ...COMMUNITY_EVENTS, ...CERTIFICATE_EVENTS,
   ].map((step) => step.name),
 )
 

@@ -171,7 +171,7 @@ Local, not in git (see Special Directories): `.local/`, `output/`, `.codex/`, `.
 - Contains: `logo*.png`, `wordmark.png`, `banner-mundial.png`, `header.png`/`header.mp4`, `cancion.mp3`, `mundial-de-collage.pdf`, `tienda-productos.webp`, `brand/` (WebP brand images from `scripts/brand-images.mjs`), `ar/` (AR markers and assets), `data/` (`argentina/`, `tarjeta-marca.png`), `email/` (images used in mail), `music/` (gallery tracks).
 
 **`assets/`:**
-- Purpose: font files (`Anton-Regular.ttf`, `Oswald-Cyrillic-700.woff`, EB Garamond WOFF) read by the drawing code and by `next.config.mjs` (hash of the share-image template).
+- Purpose: font files (`Anton-Regular.ttf`, `Oswald-Cyrillic-700.woff`, Geist-Regular.ttf) read by the drawing code and by `next.config.mjs` (hash of the share-image template).
 
 **`docs/`:**
 - Purpose: project notes read by humans: `bases/` (contest rules HTML and fonts, input for the PDF), `patrocinio/` (sponsorship material), `club-del-mundial-galerias-virtuales.md`, `correo-argentino.md`, `galeria-atencion.md`, `gallery-graphics.md`, `mar-gallery.md`, `vercel-performance-review-2026-10-10.md`.

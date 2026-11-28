@@ -10,13 +10,14 @@ import { contactLocale, emailFor, withUnsubscribeFooter, type EmailTranslations 
 import { audienceContacts, parseAudience } from '@/lib/campaign-audience'
 import type { Locale } from '@/lib/i18n/locales'
 import { countryCodeToName } from '@/lib/participants'
-import type { ProfileReviewData } from '@/lib/campaign-audience'
-import { getSiteUrl } from '@/lib/site'
+import type { CertificateContact, ProfileReviewData } from '@/lib/campaign-audience'
+import { certificateSecret, certificateToken } from '@/lib/certificate-token'
+import { getSiteUrl, site } from '@/lib/site'
 import { artistProfileIdFromSlug } from '@/lib/artist-slug'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { profileMailData, type ProfileMailData } from '@/lib/artist-profile-mail'
 
-export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string; profileMail?: ProfileMailData }
+export type CampaignRecipient = { id: string; email: string; name: string | null; locale: Locale; review?: ProfileReviewData; artworkTitles?: Array<string | null>; profileSlug?: string; profileMail?: ProfileMailData; certificate?: CertificateContact }
 
 export type DeliverableCampaign = {
   id: string
@@ -44,6 +45,11 @@ export async function campaignRecipients(
     supabase.rpc('contact_country_codes'),
   ])
   if (error) return { recipients: [], error }
+  // Each «Artistas con certificado» link is signed (lib/certificate-token.ts):
+  // without the secret every mail would go out without one.
+  if (parseAudience(audienceInput) === 'certificates' && !certificateSecret()) {
+    return { recipients: [], error: 'Falta CERTIFICATE_SECRET (o CRON_SECRET) para firmar los links de los certificados' }
+  }
 
   // «Tu perfil ya está online» shows each artist's own obra and totals: read
   // for the whole audience at once, only when sending that audience.
@@ -175,10 +181,22 @@ export function campaignRecipientValues(contact: CampaignRecipient): Record<stri
     datos_faltantes: missing.length ? missing.join(', ') : 'Sólo falta tu confirmación',
     perfil_url: contact.profileSlug ? `${getSiteUrl()}/artistas/${contact.profileSlug}` : undefined,
     obra_imagen: contact.profileMail?.imageUrl,
-    obra_titulo: contact.profileMail ? contact.profileMail.title?.trim() || 'Sin título' : undefined,
+    obra_titulo: contact.profileMail
+      ? contact.profileMail.title?.trim() || 'Sin título'
+      : contact.certificate ? contact.certificate.title?.trim() || 'Sin título' : undefined,
+    certificado_url: certificateUrl(contact.certificate),
     publicar_url: contact.profileMail?.slug ? `${getSiteUrl()}/obras/${contact.profileMail.slug}#publicar` : undefined,
     perfil_obras: contact.profileMail ? String(contact.profileMail.obras) : undefined,
     perfil_likes: contact.profileMail ? String(contact.profileMail.likes) : undefined,
     perfil_comentarios: contact.profileMail ? String(contact.profileMail.comments) : undefined,
   }
+}
+
+// The link of a «Artistas con certificado» mail: /mi-certificado opened on
+// the artist's own certificate, signed so it works without signing in.
+function certificateUrl(certificate: CertificateContact | undefined): string | undefined {
+  const secret = certificateSecret()
+  if (!certificate || !secret) return undefined
+  const slug = certificate.slug
+  return `${getSiteUrl()}${site.certificates.path}?obra=${encodeURIComponent(slug)}&t=${certificateToken(slug, secret)}`
 }
