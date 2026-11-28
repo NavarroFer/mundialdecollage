@@ -11,7 +11,7 @@ for (const file of ['lib/artwork-share-image.tsx', 'public/banner-mundial.png', 
 }
 // Same for the participation certificates (lib/certificate-cache.ts).
 const certificateTemplate = createHash('sha256')
-for (const file of ['lib/certificate.tsx', 'lib/artwork-share-image.tsx', 'public/banner-mundial.png', 'public/logo-mark.png', 'assets/Anton-Regular.ttf', 'assets/Oswald-Cyrillic-700.woff', 'assets/Geist-Regular.ttf']) {
+for (const file of ['lib/certificate.tsx', 'lib/torn-paper.ts', 'lib/artwork-share-image.tsx', 'public/banner-mundial.png', 'public/logo-mark.png', 'assets/Anton-Regular.ttf', 'assets/Oswald-Cyrillic-700.woff', 'assets/Geist-Regular.ttf']) {
   certificateTemplate.update(readFileSync(new URL(file, import.meta.url)))
 }
 

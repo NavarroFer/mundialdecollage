@@ -13,6 +13,7 @@ const IMAGE_RENDERERS: Record<string, string> = {
   'app/[locale]/opengraph-image.tsx': 'ISR, redrawn at most once an hour',
   'lib/artwork-share-image.tsx': 'drawn once per obra and kept in R2 (lib/share-image-cache.ts)',
   'lib/certificate.tsx': 'drawn once per certificate and kept in R2 (lib/certificate-cache.ts)',
+  'lib/torn-paper.ts': 'the certificate papers: the same for everyone, made once per process',
   'lib/ar/print-cards.tsx': 'on request by the artist',
   'lib/legacy-submissions.ts': 'admin import, run by hand',
   'lib/registro-image-fingerprint.ts': 'admin import, run by hand',

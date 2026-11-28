@@ -13,6 +13,7 @@ import type { Locale } from '@/lib/i18n/locales'
 import type { Messages } from '@/lib/i18n/messages'
 import { fmt } from '@/lib/i18n/format'
 import { BANNER_RATIO, BLUE, DOMAIN, INK, RED, banner, fonts, loadArtwork } from '@/lib/artwork-share-image'
+import { paperLayer, stripImage, tapeImage, type Piece } from '@/lib/torn-paper'
 
 // Participation certificates, one per obra (app/obras/[slug]/certificado):
 // a printable A4 diploma (PDF) and a 1080x1350 image for an Instagram post.
@@ -29,7 +30,6 @@ import { BANNER_RATIO, BLUE, DOMAIN, INK, RED, banner, fonts, loadArtwork } from
 const PAPER = '#FAF8F2'
 const WHITE = '#FFFFFF'
 const YELLOW = '#E79D00'
-const TAPE = 'rgba(238,226,196,0.88)'
 
 // Geist is the site's text face; it covers Polish and Cyrillic. Anton has no
 // Cyrillic, so Russian falls back to Oswald, as on the site.
@@ -71,68 +71,10 @@ const fit = (text: string, base: number, long = 22, veryLong = 40) =>
   text.length > veryLong ? Math.round(base * 0.6) : text.length > long ? Math.round(base * 0.78) : base
 
 // ---------------------------------------------------------------------------
-// Shapes, as SVG images: satori draws <img> SVGs through resvg.
-
-function seeded(seed: number) {
-  let state = seed >>> 0
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0
-    let t = state
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
+// Shapes. The torn papers and the tape come from lib/torn-paper.ts (drawn
+// with sharp, once per process); the rest are SVG images satori draws.
 
 const svgUri = (svg: string) => `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
-
-// A ragged outline inside a w×h box: each side wanders `amp` px in from the
-// edge, a step every `step` px or so.
-function raggedOutline(w: number, h: number, amp: number, step: number, random: () => number) {
-  const points: string[] = []
-  const add = (x: number, y: number) => points.push(`${x.toFixed(1)},${y.toFixed(1)}`)
-  const walk = (length: number, place: (along: number, depth: number) => void) => {
-    for (let along = 0; along < length; along += step * (0.55 + random() * 0.9)) place(along, random() * amp)
-  }
-  walk(w, (x, d) => add(x, d))
-  walk(h, (y, d) => add(w - d, y))
-  walk(w, (x, d) => add(w - x, h - d))
-  walk(h, (y, d) => add(d, h - y))
-  return points.join(' ')
-}
-
-// A sheet of coloured paper torn on every side, with the white fibre a torn
-// edge shows peeking out from under it.
-function tornPaper(w: number, h: number, color: string, seed: number, scale = 1) {
-  const random = seeded(seed)
-  const amp = 9 * scale
-  const fibre = raggedOutline(w, h, amp, 14 * scale, random)
-  const inset = 4 * scale
-  const sheet = raggedOutline(w - inset * 2, h - inset * 2, amp, 14 * scale, random)
-  return svgUri(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">` +
-      `<polygon points="${fibre}" fill="#FFFFFF"/>` +
-      `<g transform="translate(${inset} ${inset})"><polygon points="${sheet}" fill="${color}"/></g>` +
-      `</svg>`,
-  )
-}
-
-// A strip of masking tape: straight sides, zigzag ends where it was torn off.
-function tape(w: number, h: number, seed: number) {
-  const random = seeded(seed)
-  const teeth = 6
-  const left: string[] = []
-  const right: string[] = []
-  for (let i = 0; i <= teeth; i++) {
-    const y = (h / teeth) * i
-    left.push(`${(random() * h * 0.12).toFixed(1)},${y.toFixed(1)}`)
-    right.unshift(`${(w - random() * h * 0.12).toFixed(1)},${y.toFixed(1)}`)
-  }
-  return svgUri(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">` +
-      `<polygon points="${[...left, ...right].join(' ')}" fill="${TAPE}"/></svg>`,
-  )
-}
 
 // A postage stamp: white, with perforated edges bitten out of it in the
 // colour of what it's stuck on, and a red frame inside.
@@ -155,36 +97,27 @@ function stampSheet(size: number, background: string) {
   )
 }
 
-// The torn edge of the site's labels (.torn-strip in app/globals.css), as a
-// background stretched to the label: satori's clip-path misplaces it once
-// the label is rotated.
-const TORN_STRIP_POINTS =
-  '0,8 6,0 12,9 18,2 24,10 30,3 36,11 42,2 48,9 54,0 60,10 66,3 72,11 78,2 84,9 90,0 96,10 100,3 100,93 94,100 88,91 82,98 76,90 70,100 64,91 58,98 52,90 46,100 40,91 34,98 28,90 22,100 16,91 10,98 4,90 0,97'
-const tornStrip = (color: string) =>
-  `url(${svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="${TORN_STRIP_POINTS}" fill="${color}"/></svg>`)})`
-
-type Box = { left?: number; top?: number; right?: number; bottom?: number }
-
-function Paper({ src, w, h, at, rotate }: { src: string; w: number; h: number; at: Box; rotate: number }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} width={w} height={h} alt="" style={{ position: 'absolute', ...at, transform: `rotate(${rotate}deg)` }} />
-  )
+// A label on a torn strip of paper, like the site's .torn-strip
+// (app/globals.css). The strip is drawn for the text's rough size, then
+// stretched to the label.
+function labelStrip(text: string, color: string, fontSize: number, scale: number) {
+  const width = Math.round((text.length * fontSize * 0.66 + fontSize * 1.8) / (20 * scale)) * 20 * scale
+  return stripImage(width, Math.round(fontSize * 1.9), color, 31, scale)
 }
 
-function Label({ text, color, fontSize, rotate = -2 }: { text: string; color: string; fontSize: number; rotate?: number }) {
+function Label({ text, strip, fontSize, rotate = -2 }: { text: string; strip: string; fontSize: number; rotate?: number }) {
   return (
     <div
       style={{
         display: 'flex',
-        backgroundImage: tornStrip(color),
+        backgroundImage: `url(${strip})`,
         backgroundSize: '100% 100%',
         color: WHITE,
         fontFamily: DISPLAY,
         fontSize,
         letterSpacing: fontSize * 0.1,
         textTransform: 'uppercase',
-        padding: `${fontSize * 0.42}px ${fontSize * 0.9}px`,
+        padding: `${fontSize * 0.62}px ${fontSize * 1.05}px`,
         transform: `rotate(${rotate}deg)`,
       }}
     >
@@ -204,20 +137,27 @@ type Artwork = Awaited<ReturnType<typeof loadArtwork>>
 
 // The obra pasted on: a white border, a soft shadow and two strips of tape.
 // Without its photo (it couldn't be loaded) the Mundial's globe stands in.
-function PastedArtwork({ artwork, box, scale, rotate }: { artwork: Artwork; box: { width: number; height: number }; scale: number; rotate: number }) {
+type Tape = Awaited<ReturnType<typeof tapeImage>>
+
+function tapesFor(scale: number) {
+  return Promise.all([tapeImage(Math.round(150 * scale), Math.round(40 * scale), 7, scale), tapeImage(Math.round(150 * scale), Math.round(40 * scale), 11, scale)])
+}
+
+function PastedArtwork({ artwork, box, scale, rotate, tapes }: { artwork: Artwork; box: { width: number; height: number }; scale: number; rotate: number; tapes: Tape[] }) {
   const border = 12 * scale
   const w = artwork ? artwork.width : box.width * 0.8
   const h = artwork ? artwork.height : box.width * 0.8
-  const tapeW = Math.min(150 * scale, w * 0.45)
-  const tapeH = 40 * scale
+  const [first, second] = tapes
   return (
     <div style={{ position: 'relative', display: 'flex', transform: `rotate(${rotate}deg)` }}>
-      <div style={{ display: 'flex', background: WHITE, padding: border, boxShadow: `0 ${14 * scale}px ${30 * scale}px rgba(27,17,12,0.22)` }}>
+      <div style={{ display: 'flex', background: WHITE, padding: border, boxShadow: `0 ${3 * scale}px ${4 * scale}px rgba(27,17,12,0.18), 0 ${14 * scale}px ${30 * scale}px rgba(27,17,12,0.2)` }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={artwork ? artwork.src : logoMark} width={w} height={h} alt="" />
       </div>
-      <Paper src={tape(tapeW, tapeH, 7)} w={tapeW} h={tapeH} at={{ top: -tapeH * 0.45, left: -tapeW * 0.22 }} rotate={-32} />
-      <Paper src={tape(tapeW, tapeH, 11)} w={tapeW} h={tapeH} at={{ bottom: -tapeH * 0.45, right: -tapeW * 0.22 }} rotate={-30} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={first.src} width={first.width} height={first.height} alt="" style={{ position: 'absolute', top: -first.height * 0.45, left: -first.width * 0.25, transform: 'rotate(-32deg)' }} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={second.src} width={second.width} height={second.height} alt="" style={{ position: 'absolute', bottom: -second.height * 0.45, right: -second.width * 0.25, transform: 'rotate(-30deg)' }} />
     </div>
   )
 }
@@ -254,28 +194,38 @@ function Signature({ name, role, width, scale }: { name: string; role: string; w
 export const DIPLOMA = { width: 3508, height: 2480 }
 const S = DIPLOMA.width / 1754
 
+// The papers under the text, the same on every diploma: blue and yellow
+// peeking out at the top, red at the bottom right, a yellow strip along the
+// bottom, and the white sheet it's all written on, a little crooked.
+const SHEET = { left: 96 * S, top: 84 * S, width: 1562 * S, height: 1072 * S }
+const DIPLOMA_PAPERS: Piece[] = [
+  { x: 200 * S, y: 100 * S, w: 640 * S, h: 420 * S, rotate: -7, color: BLUE, seed: 1 },
+  { x: 1664 * S, y: 110 * S, w: 300 * S, h: 300 * S, rotate: 14, color: YELLOW, seed: 2 },
+  { x: 1554 * S, y: 1165 * S, w: 660 * S, h: 430 * S, rotate: 6, color: RED, seed: 3, torn: { left: false } },
+  { x: 370 * S, y: 1127 * S, w: 900 * S, h: 86 * S, rotate: -4, color: YELLOW, seed: 4, torn: { left: false, right: false }, fibre: 6 },
+  { x: SHEET.left + SHEET.width / 2, y: SHEET.top + SHEET.height / 2, w: SHEET.width, h: SHEET.height, rotate: -0.6, color: WHITE, seed: 5, fibre: 3, texture: 0 },
+]
+
 async function drawDiploma(d: Details, artwork: Artwork): Promise<Buffer> {
   const t = d.texts
-  const qr = await QRCode.toDataURL(d.verifyUrl, { margin: 0, width: Math.round(120 * S), errorCorrectionLevel: 'M', color: { dark: INK, light: WHITE } })
+  const [qr, tapes, papers, strip] = await Promise.all([
+    QRCode.toDataURL(d.verifyUrl, { margin: 0, width: Math.round(120 * S), errorCorrectionLevel: 'M', color: { dark: INK, light: WHITE } }),
+    tapesFor(S),
+    paperLayer(DIPLOMA.width, DIPLOMA.height, PAPER, DIPLOMA_PAPERS, S),
+    labelStrip(t.title, RED, 30 * S, S),
+  ])
   const [organizerA, organizerB] = d.organizers
-  const sheet = { left: 96 * S, top: 84 * S, width: 1562 * S, height: 1072 * S }
+  const sheet = SHEET
 
+  // Only the writing and the obra: drawn on a transparent page and laid on
+  // the papers below.
   const image = new ImageResponse(
     (
-      <div style={{ position: 'relative', display: 'flex', width: '100%', height: '100%', background: PAPER }}>
-        {/* The coloured papers under the sheet, peeking out at the corners. */}
-        <Paper src={tornPaper(640 * S, 420 * S, BLUE, 1, S)} w={640 * S} h={420 * S} at={{ left: -120 * S, top: -110 * S }} rotate={-7} />
-        <Paper src={tornPaper(300 * S, 300 * S, YELLOW, 2, S)} w={300 * S} h={300 * S} at={{ right: -60 * S, top: -40 * S }} rotate={14} />
-        <Paper src={tornPaper(660 * S, 430 * S, RED, 3, S)} w={660 * S} h={430 * S} at={{ right: -130 * S, bottom: -140 * S }} rotate={6} />
-        <Paper src={tornPaper(900 * S, 86 * S, YELLOW, 4, S)} w={900 * S} h={86 * S} at={{ left: -80 * S, bottom: 70 * S }} rotate={-4} />
-
-        {/* The white sheet everything is written on. */}
-        <Paper src={tornPaper(sheet.width, sheet.height, WHITE, 5, S)} w={sheet.width} h={sheet.height} at={{ left: sheet.left, top: sheet.top }} rotate={-0.6} />
-
+      <div style={{ position: 'relative', display: 'flex', width: '100%', height: '100%' }}>
         <div style={{ position: 'absolute', left: sheet.left, top: sheet.top, width: sheet.width, height: sheet.height, display: 'flex', padding: `${64 * S}px ${80 * S}px ${54 * S}px ${70 * S}px` }}>
           {/* Left: the obra. */}
           <div style={{ display: 'flex', width: 520 * S, alignItems: 'center', justifyContent: 'center', paddingRight: 40 * S }}>
-            <PastedArtwork artwork={artwork} box={{ width: 440 * S, height: 600 * S }} scale={S} rotate={-3} />
+            <PastedArtwork artwork={artwork} box={{ width: 440 * S, height: 600 * S }} scale={S} rotate={-3} tapes={tapes} />
           </div>
 
           {/* Right: what it certifies. */}
@@ -287,7 +237,7 @@ async function drawDiploma(d: Details, artwork: Artwork): Promise<Buffer> {
             </div>
 
             <div style={{ display: 'flex', marginTop: 22 * S }}>
-              <Label text={t.title} color={RED} fontSize={30 * S} />
+              <Label text={t.title} strip={strip} fontSize={30 * S} />
             </div>
 
             <div style={{ display: 'flex', marginTop: 34 * S, fontFamily: TEXT, fontSize: 26 * S, color: INK, opacity: 0.7 }}>{t.certifies}</div>
@@ -321,7 +271,10 @@ async function drawDiploma(d: Details, artwork: Artwork): Promise<Buffer> {
     ),
     { ...DIPLOMA, fonts: allFonts },
   )
-  return sharp(Buffer.from(await image.arrayBuffer())).jpeg({ quality: 90, chromaSubsampling: '4:4:4', mozjpeg: true }).toBuffer()
+  return sharp(papers)
+    .composite([{ input: Buffer.from(await image.arrayBuffer()) }])
+    .jpeg({ quality: 90, chromaSubsampling: '4:4:4', mozjpeg: true })
+    .toBuffer()
 }
 
 /** The diploma as a 300 dpi JPEG; `complete` is false when the obra's photo couldn't be loaded. */
@@ -353,28 +306,35 @@ export function diplomaPreview(jpeg: Buffer): Promise<Buffer> {
 
 export const POST_SIZE = { width: 1080, height: 1350 }
 
+const POST_PAPERS: Piece[] = [
+  { x: 110, y: 30, w: 460, h: 320, rotate: -9, color: BLUE, seed: 21 },
+  { x: 1050, y: 270, w: 200, h: 200, rotate: 16, color: YELLOW, seed: 22 },
+  { x: -10, y: 1390, w: 420, h: 300, rotate: -6, color: RED, seed: 23 },
+  { x: 540, y: 620, w: 1240, h: 120, rotate: -5, color: YELLOW, seed: 24, torn: { left: false, right: false }, fibre: 6 },
+]
+
 export async function certificatePostImage(input: CertificateInput): Promise<{ png: Buffer; complete: boolean }> {
   const d = certificateDetails(input)
   const t = d.texts
-  const artwork = await loadArtwork(input.finalist.imageUrl, { width: 520, height: 480 })
+  const [artwork, tapes, papers, strip] = await Promise.all([
+    loadArtwork(input.finalist.imageUrl, { width: 520, height: 480 }),
+    tapesFor(1),
+    paperLayer(POST_SIZE.width, POST_SIZE.height, PAPER, POST_PAPERS),
+    labelStrip(t.title, RED, 26, 1),
+  ])
   const bannerWidth = 400
 
   const image = new ImageResponse(
     (
-      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%', background: PAPER, padding: '60px 64px 40px' }}>
-        <Paper src={tornPaper(460, 320, BLUE, 21)} w={460} h={320} at={{ left: -120, top: -130 }} rotate={-9} />
-        <Paper src={tornPaper(200, 200, YELLOW, 22)} w={200} h={200} at={{ right: -70, top: 170 }} rotate={16} />
-        <Paper src={tornPaper(420, 300, RED, 23)} w={420} h={300} at={{ left: -220, bottom: -190 }} rotate={-6} />
-        <Paper src={tornPaper(1240, 120, YELLOW, 24)} w={1240} h={120} at={{ left: -80, top: 560 }} rotate={-5} />
-
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%', padding: '60px 64px 40px' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={banner} width={bannerWidth} height={bannerWidth * BANNER_RATIO} alt="" />
         <div style={{ display: 'flex', marginTop: 18 }}>
-          <Label text={t.title} color={RED} fontSize={26} />
+          <Label text={t.title} strip={strip} fontSize={26} />
         </div>
 
         <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <PastedArtwork artwork={artwork} box={{ width: 520, height: 480 }} scale={1} rotate={-3} />
+          <PastedArtwork artwork={artwork} box={{ width: 520, height: 480 }} scale={1} rotate={-3} tapes={tapes} />
         </div>
 
         <div style={{ display: 'flex', fontFamily: DISPLAY, fontSize: 92, lineHeight: 1, color: INK, textTransform: 'uppercase' }}>{t.igBadge}</div>
@@ -393,5 +353,6 @@ export async function certificatePostImage(input: CertificateInput): Promise<{ p
     ),
     { ...POST_SIZE, fonts: allFonts },
   )
-  return { png: Buffer.from(await image.arrayBuffer()), complete: artwork !== null }
+  const png = await sharp(papers).composite([{ input: Buffer.from(await image.arrayBuffer()) }]).png().toBuffer()
+  return { png, complete: artwork !== null }
 }
