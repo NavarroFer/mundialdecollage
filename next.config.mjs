@@ -9,10 +9,18 @@ const shareImageTemplate = createHash('sha256')
 for (const file of ['lib/artwork-share-image.tsx', 'public/banner-mundial.png', 'assets/Anton-Regular.ttf', 'assets/Oswald-Cyrillic-700.woff']) {
   shareImageTemplate.update(readFileSync(new URL(file, import.meta.url)))
 }
+// Same for the participation certificates (lib/certificate-cache.ts).
+const certificateTemplate = createHash('sha256')
+for (const file of ['lib/certificate.tsx', 'lib/artwork-share-image.tsx', 'public/banner-mundial.png', 'public/logo-mark.png', 'assets/Anton-Regular.ttf', 'assets/Oswald-Cyrillic-700.woff', 'assets/Geist-Regular.ttf']) {
+  certificateTemplate.update(readFileSync(new URL(file, import.meta.url)))
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: { SHARE_IMAGE_TEMPLATE: shareImageTemplate.digest('hex').slice(0, 16) },
+  env: {
+    SHARE_IMAGE_TEMPLATE: shareImageTemplate.digest('hex').slice(0, 16),
+    CERTIFICATE_TEMPLATE: certificateTemplate.digest('hex').slice(0, 16),
+  },
   // The type check runs only in CI (which also runs `tsc --noEmit`). On the
   // GV Cloud server it took ~1 min of the CPU the live site shares, and
   // scripts/gvcloud/deploy.py only deploys a commit whose CI passed.

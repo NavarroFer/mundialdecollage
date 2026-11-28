@@ -47,18 +47,21 @@ export async function cachedShareImage(
 // No `cache` option on the HEAD, as in lib/r2.ts: 'no-store' throws in the
 // ISR routes that call this.
 async function shareImageKey(drawn: unknown, photoUrl: string, format: 'png' | 'jpeg'): Promise<string | null> {
-  let version: string | null = 'versioned'
-  if (!isVersionedSource(photoUrl)) {
-    try {
-      const head = await fetch(photoUrl, { method: 'HEAD' })
-      version = head.ok ? (head.headers.get('etag') ?? head.headers.get('last-modified')) : null
-    } catch {
-      version = null
-    }
-  }
+  const version = await photoVersion(photoUrl)
   if (!version) return null
   const hash = createHash('sha256').update(JSON.stringify([TEMPLATE, drawn, photoUrl, version])).digest('hex')
   return `share/${hash}.${format}`
+}
+
+/** What tells one upload of this photo from another, or null when unknown. */
+export async function photoVersion(photoUrl: string): Promise<string | null> {
+  if (isVersionedSource(photoUrl)) return 'versioned'
+  try {
+    const head = await fetch(photoUrl, { method: 'HEAD' })
+    return head.ok ? (head.headers.get('etag') ?? head.headers.get('last-modified')) : null
+  } catch {
+    return null
+  }
 }
 
 function imageResponse(body: Buffer, format: 'png' | 'jpeg') {

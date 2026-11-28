@@ -12,7 +12,7 @@ const IMAGE_RENDERERS: Record<string, string> = {
   'app/api/img/route.ts': 'each size made once, kept in R2 and the CDN',
   'app/[locale]/opengraph-image.tsx': 'ISR, redrawn at most once an hour',
   'lib/artwork-share-image.tsx': 'drawn once per obra and kept in R2 (lib/share-image-cache.ts)',
-  'lib/certificate.tsx': 'on request by the artist (robots.txt keeps crawlers off)',
+  'lib/certificate.tsx': 'drawn once per certificate and kept in R2 (lib/certificate-cache.ts)',
   'lib/ar/print-cards.tsx': 'on request by the artist',
   'lib/legacy-submissions.ts': 'admin import, run by hand',
   'lib/registro-image-fingerprint.ts': 'admin import, run by hand',

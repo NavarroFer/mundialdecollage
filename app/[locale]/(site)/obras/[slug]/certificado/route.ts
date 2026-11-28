@@ -1,4 +1,4 @@
-import { certificatePdf, certificatePostImage } from '@/lib/certificate'
+import { certificateFile, type CertificateFile } from '@/lib/certificate-cache'
 import { isValidCertificateToken, certificateSecret } from '@/lib/certificate-token'
 import { getCertificateFinalistBySlug, getFinalistBySlug, getRenamedArtworkSlug, type Finalist } from '@/lib/finalists'
 import { getCallState } from '@/lib/call-state'
@@ -11,7 +11,9 @@ import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 // The participation certificate of an obra (lib/certificate.tsx):
 // ?formato=pdf (default) is the A4 diploma to print, ?formato=imagen the
-// Instagram post. Once the call is closed (/admin/convocatoria) the obra's
+// Instagram post and ?formato=vista a smaller picture of the diploma for
+// /mi-certificado, which also passes ?ver=1 to show the image instead of
+// downloading it. Each is drawn once and kept (lib/certificate-cache.ts). Once the call is closed (/admin/convocatoria) the obra's
 // own artist can download it, signed in or through the signed ?t= link the
 // certificate mail carries (lib/certificate-mail.ts) — many Registro
 // artists never sign in. Admins always can, to preview it.
@@ -53,19 +55,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
   const name = `certificado-mundial-de-collage-${finalist.slug}`
 
-  if (url.searchParams.get('formato') === 'imagen') {
-    const image = await certificatePostImage(input)
-    const headers = new Headers(image.headers)
-    headers.set('cache-control', 'private, max-age=3600')
-    headers.set('content-disposition', `attachment; filename="${name}.png"`)
-    return new Response(image.body, { status: image.status, headers })
-  }
-
-  const pdf = await certificatePdf(input)
-  return new Response(pdf as BodyInit, {
+  const format = url.searchParams.get('formato')
+  const file: CertificateFile = format === 'imagen' ? 'post' : format === 'vista' ? 'preview' : 'pdf'
+  const { body, contentType } = await certificateFile(file, input)
+  const extension = file === 'pdf' ? 'pdf' : file === 'post' ? 'png' : 'jpg'
+  const inline = file === 'preview' || url.searchParams.get('ver') === '1'
+  return new Response(new Uint8Array(body), {
     headers: {
-      'content-type': 'application/pdf',
-      'content-disposition': `attachment; filename="${name}.pdf"`,
+      'content-type': contentType,
+      'content-disposition': `${inline ? 'inline' : 'attachment'}; filename="${name}.${extension}"`,
       'cache-control': 'private, max-age=3600',
     },
   })
